@@ -657,7 +657,7 @@ fn request_target_forms_reconstruct_semantic_components() {
             ),
             (
                 b"GET HTTPS://Example/a HTTP/1.1\r\nHost: ignored\r\n\r\n",
-                Some("HTTPS"),
+                Some("https"),
                 "Example",
                 Some("/a"),
             ),

@@ -1,8 +1,10 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-//! Request target components. Values are preserved as supplied; drivers validate
-//! target combinations and wire syntax before transmission.
+//! Request target components. Authorities and paths are preserved as supplied;
+//! schemes are case-insensitive and stored in their canonical lowercase form
+//! (RFC 3986, section 3.1). Drivers validate target combinations and wire
+//! syntax before transmission.
 
 use arrayvec::ArrayString;
 use std::{
@@ -13,8 +15,8 @@ use std::{
     ops::Deref,
 };
 
-/// A request scheme. `http` and `https` use borrowed constants; other values
-/// retain their original spelling.
+/// A lowercase request scheme. `http` and `https` in any case use borrowed
+/// constants; other schemes are lowercased when converted.
 #[derive(Clone)]
 pub struct Scheme(Cow<'static, str>);
 
@@ -30,22 +32,29 @@ impl Scheme {
     }
 }
 
-impl From<&str> for Scheme {
-    fn from(value: &str) -> Self {
-        match value {
-            "http" => Self::HTTP,
-            "https" => Self::HTTPS,
-            value => Self(Cow::Owned(value.to_owned())),
+impl Scheme {
+    fn known(value: &str) -> Option<Self> {
+        if value.eq_ignore_ascii_case("http") {
+            Some(Self::HTTP)
+        } else if value.eq_ignore_ascii_case("https") {
+            Some(Self::HTTPS)
+        } else {
+            None
         }
     }
 }
+
+impl From<&str> for Scheme {
+    fn from(value: &str) -> Self {
+        Self::known(value).unwrap_or_else(|| Self(Cow::Owned(value.to_ascii_lowercase())))
+    }
+}
 impl From<String> for Scheme {
-    fn from(value: String) -> Self {
-        match value.as_str() {
-            "http" => Self::HTTP,
-            "https" => Self::HTTPS,
-            _ => Self(Cow::Owned(value)),
-        }
+    fn from(mut value: String) -> Self {
+        Self::known(&value).unwrap_or_else(|| {
+            value.make_ascii_lowercase();
+            Self(Cow::Owned(value))
+        })
     }
 }
 
@@ -212,8 +221,13 @@ mod tests {
             Scheme::from(String::from("https")).0,
             Cow::Borrowed(_)
         ));
-        assert_eq!(Scheme::from("HTTP").as_str(), "HTTP");
-        assert_eq!(Scheme::from("ws"), "ws");
+        assert!(matches!(Scheme::from("HTTP").0, Cow::Borrowed("http")));
+        assert!(matches!(
+            Scheme::from(String::from("HttpS")).0,
+            Cow::Borrowed("https")
+        ));
+        assert_eq!(Scheme::from("WS"), "ws");
+        assert_eq!(Scheme::from(String::from("Coap+TCP")), "coap+tcp");
         assert_eq!(String::from(Scheme::HTTPS), "https");
     }
 

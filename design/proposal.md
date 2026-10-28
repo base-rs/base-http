@@ -155,7 +155,7 @@ Port `protocol-http` into Base-owned `Request<B>` and `Response<B>` types, adapt
 | Value | Proposed representation/meaning |
 | --- | --- |
 | Method | A validated token with constants and predicates for known methods; unknown valid methods remain representable. |
-| Scheme, authority, path/query | Separate request components, following Socketry's model. Preserve request-target forms and resolve relative requests before transmission where required. |
+| Scheme, authority, path/query | Separate request components, following Socketry's model. Preserve request-target forms and resolve relative requests before transmission where required. Store schemes in lowercase, the canonical form for these case-insensitive names ([RFC 3986, section 3.1](https://www.rfc-editor.org/rfc/rfc3986#section-3.1)); HTTP/2 and HTTP/3 schemes are not restricted to `http` and `https`, so other schemes remain representable. |
 | Protocol intent | Typed Base metadata, separate from HTTP version, covering upgrades and extended CONNECT. |
 | Version | Optional before negotiation; records the wire version on received messages. Outbound protocol policy belongs in execution options. |
 | Status | Base status value and Socketry-style classification predicates; informational/final response sequencing is explicit. |
