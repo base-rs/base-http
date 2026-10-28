@@ -442,28 +442,28 @@ pub(crate) fn request(
     }
     if let Some(host) = host {
         authority(host, false)?;
-        head.authority = Some(host.to_owned());
+        head.authority = Some(host.into());
     }
     if head.method == Method::CONNECT {
         authority(target, true)?;
-        head.authority = Some(target.to_owned());
+        head.authority = Some(target.into());
     } else if target.starts_with('/') || (target == "*" && head.method == Method::OPTIONS) {
-        head.path = Some(target.to_owned());
+        head.path = Some(target.into());
     } else if let Some((scheme, rest)) = target.split_once("://") {
         if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
             return Err(Error::Invalid("unsupported target scheme"));
         }
         let end = rest.find(['/', '?']).unwrap_or(rest.len());
         authority(&rest[..end], false)?;
-        head.authority = Some(rest[..end].to_owned());
-        head.scheme = Some(scheme.to_owned());
+        head.authority = Some(rest[..end].into());
+        head.scheme = Some(scheme.into());
         let suffix = &rest[end..];
         head.path = Some(if suffix.is_empty() {
-            "/".to_owned()
+            "/".into()
         } else if suffix.starts_with('?') {
-            format!("/{suffix}")
+            format!("/{suffix}").into()
         } else {
-            suffix.to_owned()
+            suffix.into()
         });
     } else {
         return Err(Error::Invalid("invalid request target form"));

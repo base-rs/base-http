@@ -13,6 +13,7 @@ pub mod protocol;
 pub mod request;
 pub mod response;
 pub mod status;
+pub mod target;
 pub mod version;
 
 mod future;
@@ -26,4 +27,5 @@ pub use protocol::Protocol;
 pub use request::{Request, RequestMetadata};
 pub use response::{Response, ResponseMetadata};
 pub use status::Status;
+pub use target::{Authority, Path, Scheme};
 pub use version::Version;

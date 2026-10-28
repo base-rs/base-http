@@ -1303,7 +1303,7 @@ fn established_http1_runs_without_polling_client_driver() {
         assert_eq!(client.pool_stats().uses, 0);
         for index in 1..5 {
             let mut metadata = RequestMetadata::new(Method::GET);
-            metadata.path = Some(format!("/{index}"));
+            metadata.path = Some(format!("/{index}").into());
             metadata.content_length = Some(0);
             let request = client.open_request(metadata, &lifetime).await.unwrap();
             let mut response = request.finish(&lifetime).await.unwrap();

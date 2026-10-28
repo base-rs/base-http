@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2019-2026, by Samuel Williams.
 
-use crate::{Fields, Method, Protocol, Version, body::EmptyBody};
+use crate::{Authority, Fields, Method, Path, Protocol, Scheme, Version, body::EmptyBody};
 use std::ops::{Deref, DerefMut};
 
 /// Protocol-independent request metadata. Components are preserved as supplied;
@@ -9,11 +9,11 @@ use std::ops::{Deref, DerefMut};
 #[derive(Clone, Debug)]
 pub struct RequestMetadata {
     pub method: Method,
-    pub scheme: Option<String>,
-    pub authority: Option<String>,
+    pub scheme: Option<Scheme>,
+    pub authority: Option<Authority>,
     /// Path and optional query, or the supplied request-target form. `None`
     /// represents a request such as traditional CONNECT with no path.
-    pub path: Option<String>,
+    pub path: Option<Path>,
     pub version: Option<Version>,
     pub fields: Fields,
     /// Declared representation length, independent of whether this message has
@@ -50,7 +50,7 @@ pub struct Request<B = EmptyBody> {
 }
 
 impl<B> Request<B> {
-    pub fn new(method: Method, path: impl Into<String>, body: B) -> Self {
+    pub fn new(method: Method, path: impl Into<Path>, body: B) -> Self {
         let mut metadata = RequestMetadata::new(method);
         metadata.path = Some(path.into());
         Self { metadata, body }
@@ -83,7 +83,7 @@ impl<B> Request<B> {
 }
 
 impl Request<EmptyBody> {
-    pub fn get(path: impl Into<String>) -> Self {
+    pub fn get(path: impl Into<Path>) -> Self {
         Self::new(Method::GET, path, EmptyBody)
     }
 }
