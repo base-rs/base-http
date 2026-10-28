@@ -368,7 +368,7 @@ impl<R: ReadableStream> ResponseReader<R> {
             {
                 return Err(Error::Invalid("invalid interim framing"));
             }
-            head.fields = wire::application_fields(head.fields, false)?.0;
+            head.fields = wire::application_fields(head.fields)?.0;
             interim
                 .send_interim_response(head, cancellation)
                 .await
@@ -454,7 +454,7 @@ impl<R: ReadableStream> ResponseReader<R> {
             && (head.version == Some(Version::Http11)
                 || wire::has_token(&head.fields, "connection", b"keep-alive"));
         head.content_length = length;
-        let (fields, trailer_options) = wire::application_fields(head.fields, false)?;
+        let (fields, trailer_options) = wire::application_fields(head.fields)?;
         head.fields = fields;
         let exchange = Exchange::new(request, trailer_options);
         let request_persistent = exchange.is_persistent();

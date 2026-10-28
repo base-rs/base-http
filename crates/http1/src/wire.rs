@@ -6,9 +6,26 @@ use base_http::{Fields, Method, Protocol, RequestMetadata, Version};
 
 pub(crate) fn token(bytes: &[u8]) -> bool {
     !bytes.is_empty()
-        && bytes
-            .iter()
-            .all(|b| b.is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(b))
+        && bytes.iter().all(|b| {
+            b.is_ascii_alphanumeric()
+                || matches!(
+                    b,
+                    b'!' | b'#'
+                        | b'$'
+                        | b'%'
+                        | b'&'
+                        | b'\''
+                        | b'*'
+                        | b'+'
+                        | b'-'
+                        | b'.'
+                        | b'^'
+                        | b'_'
+                        | b'`'
+                        | b'|'
+                        | b'~'
+                )
+        })
 }
 
 pub(crate) fn has_token(fields: &Fields, name: &str, token: &[u8]) -> bool {
@@ -76,12 +93,17 @@ fn parse_framing(
 /// Reject lenient line endings and whitespace before a field name. This check
 /// complements httparse, which intentionally accepts some interoperable forms.
 pub(crate) fn strict_lines(bytes: &[u8]) -> Result<(), Error> {
-    for (i, b) in bytes.iter().enumerate() {
-        if (*b == b'\n' && (i == 0 || bytes[i - 1] != b'\r'))
-            || (*b == b'\r' && bytes.get(i + 1) != Some(&b'\n'))
-        {
-            return Err(Error::Invalid("expected CRLF"));
-        }
+    // Every LF must follow a CR and every CR must precede an LF. Comparing each
+    // adjacent pair without short-circuiting lets the compiler vectorize the
+    // scan; heads are bounded by the input limits.
+    let unpaired = bytes
+        .iter()
+        .zip(&bytes[1.min(bytes.len())..])
+        .fold(false, |unpaired, (previous, byte)| {
+            unpaired | ((*previous == b'\r') != (*byte == b'\n'))
+        });
+    if unpaired || bytes.first() == Some(&b'\n') || bytes.last() == Some(&b'\r') {
+        return Err(Error::Invalid("expected CRLF"));
     }
     Ok(())
 }
@@ -94,12 +116,70 @@ pub(crate) fn fields(headers: &[httparse::Header<'_>]) -> Result<Fields, Error> 
     Ok(fields)
 }
 
+/// Bytes permitted in a registered name: unreserved, sub-delims except comma,
+/// and percent-encoding.
+const REG_NAME: [bool; 256] = {
+    let mut table = [false; 256];
+    let mut byte = 0;
+    while byte < 256 {
+        let b = byte as u8;
+        table[byte] = b.is_ascii_alphanumeric()
+            || matches!(
+                b,
+                b'-' | b'.'
+                    | b'_'
+                    | b'~'
+                    | b'%'
+                    | b'!'
+                    | b'$'
+                    | b'&'
+                    | b'\''
+                    | b'('
+                    | b')'
+                    | b'*'
+                    | b'+'
+                    | b';'
+                    | b'='
+            );
+        byte += 1;
+    }
+    table
+};
+
+/// Accept the common `reg-name[:port]` form in one pass. Returns false when the
+/// value is invalid or uses another form, leaving the complete validation to
+/// select the error.
+#[inline]
+fn simple_authority(value: &[u8], require_port: bool) -> bool {
+    let host = value
+        .iter()
+        .take_while(|b| REG_NAME[usize::from(**b)])
+        .count();
+    if host == 0 {
+        return false;
+    }
+    match value[host..].split_first() {
+        None => !require_port,
+        Some((b':', port)) => {
+            !port.is_empty()
+                && port.len() <= 5
+                && port.iter().all(u8::is_ascii_digit)
+                && port.iter().fold(0u32, |n, b| n * 10 + u32::from(b - b'0'))
+                    <= u32::from(u16::MAX)
+        }
+        Some(_) => false,
+    }
+}
+
 pub(crate) fn authority(value: &str, require_port: bool) -> Result<(), Error> {
+    if simple_authority(value.as_bytes(), require_port) {
+        return Ok(());
+    }
     if value.is_empty()
         || !value.is_ascii()
         || value
             .bytes()
-            .any(|b| b <= 32 || b == 127 || b"/?#@\\,".contains(&b))
+            .any(|b| b <= 32 || b == 127 || matches!(b, b'/' | b'?' | b'#' | b'@' | b'\\' | b','))
     {
         return Err(Error::Invalid("invalid authority"));
     }
@@ -121,10 +201,7 @@ pub(crate) fn authority(value: &str, require_port: bool) -> Result<(), Error> {
         let (host, port) = value
             .split_once(':')
             .map_or((value, None), |(h, p)| (h, Some(p)));
-        if !host
-            .bytes()
-            .all(|b| b.is_ascii_alphanumeric() || b"-._~%!$&'()*+;=".contains(&b))
-        {
+        if !host.bytes().all(|b| REG_NAME[usize::from(b)]) {
             return Err(Error::Invalid("invalid authority host"));
         }
         if host.is_empty() {
@@ -152,7 +229,7 @@ pub(crate) fn request_target(method: &Method, target: &str) -> Result<(), Error>
         || !target.is_ascii()
         || target
             .bytes()
-            .any(|b| b <= 32 || b == 127 || b"#\\".contains(&b))
+            .any(|b| b <= 32 || b == 127 || matches!(b, b'#' | b'\\'))
     {
         return Err(Error::Invalid("invalid request target"));
     }
@@ -249,6 +326,33 @@ fn set_singleton<'a>(slot: &mut Option<&'a [u8]>, value: &'a [u8]) -> Result<(),
     Ok(())
 }
 
+#[derive(Clone, Copy)]
+enum Control {
+    Host,
+    ContentLength,
+    TransferEncoding,
+    Connection,
+    Upgrade,
+    Removed,
+}
+
+/// Classify request fields consumed by HTTP/1 framing rather than retained as
+/// application fields.
+fn request_control(name: &str) -> Option<Control> {
+    let is = |control: &str| name.eq_ignore_ascii_case(control);
+    match name.len() {
+        2 if is("te") => Some(Control::Removed),
+        4 if is("host") => Some(Control::Host),
+        7 if is("upgrade") => Some(Control::Upgrade),
+        10 if is("connection") => Some(Control::Connection),
+        10 if is("keep-alive") => Some(Control::Removed),
+        14 if is("content-length") => Some(Control::ContentLength),
+        16 if is("proxy-connection") => Some(Control::Removed),
+        17 if is("transfer-encoding") => Some(Control::TransferEncoding),
+        _ => None,
+    }
+}
+
 pub(crate) fn request(
     parsed: &httparse::Request<'_, '_>,
 ) -> Result<(RequestMetadata, RequestFraming), Error> {
@@ -283,30 +387,52 @@ pub(crate) fn request(
     let mut expect_continue = false;
     let mut first_upgrade = None;
     let mut upgrade_count = 0;
+    let mut options: Vec<Vec<u8>> = Vec::new();
     for field in parsed.headers.iter() {
-        head.fields.add(field.name, field.value)?;
-        let name = field.name;
-        if name.eq_ignore_ascii_case("host") {
-            set_singleton(&mut host, field.value)?;
-        } else if name.eq_ignore_ascii_case("content-length") {
-            set_singleton(&mut length, field.value)?;
-        } else if name.eq_ignore_ascii_case("transfer-encoding") {
-            set_singleton(&mut transfer, field.value)?;
-        } else if name.eq_ignore_ascii_case("connection") {
-            for option in field.value.split(|b| *b == b',').map(trim) {
-                close |= option.eq_ignore_ascii_case(b"close");
-                keep_alive |= option.eq_ignore_ascii_case(b"keep-alive");
-                connection_upgrade |= option.eq_ignore_ascii_case(b"upgrade");
+        // httparse has already applied the field name and value syntax. Wire
+        // controls and Host are captured here instead of being stored and then
+        // removed from the application fields.
+        match request_control(field.name) {
+            Some(Control::Host) => set_singleton(&mut host, field.value)?,
+            Some(Control::ContentLength) => set_singleton(&mut length, field.value)?,
+            Some(Control::TransferEncoding) => set_singleton(&mut transfer, field.value)?,
+            Some(Control::Connection) => {
+                for option in field.value.split(|b| *b == b',').map(trim) {
+                    close |= option.eq_ignore_ascii_case(b"close");
+                    keep_alive |= option.eq_ignore_ascii_case(b"keep-alive");
+                    connection_upgrade |= option.eq_ignore_ascii_case(b"upgrade");
+                    // RFC 9110 list recipients ignore empty elements within parser limits.
+                    if !option.is_empty() {
+                        if !token(option) {
+                            return Err(Error::Invalid("invalid connection option"));
+                        }
+                        options.push(option.to_vec());
+                    }
+                }
             }
-        } else if name.eq_ignore_ascii_case("expect") {
-            expect_continue |= field
-                .value
-                .split(|b| *b == b',')
-                .any(|v| trim(v).eq_ignore_ascii_case(b"100-continue"));
-        } else if name.eq_ignore_ascii_case("upgrade") {
-            first_upgrade.get_or_insert(field.value);
-            upgrade_count += 1;
+            Some(Control::Upgrade) => {
+                first_upgrade.get_or_insert(field.value);
+                upgrade_count += 1;
+            }
+            Some(Control::Removed) => {}
+            None => {
+                if field.name.eq_ignore_ascii_case("expect") {
+                    expect_continue |= field
+                        .value
+                        .split(|b| *b == b',')
+                        .any(|v| trim(v).eq_ignore_ascii_case(b"100-continue"));
+                }
+                head.fields.add(field.name, field.value)?;
+            }
         }
+    }
+    // Connection may nominate fields before or after itself.
+    if !options.is_empty() {
+        head.fields.retain(|field| {
+            !options
+                .iter()
+                .any(|option| field.name().as_bytes().eq_ignore_ascii_case(option))
+        });
     }
     let host = host
         .map(|v| std::str::from_utf8(v).map_err(|_| Error::Invalid("invalid host")))
@@ -368,14 +494,12 @@ pub(crate) fn request(
     };
     let (length, chunked) = parse_framing(length, transfer)?;
     head.content_length = length;
-    let (fields, trailer_options) = application_fields(head.fields, true)?;
-    head.fields = fields;
     let framing = RequestFraming {
         length,
         chunked,
         persistent: !close && (version == Version::Http11 || keep_alive),
         expect_continue,
-        trailer_options,
+        trailer_options: options,
         upgrade,
     };
     Ok((head, framing))
@@ -383,10 +507,7 @@ pub(crate) fn request(
 
 /// Remove wire controls after their values have been validated and captured.
 /// Scan Connection first, so nominated pairs are removed regardless of order.
-pub(crate) fn application_fields(
-    mut fields: Fields,
-    request: bool,
-) -> Result<(Fields, Vec<Vec<u8>>), Error> {
+pub(crate) fn application_fields(mut fields: Fields) -> Result<(Fields, Vec<Vec<u8>>), Error> {
     let options: Vec<Vec<u8>> = fields
         .values("connection")
         .flat_map(|value| value.split(|b| *b == b','))
@@ -413,7 +534,6 @@ pub(crate) fn application_fields(
         ]
         .iter()
         .any(|control| name.eq_ignore_ascii_case(control))
-            || (request && name.eq_ignore_ascii_case("host"))
             || options
                 .iter()
                 .any(|option| name.as_bytes().eq_ignore_ascii_case(option)))
@@ -426,4 +546,69 @@ pub(crate) fn declared_length(typed: Option<u64>, raw: Option<u64>) -> Result<Op
         return Err(Error::Invalid("conflicting content-length"));
     }
     Ok(typed.or(raw))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn original_strict_lines(bytes: &[u8]) -> bool {
+        bytes.iter().enumerate().all(|(i, b)| {
+            !((*b == b'\n' && (i == 0 || bytes[i - 1] != b'\r'))
+                || (*b == b'\r' && bytes.get(i + 1) != Some(&b'\n')))
+        })
+    }
+
+    #[test]
+    fn strict_lines_matches_pairwise_definition() {
+        let alphabet = *b"a\r\n";
+        for length in 0..=8 {
+            for mut index in 0..alphabet.len().pow(length) {
+                let bytes: Vec<u8> = (0..length)
+                    .map(|_| {
+                        let byte = alphabet[index % alphabet.len()];
+                        index /= alphabet.len();
+                        byte
+                    })
+                    .collect();
+                assert_eq!(
+                    strict_lines(&bytes).is_ok(),
+                    original_strict_lines(&bytes),
+                    "{bytes:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn simple_authority_only_accepts_valid_authorities() {
+        for (value, require_port) in [
+            ("example", false),
+            ("example:80", false),
+            ("127.0.0.1:65535", true),
+            ("a-b.c_d~e%20!$&'()*+;=", false),
+        ] {
+            assert!(simple_authority(value.as_bytes(), require_port), "{value}");
+            assert!(authority(value, require_port).is_ok(), "{value}");
+        }
+        for (value, require_port) in [
+            ("", false),
+            ("example", true),
+            ("example:", false),
+            ("example:65536", false),
+            ("example:123456", false),
+            ("example:8a", false),
+            ("example:80:80", false),
+            ("exa mple", false),
+            ("user@example", false),
+            ("example,other", false),
+            ("example/path", false),
+            ("[::1]:80", false),
+            (":80", false),
+            ("ex\u{e9}mple", false),
+        ] {
+            assert!(!simple_authority(value.as_bytes(), require_port), "{value}");
+        }
+        assert!(authority("[::1]:80", true).is_ok());
+    }
 }
