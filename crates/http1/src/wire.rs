@@ -505,8 +505,9 @@ pub(crate) fn request(
     Ok((head, framing))
 }
 
-/// Remove wire controls after their values have been validated and captured.
-/// Scan Connection first, so nominated pairs are removed regardless of order.
+/// Remove wire controls from a response after their values have been validated and captured.
+/// Scan Connection first, so nominated pairs are removed regardless of order. Requests classify
+/// the same controls, plus Host, with `request_control` while their fields are read.
 pub(crate) fn application_fields(mut fields: Fields) -> Result<(Fields, Vec<Vec<u8>>), Error> {
     let options: Vec<Vec<u8>> = fields
         .values("connection")
@@ -586,6 +587,10 @@ mod tests {
             ("example", false),
             ("example:80", false),
             ("127.0.0.1:65535", true),
+            ("example:0", false),
+            ("example:65535", false),
+            ("example:00080", false),
+            ("example.", false),
             ("a-b.c_d~e%20!$&'()*+;=", false),
         ] {
             assert!(simple_authority(value.as_bytes(), require_port), "{value}");
@@ -609,6 +614,8 @@ mod tests {
         ] {
             assert!(!simple_authority(value.as_bytes(), require_port), "{value}");
         }
+        assert!(!simple_authority(b"example:000080", false));
+        assert!(authority("example:000080", false).is_ok());
         assert!(authority("[::1]:80", true).is_ok());
     }
 }
