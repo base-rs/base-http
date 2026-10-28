@@ -72,7 +72,7 @@ def parse_wrk(output):
         raise RuntimeError(output)
     return {
         "requests_per_second": float(re.search(r"Requests/sec:\s+([\d.]+)", output)[1]),
-        "latency_mean_ms": milliseconds(re.search(r"Latency\s+([\d.]+(?:us|ms|s))", output)[1]),
+        "latency_mean_ms": milliseconds(re.search(r"Latency:?\s+([\d.]+(?:us|ms|s))", output)[1]),
         "latency_p50_ms": milliseconds(re.search(r"^\s*50%\s+(\S+)", output, re.MULTILINE)[1]),
         "latency_p99_ms": milliseconds(re.search(r"^\s*99%\s+(\S+)", output, re.MULTILINE)[1]),
         "errors": 0,
