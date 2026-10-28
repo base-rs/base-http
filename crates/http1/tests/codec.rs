@@ -2436,6 +2436,22 @@ fn request_hop_by_hop_fields_are_not_exposed_without_connection() {
 }
 
 #[test]
+fn request_invalid_connection_options_are_rejected() {
+    block_on(async {
+        for head in [
+            b"GET / HTTP/1.1\r\nHost: example\r\nConnection: a b\r\n\r\n".as_slice(),
+            b"GET / HTTP/1.1\r\nX-Drop: one\r\nHost: example\r\nConnection: x-drop, a;b\r\n\r\n",
+        ] {
+            let mut input = reader(head, usize::MAX);
+            assert!(matches!(
+                input.read_request(&Cancellation::never()).await,
+                Err(Error::Invalid("invalid connection option"))
+            ));
+        }
+    });
+}
+
+#[test]
 fn response_controls_are_extracted_and_bodyless_lengths_are_retained() {
     block_on(async {
         for (method, wire, length, protocol) in [
