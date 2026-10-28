@@ -2414,6 +2414,28 @@ fn request_controls_are_extracted_before_exposing_application_fields() {
 }
 
 #[test]
+fn request_hop_by_hop_fields_are_not_exposed_without_connection() {
+    block_on(async {
+        let mut input = reader(b"GET / HTTP/1.1\r\nTE: trailers\r\nX-Keep: one\r\nHost: example\r\nKeep-Alive: timeout=5\r\nProxy-Connection: keep-alive\r\nUpgrade: echo\r\nX-Keep: two\r\n\r\n", usize::MAX);
+        let (request, _exchange) = input
+            .read_request(&Cancellation::never())
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(request.authority.as_deref(), Some("example"));
+        assert_eq!(
+            request
+                .fields
+                .pairs()
+                .iter()
+                .map(|field| (field.name(), field.value()))
+                .collect::<Vec<_>>(),
+            [("X-Keep", b"one".as_slice()), ("X-Keep", b"two")]
+        );
+    });
+}
+
+#[test]
 fn response_controls_are_extracted_and_bodyless_lengths_are_retained() {
     block_on(async {
         for (method, wire, length, protocol) in [
