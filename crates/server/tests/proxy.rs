@@ -104,7 +104,7 @@ async fn proxy_connection(
             };
             forward_fields(&mut request.metadata.fields);
             request.metadata.fields.remove("host");
-            request.metadata.authority = Some(upstream_address.to_string());
+            request.metadata.authority = Some(upstream_address.to_string().into());
             let upstream_head = request.metadata.clone();
             let lanes = cancellation.child();
             let send = supervised(upload.write_request(&mut request, &lanes), &lanes);

@@ -20,7 +20,7 @@ pub use connection::Connection;
 pub use driver::Driver;
 pub use error::Error;
 
-use base_http::{InterimHandler, Method, Request, Response, body::ReadableBody};
+use base_http::{Authority, InterimHandler, Method, Request, Response, body::ReadableBody};
 use base_pool::MultiplexPool;
 use base_scheduler::{
     Cancellation, SocketClose, SocketConnect, SocketOpen, SocketStreamReading, SocketStreamWriting,
@@ -37,7 +37,7 @@ use std::{
 #[derive(Clone, Debug)]
 pub struct Endpoint {
     pub address: SocketAddr,
-    pub authority: String,
+    pub authority: Authority,
     #[cfg(feature = "rustls")]
     pub(crate) tls: Option<Tls>,
 }
@@ -51,7 +51,7 @@ impl Endpoint {
     pub fn new(address: SocketAddr) -> Self {
         Self {
             address,
-            authority: address.to_string(),
+            authority: address.to_string().into(),
             #[cfg(feature = "rustls")]
             tls: None,
         }
@@ -225,7 +225,7 @@ impl<'scope> Client<'scope> {
         }
         request
             .scheme
-            .get_or_insert_with(|| self.endpoint.scheme().to_owned());
+            .get_or_insert_with(|| self.endpoint.scheme().into());
         request
             .authority
             .get_or_insert_with(|| self.endpoint.authority.clone());

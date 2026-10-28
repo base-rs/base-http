@@ -73,7 +73,7 @@ async fn client(
                 "/echo",
                 BufferedBody::from(b"Hello from Base HTTP!\n".as_slice()),
             );
-            request.authority = Some(address.to_string());
+            request.authority = Some(address.to_string().into());
             request.fields.add("Content-Type", "text/plain")?;
             // This demonstration makes one exchange and then exits.
             request.persistent = Some(false);

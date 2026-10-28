@@ -12,7 +12,7 @@ use crate::{
 };
 use base_endpoint::stream::{ReadableStream, WritableStream};
 use base_http::{
-    InterimHandler, InterimResponses, Method, RequestMetadata, Response, ResponseMetadata,
+    InterimHandler, InterimResponses, Method, Path, RequestMetadata, Response, ResponseMetadata,
     body::{BodyFrame, ReadableBody, WritableBody},
 };
 use base_http1::{RequestWriter, ResponseReader};
@@ -69,7 +69,7 @@ impl<'scope> Client<'scope> {
     pub async fn open(
         &self,
         method: Method,
-        path: impl Into<String>,
+        path: impl Into<Path>,
         cancellation: &Cancellation,
     ) -> Result<WritableRequest<'scope>, Error> {
         let mut metadata = RequestMetadata::new(method);
@@ -120,7 +120,7 @@ impl<'scope> Client<'scope> {
         }
         metadata
             .scheme
-            .get_or_insert_with(|| self.endpoint.scheme().to_owned());
+            .get_or_insert_with(|| self.endpoint.scheme().into());
         metadata
             .authority
             .get_or_insert_with(|| self.endpoint.authority.clone());

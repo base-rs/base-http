@@ -8,7 +8,9 @@
 #![forbid(unsafe_code)]
 
 use base_endpoint::stream::{ReadableStream, WritableStream};
-use base_http::{InterimHandler, InterimResponses, Request, Response, Status, body::ReadableBody};
+use base_http::{
+    InterimHandler, InterimResponses, Request, Response, Scheme, Status, body::ReadableBody,
+};
 use base_http1::{RequestReader, ResponseWriter};
 use base_scheduler::{
     Cancellation, SocketAccept, SocketClose, SocketStreamReading, SocketStreamWriting,
@@ -180,7 +182,7 @@ where
             handler,
             cancellation,
             &mut requests,
-            "http",
+            &Scheme::HTTP,
         )
         .await;
         // Both cleanups run regardless of the exchange or the other cleanup result.
@@ -206,7 +208,7 @@ async fn exchanges<R, W, H>(
     handler: &H,
     cancellation: &Cancellation,
     count: &mut u64,
-    scheme: &str,
+    scheme: &Scheme,
 ) -> Result<(), Error>
 where
     R: ReadableStream,
@@ -230,7 +232,7 @@ where
                 return Err(error.into());
             }
         };
-        request.scheme.get_or_insert_with(|| scheme.to_owned());
+        request.scheme.get_or_insert_with(|| scheme.clone());
         let result = {
             let mut interim = InterimResponses::new(output.interim(exchange.version()));
             let result = {
@@ -420,7 +422,7 @@ where
                 handler,
                 cancellation,
                 &mut requests,
-                "https",
+                &Scheme::HTTPS,
             )
             .await;
             let a = input.close().await;

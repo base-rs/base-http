@@ -103,7 +103,7 @@ impl<R: ReadableStream, W: WritableStream> ConnectionClient for BaseConnection<R
         let cancel = Cancellation::never();
         let mut metadata = RequestMetadata::new(Method::GET);
         metadata.path = Some("/hello".into());
-        metadata.authority = Some(self.authority.clone());
+        metadata.authority = Some(self.authority.as_str().into());
         metadata.content_length = Some(0);
         self.output.begin_request(&metadata, &cancel).await?;
         self.output
