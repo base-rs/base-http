@@ -1,9 +1,11 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-//! Request target components. Schemes and authorities are case-insensitive and
-//! stored in their canonical lowercase form (RFC 3986, sections 3.1 and
-//! 6.2.2.1); paths are preserved as supplied. Drivers validate target
+//! Request target components. Schemes and HTTP hosts are case-insensitive, so
+//! schemes and authorities are stored in lowercase (RFC 3986, sections 3.1 and
+//! 6.2.2.1; RFC 9110, section 4.2.3); paths are preserved as supplied.
+//! Percent-encoded authority bytes are lowercased too, which is equivalent
+//! though RFC 3986 prefers uppercase hexadecimal digits. Drivers validate target
 //! combinations and wire syntax before transmission.
 
 use arrayvec::ArrayString;
@@ -165,8 +167,8 @@ macro_rules! stored {
 stored! {
     /// A lowercase request authority, such as `example.com:8080`. HTTP
     /// authorities are a case-insensitive host and an optional port, so
-    /// conversions lowercase ASCII letters and comparisons with `str` use the
-    /// lowercase text.
+    /// conversions lowercase ASCII letters. Comparisons, hashing and map lookups
+    /// with `str` use the lowercase text.
     Authority => lowercase,
     /// A request path with optional query, or another supplied request-target
     /// form. Paths are case-sensitive and preserved as supplied.
