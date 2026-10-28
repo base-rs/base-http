@@ -5,8 +5,8 @@ use crate::{Authority, Fields, Method, Path, Protocol, Scheme, Version, body::Em
 use std::ops::{Deref, DerefMut};
 
 /// Protocol-independent request metadata. Components are preserved as supplied,
-/// except that schemes are stored lowercase; drivers validate target
-/// combinations and wire syntax before transmission.
+/// except that schemes and authorities are stored lowercase; drivers validate
+/// target combinations and wire syntax before transmission.
 #[derive(Clone, Debug)]
 pub struct RequestMetadata {
     pub method: Method,

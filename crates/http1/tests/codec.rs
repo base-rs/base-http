@@ -658,11 +658,11 @@ fn request_target_forms_reconstruct_semantic_components() {
             (
                 b"GET HTTPS://Example/a HTTP/1.1\r\nHost: ignored\r\n\r\n",
                 Some("https"),
-                "Example",
+                "example",
                 Some("/a"),
             ),
             (
-                b"GET /a-path-longer-than-the-inline-capacity HTTP/1.1\r\nHost: a-host-longer-than-inline.example:8080\r\n\r\n",
+                b"GET /a-path-longer-than-the-inline-capacity HTTP/1.1\r\nHost: A-Host-Longer-Than-Inline.Example:8080\r\n\r\n",
                 None,
                 "a-host-longer-than-inline.example:8080",
                 Some("/a-path-longer-than-the-inline-capacity"),

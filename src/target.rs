@@ -1,10 +1,10 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-//! Request target components. Authorities and paths are preserved as supplied;
-//! schemes are case-insensitive and stored in their canonical lowercase form
-//! (RFC 3986, section 3.1). Drivers validate target combinations and wire
-//! syntax before transmission.
+//! Request target components. Schemes and authorities are case-insensitive and
+//! stored in their canonical lowercase form (RFC 3986, sections 3.1 and
+//! 6.2.2.1); paths are preserved as supplied. Drivers validate target
+//! combinations and wire syntax before transmission.
 
 use arrayvec::ArrayString;
 use std::{
@@ -16,7 +16,8 @@ use std::{
 };
 
 /// A lowercase request scheme. `http` and `https` in any case use borrowed
-/// constants; other schemes are lowercased when converted.
+/// constants; other schemes are lowercased when converted. Comparisons with
+/// `str` use the lowercase text.
 #[derive(Clone)]
 pub struct Scheme(Cow<'static, str>);
 
@@ -67,7 +68,7 @@ enum Storage {
 }
 
 macro_rules! stored {
-    ($($(#[$meta:meta])* $name:ident),*) => {$(
+    ($($(#[$meta:meta])* $name:ident => $normalize:expr),*) => {$(
         $(#[$meta])*
         #[derive(Clone)]
         pub struct $name(Storage);
@@ -90,18 +91,33 @@ macro_rules! stored {
         impl From<&str> for $name {
             #[inline]
             fn from(value: &str) -> Self {
+                let normalize: fn(&mut str) = $normalize;
                 match ArrayString::from(value) {
-                    Ok(value) => Self(Storage::Inline(value)),
-                    Err(_) => Self(Storage::Heap(value.to_owned())),
+                    Ok(mut value) => {
+                        normalize(&mut value);
+                        Self(Storage::Inline(value))
+                    }
+                    Err(_) => {
+                        let mut value = value.to_owned();
+                        normalize(&mut value);
+                        Self(Storage::Heap(value))
+                    }
                 }
             }
         }
         impl From<String> for $name {
             #[inline]
-            fn from(value: String) -> Self {
+            fn from(mut value: String) -> Self {
+                let normalize: fn(&mut str) = $normalize;
                 match ArrayString::from(&value) {
-                    Ok(inline) => Self(Storage::Inline(inline)),
-                    Err(_) => Self(Storage::Heap(value)),
+                    Ok(mut inline) => {
+                        normalize(&mut inline);
+                        Self(Storage::Inline(inline))
+                    }
+                    Err(_) => {
+                        normalize(&mut value);
+                        Self(Storage::Heap(value))
+                    }
                 }
             }
         }
@@ -109,10 +125,14 @@ macro_rules! stored {
 }
 
 stored! {
-    /// A request authority, such as `example.com:8080`.
-    Authority,
-    /// A request path with optional query, or another supplied request-target form.
-    Path
+    /// A lowercase request authority, such as `example.com:8080`. HTTP
+    /// authorities are a case-insensitive host and an optional port, so
+    /// conversions lowercase ASCII letters and comparisons with `str` use the
+    /// lowercase text.
+    Authority => str::make_ascii_lowercase,
+    /// A request path with optional query, or another supplied request-target
+    /// form. Paths are case-sensitive and preserved as supplied.
+    Path => |_| {}
 }
 
 // Each component behaves as its text: comparison, hashing and formatting do
@@ -228,6 +248,10 @@ mod tests {
         ));
         assert_eq!(Scheme::from("WS"), "ws");
         assert_eq!(Scheme::from(String::from("Coap+TCP")), "coap+tcp");
+        assert_eq!(Scheme::from(&String::from("WSS")), "wss");
+        assert_eq!(Scheme::from(Cow::Borrowed("Https")), Scheme::HTTPS);
+        assert_eq!(Scheme::from(Box::<str>::from("FTP")), "ftp");
+        assert_ne!(Scheme::from("HTTPS"), "HTTPS");
         assert_eq!(String::from(Scheme::HTTPS), "https");
     }
 
@@ -242,6 +266,23 @@ mod tests {
         assert!(inline(&Path::from("é".repeat(12).as_str())));
         assert!(!inline(&Path::from("é".repeat(13).as_str())));
         assert_eq!(String::from(Path::from("x".repeat(25))), "x".repeat(25));
+    }
+
+    #[test]
+    fn authorities_are_lowercase_and_paths_are_preserved() {
+        let long = "Long.Example.COM:".to_owned() + &"8".repeat(10);
+        assert_eq!(Authority::from("Example.COM:80"), "example.com:80");
+        assert_eq!(
+            Authority::from(String::from("[::ABCD]:443")),
+            "[::abcd]:443"
+        );
+        assert_eq!(Authority::from(long.as_str()), long.to_ascii_lowercase());
+        assert_eq!(Authority::from(long.clone()), long.to_ascii_lowercase());
+        assert_eq!(Authority::from("É.example"), "É.example");
+        assert_eq!(Authority::from(Cow::Borrowed("A:1")), "a:1");
+        assert_eq!(Authority::from(Box::<str>::from("B:2")), "b:2");
+        assert_eq!(Path::from("/A?B=C"), "/A?B=C");
+        assert_eq!(Path::from("/A".repeat(20)), "/A".repeat(20));
     }
 
     #[test]
