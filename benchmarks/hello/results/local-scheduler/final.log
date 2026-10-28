@@ -1,0 +1,58 @@
+native-kqueue
+base-native  c= 64 r=1:      62037 req/s, p99 1.240 ms, CPU 100%
+base-tokio
+base-tokio   c= 64 r=1:      65090 req/s, p99 1.200 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=1:     129234 req/s, p99 0.682 ms, CPU 100%
+native-background
+base-native-background c= 64 r=1:      58236 req/s, p99 1.330 ms, CPU 119%
+base-tokio
+base-tokio   c= 64 r=2:      69200 req/s, p99 1.230 ms, CPU 100%
+native-background
+base-native-background c= 64 r=2:      60697 req/s, p99 1.340 ms, CPU 119%
+native-kqueue
+base-native  c= 64 r=2:      68619 req/s, p99 1.260 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=2:     131590 req/s, p99 0.694 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=3:     131762 req/s, p99 0.693 ms, CPU 99%
+base-tokio
+base-tokio   c= 64 r=3:      70663 req/s, p99 1.240 ms, CPU 100%
+native-kqueue
+base-native  c= 64 r=3:      68258 req/s, p99 1.290 ms, CPU 100%
+native-background
+base-native-background c= 64 r=3:      61868 req/s, p99 1.370 ms, CPU 119%
+{
+  "native-background": {
+    "median_requests_per_second": 60696.53,
+    "min_requests_per_second": 58236.31,
+    "max_requests_per_second": 61868.18,
+    "median_p99_ms": 1.34,
+    "median_cpu_percent": 118.91539171432717,
+    "errors": 0
+  },
+  "native-kqueue": {
+    "median_requests_per_second": 68258.27,
+    "min_requests_per_second": 62037.37,
+    "max_requests_per_second": 68618.69,
+    "median_p99_ms": 1.26,
+    "median_cpu_percent": 99.54454822851385,
+    "errors": 0
+  },
+  "base-tokio": {
+    "median_requests_per_second": 69199.67,
+    "min_requests_per_second": 65090.07,
+    "max_requests_per_second": 70663.08,
+    "median_p99_ms": 1.23,
+    "median_cpu_percent": 99.55008993101396,
+    "errors": 0
+  },
+  "hyper-tokio": {
+    "median_requests_per_second": 131590.42,
+    "min_requests_per_second": 129233.5,
+    "max_requests_per_second": 131762.13,
+    "median_p99_ms": 0.6930000000000001,
+    "median_cpu_percent": 99.54902717884468,
+    "errors": 0
+  }
+}

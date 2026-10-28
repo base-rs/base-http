@@ -1,0 +1,18 @@
+{
+  "command": [
+    "rustup",
+    "run",
+    "1.87.0",
+    "rustc",
+    "--edition=2024",
+    "/tmp/base-http-cache-slot-probe.rs",
+    "--extern",
+    "crossbeam_utils=/tmp/base-http-validation-target/release/deps/libcrossbeam_utils-cb23b3750bc64f41.rlib",
+    "-L",
+    "dependency=/tmp/base-http-validation-target/release/deps",
+    "-o",
+    "/tmp/base-http-cache-slot-probe"
+  ],
+  "exit_code": 0,
+  "stdout": "storage_bytes=8 lock_free=true\n"
+}

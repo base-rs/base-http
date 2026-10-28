@@ -1,0 +1,46 @@
+--- readiness_socket_stream_reader.rs
++++ candidate-readiness_socket_stream_reader.rs
+@@ -66,6 +66,7 @@
+ 
+     // Scalar consuming stream reads may use readiness before their syscall.
+     // Message receives retain their separate syscall-first contract.
++    #[inline]
+     async fn read_with(
+         &mut self,
+         capacity: usize,
+@@ -175,6 +176,7 @@
+         }
+     }
+ 
++    #[inline]
+     async fn read_into(
+         &mut self,
+         buffer: &mut [u8],
+--- readiness_socket_stream_writer.rs
++++ candidate-readiness_socket_stream_writer.rs
+@@ -87,6 +87,7 @@
+         self.result()
+     }
+ 
++    #[inline]
+     async fn write_with(
+         &mut self,
+         cancellation: &Cancellation,
+@@ -146,6 +147,7 @@
+ }
+ impl<B: IoBuf> SocketStreamWriter for ReadinessSocketStreamWriter<'_, B> {
+     type Buffer = B;
++    #[inline]
+     async fn write(
+         &mut self,
+         buffer: &[u8],
+--- socket_operations.rs
++++ candidate-socket_operations.rs
+@@ -70,6 +70,7 @@
+         }
+     }
+ 
++    #[inline]
+     pub(crate) async fn cancellable<T>(
+         &self,
+         cancellation: &Cancellation,

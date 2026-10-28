@@ -1,0 +1,50 @@
+{
+  "http_sources_identical": true,
+  "benchmark_rust_sources_identical": true,
+  "non_scheduler_dependency_versions_identical": true,
+  "scheduler_crates_per_graph": 6,
+  "scheduler_sources": "crates.io registry releases, no local patches",
+  "linux_smoke": {
+    "variants": 3,
+    "response_reuse_and_close_validation": "passed",
+    "wrk_reported_errors": 0,
+    "excluded_from_performance_results": true
+  },
+  "macos_cpu_accounting_calibration": {
+    "reported_process_cpu_seconds": 0.999489,
+    "measured_user_seconds": 0.99817475,
+    "measured_system_seconds": 0.001368375,
+    "mach_timebase": [
+      125,
+      3
+    ],
+    "absolute_tolerance_seconds": 0.05,
+    "passed": true
+  },
+  "macos_main": {
+    "samples": 45,
+    "response_reuse_and_close_validation": "passed for every sample",
+    "wrk_reported_errors": 0,
+    "server_stderr_bytes": 73491,
+    "server_stderr_lines": {
+      "connection: Connection reset by peer (os error 54)": 1441
+    },
+    "termination_truncated_reset_lines": 0,
+    "requests": 33327482
+  },
+  "linux_main": {
+    "samples": 45,
+    "response_reuse_and_close_validation": "passed for every sample",
+    "wrk_reported_errors": 0,
+    "server_stderr_bytes": 31346,
+    "server_stderr_lines": {
+      "connection: Connection reset by peer (os error 104)": 594,
+      "connection: Connection reset by peer": 2,
+      "connection: Connection reset by peer (os error 104": 4,
+      "connection: Connection reset by peer (os error ": 4
+    },
+    "termination_truncated_reset_lines": 10,
+    "requests": 76803658
+  },
+  "original_scheduler_pending_files_unchanged": 26
+}

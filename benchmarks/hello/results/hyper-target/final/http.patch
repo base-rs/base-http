@@ -1,0 +1,1071 @@
+--- a/base-http/Cargo.lock
++++ b/base-http/Cargo.lock
+@@ -3,6 +3,12 @@
+ version = 4
+ 
+ [[package]]
++name = "arrayvec"
++version = "0.7.8"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
++
++[[package]]
+ name = "async-task"
+ version = "4.7.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -12,10 +18,12 @@
+ name = "base-http"
+ version = "0.0.0"
+ dependencies = [
++ "arrayvec",
+  "base-scheduler",
+  "base-scheduler-direct",
+  "event-listener",
+  "futures-lite",
++ "smallvec",
+  "tempfile",
+ ]
+ 
+@@ -193,6 +201,12 @@
+ ]
+ 
+ [[package]]
++name = "smallvec"
++version = "1.16.4"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d0d5d4b1981b8bbbb7aed204cae5726d683d5d6ac7e74ec54122ea28f315e7c8"
++
++[[package]]
+ name = "socket2"
+ version = "0.6.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+--- a/base-http/Cargo.toml
++++ b/base-http/Cargo.toml
+@@ -10,8 +10,10 @@
+ include = ["src/**", "tests/**", "design/**", "Cargo.toml", "readme.md", "license.md"]
+ 
+ [dependencies]
++arrayvec = "0.7.6"
+ base-scheduler = "0.1.0"
+ event-listener = "5.4.2"
++smallvec = "1.15.1"
+ 
+ [dev-dependencies]
+ base-scheduler-direct = "0.1.0"
+--- a/base-http/src/fields.rs
++++ b/base-http/src/fields.rs
+@@ -8,7 +8,9 @@
+ //! Combination is separate from field-specific parsing (dates, ranges, etc.).
+ 
+ use crate::syntax::{is_token, trim_ows};
+-use std::{collections::HashMap, error::Error, fmt};
++use arrayvec::{ArrayString, ArrayVec};
++use smallvec::SmallVec;
++use std::{collections::HashMap, error::Error, fmt, ops::Deref};
+ 
+ #[derive(Clone, Debug, Eq, PartialEq)]
+ pub enum FieldError {
+@@ -38,13 +40,63 @@
+ /// One syntax-checked pair, retaining the original name spelling and value bytes.
+ #[derive(Clone, Debug, Eq, PartialEq)]
+ pub struct Field {
+-    name: String,
+-    value: Vec<u8>,
++    name: NameStorage,
++    value: ValueStorage,
++}
++
++// Common names and short opaque values require no separate allocation. The
++// canonical representation depends only on length, preserving value equality.
++#[derive(Clone, Debug, Eq, PartialEq)]
++enum NameStorage {
++    Inline(ArrayString<24>),
++    Heap(String),
++}
++impl NameStorage {
++    fn new(value: &str) -> Self {
++        match ArrayString::from(value) {
++            Ok(value) => Self::Inline(value),
++            Err(_) => Self::Heap(value.to_owned()),
++        }
++    }
++}
++impl Deref for NameStorage {
++    type Target = str;
++    fn deref(&self) -> &str {
++        match self {
++            Self::Inline(value) => value.as_str(),
++            Self::Heap(value) => value,
++        }
++    }
++}
++
++#[derive(Clone, Debug, Eq, PartialEq)]
++enum ValueStorage {
++    Inline(ArrayVec<u8, 24>),
++    Heap(Vec<u8>),
++}
++impl ValueStorage {
++    fn new(value: &[u8]) -> Self {
++        let mut inline = ArrayVec::new();
++        if inline.try_extend_from_slice(value).is_ok() {
++            Self::Inline(inline)
++        } else {
++            Self::Heap(value.to_vec())
++        }
++    }
++}
++impl Deref for ValueStorage {
++    type Target = [u8];
++    fn deref(&self) -> &[u8] {
++        match self {
++            Self::Inline(value) => value.as_slice(),
++            Self::Heap(value) => value,
++        }
++    }
+ }
+ 
+ impl Field {
+-    pub fn new(name: impl Into<String>, value: impl AsRef<[u8]>) -> Result<Self, FieldError> {
+-        let name = name.into();
++    pub fn new(name: impl AsRef<str>, value: impl AsRef<[u8]>) -> Result<Self, FieldError> {
++        let name = name.as_ref();
+         if !is_token(name.as_bytes()) {
+             return Err(FieldError::InvalidName);
+         }
+@@ -56,8 +108,8 @@
+             return Err(FieldError::InvalidValue);
+         }
+         Ok(Self {
+-            name,
+-            value: value.to_vec(),
++            name: NameStorage::new(name),
++            value: ValueStorage::new(value),
+         })
+     }
+ 
+@@ -99,7 +151,10 @@
+ /// overrides. Repeated credentials are rejected rather than concatenated.
+ #[derive(Clone, Debug, Default)]
+ pub struct Policy {
+-    overrides: HashMap<String, FieldPolicy>,
++    // Most messages use only the built-in policy. Keep that case pointer-sized;
++    // allocate the override table itself only when a caller supplies overrides.
++    #[allow(clippy::box_collection)]
++    overrides: Option<Box<HashMap<String, FieldPolicy>>>,
+ }
+ 
+ impl Policy {
+@@ -107,13 +162,19 @@
+         if !is_token(name.as_bytes()) {
+             return Err(FieldError::InvalidName);
+         }
+-        self.overrides.insert(name.to_ascii_lowercase(), policy);
++        self.overrides
++            .get_or_insert_with(Default::default)
++            .insert(name.to_ascii_lowercase(), policy);
+         Ok(())
+     }
+ 
+     pub fn get(&self, name: &str) -> FieldPolicy {
+         let name = name.to_ascii_lowercase();
+-        if let Some(policy) = self.overrides.get(&name) {
++        if let Some(policy) = self
++            .overrides
++            .as_ref()
++            .and_then(|overrides| overrides.get(&name))
++        {
+             return *policy;
+         }
+         use Combination::*;
+@@ -234,9 +295,9 @@
+ 
+ #[derive(Clone, Debug, Default)]
+ pub struct Fields {
+-    pairs: Vec<Field>,
++    pairs: SmallVec<[Field; 1]>,
+     tail: Option<usize>,
+-    indexed: Option<Index>,
++    indexed: Option<Box<Index>>,
+     policy: Policy,
+ }
+ 
+@@ -245,7 +306,7 @@
+         Self::default()
+     }
+ 
+-    pub fn try_from_pairs<N: Into<String>, V: AsRef<[u8]>>(
++    pub fn try_from_pairs<N: AsRef<str>, V: AsRef<[u8]>>(
+         pairs: impl IntoIterator<Item = (N, V)>,
+     ) -> Result<Self, FieldError> {
+         let mut fields = Self::new();
+@@ -310,7 +371,7 @@
+ 
+     pub fn add(
+         &mut self,
+-        name: impl Into<String>,
++        name: impl AsRef<str>,
+         value: impl AsRef<[u8]>,
+     ) -> Result<(), FieldError> {
+         self.append(Field::new(name, value)?)
+@@ -329,7 +390,7 @@
+     /// failures leave the original collection and its cached index unchanged.
+     pub fn set(
+         &mut self,
+-        name: impl Into<String>,
++        name: impl AsRef<str>,
+         value: impl AsRef<[u8]>,
+     ) -> Result<(), FieldError> {
+         let field = Field::new(name, value)?;
+@@ -405,7 +466,7 @@
+                 }
+                 merge_into(&mut index, field, self.policy.get(&field.name))?;
+             }
+-            self.indexed = Some(index);
++            self.indexed = Some(Box::new(index));
+         }
+         Ok(self.indexed.as_ref().unwrap())
+     }
+--- a/base-http/tests/fields.rs
++++ b/base-http/tests/fields.rs
+@@ -11,6 +11,45 @@
+         .iter()
+         .map(|field| (field.name(), field.value()))
+         .collect()
++}
++
++#[test]
++fn short_and_spilled_fields_preserve_bytes_order_and_independent_mutation() {
++    for length in [23, 24, 25, 256] {
++        let name = "X".repeat(length);
++        let value = vec![0xff; length];
++        let field = Field::new(&name, &value).unwrap();
++        assert_eq!(field.name(), name);
++        assert_eq!(field.value(), value);
++        assert_eq!(field, field.clone());
++
++        let mut original = Fields::new();
++        original.append(field).unwrap();
++        original.index().unwrap();
++        let mut copy = original.clone();
++        // Adding another pair crosses the small collection's inline capacity.
++        copy.mark_trailers();
++        copy.add("X-Tail", "before").unwrap();
++        copy.set("x-tail", "after").unwrap();
++        assert_eq!(copy.tail(), Some(1));
++        assert_eq!(pairs(copy.headers()), [(&name[..], &value[..])]);
++        assert_eq!(pairs(copy.trailers()), [("x-tail", &b"after"[..])]);
++        assert_eq!(
++            copy.get("X-TAIL").unwrap().unwrap().single(),
++            Some(&b"after"[..])
++        );
++        assert_eq!(original.len(), 1);
++        assert!(!original.has_trailers());
++        assert!(!original.contains("x-tail"));
++
++        copy.remove(&name);
++        assert_eq!(copy.tail(), Some(0));
++        assert_eq!(pairs(copy.trailers()), [("x-tail", &b"after"[..])]);
++        copy.clear();
++        copy.add("X-New", "reused").unwrap();
++        assert_eq!(pairs(copy.headers()), [("X-New", &b"reused"[..])]);
++        assert!(!copy.has_trailers());
++    }
+ }
+ 
+ #[test]
+--- a/base-http1/Cargo.lock
++++ b/base-http1/Cargo.lock
+@@ -3,11 +3,19 @@
+ version = 4
+ 
+ [[package]]
++name = "arrayvec"
++version = "0.7.8"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
++
++[[package]]
+ name = "base-http"
+ version = "0.0.0"
+ dependencies = [
++ "arrayvec",
+  "base-scheduler",
+  "event-listener",
++ "smallvec",
+ ]
+ 
+ [[package]]
+@@ -85,3 +93,9 @@
+ version = "0.2.17"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
++
++[[package]]
++name = "smallvec"
++version = "1.16.4"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d0d5d4b1981b8bbbb7aed204cae5726d683d5d6ac7e74ec54122ea28f315e7c8"
+--- a/base-http1/src/client.rs
++++ b/base-http1/src/client.rs
+@@ -210,6 +210,7 @@
+         if !self.is_reusable() {
+             return Err(Error::Invalid("response input is not reusable"));
+         }
++        let max_fields = self.input.options.max_fields;
+         let head = loop {
+             let bytes = self
+                 .input
+@@ -218,16 +219,16 @@
+                 .ok_or(Error::Truncated)?;
+             let mut local = [std::mem::MaybeUninit::uninit(); 100];
+             let mut overflow;
+-            let headers = if self.input.options.max_fields <= local.len() {
+-                &mut local[..self.input.options.max_fields]
++            let headers = if max_fields <= local.len() {
++                &mut local[..max_fields]
+             } else {
+-                overflow = vec![std::mem::MaybeUninit::uninit(); self.input.options.max_fields];
++                overflow = vec![std::mem::MaybeUninit::uninit(); max_fields];
+                 &mut overflow
+             };
+             let mut parsed = httparse::Response::new(&mut []);
+             match httparse::ParserConfig::default().parse_response_with_uninit_headers(
+                 &mut parsed,
+-                &bytes,
++                bytes,
+                 headers,
+             ) {
+                 Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
+--- a/base-http1/src/input.rs
++++ b/base-http1/src/input.rs
+@@ -68,8 +68,8 @@
+ pub struct RequestReader<R> {
+     reader: R,
+     buffer: Vec<u8>,
+-    scratch: Vec<u8>,
+     start: usize,
++    end: usize,
+     pub(crate) options: Options,
+     pub(crate) poisoned: bool,
+     pub(crate) previous: Option<Exchange>,
+@@ -80,9 +80,9 @@
+         options.validate()?;
+         Ok(Self {
+             reader,
+-            buffer: Vec::new(),
+-            scratch: vec![0; options.read_size],
++            buffer: vec![0; options.read_size],
+             start: 0,
++            end: 0,
+             options,
+             poisoned: false,
+             previous: None,
+@@ -98,19 +98,29 @@
+     }
+ 
+     fn available(&self) -> &[u8] {
+-        &self.buffer[self.start..]
++        &self.buffer[self.start..self.end]
+     }
+ 
+     async fn fill(&mut self, cancellation: &Cancellation) -> Result<bool, Error> {
+         if self.start != 0 {
+-            self.buffer.drain(..self.start);
++            self.buffer.copy_within(self.start..self.end, 0);
++            self.end -= self.start;
+             self.start = 0;
++        }
++        let limit = self
++            .end
++            .checked_add(self.options.read_size)
++            .ok_or(Error::Limit("receive buffer"))?;
++        if self.buffer.len() < limit {
++            // Keep initialized spare capacity across reads. A pending/cancelled
++            // read never publishes it: only a successful count advances end.
++            self.buffer.resize(limit, 0);
+         }
+         let n = self
+             .reader
+-            .read_into(&mut self.scratch, cancellation)
++            .read_into(&mut self.buffer[self.end..limit], cancellation)
+             .await?;
+-        self.buffer.extend_from_slice(&self.scratch[..n]);
++        self.end += n;
+         Ok(n != 0)
+     }
+ 
+@@ -123,7 +133,7 @@
+     pub(crate) async fn read_head(
+         &mut self,
+         cancellation: &Cancellation,
+-    ) -> Result<Option<Vec<u8>>, Error> {
++    ) -> Result<Option<&[u8]>, Error> {
+         self.poisoned = true;
+         loop {
+             if let Some(end) = self
+@@ -139,7 +149,9 @@
+                 if matches!(self.available().first(), Some(b'\r' | b'\n' | b' ' | b'\t')) {
+                     return Err(Error::Invalid("invalid start line prefix"));
+                 }
+-                return Ok(Some(self.take(end)));
++                let start = self.start;
++                self.start += end;
++                return Ok(Some(&self.buffer[start..start + end]));
+             }
+             if self.available().len() >= self.options.max_head_bytes {
+                 return Err(Error::Limit("message head"));
+@@ -162,20 +174,21 @@
+         if !self.is_reusable() {
+             return Err(Error::Invalid("request input is not reusable"));
+         }
++        let max_fields = self.options.max_fields;
+         let Some(bytes) = self.read_head(cancellation).await? else {
+             self.poisoned = false;
+             return Ok(None);
+         };
+         let mut local = [std::mem::MaybeUninit::uninit(); 100];
+         let mut overflow;
+-        let headers = if self.options.max_fields <= local.len() {
+-            &mut local[..self.options.max_fields]
++        let headers = if max_fields <= local.len() {
++            &mut local[..max_fields]
+         } else {
+-            overflow = vec![std::mem::MaybeUninit::uninit(); self.options.max_fields];
++            overflow = vec![std::mem::MaybeUninit::uninit(); max_fields];
+             &mut overflow
+         };
+         let mut parsed = httparse::Request::new(&mut []);
+-        match parsed.parse_with_uninit_headers(&bytes, headers) {
++        match parsed.parse_with_uninit_headers(bytes, headers) {
+             Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
+             Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
+             _ => return Err(Error::Invalid("invalid request head")),
+--- a/base-http1/src/output.rs
++++ b/base-http1/src/output.rs
+@@ -14,6 +14,9 @@
+ };
+ 
+ async fn wait<F: Future>(future: F, cancellation: &Cancellation) -> Result<F::Output, Error> {
++    if cancellation.is_never() {
++        return Ok(future.await);
++    }
+     let mut future = pin!(future);
+     let mut cancelled = pin!(cancellation.cancelled());
+     poll_fn(|cx| {
+@@ -106,15 +109,19 @@
+             // Large chunks retain their existing owner and are not copied.
+             return send_all(&mut self.writer, bytes, cancellation).await;
+         }
+-        let required = self.pending.len() + bytes.len();
++        self.reserve(bytes.len());
++        self.pending.extend_from_slice(bytes);
++        Ok(())
++    }
++
++    fn reserve(&mut self, additional: usize) {
++        let required = self.pending.len() + additional;
+         if required > self.pending.capacity() {
+             let capacity = required
+                 .max(self.pending.capacity().saturating_mul(2))
+                 .clamp(256, OUTPUT_BATCH_LIMIT);
+             self.pending.reserve_exact(capacity - self.pending.len());
+         }
+-        self.pending.extend_from_slice(bytes);
+-        Ok(())
+     }
+ 
+     async fn send_pending(&mut self, cancellation: &Cancellation) -> Result<(), Error> {
+@@ -130,44 +137,126 @@
+         head: &ResponseHead,
+         cancellation: &Cancellation,
+     ) -> Result<(), Error> {
+-        let version = match head.version {
++        self.write_start_line(head.status, head.version, cancellation)
++            .await?;
++        self.write_fields(head.fields.headers(), cancellation)
++            .await?;
++        self.write_all(b"\r\n", cancellation).await
++    }
++
++    async fn write_start_line(
++        &mut self,
++        status: Status,
++        version: Option<Version>,
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        let version = match version {
+             Some(Version::Http10) => b"HTTP/1.0 ",
+             Some(Version::Http11) => b"HTTP/1.1 ",
+             _ => return Err(Error::Invalid("unsupported response version")),
+         };
+-        let status = head.status.as_u16();
++        let status_code = status.as_u16();
+         let code = [
+-            b'0' + (status / 100) as u8,
+-            b'0' + (status / 10 % 10) as u8,
+-            b'0' + (status % 10) as u8,
++            b'0' + (status_code / 100) as u8,
++            b'0' + (status_code / 10 % 10) as u8,
++            b'0' + (status_code % 10) as u8,
+             b' ',
+         ];
++        let reason = status.description().unwrap_or("").as_bytes();
++        let size = version.len() + code.len() + reason.len() + 2;
++        if size <= OUTPUT_BATCH_LIMIT - self.pending.len() {
++            self.reserve(size);
++            self.pending.extend_from_slice(version);
++            self.pending.extend_from_slice(&code);
++            self.pending.extend_from_slice(reason);
++            self.pending.extend_from_slice(b"\r\n");
++            return Ok(());
++        }
+         self.write_all(version, cancellation).await?;
+         self.write_all(&code, cancellation).await?;
+-        self.write_all(
+-            head.status.description().unwrap_or("").as_bytes(),
+-            cancellation,
+-        )
+-        .await?;
+-        self.write_all(b"\r\n", cancellation).await?;
+-        self.write_fields(head.fields.headers(), cancellation)
++        self.write_all(reason, cancellation).await?;
++        self.write_all(b"\r\n", cancellation).await
++    }
++
++    async fn write_fields(
++        &mut self,
++        fields: &[base_http::Field],
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        for field in fields {
++            self.write_field(field.name(), field.value(), cancellation)
++                .await?;
++        }
++        Ok(())
++    }
++
++    async fn write_field(
++        &mut self,
++        name: &str,
++        value: &[u8],
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        let size = name.len().saturating_add(value.len()).saturating_add(4);
++        if size <= OUTPUT_BATCH_LIMIT - self.pending.len() {
++            self.reserve(size);
++            self.pending.extend_from_slice(name.as_bytes());
++            self.pending.extend_from_slice(b": ");
++            self.pending.extend_from_slice(value);
++            self.pending.extend_from_slice(b"\r\n");
++            return Ok(());
++        }
++        self.write_all(name.as_bytes(), cancellation).await?;
++        self.write_all(b": ", cancellation).await?;
++        self.write_all(value, cancellation).await?;
++        self.write_all(b"\r\n", cancellation).await
++    }
++
++    async fn write_plan(
++        &mut self,
++        plan: &Plan<'_>,
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        self.write_start_line(plan.response.status, Some(plan.version), cancellation)
+             .await?;
++        for field in plan.response.fields.headers() {
++            if plan.upgrade.is_some() && field.name().eq_ignore_ascii_case("upgrade") {
++                continue;
++            }
++            self.write_field(field.name(), field.value(), cancellation)
++                .await?;
++        }
++        if let Some(protocol) = plan.upgrade {
++            self.write_field("Upgrade", protocol, cancellation).await?;
++        }
++        if plan.connection_upgrade {
++            self.write_field("Connection", b"upgrade", cancellation)
++                .await?;
++        }
++        if let Some(length) = plan.content_length {
++            let mut digits = [0; 20];
++            let bytes = decimal(length, &mut digits);
++            self.write_field("Content-Length", bytes, cancellation)
++                .await?;
++        }
++        if plan.chunked {
++            self.write_field("Transfer-Encoding", b"chunked", cancellation)
++                .await?;
++        }
++        if plan.declare_trailers {
++            self.write_all(b"Trailer: ", cancellation).await?;
++            for (index, field) in plan.response.fields.trailers().iter().enumerate() {
++                if index != 0 {
++                    self.write_all(b", ", cancellation).await?;
++                }
++                self.write_all(field.name().as_bytes(), cancellation)
++                    .await?;
++            }
++            self.write_all(b"\r\n", cancellation).await?;
++        }
++        if let Some(option) = plan.connection {
++            self.write_field("Connection", option, cancellation).await?;
++        }
+         self.write_all(b"\r\n", cancellation).await
+-    }
+-
+-    async fn write_fields(
+-        &mut self,
+-        fields: &[base_http::Field],
+-        cancellation: &Cancellation,
+-    ) -> Result<(), Error> {
+-        for field in fields {
+-            self.write_all(field.name().as_bytes(), cancellation)
+-                .await?;
+-            self.write_all(b": ", cancellation).await?;
+-            self.write_all(field.value(), cancellation).await?;
+-            self.write_all(b"\r\n", cancellation).await?;
+-        }
+-        Ok(())
+     }
+ 
+     /// Write one final response. `true` means output permits persistence; the
+@@ -196,34 +285,37 @@
+         if !self.usable {
+             return Err(Error::Invalid("response output is not reusable"));
+         }
+-        let plan = plan(exchange, &response.head, response.body.length())?;
+-        if plan.tunnel
+-            && response.head.status == Status::SWITCHING_PROTOCOLS
+-            && !self.continue_sent
+-            && wire::has_token(&exchange.head().fields, "expect", b"100-continue")
+-        {
+-            self.interim(Version::Http11)
+-                .on_interim_response(ResponseHead::new(Status::CONTINUE), cancellation)
+-                .await?;
+-        }
+-        self.usable = false;
+-        self.write_head(&plan.head, cancellation).await?;
+-        if plan.tunnel {
+-            // Commit the handshake before the first potentially blocking input read.
+-            self.flush(cancellation).await?;
+-            exchange.switch();
+-        }
++        let (framing, persistent, tunnel) = {
++            let plan = plan(exchange, &response.head, response.body.length())?;
++            if plan.tunnel
++                && response.head.status == Status::SWITCHING_PROTOCOLS
++                && !self.continue_sent
++                && wire::has_token(&exchange.head().fields, "expect", b"100-continue")
++            {
++                self.interim(Version::Http11)
++                    .on_interim_response(ResponseHead::new(Status::CONTINUE), cancellation)
++                    .await?;
++            }
++            self.usable = false;
++            self.write_plan(&plan, cancellation).await?;
++            if plan.tunnel {
++                // Commit the handshake before the first potentially blocking input read.
++                self.flush(cancellation).await?;
++                exchange.switch();
++            }
++            (plan.framing, plan.persistent, plan.tunnel)
++        };
+         self.write_body(
+             &mut response.body,
+             &mut response.head.fields,
+-            plan.framing,
+-            !plan.tunnel && response.head.status == Status::RESET_CONTENT,
++            framing,
++            !tunnel && response.head.status == Status::RESET_CONTENT,
+             cancellation,
+         )
+         .await?;
+-        self.usable = plan.persistent;
++        self.usable = persistent;
+         self.continue_sent = false;
+-        Ok(plan.persistent)
++        Ok(persistent)
+     }
+ 
+     pub(crate) fn begin(&mut self) -> Result<(), Error> {
+@@ -378,46 +470,61 @@
+     Chunked,
+     Raw,
+ }
+-struct Plan {
+-    head: ResponseHead,
++// Borrow semantic fields and describe only the framing additions. This avoids
++// constructing/cloning a second semantic message just to serialize a wire head.
++struct Plan<'a> {
++    response: &'a ResponseHead,
++    version: Version,
+     framing: Framing,
+     persistent: bool,
+     tunnel: bool,
+-}
+-
+-fn plan(exchange: &Exchange, response: &ResponseHead, length: Option<u64>) -> Result<Plan, Error> {
++    content_length: Option<u64>,
++    chunked: bool,
++    declare_trailers: bool,
++    upgrade: Option<&'a [u8]>,
++    connection_upgrade: bool,
++    connection: Option<&'static [u8]>,
++}
++
++fn plan<'a>(
++    exchange: &Exchange,
++    response: &'a ResponseHead,
++    length: Option<u64>,
++) -> Result<Plan<'a>, Error> {
+     if !response.status.is_final() {
+         return Err(Error::Invalid("final response required"));
+     }
+-    let has_trailers = response.fields.has_trailers();
+-    validate_trailers(&response.fields)?;
+-    let mut head = ResponseHead {
+-        status: response.status,
+-        version: response.version,
+-        protocol: response.protocol.clone(),
+-        fields: base_http::Fields::try_from_pairs(
+-            response
+-                .fields
+-                .headers()
+-                .iter()
+-                .map(|f| (f.name(), f.value())),
+-        )?,
++    let fields = &response.fields;
++    let has_trailers = fields.has_trailers();
++    validate_trailers(fields)?;
++    let version = exchange.head().version.unwrap_or(Version::Http11);
++    if response.version.is_some_and(|v| v != version) {
++        return Err(Error::Invalid("response version differs from request"));
++    }
++    // All framing/connection lookups inspect the initial section only.
++    let contains = |name: &str| {
++        fields
++            .headers()
++            .iter()
++            .any(|field| field.name().eq_ignore_ascii_case(name))
+     };
+-    let version = exchange.head().version.unwrap_or(Version::Http11);
+-    if head.version.is_some_and(|v| v != version) {
+-        return Err(Error::Invalid("response version differs from request"));
+-    }
+-    head.version = Some(version);
+-    let (declared, chunked) = wire::framing(&head.fields)?;
+-    let connect = exchange.head().method == Method::CONNECT && head.status.is_success();
+-    let upgrade = head.status == Status::SWITCHING_PROTOCOLS;
++    let (declared, chunked) = wire::framing(fields)?;
++    let connect = exchange.head().method == Method::CONNECT && response.status.is_success();
++    let upgrade = response.status == Status::SWITCHING_PROTOCOLS;
+     let tunnel = connect || upgrade;
+-    let status_bodyless = head.status == Status::NO_CONTENT || head.status == Status::NOT_MODIFIED;
++    let status_bodyless =
++        response.status == Status::NO_CONTENT || response.status == Status::NOT_MODIFIED;
+     let absent = !tunnel && (exchange.head().method == Method::HEAD || status_bodyless);
+     let mut persistent = exchange.is_persistent()
+         && !exchange.is_abandoned()
+-        && !wire::has_token(&head.fields, "connection", b"close")
++        && !wire::has_token(fields, "connection", b"close")
+         && !tunnel;
++    let mut content_length = None;
++    let mut generated_chunked = false;
++    let mut declare_trailers = false;
++    let mut selected_upgrade = None;
++    let mut connection_upgrade = false;
++    let mut connection = None;
+     let framing;
+     if tunnel {
+         if !exchange.is_complete() {
+@@ -432,30 +539,29 @@
+             {
+                 return Err(Error::Invalid("unsolicited upgrade"));
+             }
+-            let selected = head
++            let selected = response
+                 .protocol
+                 .as_ref()
+                 .map(|p| p.as_str().as_bytes())
+-                .or(wire::singleton(&head.fields, "upgrade")?)
++                .or(wire::singleton(fields, "upgrade")?)
+                 .ok_or(Error::Invalid("missing selected protocol"))?;
+             if !wire::token(selected)
+                 || !wire::has_token(&exchange.head().fields, "upgrade", selected)
+             {
+                 return Err(Error::Invalid("upgrade protocol was not offered"));
+             }
+-            let selected = selected.to_vec();
+-            head.fields.set("Upgrade", selected)?;
+-            connection_option(&mut head.fields, "upgrade")?;
+-        } else if head.protocol.is_some() {
++            selected_upgrade = Some(selected);
++            connection_upgrade = !wire::has_token(fields, "connection", b"upgrade");
++        } else if response.protocol.is_some() {
+             return Err(Error::Invalid("protocol on traditional CONNECT"));
+         }
+         framing = Framing::Raw;
+     } else {
+-        if head.protocol.is_some() {
++        if response.protocol.is_some() {
+             return Err(Error::Invalid("protocol without upgrade status"));
+         }
+-        if head.fields.contains("upgrade") {
+-            connection_option(&mut head.fields, "upgrade")?;
++        if contains("upgrade") {
++            connection_upgrade = !wire::has_token(fields, "connection", b"upgrade");
+         }
+         if chunked && version != Version::Http11 {
+             return Err(Error::Invalid("HTTP/1.0 transfer-encoding"));
+@@ -466,14 +572,12 @@
+                     "trailers or transfer-encoding on bodyless response",
+                 ));
+             }
+-            if head.status == Status::NO_CONTENT {
++            if response.status == Status::NO_CONTENT {
+                 if declared.is_some() {
+                     return Err(Error::Invalid("content-length on 204"));
+                 }
+             } else if declared.is_none() {
+-                if let Some(length) = length {
+-                    head.fields.add("Content-Length", length.to_string())?;
+-                }
++                content_length = length;
+             }
+             framing = Framing::Absent;
+         } else {
+@@ -482,46 +586,33 @@
+                     return Err(Error::LengthMismatch);
+                 }
+             }
+-            if head.status == Status::RESET_CONTENT
++            if response.status == Status::RESET_CONTENT
+                 && (length.is_some_and(|n| n != 0) || declared.is_some_and(|n| n != 0))
+             {
+                 return Err(Error::Invalid("content on 205"));
+             }
+-            if head.status == Status::RESET_CONTENT
++            if response.status == Status::RESET_CONTENT
+                 && declared.is_none()
+                 && !chunked
+                 && !has_trailers
+-                && !head.fields.contains("trailer")
++                && !contains("trailer")
+             {
+-                head.fields.add("Content-Length", "0")?;
++                content_length = Some(0);
+                 framing = Framing::Fixed(0);
+-            } else if chunked || has_trailers || head.fields.contains("trailer") {
++            } else if chunked || has_trailers || contains("trailer") {
+                 if declared.is_some() || version != Version::Http11 {
+                     return Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"));
+                 }
+-                if !chunked {
+-                    head.fields.add("Transfer-Encoding", "chunked")?;
+-                }
+-                if !response.fields.trailers().is_empty() && !head.fields.contains("trailer") {
+-                    head.fields.add(
+-                        "Trailer",
+-                        response
+-                            .fields
+-                            .trailers()
+-                            .iter()
+-                            .map(|f| f.name())
+-                            .collect::<Vec<_>>()
+-                            .join(", "),
+-                    )?;
+-                }
++                generated_chunked = !chunked;
++                declare_trailers = !fields.trailers().is_empty() && !contains("trailer");
+                 framing = Framing::Chunked;
+             } else if let Some(length) = declared.or(length) {
+                 if declared.is_none() {
+-                    head.fields.add("Content-Length", length.to_string())?;
++                    content_length = Some(length);
+                 }
+                 framing = Framing::Fixed(length);
+             } else if version == Version::Http11 {
+-                head.fields.add("Transfer-Encoding", "chunked")?;
++                generated_chunked = true;
+                 framing = Framing::Chunked;
+             } else {
+                 persistent = false;
+@@ -529,17 +620,40 @@
+             }
+         }
+         if !persistent {
+-            connection_option(&mut head.fields, "close")?;
+-        } else if version == Version::Http10 {
+-            connection_option(&mut head.fields, "keep-alive")?;
++            if !wire::has_token(fields, "connection", b"close") {
++                connection = Some(&b"close"[..]);
++            }
++        } else if version == Version::Http10
++            && !wire::has_token(fields, "connection", b"keep-alive")
++        {
++            connection = Some(&b"keep-alive"[..]);
+         }
+     }
+     Ok(Plan {
+-        head,
++        response,
++        version,
+         framing,
+         persistent,
+         tunnel,
++        content_length,
++        chunked: generated_chunked,
++        declare_trailers,
++        upgrade: selected_upgrade,
++        connection_upgrade,
++        connection,
+     })
++}
++
++fn decimal(mut value: u64, digits: &mut [u8; 20]) -> &[u8] {
++    let mut start = digits.len();
++    loop {
++        start -= 1;
++        digits[start] = b'0' + (value % 10) as u8;
++        value /= 10;
++        if value == 0 {
++            return &digits[start..];
++        }
++    }
+ }
+ 
+ pub(crate) fn connection_option(fields: &mut base_http::Fields, value: &str) -> Result<(), Error> {
+--- a/base-http1/tests/codec.rs
++++ b/base-http1/tests/codec.rs
+@@ -297,6 +297,50 @@
+             *bytes.lock().unwrap(),
+             b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello"
+         );
++    });
++}
++
++#[test]
++fn generated_framing_does_not_mutate_the_semantic_head_or_truncate_large_lengths() {
++    struct Representation;
++    impl ReadableBody for Representation {
++        type Data = Vec<u8>;
++        type Error = base_scheduler::Cancelled;
++        fn length(&self) -> Option<u64> {
++            Some(u64::MAX)
++        }
++        async fn read(&mut self, _: &Cancellation) -> Result<Option<Vec<u8>>, Self::Error> {
++            panic!("HEAD and 304 must not read representation data")
++        }
++        fn close(&mut self, _: Option<Self::Error>) {}
++    }
++    block_on(async {
++        for (request, status) in [
++            (&b"HEAD / HTTP/1.1\r\nHost: x\r\n\r\n"[..], Status::OK),
++            (
++                &b"GET / HTTP/1.1\r\nHost: x\r\n\r\n"[..],
++                Status::NOT_MODIFIED,
++            ),
++        ] {
++            let (mut output, bytes) = output(3);
++            let mut response = Response::new(status, Representation);
++            response.fields.add("X-Keep", "original").unwrap();
++            let fields = response.fields.pairs().to_vec();
++            output
++                .write_response(
++                    &exchange_from(request),
++                    &mut response,
++                    &Cancellation::never(),
++                )
++                .await
++                .unwrap();
++            assert_eq!(response.fields.pairs(), fields);
++            assert_eq!(response.version, None);
++            let bytes = String::from_utf8(bytes.lock().unwrap().clone()).unwrap();
++            assert!(
++                bytes.ends_with("X-Keep: original\r\nContent-Length: 18446744073709551615\r\n\r\n")
++            );
++        }
+     });
+ }
+ 
+--- a/base-http-server/Cargo.lock
++++ b/base-http-server/Cargo.lock
+@@ -3,6 +3,12 @@
+ version = 4
+ 
+ [[package]]
++name = "arrayvec"
++version = "0.7.8"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
++
++[[package]]
+ name = "async-task"
+ version = "4.7.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -12,8 +18,10 @@
+ name = "base-http"
+ version = "0.0.0"
+ dependencies = [
++ "arrayvec",
+  "base-scheduler",
+  "event-listener",
++ "smallvec",
+ ]
+ 
+ [[package]]
+@@ -187,6 +195,12 @@
+ checksum = "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
+ 
+ [[package]]
++name = "smallvec"
++version = "1.16.4"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "d0d5d4b1981b8bbbb7aed204cae5726d683d5d6ac7e74ec54122ea28f315e7c8"
++
++[[package]]
+ name = "socket2"
+ version = "0.6.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+--- a/base-http-server/src/lib.rs
++++ b/base-http-server/src/lib.rs
+@@ -16,7 +16,12 @@
+     future::{Either, select},
+     stream::{FuturesUnordered, StreamExt},
+ };
+-use std::{fmt, future::Future, pin::pin};
++use std::{
++    fmt,
++    future::{Future, poll_fn},
++    pin::pin,
++    task::Poll,
++};
+ 
+ /// Generic bodies and hooks keep handlers independent of the HTTP wire version
+ /// and scheduler. A returned body may retain the request body, including borrows.
+@@ -92,12 +97,18 @@
+     cancellation: &Cancellation,
+ ) -> Result<F::Output, Error> {
+     cancellation.check().map_err(|_| Error::Cancelled)?;
+-    let future = pin!(future);
+-    let cancelled = pin!(cancellation.cancelled());
+-    match select(cancelled, future).await {
+-        Either::Left(_) => Err(Error::Cancelled),
+-        Either::Right((output, _)) => Ok(output),
+-    }
++    if cancellation.is_never() {
++        return Ok(future.await);
++    }
++    let mut future = pin!(future);
++    let mut cancelled = pin!(cancellation.cancelled());
++    poll_fn(|cx| {
++        if cancelled.as_mut().poll(cx).is_ready() {
++            return Poll::Ready(Err(Error::Cancelled));
++        }
++        future.as_mut().poll(cx).map(Ok)
++    })
++    .await
+ }
+ 
+ /// Own one accepted socket through request admission, handler execution, output,

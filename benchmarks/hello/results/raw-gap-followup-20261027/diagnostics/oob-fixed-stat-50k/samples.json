@@ -1,0 +1,368 @@
+[
+  {
+    "backend": "tokio-task-raw",
+    "concurrency": 64,
+    "repetition": 1,
+    "requests": 299900,
+    "load": {
+      "requests": 299900,
+      "sent": 299900,
+      "missed": 100,
+      "target_rate": 50000,
+      "duration": 6
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 0.0,
+      "system_seconds": 8.536178726242081
+    },
+    "perf": {
+      "task-clock": 3049.06,
+      "cycles:u": 1013614352.0,
+      "cycles:k": 8239247802.0,
+      "instructions:u": 773513088.0,
+      "instructions:k": 5094716244.0,
+      "context-switches": 270855.0,
+      "cpu-migrations": 0.0
+    },
+    "perf_per_response": {
+      "task-clock": 0.010166922307435811,
+      "cycles:u": 3379.8411203734577,
+      "cycles:k": 27473.31711237079,
+      "instructions:u": 2579.2367055685227,
+      "instructions:k": 16988.050163387798,
+      "context-switches": 0.9031510503501167,
+      "cpu-migrations": 0.0
+    }
+  },
+  {
+    "backend": "base-native-raw",
+    "concurrency": 64,
+    "repetition": 1,
+    "requests": 299552,
+    "load": {
+      "requests": 299552,
+      "sent": 299552,
+      "missed": 448,
+      "target_rate": 50000,
+      "duration": 6
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 2.9711035145817757,
+      "system_seconds": 5.875440658049353
+    },
+    "perf": {
+      "task-clock": 3224.96,
+      "cycles:u": 1266971114.0,
+      "cycles:k": 8545228003.0,
+      "instructions:u": 816689769.0,
+      "instructions:k": 5129180242.0,
+      "context-switches": 265819.0,
+      "cpu-migrations": 0.0
+    },
+    "perf_per_response": {
+      "task-clock": 0.010765943809422071,
+      "cycles:u": 4229.553179414593,
+      "cycles:k": 28526.693205186413,
+      "instructions:u": 2726.3706101110993,
+      "instructions:k": 17122.83757744899,
+      "context-switches": 0.8873885001602393,
+      "cpu-migrations": 0.0
+    }
+  },
+  {
+    "backend": "tokio-task-raw",
+    "concurrency": 64,
+    "repetition": 2,
+    "requests": 299484,
+    "load": {
+      "requests": 299484,
+      "sent": 299484,
+      "missed": 516,
+      "target_rate": 50000,
+      "duration": 6
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 0.0,
+      "system_seconds": 8.51464518972633
+    },
+    "perf": {
+      "task-clock": 3043.77,
+      "cycles:u": 973723945.0,
+      "cycles:k": 8159328256.0,
+      "instructions:u": 777204373.0,
+      "instructions:k": 5059533313.0,
+      "context-switches": 263421.0,
+      "cpu-migrations": 0.0
+    },
+    "perf_per_response": {
+      "task-clock": 0.010163381015346395,
+      "cycles:u": 3251.3387860453313,
+      "cycles:k": 27244.621602489617,
+      "instructions:u": 2595.144892548517,
+      "instructions:k": 16894.169014037478,
+      "context-switches": 0.8795828825579998,
+      "cpu-migrations": 0.0
+    }
+  },
+  {
+    "backend": "base-native-raw",
+    "concurrency": 64,
+    "repetition": 2,
+    "requests": 299881,
+    "load": {
+      "requests": 299881,
+      "sent": 299881,
+      "missed": 119,
+      "target_rate": 50000,
+      "duration": 6
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 2.1675264521593562,
+      "system_seconds": 6.569272478082974
+    },
+    "perf": {
+      "task-clock": 3091.07,
+      "cycles:u": 1116065859.0,
+      "cycles:k": 8299301756.0,
+      "instructions:u": 816830213.0,
+      "instructions:k": 5104391192.0,
+      "context-switches": 270592.0,
+      "cpu-migrations": 0.0
+    },
+    "perf_per_response": {
+      "task-clock": 0.01030765536996342,
+      "cycles:u": 3721.695802668392,
+      "cycles:k": 27675.317062434766,
+      "instructions:u": 2723.8478363084023,
+      "instructions:k": 17021.38912435266,
+      "context-switches": 0.9023312580656994,
+      "cpu-migrations": 0.0
+    }
+  },
+  {
+    "backend": "tokio-task-raw",
+    "concurrency": 64,
+    "repetition": 3,
+    "requests": 299772,
+    "load": {
+      "requests": 299772,
+      "sent": 299772,
+      "missed": 228,
+      "target_rate": 50000,
+      "duration": 6
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 2.134955899817194,
+      "system_seconds": 6.238074269778365
+    },
+    "perf": {
+      "task-clock": 2985.38,
+      "cycles:u": 872084670.0,
+      "cycles:k": 8187860129.0,
+      "instructions:u": 775306218.0,
+      "instructions:k": 5044451176.0,
+      "context-switches": 271008.0,
+      "cpu-migrations": 0.0
+    },
+    "perf_per_response": {
+      "task-clock": 0.00995883538155665,
+      "cycles:u": 2909.159861494736,
+      "cycles:k": 27313.625452010194,
+      "instructions:u": 2586.319662943837,
+      "instructions:k": 16827.62624928279,
+      "context-switches": 0.9040470757775909,
+      "cpu-migrations": 0.0
+    }
+  },
+  {
+    "backend": "base-native-raw",
+    "concurrency": 64,
+    "repetition": 3,
+    "requests": 299899,
+    "load": {
+      "requests": 299899,
+      "sent": 299899,
+      "missed": 101,
+      "target_rate": 50000,
+      "duration": 6
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 2.0673626787685193,
+      "system_seconds": 6.60222274832527
+    },
+    "perf": {
+      "task-clock": 3076.01,
+      "cycles:u": 1116478405.0,
+      "cycles:k": 8275488505.0,
+      "instructions:u": 817726751.0,
+      "instructions:k": 5097421936.0,
+      "context-switches": 269326.0,
+      "cpu-migrations": 0.0
+    },
+    "perf_per_response": {
+      "task-clock": 0.010256819795997987,
+      "cycles:u": 3722.848042174199,
+      "cycles:k": 27594.25174808852,
+      "instructions:u": 2726.6738168516736,
+      "instructions:k": 16997.12882003608,
+      "context-switches": 0.8980556787451776,
+      "cpu-migrations": 0.0
+    }
+  }
+]

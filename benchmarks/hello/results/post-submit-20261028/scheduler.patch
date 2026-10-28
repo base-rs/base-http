@@ -1,0 +1,182 @@
+diff --git a/crates/iouring/src/io_uring_selector.rs b/crates/iouring/src/io_uring_selector.rs
+index 0e3442a..f409e17 100644
+--- a/crates/iouring/src/io_uring_selector.rs
++++ b/crates/iouring/src/io_uring_selector.rs
+@@ -1173,6 +1173,9 @@ impl Reactor {
+                         result?;
+                     }
+                 }
++                // Submission can produce completions immediately. Publish that snapshot before
++                // returning so its wakeups do not wait for another reactor turn.
++                self.collect_completions()?;
+             }
+             return Ok(false);
+         }
+diff --git a/crates/iouring/src/io_uring_selector/submission_notifications.rs b/crates/iouring/src/io_uring_selector/submission_notifications.rs
+index 1ec9334..897b478 100644
+--- a/crates/iouring/src/io_uring_selector/submission_notifications.rs
++++ b/crates/iouring/src/io_uring_selector/submission_notifications.rs
+@@ -288,6 +288,10 @@ mod tests {
+                 .is_ready()
+         );
+         drop(submission);
++        // Issuance and completion can wake the same waiter. A repeated wake
++        // must not publish its follow-up command twice.
++        waker.wake();
++        assert_eq!(enqueue.published.load(Ordering::Acquire), 1);
+         let (result, bytes) = drive(&mut driver, later);
+         assert_eq!(result.unwrap(), 6);
+         assert_eq!(bytes, b"abcdef");
+diff --git a/crates/iouring/src/io_uring_selector/tests.rs b/crates/iouring/src/io_uring_selector/tests.rs
+index 8c7c227..c5ccfd2 100644
+--- a/crates/iouring/src/io_uring_selector/tests.rs
++++ b/crates/iouring/src/io_uring_selector/tests.rs
+@@ -447,6 +447,52 @@ fn transient_syscall_errors_preserve_progress_and_fatal_errors_stop_the_driver()
+     }
+ }
+ 
++#[test]
++fn nonblocking_submission_publishes_immediate_completions_before_returning() {
++    use base_scheduler_selector::{SelectorDriver, SelectorWorker};
++
++    struct ImmediateRequest {
++        identifier: u64,
++        completed: Arc<AtomicBool>,
++    }
++    impl PendingRequest for ImmediateRequest {
++        fn identifier(&self) -> u64 {
++            self.identifier
++        }
++        fn entry(&mut self) -> squeue::Entry {
++            opcode::Nop::new().build().user_data(self.identifier)
++        }
++        fn finish(self: Box<Self>, result: io::Result<usize>) {
++            assert_eq!(result.unwrap(), 0);
++            self.completed.store(true, Ordering::SeqCst);
++        }
++        fn begin_cancellation(&self) -> bool {
++            false
++        }
++        fn take_reply(&self) -> Option<Box<dyn Send>> {
++            None
++        }
++    }
++
++    let (selector, driver) = pair(4);
++    let mut worker = driver.enter();
++    let completed = Arc::new(AtomicBool::new(false));
++    let controller = selector.route_ref();
++    controller.submit(Box::new(ImmediateRequest {
++        identifier: controller.next_identifier().unwrap(),
++        completed: Arc::clone(&completed),
++    }));
++
++    // NOP completes during submission. Its owner must observe completion after
++    // this nonblocking turn, without requiring another driver turn to publish it.
++    assert!(!worker.turn(Some(Duration::ZERO)).unwrap());
++    assert!(completed.load(Ordering::SeqCst));
++
++    selector.close();
++    while !worker.turn(Some(Duration::from_millis(10))).unwrap() {}
++    block_on(selector.shutdown());
++}
++
+ #[test]
+ fn event_loop_wakers_and_notification_errors_do_not_lose_work() {
+     let (selector, mut driver) = pair(1);
+@@ -1270,14 +1316,24 @@ fn nonblocking_and_productive_turns_do_not_prepare_an_idle_wait() {
+ }
+ 
+ #[test]
+-fn nonblocking_turn_preserves_notifications_for_the_next_idle_turn() {
++fn nonblocking_turn_delivers_notifications_without_an_idle_wait() {
+     let (selector, mut driver) = pair(1);
+     driver.waker().wake_by_ref();
+-    assert!(!driver.turn(Some(Duration::ZERO)).unwrap());
+     {
+         let _failures = Failures::new([("wait", io::ErrorKind::PermissionDenied.into())]);
+-        // The previously published notification must return us to the executor before rearming or waiting.
+-        assert!(!driver.turn(None).unwrap());
++        let delivered = Arc::new(AtomicBool::new(false));
++        let observed = Arc::clone(&delivered);
++        BEFORE_SYSCALL.with(|hook| {
++            *hook.borrow_mut() = Some((
++                "notification-read",
++                Box::new(move || observed.store(true, Ordering::SeqCst)),
++            ));
++        });
++        let deadline = Instant::now() + Duration::from_secs(10);
++        while !delivered.load(Ordering::SeqCst) {
++            assert!(!driver.turn(Some(Duration::ZERO)).unwrap());
++            assert!(Instant::now() < deadline);
++        }
+         assert_eq!(FAILURES.with(|failures| failures.borrow().len()), 1);
+     }
+     drain(&selector, &mut driver);
+@@ -1841,13 +1897,8 @@ fn full_eventfd_preserves_existing_notifications_without_failing_the_waker() {
+     // Adding one would exceed the eventfd counter's limit; the existing counter already wakes the worker.
+     driver.waker().wake_by_ref();
+     assert!(!driver.turn(Some(Duration::ZERO)).unwrap());
+-    driver
+-        .reactor
+-        .as_mut()
+-        .unwrap()
+-        .ring
+-        .submit_and_wait(1)
+-        .unwrap();
++    // Submission may already have published the notification completion.
++    assert!(!driver.turn(Some(Duration::from_millis(1))).unwrap());
+     assert!(!driver.turn(Some(Duration::ZERO)).unwrap());
+     assert!(!driver.turn(Some(Duration::from_millis(1))).unwrap());
+     drain(&selector, &mut driver);
+@@ -1942,13 +1993,8 @@ fn interrupted_notification_reads_yield_without_losing_the_wake() {
+     }
+     // The unread counter still completes the next poll after the bounded interrupted retries.
+     assert!(!driver.turn(Some(Duration::ZERO)).unwrap());
+-    driver
+-        .reactor
+-        .as_mut()
+-        .unwrap()
+-        .ring
+-        .submit_and_wait(1)
+-        .unwrap();
++    // Submission may already have published the notification completion.
++    assert!(!driver.turn(Some(Duration::from_millis(1))).unwrap());
+     assert!(!driver.turn(Some(Duration::ZERO)).unwrap());
+     drain(&selector, &mut driver);
+ }
+@@ -1957,21 +2003,22 @@ fn interrupted_notification_reads_yield_without_losing_the_wake() {
+ fn notification_completion_read_failure_stops_the_driver() {
+     let (selector, mut driver) = pair(1);
+     driver.waker().wake_by_ref();
+-    assert!(!driver.turn(Some(Duration::ZERO)).unwrap());
+-    driver
+-        .reactor
+-        .as_mut()
+-        .unwrap()
+-        .ring
+-        .submit_and_wait(1)
+-        .unwrap();
+     {
+         let _failure =
+             Failures::new([("notification-read", io::ErrorKind::PermissionDenied.into())]);
+-        assert_eq!(
+-            driver.turn(Some(Duration::ZERO)).unwrap_err().kind(),
+-            io::ErrorKind::PermissionDenied
+-        );
++        let deadline = Instant::now() + Duration::from_secs(10);
++        loop {
++            // An immediately available notification can fail collection in the
++            // submitting turn; a later one must report the same driver error.
++            match driver.turn(Some(Duration::ZERO)) {
++                Err(error) => {
++                    assert_eq!(error.kind(), io::ErrorKind::PermissionDenied);
++                    break;
++                }
++                Ok(closed) => assert!(!closed),
++            }
++            assert!(Instant::now() < deadline);
++        }
+         assert!(FAILURES.with(|failures| failures.borrow().is_empty()));
+     }
+     assert!(driver.turn(None).unwrap());

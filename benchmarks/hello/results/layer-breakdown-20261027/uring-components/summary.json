@@ -1,0 +1,614 @@
+[
+  {
+    "backend": "base",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "base",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 600.998419,
+    "min": 590.622073,
+    "max": 615.871983,
+    "values": [
+      615.871983,
+      603.888097,
+      600.998419,
+      590.622073,
+      595.87567
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "base",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 77.447339,
+    "min": 74.195507,
+    "max": 82.452092,
+    "values": [
+      81.130564,
+      82.452092,
+      74.195507,
+      77.447339,
+      74.464201
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "base-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 81.930368,
+    "min": 79.691588,
+    "max": 90.264729,
+    "values": [
+      90.264729,
+      81.930368,
+      87.600409,
+      79.787171,
+      79.691588
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "base-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 66.811279,
+    "min": 65.814635,
+    "max": 73.893546,
+    "values": [
+      69.955499,
+      66.811279,
+      73.893546,
+      66.363945,
+      65.814635
+    ]
+  },
+  {
+    "backend": "iouring",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "iouring",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 117.446254,
+    "min": 115.425855,
+    "max": 130.009612,
+    "values": [
+      117.446254,
+      130.009612,
+      118.440525,
+      115.425855,
+      115.773924
+    ]
+  },
+  {
+    "backend": "iouring",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "iouring",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 69.083185,
+    "min": 68.324447,
+    "max": 70.772697,
+    "values": [
+      69.083185,
+      70.772697,
+      69.445622,
+      68.324447,
+      68.512961
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 54.544077,
+    "min": 53.822374,
+    "max": 66.074716,
+    "values": [
+      53.822374,
+      66.074716,
+      54.337835,
+      54.544077,
+      55.652367
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 55.282508,
+    "min": 54.144154,
+    "max": 61.0046,
+    "values": [
+      61.0046,
+      55.282508,
+      59.761056,
+      54.144154,
+      54.554847
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "tokio-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 45.740189,
+    "min": 45.539678,
+    "max": 49.09692,
+    "values": [
+      45.740189,
+      45.539678,
+      49.09692,
+      46.010752,
+      45.55259
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "tokio-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 47.825759,
+    "min": 45.548662,
+    "max": 48.871344,
+    "values": [
+      48.871344,
+      47.839512,
+      47.825759,
+      45.548662,
+      46.020433
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "variant": "base",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 367.355569,
+    "min": 361.09578,
+    "max": 373.780397,
+    "values": [
+      373.780397,
+      368.748992,
+      367.355569,
+      365.655153,
+      361.09578
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "base",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 392.584034,
+    "min": 361.781277,
+    "max": 402.588501,
+    "values": [
+      394.350455,
+      402.588501,
+      392.584034,
+      362.695083,
+      361.781277
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "variant": "base-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 112.790061,
+    "min": 107.74861,
+    "max": 118.415638,
+    "values": [
+      118.415638,
+      110.475431,
+      117.613624,
+      112.790061,
+      107.74861
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "base-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 110.337525,
+    "min": 107.737396,
+    "max": 118.722183,
+    "values": [
+      110.337525,
+      118.146942,
+      118.722183,
+      107.842107,
+      107.737396
+    ]
+  },
+  {
+    "backend": "iouring",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "variant": "iouring",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 127.838495,
+    "min": 123.998145,
+    "max": 131.18555,
+    "values": [
+      131.18555,
+      127.838495,
+      123.998145,
+      130.006496,
+      124.411483
+    ]
+  },
+  {
+    "backend": "iouring",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "iouring",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 128.325768,
+    "min": 123.166189,
+    "max": 148.409989,
+    "values": [
+      128.325768,
+      148.409989,
+      133.221328,
+      123.166189,
+      123.22481
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 92.987424,
+    "min": 91.847179,
+    "max": 100.24357,
+    "values": [
+      92.987424,
+      100.24357,
+      94.585975,
+      91.847179,
+      92.823871
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 98.684744,
+    "min": 91.658892,
+    "max": 100.534202,
+    "values": [
+      100.534202,
+      98.684744,
+      100.016978,
+      91.658892,
+      92.549753
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "variant": "tokio-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 89.185828,
+    "min": 88.488837,
+    "max": 90.690869,
+    "values": [
+      88.62752,
+      89.185828,
+      89.651747,
+      90.690869,
+      88.488837
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "tokio-noio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 88.926355,
+    "min": 87.679918,
+    "max": 94.211107,
+    "values": [
+      89.137845,
+      94.211107,
+      88.926355,
+      88.257958,
+      87.679918
+    ]
+  },
+  {
+    "backend": "manual",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "variant": "manual",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 63.296413,
+    "min": 61.3028,
+    "max": 69.053311,
+    "values": [
+      69.053311,
+      63.626564,
+      62.139682,
+      61.3028,
+      63.296413
+    ]
+  },
+  {
+    "backend": "manual",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "manual",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 62.658442,
+    "min": 61.761316,
+    "max": 67.745727,
+    "values": [
+      67.745727,
+      64.113432,
+      62.658442,
+      62.629775,
+      61.761316
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "empty-poll",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "base",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 509.04139,
+    "min": 496.807358,
+    "max": 538.928904,
+    "values": [
+      505.903653,
+      525.983951,
+      538.928904,
+      509.04139,
+      496.807358
+    ]
+  },
+  {
+    "backend": "iouring",
+    "kind": "empty-poll",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "iouring",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 34.440418,
+    "min": 33.37346,
+    "max": 37.698164,
+    "values": [
+      37.673201,
+      33.656483,
+      37.698164,
+      34.440418,
+      33.37346
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "empty-poll",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 495.94394,
+    "min": 476.359645,
+    "max": 512.657663,
+    "values": [
+      495.94394,
+      498.123646,
+      512.657663,
+      476.87916,
+      476.359645
+    ]
+  },
+  {
+    "backend": "mio",
+    "kind": "empty-poll",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "mio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 485.865719,
+    "min": 475.185495,
+    "max": 527.107609,
+    "values": [
+      527.107609,
+      514.450809,
+      481.891627,
+      485.865719,
+      475.185495
+    ]
+  },
+  {
+    "backend": "std",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "std",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 636.1138701171875,
+    "min": 605.4647314453125,
+    "max": 648.5849384765625,
+    "values": [
+      636.1138701171875,
+      648.5849384765625,
+      637.18326953125,
+      607.944791015625,
+      605.4647314453125
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "base",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 664.5174169921875,
+    "min": 658.139236328125,
+    "max": 725.133306640625,
+    "values": [
+      725.133306640625,
+      692.1981025390625,
+      664.5174169921875,
+      660.51874609375,
+      658.139236328125
+    ]
+  },
+  {
+    "backend": "iouring",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "iouring",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 672.8562490234375,
+    "min": 656.9819150390625,
+    "max": 723.8261083984376,
+    "values": [
+      686.011130859375,
+      723.8261083984376,
+      672.8562490234375,
+      656.9819150390625,
+      658.4958212890625
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 654.4134140625,
+    "min": 616.4683671875,
+    "max": 655.9165615234375,
+    "values": [
+      654.4134140625,
+      655.6526982421875,
+      655.9165615234375,
+      616.4683671875,
+      626.41828515625
+    ]
+  },
+  {
+    "backend": "std",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "std",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 2313.0113388671875,
+    "min": 2258.9809404296875,
+    "max": 2333.0352509765626,
+    "values": [
+      2313.0113388671875,
+      2321.16901953125,
+      2333.0352509765626,
+      2258.9809404296875,
+      2262.5122353515626
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "base",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 2306.755947265625,
+    "min": 2261.191646484375,
+    "max": 2423.0114794921874,
+    "values": [
+      2304.077275390625,
+      2338.1665615234374,
+      2423.0114794921874,
+      2306.755947265625,
+      2261.191646484375
+    ]
+  },
+  {
+    "backend": "iouring",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "iouring",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 2304.4356376953124,
+    "min": 2274.525447265625,
+    "max": 2442.7984580078123,
+    "values": [
+      2342.6132158203127,
+      2442.7984580078123,
+      2304.4356376953124,
+      2296.5815048828126,
+      2274.525447265625
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-uring",
+    "median_ns_per_operation": 2332.66170703125,
+    "min": 2284.1348837890623,
+    "max": 2419.5930966796873,
+    "values": [
+      2419.5930966796873,
+      2332.66170703125,
+      2342.5468046875,
+      2297.046111328125,
+      2284.1348837890623
+    ]
+  }
+]

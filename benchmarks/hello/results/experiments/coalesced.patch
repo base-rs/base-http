@@ -1,0 +1,92 @@
+--- base-http1/src/output.rs
++++ base-http1/src/output.rs
+@@ -29,6 +29,7 @@
+ /// poisons admission. The owner must still await `close` to retire the backend.
+ pub struct ResponseWriter<W> {
+     writer: W,
++    pending: Vec<u8>,
+     usable: bool,
+     continue_sent: bool,
+ }
+@@ -37,6 +38,7 @@
+     pub fn new(writer: W) -> Self {
+         Self {
+             writer,
++            pending: Vec::new(),
+             usable: true,
+             continue_sent: false,
+         }
+@@ -68,11 +70,21 @@
+         let bytes = head_bytes(&head)?;
+         self.usable = false;
+         self.write_all(&bytes, cancellation).await?;
+-        self.writer.flush(cancellation).await?;
++        self.flush(cancellation).await?;
+         Ok(())
+     }
+ 
+     pub(crate) async fn write_all(
++        &mut self,
++        bytes: &[u8],
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        cancellation.check()?;
++        self.pending.extend_from_slice(bytes);
++        Ok(())
++    }
++
++    async fn send_all(
+         &mut self,
+         mut bytes: &[u8],
+         cancellation: &Cancellation,
+@@ -130,8 +142,10 @@
+         }
+         self.usable = false;
+         self.write_all(&bytes, cancellation).await?;
+-        // Commit the handshake before the first potentially blocking input read.
+-        self.writer.flush(cancellation).await?;
++        // DIAGNOSTIC ONLY: this benchmark's body cannot block.
++        // Do not apply this policy to generic streaming or upgrade bodies.
++        assert!(!plan.tunnel && matches!(plan.framing, Framing::Fixed(13))
++            && response.head.status == Status::OK && response.body.is_ready());
+         if plan.tunnel {
+             exchange.switch();
+         }
+@@ -161,6 +175,10 @@
+     }
+ 
+     pub(crate) async fn flush(&mut self, cancellation: &Cancellation) -> Result<(), Error> {
++        let mut pending = std::mem::take(&mut self.pending);
++        self.send_all(&pending, cancellation).await?;
++        pending.clear();
++        self.pending = pending;
+         Ok(self.writer.flush(cancellation).await?)
+     }
+ 
+@@ -176,7 +194,7 @@
+             let mut total = 0u64;
+             loop {
+                 if !body.is_ready() {
+-                    self.writer.flush(cancellation).await?;
++                    self.flush(cancellation).await?;
+                 }
+                 let chunk = wait(body.read(cancellation), cancellation)
+                     .await?
+@@ -230,7 +248,7 @@
+                 return Err(Error::Invalid("trailers require chunked framing"));
+             }
+         }
+-        self.writer.flush(cancellation).await?;
++        self.flush(cancellation).await?;
+         Ok(())
+     }
+ 
+@@ -274,7 +292,7 @@
+         let bytes = head_bytes(&response)?;
+         self.output.usable = false;
+         self.output.write_all(&bytes, cancellation).await?;
+-        self.output.writer.flush(cancellation).await?;
++        self.output.flush(cancellation).await?;
+         if response.status == Status::CONTINUE {
+             self.output.continue_sent = true;
+         }

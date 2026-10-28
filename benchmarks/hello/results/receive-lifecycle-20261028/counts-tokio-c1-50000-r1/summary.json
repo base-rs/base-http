@@ -1,0 +1,284 @@
+{
+  "mode": "counts",
+  "variant": "tokio",
+  "backend": "tokio-connections-raw",
+  "connections": 1,
+  "rate": 50000,
+  "repetition": 1,
+  "responses": 250000,
+  "achieved_rate": 49999.75,
+  "drain_ms": 0.016081,
+  "server_cpu": {
+    "user_seconds": 0.47,
+    "system_seconds": 2.14
+  },
+  "perf_returncode": -2,
+  "counts": {
+    "cycles": {
+      "value": 8600989146.0,
+      "unit": "",
+      "event": "cycles",
+      "raw": [
+        "8600989146",
+        "",
+        "cycles",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "instructions": {
+      "value": 5572486928.0,
+      "unit": "",
+      "event": "instructions",
+      "raw": [
+        "5572486928",
+        "",
+        "instructions",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "context_switches": {
+      "value": 250025.0,
+      "unit": "",
+      "event": "context-switches",
+      "raw": [
+        "250025",
+        "",
+        "context-switches",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "ring_enter": {
+      "value": 0.0,
+      "unit": "",
+      "event": "syscalls:sys_enter_io_uring_enter",
+      "raw": [
+        "0",
+        "",
+        "syscalls:sys_enter_io_uring_enter",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "recv_syscalls": {
+      "value": 250002.0,
+      "unit": "",
+      "event": "syscalls:sys_enter_recvfrom",
+      "raw": [
+        "250002",
+        "",
+        "syscalls:sys_enter_recvfrom",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "recv_syscall_eagain": {
+      "value": 1.0,
+      "unit": "",
+      "event": "syscalls:sys_exit_recvfrom",
+      "raw": [
+        "1",
+        "",
+        "syscalls:sys_exit_recvfrom",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "send_syscalls": {
+      "value": 250000.0,
+      "unit": "",
+      "event": "syscalls:sys_enter_sendto",
+      "raw": [
+        "250000",
+        "",
+        "syscalls:sys_enter_sendto",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "epoll_wait": {
+      "value": 250003.0,
+      "unit": "",
+      "event": "syscalls:sys_enter_epoll_wait",
+      "raw": [
+        "250003",
+        "",
+        "syscalls:sys_enter_epoll_wait",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "epoll_pwait": {
+      "value": 0.0,
+      "unit": "",
+      "event": "syscalls:sys_enter_epoll_pwait",
+      "raw": [
+        "0",
+        "",
+        "syscalls:sys_enter_epoll_pwait",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "ring_submissions": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_submit_req",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_submit_req",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "recv_submissions": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_submit_req",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_submit_req",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "poll_submissions": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_submit_req",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_submit_req",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "recv_poll_arm": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_poll_arm",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_poll_arm",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "completions": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_complete",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_complete",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "task_add": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_task_add",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_task_add",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "local_work_batches": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_local_work_run",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_local_work_run",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "async_worker_queue": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_queue_async_work",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_queue_async_work",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_calls": {
+      "value": 250002.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg",
+      "raw": [
+        "250002",
+        "",
+        "base_http_lifecycle:tcp_recvmsg",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_eagain": {
+      "value": 0.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg_return__return",
+      "raw": [
+        "0",
+        "",
+        "base_http_lifecycle:tcp_recvmsg_return__return",
+        "2980131954",
+        "100.00",
+        "",
+        ""
+      ]
+    }
+  }
+}

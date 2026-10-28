@@ -1,0 +1,19 @@
+# started on Tue Oct 27 15:30:26 2026
+
+
+ Performance counter stats for process id '27917':
+
+                 0      syscalls:sys_enter_recvfrom                                           
+                 0      syscalls:sys_exit_recvfrom                                            
+           571,600      syscalls:sys_enter_recvmsg                                            
+                45      syscalls:sys_exit_recvmsg                                             
+           571,551      syscalls:sys_enter_sendto                                             
+                 0      syscalls:sys_enter_writev                                             
+                63      syscalls:sys_enter_epoll_pwait                                        
+                 0      syscalls:sys_enter_epoll_wait                                         
+             7,181      syscalls:sys_enter_io_uring_enter                                      
+                70      syscalls:sys_enter_accept4                                            
+               205      syscalls:sys_enter_epoll_ctl                                          
+
+       4.286957274 seconds time elapsed
+

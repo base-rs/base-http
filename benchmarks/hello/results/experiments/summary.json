@@ -1,0 +1,83 @@
+[
+  {
+    "variant": "baseline",
+    "backend": "base-native",
+    "requests_per_second_min": 57874.43,
+    "requests_per_second_max": 61879.6,
+    "requests_per_second": 61089.98,
+    "latency_p99_ms": 1.36,
+    "server_cpu_percent_one_core": 118.86971546288324
+  },
+  {
+    "variant": "baseline",
+    "backend": "base-tokio",
+    "requests_per_second_min": 68408.15,
+    "requests_per_second_max": 69304.19,
+    "requests_per_second": 68441.77,
+    "latency_p99_ms": 1.24,
+    "server_cpu_percent_one_core": 99.48716861510943
+  },
+  {
+    "variant": "baseline",
+    "backend": "hyper-tokio",
+    "requests_per_second_min": 123990.24,
+    "requests_per_second_max": 130325.5,
+    "requests_per_second": 126974.05,
+    "latency_p99_ms": 0.6930000000000001,
+    "server_cpu_percent_one_core": 99.27511056965659
+  },
+  {
+    "variant": "coalesced",
+    "backend": "base-native",
+    "requests_per_second_min": 83156.89,
+    "requests_per_second_max": 84985.06,
+    "requests_per_second": 83460.52,
+    "latency_p99_ms": 0.92,
+    "server_cpu_percent_one_core": 126.09642333099298
+  },
+  {
+    "variant": "coalesced",
+    "backend": "base-tokio",
+    "requests_per_second_min": 102475.84,
+    "requests_per_second_max": 107544.93,
+    "requests_per_second": 104100.69,
+    "latency_p99_ms": 0.797,
+    "server_cpu_percent_one_core": 99.07494803763434
+  },
+  {
+    "variant": "combined",
+    "backend": "base-native",
+    "requests_per_second_min": 85015.62,
+    "requests_per_second_max": 87146.48,
+    "requests_per_second": 86699.92,
+    "latency_p99_ms": 0.91,
+    "server_cpu_percent_one_core": 126.67725397898381
+  },
+  {
+    "variant": "combined",
+    "backend": "base-tokio",
+    "requests_per_second_min": 104793.58,
+    "requests_per_second_max": 111664.31,
+    "requests_per_second": 111403.75,
+    "latency_p99_ms": 0.777,
+    "server_cpu_percent_one_core": 99.27643161989921
+  },
+  {
+    "variant": "receive-reuse",
+    "backend": "base-native",
+    "requests_per_second_min": 60412.55,
+    "requests_per_second_max": 61705.84,
+    "requests_per_second": 60581.18,
+    "latency_p99_ms": 1.34,
+    "server_cpu_percent_one_core": 119.04748793074145
+  },
+  {
+    "variant": "receive-reuse",
+    "backend": "base-tokio",
+    "requests_per_second_min": 66702.08,
+    "requests_per_second_max": 72344.1,
+    "requests_per_second": 71909.23,
+    "latency_p99_ms": 1.21,
+    "server_cpu_percent_one_core": 99.4633441752696
+  }
+]

@@ -1,0 +1,21 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "logical_cpus": 12,
+  "started": "2026-10-28T07:29:29Z",
+  "binary_sha256": "804aa0c5885d0afe69c2067079571b1c5ab76113a5f8a335559bb2ec1eda0e43",
+  "arguments": {
+    "binary": "/tmp/base-http-validation-target/release/base-http-client-benchmark",
+    "output": "benchmarks/client/results/smoke-lanes-20261028",
+    "repeats": 1,
+    "seconds": 0.3,
+    "warmup": 0.3,
+    "concurrency": "32",
+    "modes": "reuse",
+    "transports": "tcp",
+    "fresh_seconds": 2,
+    "implementations": "hyper"
+  },
+  "cpu": "Apple M4 Pro",
+  "rustc": "rustc 1.87.0 (17067e9ac 2025-05-09)\nbinary: rustc\ncommit-hash: 17067e9ac6d7ecb70e50f92c1944e545188d2359\ncommit-date: 2025-05-09\nhost: aarch64-apple-darwin\nrelease: 1.87.0\nLLVM version: 20.1.1\n"
+}

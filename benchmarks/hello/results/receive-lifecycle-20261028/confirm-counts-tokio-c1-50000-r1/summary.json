@@ -1,0 +1,46 @@
+{
+  "mode": "counts",
+  "variant": "tokio",
+  "backend": "tokio-connections-raw",
+  "connections": 1,
+  "rate": 50000,
+  "repetition": 1,
+  "responses": 250000,
+  "achieved_rate": 50000.0,
+  "drain_ms": 0.0,
+  "server_cpu": {
+    "user_seconds": 0.61,
+    "system_seconds": 1.07
+  },
+  "perf_returncode": -2,
+  "counts": {
+    "tcp_recv_calls": {
+      "value": 250002.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg",
+      "raw": [
+        "250002",
+        "",
+        "base_http_lifecycle:tcp_recvmsg",
+        "1949635717",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_eagain": {
+      "value": 1.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg_return32__return",
+      "raw": [
+        "1",
+        "",
+        "base_http_lifecycle:tcp_recvmsg_return32__return",
+        "1949635717",
+        "100.00",
+        "",
+        ""
+      ]
+    }
+  }
+}

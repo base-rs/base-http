@@ -1,0 +1,87 @@
+--- /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/results/raw-io/scheduler/before-driver.rs	2026-10-27 01:44:43
++++ crates/selector/src/readiness_driver.rs	2026-10-27 01:45:06
+@@ -8,9 +8,11 @@
+ #[cfg(target_os = "macos")]
+ mod kqueue;
+ #[cfg(target_os = "macos")]
+-use kqueue::{Events, Poller};
++use kqueue::{Events, Poller, ReadyEvent};
+ #[cfg(not(target_os = "macos"))]
+ use polling::{Events, Poller};
++#[cfg(not(target_os = "macos"))]
++type ReadyEvent = Event;
+ use std::{
+     cell::RefCell,
+     collections::HashMap,
+@@ -302,6 +304,7 @@
+     group: Arc<DriverGroup>,
+     controller: Arc<Controller>,
+     events: Events,
++    ready: Vec<(ReadyEvent, Arc<Registration>)>,
+ }
+ 
+ /// A movable readiness driver for one executor worker.
+@@ -360,6 +363,7 @@
+                 group: Arc::clone(&group),
+                 controller: Arc::clone(controller),
+                 events: Events::new(),
++                ready: Vec::new(),
+             }),
+         })
+         .collect();
+@@ -422,31 +426,34 @@
+             inner.group.close();
+             return Err(error);
+         }
+-        for event in inner.events.iter() {
++        if inner.events.iter().next().is_some() {
++            let table = inner.controller.table.lock().unwrap();
++            for event in inner.events.iter() {
++                #[cfg(target_os = "macos")]
++                let key = event.readiness.key;
++                #[cfg(not(target_os = "macos"))]
++                let key = event.key;
++                if let Some(registration) = table.registrations.get(&key).and_then(Weak::upgrade) {
++                    inner.ready.push((event, registration));
++                }
++            }
++        }
++        // Resolve the batch under one routing lock, then wake tasks without it.
++        for (event, registration) in inner.ready.drain(..) {
+             #[cfg(target_os = "macos")]
+             let (event, available, read_closed) =
+                 (event.readiness, event.available, event.read_closed);
+-            let registration = inner
+-                .controller
+-                .table
+-                .lock()
+-                .unwrap()
+-                .registrations
+-                .get(&event.key)
+-                .and_then(Weak::upgrade);
+-            if let Some(registration) = registration {
+-                if event.readable {
+-                    #[cfg(target_os = "macos")]
+-                    registration
+-                        .readable
+-                        .publish_readable(available, read_closed);
+-                    #[cfg(not(target_os = "macos"))]
+-                    registration.readable.publish();
+-                }
+-                if event.writable {
+-                    registration.writable.publish();
+-                }
++            if event.readable {
++                #[cfg(target_os = "macos")]
++                registration
++                    .readable
++                    .publish_readable(available, read_closed);
++                #[cfg(not(target_os = "macos"))]
++                registration.readable.publish();
+             }
++            if event.writable {
++                registration.writable.publish();
++            }
+         }
+         Ok(inner.group.closed.is_cancelled())
+     }

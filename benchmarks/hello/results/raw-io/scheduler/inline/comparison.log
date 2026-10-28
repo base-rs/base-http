@@ -1,0 +1,62 @@
+inline-native
+base-native-raw c= 64 r=1:     130576 req/s, p99 0.652 ms, CPU 99%
+tokio-task
+tokio-task-raw c= 64 r=1:     130650 req/s, p99 0.646 ms, CPU 99%
+notifier-native
+base-native-raw c= 64 r=1:     130954 req/s, p99 0.656 ms, CPU 99%
+inline-native
+base-native-raw c= 64 r=2:     133277 req/s, p99 0.657 ms, CPU 99%
+notifier-native
+base-native-raw c= 64 r=2:     131786 req/s, p99 0.669 ms, CPU 99%
+tokio-task
+tokio-task-raw c= 64 r=2:     136865 req/s, p99 0.659 ms, CPU 99%
+notifier-native
+base-native-raw c= 64 r=3:     135139 req/s, p99 0.666 ms, CPU 99%
+tokio-task
+tokio-task-raw c= 64 r=3:     135338 req/s, p99 0.661 ms, CPU 99%
+inline-native
+base-native-raw c= 64 r=3:     120468 req/s, p99 0.672 ms, CPU 99%
+inline-native
+base-native-raw c= 64 r=4:     110979 req/s, p99 0.677 ms, CPU 99%
+notifier-native
+base-native-raw c= 64 r=4:     127561 req/s, p99 0.670 ms, CPU 99%
+tokio-task
+tokio-task-raw c= 64 r=4:     136619 req/s, p99 0.658 ms, CPU 99%
+tokio-task
+tokio-task-raw c= 64 r=5:     135794 req/s, p99 0.664 ms, CPU 99%
+inline-native
+base-native-raw c= 64 r=5:     135206 req/s, p99 0.664 ms, CPU 99%
+notifier-native
+base-native-raw c= 64 r=5:     132643 req/s, p99 0.665 ms, CPU 99%
+{
+  "notifier-native": {
+    "median_requests_per_second": 131785.74,
+    "min_requests_per_second": 127560.53,
+    "max_requests_per_second": 135138.93,
+    "median_p99_ms": 0.666,
+    "median_cpu_percent": 99.47817933745819,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.33598550982881925,
+    "median_system_cpu_us_per_request": 7.2095770283741745
+  },
+  "inline-native": {
+    "median_requests_per_second": 130575.83,
+    "min_requests_per_second": 110979.38,
+    "max_requests_per_second": 135206.09,
+    "median_p99_ms": 0.664,
+    "median_cpu_percent": 99.47804135987438,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.33521476216807966,
+    "median_system_cpu_us_per_request": 7.274230385325437
+  },
+  "tokio-task": {
+    "median_requests_per_second": 135793.76,
+    "min_requests_per_second": 130650.23,
+    "max_requests_per_second": 136865.11,
+    "median_p99_ms": 0.659,
+    "median_cpu_percent": 99.28474513679186,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.2674788573018193,
+    "median_system_cpu_us_per_request": 7.055241759854844
+  }
+}

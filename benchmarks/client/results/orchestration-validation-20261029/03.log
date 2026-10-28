@@ -1,0 +1,64 @@
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 27 tests
+test invalid_zero_resource_or_constructor_limits_are_rejected ... ok
+test common_pool_trait_preserves_distinct_associated_permit_types ... ok
+test cancelling_maintenance_waits_preserves_cleanup_and_shutdown_obligations ... ok
+test construction_permits_enforce_resource_and_parallel_construction_limits ... ok
+test caller_can_supervise_maintenance_and_shutdown_without_pool_spawning ... ok
+test arbitrary_resource_destructors_run_outside_pool_locks ... ok
+test equal_resources_have_distinct_registrations_and_stale_controls_cannot_retire_replacements ... ok
+test multiplex_capacity_reductions_revalidate_reservations_without_terminating_active_uses ... ok
+test multiplex_close_rejects_pending_openings_and_retains_active_use_ownership ... ok
+test fifo_waiters_cannot_be_bypassed_and_cancelled_or_dropped_waiters_leave_no_holes ... ok
+test multiplex_abandonment_keeps_charge_until_driver_acknowledges_cleanup ... ok
+test multiplex_consumable_opening_credit_is_not_restored_by_use_completion ... ok
+test multiplex_draining_stops_reservations_and_waits_for_every_use_before_retirement ... ok
+test multiplex_updates_wake_waiters_without_any_release ... ok
+test multiplex_reservations_share_resource_and_dropping_unopened_uses_returns_capacity ... ok
+test prune_retains_requested_live_count_and_never_retires_in_use_resources ... ok
+test reservation_order_after_capacity_reduction_is_decided_at_activation ... ok
+test resources_can_borrow_application_storage ... ok
+test retirement_waiter_wakes_for_empty_shutdown_and_last_aborted_constructor ... ok
+test retirement_waiter_ignores_normal_admission_but_wakes_for_cleanup_and_requeue ... ok
+test retirement_while_leased_disables_reuse_and_defers_resource_cleanup ... ok
+test shutdown_wakes_waiters_and_late_construction_is_retired_without_publication ... ok
+test unfinished_singleplex_drop_retires_and_retirement_stays_charged_until_acknowledged ... ok
+test singleplex_exclusively_moves_send_resources_without_requiring_sync ... ok
+test waiter_bounds_precancellation_and_unpolled_acquisitions_do_not_consume_capacity ... ok
+test concurrent_singleplex_operations_never_exceed_hard_limits_or_duplicate_ownership ... ok
+test concurrent_multiplex_uses_respect_capacity_and_finish_exactly_once ... ok
+
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+
+running 1 test
+test two_exchanges_reuse_one_tcp_resource_and_retirement_holds_capacity_through_close ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test src/lib.rs - (line 56) ... ok
+test src/lib.rs - (line 21) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling pin-project-lite v0.2.17
+   Compiling parking v2.2.1
+   Compiling futures-core v0.3.34
+   Compiling fastrand v2.5.0
+   Compiling futures-io v0.3.34
+   Compiling event-listener v5.4.2
+   Compiling futures-lite v2.6.1
+   Compiling base-scheduler v0.2.0
+   Compiling base-pool v0.2.0 (/Users/samuel/Developer/base-rs/base-pool)
+    Finished `test` profile [unoptimized] target(s) in 0.73s
+     Running unittests src/lib.rs (/tmp/base-http-validation-target/debug/deps/base_pool-52d0bc3877045787)
+     Running tests/pools.rs (/tmp/base-http-validation-target/debug/deps/pools-5132c286828cf01c)
+     Running tests/tcp.rs (/tmp/base-http-validation-target/debug/deps/tcp-879a9dc5b860b48d)
+   Doc-tests base_pool

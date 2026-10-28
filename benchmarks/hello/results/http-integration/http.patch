@@ -1,0 +1,1106 @@
+--- before/base-http/src/body/buffered.rs
++++ after/base-http/src/body/buffered.rs
+@@ -13,15 +13,58 @@
+ /// shared owner can clone cheaply. Closing preserves the chunks for rewinding.
+ #[derive(Clone, Debug)]
+ pub struct BufferedBody<D = Vec<u8>> {
+-    chunks: Vec<D>,
++    chunks: Chunks<D>,
+     index: usize,
+     length: Option<u64>,
+ }
+ 
++// Keep the common static response allocation-free without changing the public
++// slice view or the replay cursor. Multiple chunks retain their original order.
++#[derive(Clone, Debug)]
++enum Chunks<D> {
++    Empty,
++    One(D),
++    Many(Vec<D>),
++}
++
++impl<D> Chunks<D> {
++    fn as_slice(&self) -> &[D] {
++        match self {
++            Self::Empty => &[],
++            Self::One(chunk) => std::slice::from_ref(chunk),
++            Self::Many(chunks) => chunks,
++        }
++    }
++
++    fn push(&mut self, chunk: D) {
++        match self {
++            Self::Empty => *self = Self::One(chunk),
++            Self::Many(chunks) => chunks.push(chunk),
++            Self::One(_) => {
++                let Self::One(first) = std::mem::replace(self, Self::Empty) else {
++                    unreachable!();
++                };
++                *self = Self::Many(vec![first, chunk]);
++            }
++        }
++    }
++}
++
+ impl<D: AsRef<[u8]> + Clone + Send> BufferedBody<D> {
+     pub fn new(chunks: impl IntoIterator<Item = D>) -> Self {
+-        let chunks: Vec<D> = chunks.into_iter().collect();
+-        let length = chunks.iter().try_fold(0u64, |sum, chunk| {
++        let mut iter = chunks.into_iter();
++        let chunks = match iter.next() {
++            None => Chunks::Empty,
++            Some(first) => match iter.next() {
++                None => Chunks::One(first),
++                Some(second) => {
++                    let mut chunks = vec![first, second];
++                    chunks.extend(iter);
++                    Chunks::Many(chunks)
++                }
++            },
++        };
++        let length = chunks.as_slice().iter().try_fold(0u64, |sum, chunk| {
+             sum.checked_add(u64::try_from(chunk.as_ref().len()).ok()?)
+         });
+         Self {
+@@ -33,12 +76,12 @@
+ 
+     /// All original chunks, including data already read.
+     pub fn chunks(&self) -> &[D] {
+-        &self.chunks
++        self.chunks.as_slice()
+     }
+ 
+     /// Read immediately available memory without scheduling an operation.
+     pub fn read_chunk(&mut self) -> Option<D> {
+-        let chunk = self.chunks.get(self.index)?.clone();
++        let chunk = self.chunks.as_slice().get(self.index)?.clone();
+         self.index += 1;
+         Some(chunk)
+     }
+@@ -61,7 +104,7 @@
+     }
+ 
+     pub fn clear(&mut self) {
+-        self.chunks.clear();
++        self.chunks = Chunks::Empty;
+         self.index = 0;
+         self.length = Some(0);
+     }
+@@ -70,7 +113,7 @@
+ impl<D> Default for BufferedBody<D> {
+     fn default() -> Self {
+         Self {
+-            chunks: Vec::new(),
++            chunks: Chunks::Empty,
+             index: 0,
+             length: Some(0),
+         }
+@@ -92,7 +135,7 @@
+     }
+ 
+     fn is_empty(&self) -> bool {
+-        self.index >= self.chunks.len()
++        self.index >= self.chunks.as_slice().len()
+     }
+ 
+     fn length(&self) -> Option<u64> {
+@@ -109,7 +152,7 @@
+     }
+ 
+     fn close(&mut self, _error: Option<Self::Error>) {
+-        self.index = self.chunks.len();
++        self.index = self.chunks.as_slice().len();
+     }
+ 
+     async fn read(
+--- before/base-http/tests/body.rs
++++ after/base-http/tests/body.rs
+@@ -132,3 +132,24 @@
+     assert!(head.is_empty());
+     assert_eq!(block_on(head.read(&Cancellation::never())), Ok(None));
+ }
++
++#[test]
++fn buffered_storage_transitions_preserve_slices_replay_and_append_after_eof() {
++    let mut body = BufferedBody::<&[u8]>::default();
++    assert_eq!(body.chunks(), &[] as &[&[u8]]);
++    body.write(b"one");
++    assert_eq!(body.chunks(), &[&b"one"[..]]);
++    assert_eq!(body.read_chunk(), Some(&b"one"[..]));
++    body.write(b"two");
++    body.write(b"three");
++    assert_eq!(body.chunks(), &[&b"one"[..], &b"two"[..], &b"three"[..]]);
++    assert_eq!(body.length(), Some(11));
++    assert_eq!(body.read_chunk(), Some(&b"two"[..]));
++    let mut replay = body.buffered();
++    body.clear();
++    assert!(body.chunks().is_empty());
++    body.write(b"");
++    assert_eq!(body.read_chunk(), Some(&b""[..]));
++    assert_eq!(replay.read_chunk(), Some(&b"one"[..]));
++    assert_eq!(BufferedBody::<&[u8]>::new([]).chunks(), &[] as &[&[u8]]);
++}
+--- before/base-http1/src/client.rs
++++ after/base-http1/src/client.rs
+@@ -216,9 +216,20 @@
+                 .read_head(cancellation)
+                 .await?
+                 .ok_or(Error::Truncated)?;
+-            let mut headers = vec![httparse::EMPTY_HEADER; self.input.options.max_fields];
+-            let mut parsed = httparse::Response::new(&mut headers);
+-            match parsed.parse(&bytes) {
++            let mut local = [std::mem::MaybeUninit::uninit(); 100];
++            let mut overflow;
++            let headers = if self.input.options.max_fields <= local.len() {
++                &mut local[..self.input.options.max_fields]
++            } else {
++                overflow = vec![std::mem::MaybeUninit::uninit(); self.input.options.max_fields];
++                &mut overflow
++            };
++            let mut parsed = httparse::Response::new(&mut []);
++            match httparse::ParserConfig::default().parse_response_with_uninit_headers(
++                &mut parsed,
++                &bytes,
++                headers,
++            ) {
+                 Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
+                 Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
+                 _ => return Err(Error::Invalid("invalid response head")),
+@@ -324,12 +335,12 @@
+         } else {
+             length
+         };
+-        let request_persistent = Exchange::new(request.clone()).is_persistent();
++        let exchange = Exchange::new(request.clone());
++        let request_persistent = exchange.is_persistent();
+         let response_persistent = !wire::has_token(&head.fields, "connection", b"close")
+             && (head.version == Some(Version::Http11)
+                 || wire::has_token(&head.fields, "connection", b"keep-alive"));
+         self.persistent = request_persistent && response_persistent && !raw;
+-        let exchange = Exchange::new(request.clone());
+         if tunnel {
+             exchange.switch();
+         }
+--- before/base-http1/src/output.rs
++++ after/base-http1/src/output.rs
+@@ -25,10 +25,31 @@
+     .await
+ }
+ 
++// Bound copied output independently of the number or size of body chunks.
++const OUTPUT_BATCH_LIMIT: usize = 16 * 1024;
++
++async fn send_all<W: SocketStreamWriter>(
++    writer: &mut W,
++    mut bytes: &[u8],
++    cancellation: &Cancellation,
++) -> Result<(), Error> {
++    while !bytes.is_empty() {
++        let n = writer.write(bytes, cancellation).await?;
++        if n == 0 {
++            return Err(
++                io::Error::new(io::ErrorKind::WriteZero, "HTTP output made no progress").into(),
++            );
++        }
++        bytes = &bytes[n..];
++    }
++    Ok(())
++}
++
+ /// The response lane. A partially sent or abandoned response permanently
+ /// poisons admission. The owner must still await `close` to retire the backend.
+ pub struct ResponseWriter<W> {
+     writer: W,
++    pending: Vec<u8>,
+     usable: bool,
+     continue_sent: bool,
+ }
+@@ -37,6 +58,7 @@
+     pub fn new(writer: W) -> Self {
+         Self {
+             writer,
++            pending: Vec::new(),
+             usable: true,
+             continue_sent: false,
+         }
+@@ -65,28 +87,85 @@
+         head.version = Some(Version::Http11);
+         head.fields.add("Content-Length", "0")?;
+         head.fields.add("Connection", "close")?;
+-        let bytes = head_bytes(&head)?;
+         self.usable = false;
+-        self.write_all(&bytes, cancellation).await?;
+-        self.writer.flush(cancellation).await?;
++        self.write_head(&head, cancellation).await?;
++        self.flush(cancellation).await?;
+         Ok(())
+     }
+ 
+     pub(crate) async fn write_all(
+         &mut self,
+-        mut bytes: &[u8],
++        bytes: &[u8],
+         cancellation: &Cancellation,
+     ) -> Result<(), Error> {
+-        while !bytes.is_empty() {
+-            let n = self.writer.write(bytes, cancellation).await?;
+-            if n == 0 {
+-                return Err(io::Error::new(
+-                    io::ErrorKind::WriteZero,
+-                    "HTTP output made no progress",
+-                )
+-                .into());
+-            }
+-            bytes = &bytes[n..];
++        cancellation.check()?;
++        if bytes.len() > OUTPUT_BATCH_LIMIT - self.pending.len() {
++            self.send_pending(cancellation).await?;
++        }
++        if bytes.len() >= OUTPUT_BATCH_LIMIT {
++            // Large chunks retain their existing owner and are not copied.
++            return send_all(&mut self.writer, bytes, cancellation).await;
++        }
++        let required = self.pending.len() + bytes.len();
++        if required > self.pending.capacity() {
++            let capacity = required
++                .max(self.pending.capacity().saturating_mul(2))
++                .clamp(256, OUTPUT_BATCH_LIMIT);
++            self.pending.reserve_exact(capacity - self.pending.len());
++        }
++        self.pending.extend_from_slice(bytes);
++        Ok(())
++    }
++
++    async fn send_pending(&mut self, cancellation: &Cancellation) -> Result<(), Error> {
++        // The lane is already poisoned while sending. On error/cancellation the
++        // retained prefix must never be retried by a subsequent message or close.
++        send_all(&mut self.writer, &self.pending, cancellation).await?;
++        self.pending.clear();
++        Ok(())
++    }
++
++    async fn write_head(
++        &mut self,
++        head: &ResponseHead,
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        let version = match head.version {
++            Some(Version::Http10) => b"HTTP/1.0 ",
++            Some(Version::Http11) => b"HTTP/1.1 ",
++            _ => return Err(Error::Invalid("unsupported response version")),
++        };
++        let status = head.status.as_u16();
++        let code = [
++            b'0' + (status / 100) as u8,
++            b'0' + (status / 10 % 10) as u8,
++            b'0' + (status % 10) as u8,
++            b' ',
++        ];
++        self.write_all(version, cancellation).await?;
++        self.write_all(&code, cancellation).await?;
++        self.write_all(
++            head.status.description().unwrap_or("").as_bytes(),
++            cancellation,
++        )
++        .await?;
++        self.write_all(b"\r\n", cancellation).await?;
++        self.write_fields(head.fields.headers(), cancellation)
++            .await?;
++        self.write_all(b"\r\n", cancellation).await
++    }
++
++    async fn write_fields(
++        &mut self,
++        fields: &[base_http::Field],
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        for field in fields {
++            self.write_all(field.name().as_bytes(), cancellation)
++                .await?;
++            self.write_all(b": ", cancellation).await?;
++            self.write_all(field.value(), cancellation).await?;
++            self.write_all(b"\r\n", cancellation).await?;
+         }
+         Ok(())
+     }
+@@ -118,21 +197,20 @@
+             return Err(Error::Invalid("response output is not reusable"));
+         }
+         let plan = plan(exchange, &response.head, response.body.length())?;
+-        let bytes = head_bytes(&plan.head)?;
+         if plan.tunnel
+             && response.head.status == Status::SWITCHING_PROTOCOLS
+             && !self.continue_sent
+-            && wire::has_token(&exchange.head.fields, "expect", b"100-continue")
++            && wire::has_token(&exchange.head().fields, "expect", b"100-continue")
+         {
+             self.interim(Version::Http11)
+                 .on_interim_response(ResponseHead::new(Status::CONTINUE), cancellation)
+                 .await?;
+         }
+         self.usable = false;
+-        self.write_all(&bytes, cancellation).await?;
+-        // Commit the handshake before the first potentially blocking input read.
+-        self.writer.flush(cancellation).await?;
++        self.write_head(&plan.head, cancellation).await?;
+         if plan.tunnel {
++            // Commit the handshake before the first potentially blocking input read.
++            self.flush(cancellation).await?;
+             exchange.switch();
+         }
+         self.write_body(
+@@ -161,6 +239,7 @@
+     }
+ 
+     pub(crate) async fn flush(&mut self, cancellation: &Cancellation) -> Result<(), Error> {
++        self.send_pending(cancellation).await?;
+         Ok(self.writer.flush(cancellation).await?)
+     }
+ 
+@@ -176,17 +255,27 @@
+             let mut total = 0u64;
+             loop {
+                 if !body.is_ready() {
+-                    self.writer.flush(cancellation).await?;
+-                }
+-                let chunk = wait(body.read(cancellation), cancellation)
+-                    .await?
+-                    .map_err(|e| {
+-                        if cancellation.is_cancelled() {
+-                            Error::Cancelled
+-                        } else {
+-                            Error::Body(Box::new(e))
+-                        }
+-                    })?;
++                    self.flush(cancellation).await?;
++                }
++                // Readiness is only a hint: buffered input can contain incomplete
++                // chunk framing. Flush on actual suspension, retaining the same
++                // read future so partial reads and cancellation stay intact.
++                let mut read = pin!(wait(body.read(cancellation), cancellation));
++                let ready = poll_fn(|cx| Poll::Ready(read.as_mut().poll(cx))).await;
++                let chunk = match ready {
++                    Poll::Ready(result) => result,
++                    Poll::Pending => {
++                        self.flush(cancellation).await?;
++                        read.await
++                    }
++                }?
++                .map_err(|e| {
++                    if cancellation.is_cancelled() {
++                        Error::Cancelled
++                    } else {
++                        Error::Body(Box::new(e))
++                    }
++                })?;
+                 let Some(chunk) = chunk else {
+                     break;
+                 };
+@@ -222,20 +311,20 @@
+             body.finish(fields).map_err(|e| Error::Body(Box::new(e)))?;
+             if matches!(framing, Framing::Chunked) {
+                 validate_trailers(fields)?;
+-                let mut trailers = b"0\r\n".to_vec();
+-                wire::append_fields(&mut trailers, fields.trailers());
+-                trailers.extend_from_slice(b"\r\n");
+-                self.write_all(&trailers, cancellation).await?;
++                self.write_all(b"0\r\n", cancellation).await?;
++                self.write_fields(fields.trailers(), cancellation).await?;
++                self.write_all(b"\r\n", cancellation).await?;
+             } else if !fields.trailers().is_empty() {
+                 return Err(Error::Invalid("trailers require chunked framing"));
+             }
+         }
+-        self.writer.flush(cancellation).await?;
++        self.flush(cancellation).await?;
+         Ok(())
+     }
+ 
+     pub async fn close(&mut self) -> io::Result<()> {
+         self.usable = false;
++        self.pending.clear();
+         self.writer.close().await
+     }
+ }
+@@ -271,10 +360,9 @@
+             return Err(Error::Invalid("invalid interim framing"));
+         }
+         response.version = Some(self.version);
+-        let bytes = head_bytes(&response)?;
+         self.output.usable = false;
+-        self.output.write_all(&bytes, cancellation).await?;
+-        self.output.writer.flush(cancellation).await?;
++        self.output.write_head(&response, cancellation).await?;
++        self.output.flush(cancellation).await?;
+         if response.status == Status::CONTINUE {
+             self.output.continue_sent = true;
+         }
+@@ -301,25 +389,31 @@
+     if !response.status.is_final() {
+         return Err(Error::Invalid("final response required"));
+     }
+-    let mut head = response.clone();
+-    let has_trailers = head.fields.has_trailers();
+-    validate_trailers(&head.fields)?;
+-    // Wire-generated fields belong to the initial section even when the
+-    // semantic message already contains a trailer boundary.
+-    head.fields = base_http::Fields::try_from_pairs(
+-        head.fields.headers().iter().map(|f| (f.name(), f.value())),
+-    )?;
+-    let version = exchange.head.version.unwrap_or(Version::Http11);
++    let has_trailers = response.fields.has_trailers();
++    validate_trailers(&response.fields)?;
++    let mut head = ResponseHead {
++        status: response.status,
++        version: response.version,
++        protocol: response.protocol.clone(),
++        fields: base_http::Fields::try_from_pairs(
++            response
++                .fields
++                .headers()
++                .iter()
++                .map(|f| (f.name(), f.value())),
++        )?,
++    };
++    let version = exchange.head().version.unwrap_or(Version::Http11);
+     if head.version.is_some_and(|v| v != version) {
+         return Err(Error::Invalid("response version differs from request"));
+     }
+     head.version = Some(version);
+     let (declared, chunked) = wire::framing(&head.fields)?;
+-    let connect = exchange.head.method == Method::CONNECT && head.status.is_success();
++    let connect = exchange.head().method == Method::CONNECT && head.status.is_success();
+     let upgrade = head.status == Status::SWITCHING_PROTOCOLS;
+     let tunnel = connect || upgrade;
+     let status_bodyless = head.status == Status::NO_CONTENT || head.status == Status::NOT_MODIFIED;
+-    let absent = !tunnel && (exchange.head.method == Method::HEAD || status_bodyless);
++    let absent = !tunnel && (exchange.head().method == Method::HEAD || status_bodyless);
+     let mut persistent = exchange.is_persistent()
+         && !exchange.is_abandoned()
+         && !wire::has_token(&head.fields, "connection", b"close")
+@@ -334,7 +428,7 @@
+         }
+         if upgrade {
+             if version != Version::Http11
+-                || !wire::has_token(&exchange.head.fields, "connection", b"upgrade")
++                || !wire::has_token(&exchange.head().fields, "connection", b"upgrade")
+             {
+                 return Err(Error::Invalid("unsolicited upgrade"));
+             }
+@@ -345,7 +439,7 @@
+                 .or(wire::singleton(&head.fields, "upgrade")?)
+                 .ok_or(Error::Invalid("missing selected protocol"))?;
+             if !wire::token(selected)
+-                || !wire::has_token(&exchange.head.fields, "upgrade", selected)
++                || !wire::has_token(&exchange.head().fields, "upgrade", selected)
+             {
+                 return Err(Error::Invalid("upgrade protocol was not offered"));
+             }
+@@ -463,20 +557,3 @@
+     }
+     Ok(())
+ }
+-
+-fn head_bytes(head: &ResponseHead) -> Result<Vec<u8>, Error> {
+-    let version = match head.version {
+-        Some(Version::Http10) => "HTTP/1.0",
+-        Some(Version::Http11) => "HTTP/1.1",
+-        _ => return Err(Error::Invalid("unsupported response version")),
+-    };
+-    let mut bytes = format!(
+-        "{version} {} {}\r\n",
+-        head.status.as_u16(),
+-        head.status.description().unwrap_or("")
+-    )
+-    .into_bytes();
+-    wire::append_fields(&mut bytes, head.fields.headers());
+-    bytes.extend_from_slice(b"\r\n");
+-    Ok(bytes)
+-}
+--- before/base-http1/src/input.rs
++++ after/base-http1/src/input.rs
+@@ -23,37 +23,43 @@
+ /// switch changes incoming body reads to raw data without releasing transport.
+ #[derive(Clone)]
+ pub struct Exchange {
+-    pub(crate) head: RequestHead,
+-    state: Arc<State>,
++    context: Arc<Context>,
++}
++
++struct Context {
++    head: RequestHead,
++    state: State,
+ }
+ 
+ impl Exchange {
+     pub(crate) fn new(head: RequestHead) -> Self {
+         Self {
+-            head,
+-            state: Arc::new(State::default()),
++            context: Arc::new(Context {
++                head,
++                state: State::default(),
++            }),
+         }
+     }
+     pub fn head(&self) -> &RequestHead {
+-        &self.head
++        &self.context.head
+     }
+     pub fn is_complete(&self) -> bool {
+-        self.state.complete.load(Ordering::Acquire)
++        self.context.state.complete.load(Ordering::Acquire)
+     }
+     pub fn is_tunnel(&self) -> bool {
+-        self.state.tunnel.load(Ordering::Acquire)
++        self.context.state.tunnel.load(Ordering::Acquire)
+     }
+     /// Whether the application discarded input before reaching its boundary.
+     pub fn is_abandoned(&self) -> bool {
+-        self.state.abandoned.load(Ordering::Acquire)
++        self.context.state.abandoned.load(Ordering::Acquire)
+     }
+     pub fn is_persistent(&self) -> bool {
+-        !wire::has_token(&self.head.fields, "connection", b"close")
+-            && (self.head.version.unwrap_or(Version::Http11) == Version::Http11
+-                || wire::has_token(&self.head.fields, "connection", b"keep-alive"))
++        !wire::has_token(&self.context.head.fields, "connection", b"close")
++            && (self.context.head.version.unwrap_or(Version::Http11) == Version::Http11
++                || wire::has_token(&self.context.head.fields, "connection", b"keep-alive"))
+     }
+     pub(crate) fn switch(&self) {
+-        self.state.tunnel.store(true, Ordering::Release);
++        self.context.state.tunnel.store(true, Ordering::Release);
+     }
+ }
+ 
+@@ -62,6 +68,7 @@
+ pub struct RequestReader<R> {
+     reader: R,
+     buffer: Vec<u8>,
++    scratch: Vec<u8>,
+     start: usize,
+     pub(crate) options: Options,
+     pub(crate) poisoned: bool,
+@@ -74,6 +81,7 @@
+         Ok(Self {
+             reader,
+             buffer: Vec::new(),
++            scratch: vec![0; options.read_size],
+             start: 0,
+             options,
+             poisoned: false,
+@@ -98,9 +106,11 @@
+             self.buffer.drain(..self.start);
+             self.start = 0;
+         }
+-        let mut chunk = vec![0; self.options.read_size];
+-        let n = self.reader.read_into(&mut chunk, cancellation).await?;
+-        self.buffer.extend_from_slice(&chunk[..n]);
++        let n = self
++            .reader
++            .read_into(&mut self.scratch, cancellation)
++            .await?;
++        self.buffer.extend_from_slice(&self.scratch[..n]);
+         Ok(n != 0)
+     }
+ 
+@@ -156,9 +166,16 @@
+             self.poisoned = false;
+             return Ok(None);
+         };
+-        let mut headers = vec![httparse::EMPTY_HEADER; self.options.max_fields];
+-        let mut parsed = httparse::Request::new(&mut headers);
+-        match parsed.parse(&bytes) {
++        let mut local = [std::mem::MaybeUninit::uninit(); 100];
++        let mut overflow;
++        let headers = if self.options.max_fields <= local.len() {
++            &mut local[..self.options.max_fields]
++        } else {
++            overflow = vec![std::mem::MaybeUninit::uninit(); self.options.max_fields];
++            &mut overflow
++        };
++        let mut parsed = httparse::Request::new(&mut []);
++        match parsed.parse_with_uninit_headers(&bytes, headers) {
+             Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
+             Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
+             _ => return Err(Error::Invalid("invalid request head")),
+@@ -274,7 +291,11 @@
+         forbid_content: bool,
+     ) -> Self {
+         let complete = !raw && matches!(framing, Framing::Fixed(0));
+-        exchange.state.complete.store(complete, Ordering::Release);
++        exchange
++            .context
++            .state
++            .complete
++            .store(complete, Ordering::Release);
+         Self {
+             input,
+             exchange,
+@@ -372,7 +393,11 @@
+     }
+     fn close(&mut self, _: Option<Error>) {
+         if !self.complete {
+-            self.exchange.state.abandoned.store(true, Ordering::Release);
++            self.exchange
++                .context
++                .state
++                .abandoned
++                .store(true, Ordering::Release);
+         }
+         self.closed = true;
+     }
+@@ -404,6 +429,7 @@
+         if result.is_ok() {
+             self.input.poisoned = false;
+             self.exchange
++                .context
+                 .state
+                 .complete
+                 .store(self.complete, Ordering::Release);
+@@ -415,7 +441,11 @@
+ impl<R> Drop for IncomingBody<'_, R> {
+     fn drop(&mut self) {
+         if !self.complete {
+-            self.exchange.state.abandoned.store(true, Ordering::Release);
++            self.exchange
++                .context
++                .state
++                .abandoned
++                .store(true, Ordering::Release);
+         }
+     }
+ }
+--- before/base-http1/src/wire.rs
++++ after/base-http1/src/wire.rs
+@@ -137,8 +137,19 @@
+ }
+ 
+ pub(crate) fn request(parsed: &httparse::Request<'_, '_>) -> Result<RequestHead, Error> {
+-    let method = Method::new(parsed.method.ok_or(Error::Invalid("missing method"))?)
+-        .map_err(|_| Error::Invalid("invalid method"))?;
++    let method = match parsed.method.ok_or(Error::Invalid("missing method"))? {
++        "GET" => Method::GET,
++        "HEAD" => Method::HEAD,
++        "POST" => Method::POST,
++        "PUT" => Method::PUT,
++        "DELETE" => Method::DELETE,
++        "CONNECT" => Method::CONNECT,
++        "OPTIONS" => Method::OPTIONS,
++        "TRACE" => Method::TRACE,
++        "PATCH" => Method::PATCH,
++        "QUERY" => Method::QUERY,
++        other => Method::new(other).map_err(|_| Error::Invalid("invalid method"))?,
++    };
+     let target = parsed.path.ok_or(Error::Invalid("missing target"))?;
+     if target.contains('#') || target.contains('\\') {
+         return Err(Error::Invalid("invalid request target"));
+--- before/base-http1/tests/codec.rs
++++ after/base-http1/tests/codec.rs
+@@ -69,16 +69,34 @@
+     }
+ }
+ 
++#[derive(Debug, PartialEq)]
++enum OutputEvent {
++    Write(usize),
++    Flush,
++    Close,
++}
++
+ struct Output {
+     bytes: Arc<Mutex<Vec<u8>>>,
+     step: usize,
++    events: Option<Arc<Mutex<Vec<OutputEvent>>>>,
++    fail_after: Option<usize>,
+ }
+ impl SocketStreamWriter for Output {
+     type Buffer = Vec<u8>;
+     async fn write(&mut self, bytes: &[u8], cancellation: &Cancellation) -> OperationResult<usize> {
+         cancellation.check()?;
++        if self
++            .fail_after
++            .is_some_and(|limit| self.bytes.lock().unwrap().len() >= limit)
++        {
++            return Err(io::Error::from(io::ErrorKind::BrokenPipe).into());
++        }
+         let n = bytes.len().min(self.step);
+         self.bytes.lock().unwrap().extend_from_slice(&bytes[..n]);
++        if let Some(events) = &self.events {
++            events.lock().unwrap().push(OutputEvent::Write(n));
++        }
+         Ok(n)
+     }
+     async fn write_vectored(
+@@ -97,6 +115,9 @@
+     }
+     async fn flush(&mut self, cancellation: &Cancellation) -> OperationResult<()> {
+         cancellation.check()?;
++        if let Some(events) = &self.events {
++            events.lock().unwrap().push(OutputEvent::Flush);
++        }
+         Ok(())
+     }
+     async fn write_vectored_with_flags(
+@@ -116,6 +137,9 @@
+         (unsupported(), buffers)
+     }
+     async fn close(&mut self) -> io::Result<()> {
++        if let Some(events) = &self.events {
++            events.lock().unwrap().push(OutputEvent::Close);
++        }
+         Ok(())
+     }
+ }
+@@ -251,6 +275,8 @@
+         ResponseWriter::new(Output {
+             bytes: bytes.clone(),
+             step,
++            events: None,
++            fail_after: None,
+         }),
+         bytes,
+     )
+@@ -530,6 +556,8 @@
+         RequestWriter::new(Output {
+             bytes: bytes.clone(),
+             step,
++            events: None,
++            fail_after: None,
+         }),
+         bytes,
+     )
+@@ -985,3 +1013,309 @@
+         );
+     });
+ }
++
++#[test]
++fn static_response_head_and_body_share_one_transport_write() {
++    block_on(async {
++        let bytes = Arc::new(Mutex::new(Vec::new()));
++        let events = Arc::new(Mutex::new(Vec::new()));
++        let mut output = ResponseWriter::new(Output {
++            bytes: bytes.clone(),
++            step: usize::MAX,
++            events: Some(events.clone()),
++            fail_after: None,
++        });
++        for _ in 0..2 {
++            let mut response = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
++            assert!(
++                output
++                    .write_response(&exchange(), &mut response, &Cancellation::never())
++                    .await
++                    .unwrap()
++            );
++        }
++        let expected = b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello";
++        assert_eq!(*bytes.lock().unwrap(), expected.repeat(2));
++        assert_eq!(
++            *events.lock().unwrap(),
++            [
++                OutputEvent::Write(expected.len()),
++                OutputEvent::Flush,
++                OutputEvent::Write(expected.len()),
++                OutputEvent::Flush,
++            ]
++        );
++    });
++}
++
++struct ReadyButSuspendingBody {
++    reads: usize,
++    gate: Arc<std::sync::atomic::AtomicBool>,
++    completed_waits: Arc<std::sync::atomic::AtomicUsize>,
++}
++impl ReadableBody for ReadyButSuspendingBody {
++    type Data = &'static [u8];
++    type Error = std::convert::Infallible;
++    fn is_ready(&self) -> bool {
++        true
++    }
++    fn close(&mut self, _: Option<Self::Error>) {}
++    async fn read(&mut self, _: &Cancellation) -> Result<Option<Self::Data>, Self::Error> {
++        self.reads += 1;
++        match self.reads {
++            1 => Ok(Some(b"one")),
++            2 => {
++                struct Guard(Arc<std::sync::atomic::AtomicUsize>);
++                impl Drop for Guard {
++                    fn drop(&mut self) {
++                        self.0.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
++                    }
++                }
++                let _guard = Guard(self.completed_waits.clone());
++                std::future::poll_fn(|_| {
++                    if self.gate.load(std::sync::atomic::Ordering::SeqCst) {
++                        std::task::Poll::Ready(())
++                    } else {
++                        std::task::Poll::Pending
++                    }
++                })
++                .await;
++                Ok(Some(b"two"))
++            }
++            _ => Ok(None),
++        }
++    }
++}
++
++#[test]
++fn actual_body_suspension_flushes_ready_data_and_keeps_the_started_read() {
++    block_on(async {
++        let (mut output, bytes) = output(usize::MAX);
++        let gate = Arc::new(std::sync::atomic::AtomicBool::new(false));
++        let waits = Arc::new(std::sync::atomic::AtomicUsize::new(0));
++        let mut response = Response::new(
++            Status::OK,
++            ReadyButSuspendingBody {
++                reads: 0,
++                gate: gate.clone(),
++                completed_waits: waits.clone(),
++            },
++        );
++        let exchange = exchange();
++        let never = Cancellation::never();
++        {
++            let mut send = pin!(output.write_response(&exchange, &mut response, &never));
++            assert!(poll_once(send.as_mut()).await.is_none());
++            assert_eq!(
++                *bytes.lock().unwrap(),
++                b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n3\r\none\r\n"
++            );
++            assert_eq!(waits.load(std::sync::atomic::Ordering::SeqCst), 0);
++            gate.store(true, std::sync::atomic::Ordering::SeqCst);
++            assert!(send.await.unwrap());
++        }
++        assert_eq!(response.body.reads, 3);
++        assert_eq!(waits.load(std::sync::atomic::Ordering::SeqCst), 1);
++        assert!(bytes.lock().unwrap().ends_with(b"3\r\ntwo\r\n0\r\n\r\n"));
++    });
++}
++
++#[test]
++fn failed_batched_write_is_never_replayed_on_close_or_next_response() {
++    block_on(async {
++        let bytes = Arc::new(Mutex::new(Vec::new()));
++        let mut output = ResponseWriter::new(Output {
++            bytes: bytes.clone(),
++            step: 3,
++            events: None,
++            fail_after: Some(3),
++        });
++        let mut response = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
++        assert!(
++            matches!(output.write_response(&exchange(), &mut response, &Cancellation::never()).await,
++            Err(Error::Io(e)) if e.kind() == io::ErrorKind::BrokenPipe)
++        );
++        assert!(!output.is_usable());
++        assert!(
++            output
++                .write_response(
++                    &exchange(),
++                    &mut Response::empty(Status::OK),
++                    &Cancellation::never()
++                )
++                .await
++                .is_err()
++        );
++        output.close().await.unwrap();
++        assert_eq!(*bytes.lock().unwrap(), b"HTT");
++    });
++}
++
++#[test]
++fn large_heads_chunks_and_trailers_preserve_every_byte_across_batch_boundaries() {
++    block_on(async {
++        let payload = vec![b'x'; 70_000];
++        let mut response = Response::new(
++            Status::OK,
++            BufferedBody::new([vec![b'a'; 12_000], payload.clone(), vec![b'b'; 12_000]]),
++        );
++        response.fields.add("X-Large", vec![b'h'; 40_000]).unwrap();
++        response.fields.mark_trailers();
++        response
++            .fields
++            .add("X-Trailer", vec![b't'; 40_000])
++            .unwrap();
++        let (mut output, bytes) = output(1031);
++        output
++            .write_response(&exchange(), &mut response, &Cancellation::never())
++            .await
++            .unwrap();
++        let mut expected = b"HTTP/1.1 200 OK\r\nX-Large: ".to_vec();
++        expected.extend(vec![b'h'; 40_000]);
++        expected.extend_from_slice(
++            b"\r\nTransfer-Encoding: chunked\r\nTrailer: X-Trailer\r\n\r\n2ee0\r\n",
++        );
++        expected.extend(vec![b'a'; 12_000]);
++        expected.extend_from_slice(b"\r\n11170\r\n");
++        expected.extend_from_slice(&payload);
++        expected.extend_from_slice(b"\r\n2ee0\r\n");
++        expected.extend(vec![b'b'; 12_000]);
++        expected.extend_from_slice(b"\r\n0\r\nX-Trailer: ");
++        expected.extend(vec![b't'; 40_000]);
++        expected.extend_from_slice(b"\r\n\r\n");
++        assert_eq!(*bytes.lock().unwrap(), expected);
++    });
++}
++
++#[test]
++fn configured_field_limits_work_below_and_above_stack_capacity_in_both_directions() {
++    block_on(async {
++        for count in [99, 100, 101, 120] {
++            let fields = "X-Test: value\r\n".repeat(count - 1);
++            let request: &'static [u8] = Box::leak(
++                format!("GET / HTTP/1.1\r\nHost: x\r\n{fields}\r\n")
++                    .into_bytes()
++                    .into_boxed_slice(),
++            );
++            let response: &'static [u8] = Box::leak(
++                format!("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n{fields}\r\n")
++                    .into_bytes()
++                    .into_boxed_slice(),
++            );
++            for max_fields in [count - 1, count] {
++                let options = base_http1::Options {
++                    max_fields,
++                    ..Default::default()
++                };
++                let mut input = RequestReader::new(
++                    Input {
++                        bytes: request,
++                        step: usize::MAX,
++                    },
++                    options.clone(),
++                )
++                .unwrap();
++                let result = input.read_request(&Cancellation::never()).await;
++                if max_fields == count {
++                    assert_eq!(result.unwrap().unwrap().0.fields.len(), count);
++                } else {
++                    assert!(matches!(result, Err(Error::Limit("field count"))));
++                }
++                let mut input = ResponseReader::new(
++                    Input {
++                        bytes: response,
++                        step: usize::MAX,
++                    },
++                    options,
++                )
++                .unwrap();
++                let result = input
++                    .read_response(
++                        &RequestHead::new(Method::GET),
++                        &mut observer(),
++                        &Cancellation::never(),
++                    )
++                    .await;
++                if max_fields == count {
++                    assert_eq!(result.unwrap().fields.len(), count);
++                } else {
++                    assert!(matches!(result, Err(Error::Limit("field count"))));
++                }
++            }
++        }
++    });
++}
++
++struct ManyReadyChunks {
++    remaining: usize,
++    closed: bool,
++}
++impl ReadableBody for ManyReadyChunks {
++    type Data = &'static [u8];
++    type Error = std::convert::Infallible;
++    fn is_ready(&self) -> bool {
++        true
++    }
++    fn close(&mut self, _: Option<Self::Error>) {
++        self.closed = true;
++    }
++    async fn read(&mut self, _: &Cancellation) -> Result<Option<Self::Data>, Self::Error> {
++        if self.remaining == 0 {
++            std::future::pending().await
++        } else {
++            self.remaining -= 1;
++            Ok(Some(b"x"))
++        }
++    }
++}
++
++#[test]
++fn many_ready_chunks_are_sent_in_bounded_batches_before_body_completion() {
++    block_on(async {
++        let bytes = Arc::new(Mutex::new(Vec::new()));
++        let events = Arc::new(Mutex::new(Vec::new()));
++        let mut output = ResponseWriter::new(Output {
++            bytes: bytes.clone(),
++            step: usize::MAX,
++            events: Some(events.clone()),
++            fail_after: None,
++        });
++        let mut response = Response::new(
++            Status::OK,
++            ManyReadyChunks {
++                remaining: 10_000,
++                closed: false,
++            },
++        );
++        let exchange = exchange();
++        let cancellation = Cancellation::new();
++        {
++            let mut send = pin!(output.write_response(&exchange, &mut response, &cancellation));
++            assert!(poll_once(send.as_mut()).await.is_none());
++            let mut expected = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n".to_vec();
++            expected.extend(b"1\r\nx\r\n".repeat(10_000));
++            assert_eq!(*bytes.lock().unwrap(), expected);
++            let writes: Vec<usize> = events
++                .lock()
++                .unwrap()
++                .iter()
++                .filter_map(|event| {
++                    if let OutputEvent::Write(size) = event {
++                        Some(*size)
++                    } else {
++                        None
++                    }
++                })
++                .collect();
++            assert!(writes.len() >= 4 && writes.len() < 16);
++            assert!(writes.iter().all(|size| *size <= 16 * 1024));
++            cancellation.cancel();
++            assert!(matches!(send.await, Err(Error::Cancelled)));
++        }
++        assert!(response.body.closed);
++        assert!(!output.is_usable());
++        let sent = bytes.lock().unwrap().len();
++        output.close().await.unwrap();
++        assert_eq!(bytes.lock().unwrap().len(), sent);
++    });
++}
+--- before/base-http-server/tests/end_to_end.rs
++++ after/base-http-server/tests/end_to_end.rs
+@@ -766,3 +766,19 @@
+     });
+     assert_eq!(served.unwrap(), 1);
+ }
++
++#[test]
++fn partial_chunk_delimiter_does_not_hold_back_an_echo_response() {
++    let (served, ()) = connection(Echo, |mut peer, _| {
++        // Read-ahead ends partway through the next chunk delimiter. IncomingBody
++        // can report ready even though decoding its next chunk needs more input.
++        peer.get_mut().write_all(b"POST / HTTP/1.1\r\nHost: example\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n3\r\none\r").unwrap();
++        let response = head(&mut peer);
++        assert_eq!(chunked_prefix(&mut peer, 3), b"one");
++        peer.get_mut()
++            .write_all(b"\n3\r\ntwo\r\n0\r\n\r\n")
++            .unwrap();
++        assert_eq!(body(&mut peer, &response).0, b"two");
++    });
++    assert_eq!(served.unwrap(), 1);
++}

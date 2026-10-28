@@ -1,0 +1,30 @@
+--- base-http1/src/input.rs
++++ base-http1/src/input.rs
+@@ -62,6 +62,7 @@
+ pub struct RequestReader<R> {
+     reader: R,
+     buffer: Vec<u8>,
++    scratch: Vec<u8>,
+     start: usize,
+     pub(crate) options: Options,
+     pub(crate) poisoned: bool,
+@@ -74,6 +75,7 @@
+         Ok(Self {
+             reader,
+             buffer: Vec::new(),
++            scratch: vec![0; options.read_size],
+             start: 0,
+             options,
+             poisoned: false,
+@@ -98,9 +100,8 @@
+             self.buffer.drain(..self.start);
+             self.start = 0;
+         }
+-        let mut chunk = vec![0; self.options.read_size];
+-        let n = self.reader.read_into(&mut chunk, cancellation).await?;
+-        self.buffer.extend_from_slice(&chunk[..n]);
++        let n = self.reader.read_into(&mut self.scratch, cancellation).await?;
++        self.buffer.extend_from_slice(&self.scratch[..n]);
+         Ok(n != 0)
+     }
+ 

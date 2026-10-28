@@ -1,0 +1,10 @@
+--- /tmp/base-http-wrk.LLBCBU/src/wrk.c	2026-10-26 19:58:16
++++ /var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-wrk-outlier-yy7yhgb5/src/wrk.c	2026-10-27 00:26:30
+@@ -343,6 +343,7 @@
+     if (--c->pending == 0) {
+         if (!stats_record(statistics.latency, now - c->start)) {
+             thread->errors.timeout++;
++            fprintf(stderr, "WRK_LATENCY_OUTLIER fd=%d wall_start=%" PRIu64 " wall_now=%" PRIu64 " wall_elapsed=%" PRId64 " limit=%" PRIu64 "\n", c->fd, c->start, now, (int64_t)now - (int64_t)c->start, statistics.latency->limit);
+         }
+         c->delayed = cfg.delay;
+         aeCreateFileEvent(thread->loop, c->fd, AE_WRITABLE, socket_writeable, c);

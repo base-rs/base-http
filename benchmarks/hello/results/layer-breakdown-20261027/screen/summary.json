@@ -1,0 +1,962 @@
+[
+  {
+    "backend": "base",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 586.119412,
+    "min": 584.758513,
+    "max": 587.994085,
+    "values": [
+      587.147769,
+      584.758513,
+      584.835384,
+      587.994085,
+      586.119412
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 74.859642,
+    "min": 74.275691,
+    "max": 76.554557,
+    "values": [
+      74.859642,
+      74.351366,
+      76.554557,
+      74.893331,
+      74.275691
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 78.978038,
+    "min": 78.451879,
+    "max": 79.06091,
+    "values": [
+      79.035963,
+      78.978038,
+      78.801194,
+      79.06091,
+      78.451879
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 66.120321,
+    "min": 65.705598,
+    "max": 67.27462,
+    "values": [
+      66.120321,
+      65.705598,
+      65.918511,
+      67.27462,
+      66.386682
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 54.312239,
+    "min": 54.280322,
+    "max": 55.031289,
+    "values": [
+      54.280322,
+      54.872439,
+      54.31028,
+      54.312239,
+      55.031289
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 54.801282,
+    "min": 54.57877,
+    "max": 55.203117,
+    "values": [
+      54.57877,
+      55.203117,
+      54.826249,
+      54.801282,
+      54.776652
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "tasks",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 46.410641,
+    "min": 45.980296,
+    "max": 49.101543,
+    "values": [
+      49.101543,
+      46.410641,
+      46.496835,
+      46.128487,
+      45.980296
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "tasks",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 47.836588,
+    "min": 47.206188,
+    "max": 48.781969,
+    "values": [
+      47.478373,
+      48.781969,
+      47.836588,
+      47.206188,
+      48.604097
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 361.454269,
+    "min": 360.671528,
+    "max": 362.252085,
+    "values": [
+      362.252085,
+      362.217953,
+      361.231307,
+      361.454269,
+      360.671528
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 361.410699,
+    "min": 360.794252,
+    "max": 362.063508,
+    "values": [
+      362.063508,
+      360.794252,
+      362.020273,
+      361.285702,
+      361.410699
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 107.579834,
+    "min": 107.162716,
+    "max": 109.072386,
+    "values": [
+      107.194779,
+      107.742913,
+      107.579834,
+      109.072386,
+      107.162716
+    ]
+  },
+  {
+    "backend": "base-noio",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 108.06988,
+    "min": 107.601254,
+    "max": 108.137533,
+    "values": [
+      108.137533,
+      108.06988,
+      107.604178,
+      108.092492,
+      107.601254
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 92.855836,
+    "min": 92.493636,
+    "max": 94.156617,
+    "values": [
+      92.855836,
+      92.493636,
+      92.747304,
+      92.98892,
+      94.156617
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 92.947466,
+    "min": 91.304663,
+    "max": 96.913662,
+    "values": [
+      92.947466,
+      91.304663,
+      92.504749,
+      96.913662,
+      93.005578
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 92.707908,
+    "min": 92.090701,
+    "max": 94.707511,
+    "values": [
+      92.702457,
+      92.716178,
+      92.707908,
+      92.090701,
+      94.707511
+    ]
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 92.939371,
+    "min": 92.391984,
+    "max": 97.38004,
+    "values": [
+      93.343277,
+      97.38004,
+      92.939371,
+      92.73458,
+      92.391984
+    ]
+  },
+  {
+    "backend": "manual",
+    "kind": "supervisor",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 60.279242,
+    "min": 60.074476,
+    "max": 61.139741,
+    "values": [
+      60.074476,
+      60.213491,
+      61.139741,
+      60.320941,
+      60.279242
+    ]
+  },
+  {
+    "backend": "manual",
+    "kind": "supervisor",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 61.426737,
+    "min": 60.863967,
+    "max": 64.509368,
+    "values": [
+      61.426737,
+      61.119512,
+      60.863967,
+      64.509368,
+      61.511197
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "readiness",
+    "width": 1,
+    "iterations": 2000000,
+    "median_ns_per_operation": 70.968697,
+    "min": 70.7875595,
+    "max": 71.9842275,
+    "values": [
+      70.878588,
+      70.7875595,
+      71.099157,
+      70.968697,
+      71.9842275
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "readiness",
+    "width": 16,
+    "iterations": 125000,
+    "median_ns_per_operation": 72.3338175,
+    "min": 70.799543,
+    "max": 72.8587715,
+    "values": [
+      70.926632,
+      72.3338175,
+      72.417152,
+      72.8587715,
+      70.799543
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "readiness",
+    "width": 64,
+    "iterations": 31250,
+    "median_ns_per_operation": 70.9273075,
+    "min": 70.6357745,
+    "max": 71.668078,
+    "values": [
+      71.668078,
+      70.7934535,
+      71.271402,
+      70.9273075,
+      70.6357745
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness",
+    "width": 1,
+    "iterations": 2000000,
+    "median_ns_per_operation": 62.78037,
+    "min": 62.3673625,
+    "max": 65.425956,
+    "values": [
+      63.073848,
+      62.3673625,
+      65.425956,
+      62.6530175,
+      62.78037
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness",
+    "width": 16,
+    "iterations": 125000,
+    "median_ns_per_operation": 62.9440115,
+    "min": 62.4304195,
+    "max": 64.9437515,
+    "values": [
+      64.9437515,
+      62.4304195,
+      64.4547905,
+      62.9440115,
+      62.439654
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness",
+    "width": 64,
+    "iterations": 31250,
+    "median_ns_per_operation": 62.1640035,
+    "min": 61.88048,
+    "max": 62.3531925,
+    "values": [
+      61.88048,
+      62.1640035,
+      62.076369,
+      62.320564,
+      62.3531925
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness-list",
+    "width": 1,
+    "iterations": 2000000,
+    "median_ns_per_operation": 107.2891335,
+    "min": 106.918389,
+    "max": 115.0744665,
+    "values": [
+      107.2891335,
+      115.0744665,
+      106.918389,
+      106.925915,
+      107.3446455
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness-list",
+    "width": 16,
+    "iterations": 125000,
+    "median_ns_per_operation": 107.255406,
+    "min": 105.768302,
+    "max": 108.7920485,
+    "values": [
+      107.255406,
+      108.7920485,
+      105.768302,
+      107.8987045,
+      105.9495475
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness-list",
+    "width": 64,
+    "iterations": 31250,
+    "median_ns_per_operation": 106.278272,
+    "min": 105.903735,
+    "max": 108.331628,
+    "values": [
+      106.200691,
+      105.903735,
+      106.4469905,
+      106.278272,
+      108.331628
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 43.156573,
+    "min": 42.941729,
+    "max": 49.754547,
+    "values": [
+      43.331815,
+      43.111124,
+      42.941729,
+      43.156573,
+      49.754547
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 26.903328,
+    "min": 26.850594,
+    "max": 27.220702,
+    "values": [
+      26.850594,
+      27.220702,
+      26.903328,
+      26.982393,
+      26.864174
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 26.225416,
+    "min": 26.042467,
+    "max": 26.376417,
+    "values": [
+      26.042467,
+      26.376417,
+      26.225416,
+      26.232068,
+      26.128084
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 36.083325,
+    "min": 35.865539,
+    "max": 36.342836,
+    "values": [
+      35.904965,
+      36.342836,
+      35.865539,
+      36.083325,
+      36.129924
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 20.86245,
+    "min": 20.788317,
+    "max": 20.922356,
+    "values": [
+      20.922356,
+      20.788317,
+      20.881734,
+      20.830178,
+      20.86245
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 20.523419,
+    "min": 20.433227,
+    "max": 20.906802,
+    "values": [
+      20.451136,
+      20.523419,
+      20.433227,
+      20.906802,
+      20.616402
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch-waiting",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 54.912866,
+    "min": 54.387598,
+    "max": 55.058127,
+    "values": [
+      54.781288,
+      54.912866,
+      54.923344,
+      55.058127,
+      54.387598
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch-waiting",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 39.457829,
+    "min": 39.089163,
+    "max": 40.82161,
+    "values": [
+      39.710189,
+      39.457829,
+      39.089163,
+      40.82161,
+      39.213159
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch-waiting",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 39.013249,
+    "min": 37.224034,
+    "max": 41.205095,
+    "values": [
+      38.486,
+      39.725077,
+      41.205095,
+      37.224034,
+      39.013249
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch-waiting",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 47.48141,
+    "min": 46.880838,
+    "max": 48.023508,
+    "values": [
+      47.561073,
+      48.023508,
+      47.236942,
+      46.880838,
+      47.48141
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch-waiting",
+    "width": 16,
+    "iterations": 62500,
+    "median_ns_per_operation": 32.178336,
+    "min": 31.900967,
+    "max": 33.949494,
+    "values": [
+      32.16649,
+      32.178336,
+      33.949494,
+      32.338854,
+      31.900967
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch-waiting",
+    "width": 64,
+    "iterations": 15625,
+    "median_ns_per_operation": 31.021058,
+    "min": 30.677424,
+    "max": 31.724431,
+    "values": [
+      30.677424,
+      31.381781,
+      31.724431,
+      31.021058,
+      31.000972
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "empty-poll",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 495.250539,
+    "min": 491.583999,
+    "max": 507.41625,
+    "values": [
+      507.41625,
+      491.583999,
+      495.250539,
+      499.127729,
+      491.972725
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "empty-poll",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 476.560016,
+    "min": 474.810552,
+    "max": 482.736321,
+    "values": [
+      482.736321,
+      474.810552,
+      476.560016,
+      478.194174,
+      475.308612
+    ]
+  },
+  {
+    "backend": "mio",
+    "kind": "empty-poll",
+    "width": 1,
+    "iterations": 1000000,
+    "median_ns_per_operation": 474.062515,
+    "min": 473.633726,
+    "max": 475.380463,
+    "values": [
+      473.633726,
+      474.258667,
+      474.062515,
+      475.380463,
+      474.061
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events",
+    "width": 1,
+    "iterations": 10000,
+    "median_ns_per_operation": 628.6427,
+    "min": 620.6726,
+    "max": 643.3914,
+    "values": [
+      628.6427,
+      632.3787,
+      620.6726,
+      643.3914,
+      628.4293
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events",
+    "width": 16,
+    "iterations": 10000,
+    "median_ns_per_operation": 95.35498125,
+    "min": 94.95834375,
+    "max": 100.4903625,
+    "values": [
+      95.35498125,
+      95.109675,
+      100.4903625,
+      97.10741875,
+      94.95834375
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events",
+    "width": 64,
+    "iterations": 10000,
+    "median_ns_per_operation": 83.26919375,
+    "min": 82.820321875,
+    "max": 84.2701328125,
+    "values": [
+      83.4213515625,
+      83.050009375,
+      84.2701328125,
+      83.26919375,
+      82.820321875
+    ]
+  },
+  {
+    "backend": "mio",
+    "kind": "events",
+    "width": 1,
+    "iterations": 10000,
+    "median_ns_per_operation": 625.4786,
+    "min": 615.0429,
+    "max": 637.9227,
+    "values": [
+      625.4786,
+      637.9227,
+      626.858,
+      615.0429,
+      620.5144
+    ]
+  },
+  {
+    "backend": "mio",
+    "kind": "events",
+    "width": 16,
+    "iterations": 10000,
+    "median_ns_per_operation": 94.33983125,
+    "min": 92.73379375,
+    "max": 94.4507875,
+    "values": [
+      92.73379375,
+      94.44506875,
+      94.33983125,
+      93.24836875,
+      94.4507875
+    ]
+  },
+  {
+    "backend": "mio",
+    "kind": "events",
+    "width": 64,
+    "iterations": 10000,
+    "median_ns_per_operation": 82.8155,
+    "min": 81.8381046875,
+    "max": 83.53238125,
+    "values": [
+      81.8381046875,
+      82.075246875,
+      83.2945203125,
+      83.53238125,
+      82.8155
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events-driver",
+    "width": 1,
+    "iterations": 10000,
+    "median_ns_per_operation": 674.9039,
+    "min": 662.8787,
+    "max": 691.2826,
+    "values": [
+      674.9039,
+      682.0019,
+      662.8787,
+      691.2826,
+      665.1029
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events-driver",
+    "width": 16,
+    "iterations": 10000,
+    "median_ns_per_operation": 133.92179375,
+    "min": 132.79748125,
+    "max": 135.5210625,
+    "values": [
+      135.5210625,
+      133.7093125,
+      134.81576875,
+      132.79748125,
+      133.92179375
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events-driver",
+    "width": 64,
+    "iterations": 10000,
+    "median_ns_per_operation": 122.5634375,
+    "min": 122.10753125,
+    "max": 123.0479515625,
+    "values": [
+      123.0479515625,
+      122.5634375,
+      122.10753125,
+      122.8991375,
+      122.23228125
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "events-driver",
+    "width": 1,
+    "iterations": 10000,
+    "median_ns_per_operation": 654.1583,
+    "min": 648.4388,
+    "max": 666.5334,
+    "values": [
+      658.8028,
+      653.3837,
+      654.1583,
+      666.5334,
+      648.4388
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "events-driver",
+    "width": 16,
+    "iterations": 10000,
+    "median_ns_per_operation": 126.8633625,
+    "min": 125.98705625,
+    "max": 129.94175625,
+    "values": [
+      125.98705625,
+      129.94175625,
+      128.01455,
+      126.6333,
+      126.8633625
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "events-driver",
+    "width": 64,
+    "iterations": 10000,
+    "median_ns_per_operation": 115.8405796875,
+    "min": 115.0090296875,
+    "max": 116.4244640625,
+    "values": [
+      115.90326875,
+      116.4244640625,
+      115.6244390625,
+      115.0090296875,
+      115.8405796875
+    ]
+  },
+  {
+    "backend": "std",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "median_ns_per_operation": 612.3568583984375,
+    "min": 605.9433935546875,
+    "max": 615.2386572265625,
+    "values": [
+      615.2386572265625,
+      613.46190625,
+      606.34541015625,
+      605.9433935546875,
+      612.3568583984375
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "median_ns_per_operation": 659.9007021484375,
+    "min": 655.6598671875,
+    "max": 666.3067998046874,
+    "values": [
+      655.6598671875,
+      659.9007021484375,
+      666.3067998046874,
+      661.3777001953125,
+      659.0488798828125
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "median_ns_per_operation": 626.82401171875,
+    "min": 620.6095458984375,
+    "max": 632.4640537109375,
+    "values": [
+      630.329794921875,
+      626.82401171875,
+      620.6095458984375,
+      632.4640537109375,
+      623.1813759765625
+    ]
+  },
+  {
+    "backend": "std",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "median_ns_per_operation": 2263.2615205078123,
+    "min": 2240.2389912109375,
+    "max": 2268.4582841796873,
+    "values": [
+      2252.5807529296876,
+      2263.2615205078123,
+      2263.848158203125,
+      2240.2389912109375,
+      2268.4582841796873
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "median_ns_per_operation": 2277.666787109375,
+    "min": 2249.4785712890625,
+    "max": 2289.30559375,
+    "values": [
+      2281.5672412109375,
+      2261.9538740234375,
+      2249.4785712890625,
+      2289.30559375,
+      2277.666787109375
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "median_ns_per_operation": 2284.76973828125,
+    "min": 2267.4156044921874,
+    "max": 2297.1623798828123,
+    "values": [
+      2284.76973828125,
+      2288.3222978515623,
+      2267.4156044921874,
+      2297.1623798828123,
+      2283.890802734375
+    ]
+  }
+]

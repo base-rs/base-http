@@ -1,0 +1,1112 @@
+Analysis of sampling server (pid 49586) every 1 millisecond
+Process:         server [49586]
+Path:            /Users/USER/*/server
+Load Address:    0x1004a4000
+Identifier:      server
+Version:         0
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  python3.13 [49582]
+Target Type:     live task
+
+Date/Time:       2026-10-26 20:22:56.176 +1300
+Launch Time:     2026-10-26 20:22:53.022 +1300
+OS Version:      macOS 27.0.1 (26A434)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         3712K
+Physical footprint (peak):  3712K
+Idle exit:                  untracked
+----
+
+Call graph:
+    5394 Thread_48853126   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 5394 start  (in dyld) + 6688  [0x1842f7e80]
+    +   5394 main  (in server) + 52  [0x1004df85c]
+    +     5394 std::rt::lang_start_internal  (in server) + 936  [0x10057c3b0]
+    +       5394 std::rt::lang_start::<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>::{closure#0}  (in server) + 16  [0x1004f8a74]
+    +         5394 std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>, core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>  (in server) + 12  [0x1004eae84]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166
+    +           5394 base_http_hello_benchmark::main  (in server) + 1284  [0x1004de750]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/hello/src/main.rs:176
+    +             5394 <base_scheduler_native::native_scheduler::NativeScheduler>::block_on::<base_scheduler_native::native_task::NativeTask<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>  (in server) + 184  [0x1004e73dc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-native-0.1.0/src/native_scheduler.rs:129
+    +               5394 <event_listener::EventListener as event_listener::Listener>::wait  (in server) + 88  [0x1004e6674]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/lib.rs:862
+    +                 5394 <event_listener::InnerListener<(), alloc::sync::Arc<event_listener::Inner<()>>>>::wait_with_parker  (in server) + 240  [0x1004e5fc8]
+    +                   5394 <parking::Inner>::park  (in server) + 384  [0x100561d08]
+    +                     5394 _pthread_cond_wait  (in libsystem_pthread.dylib) + 980  [0x1846ce1d0]
+    +                       5394 __psynch_cvwait  (in libsystem_kernel.dylib) + 8  [0x18468c50c]
+    5394 Thread_48853127: base-native-task
+    + 5394 thread_start  (in libsystem_pthread.dylib) + 8  [0x1846c8cec]
+    +   5394 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x1846cdd00]
+    +     5394 <std::sys::thread::unix::Thread>::new::thread_start  (in server) + 392  [0x1005827c8]
+    +       5394 <std::thread::lifecycle::spawn_unchecked<<base_scheduler_native::task_service::TaskService>::new::{closure#1}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}  (in server) + 180  [0x100538d44]
+    +         5394 std::sys::backtrace::__rust_begin_short_backtrace::<<base_scheduler_native::task_service::TaskService>::new::{closure#1}, ()>  (in server) + 40  [0x10059fde4]
+    +           5393 base_scheduler_native::worker::run_loop  (in server) + 1100  [0x100535fa8]
+    +           ! 5392 <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::run  (in server) + 340  [0x1004eb238]
+    +           ! : 5392 <base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}> as core::future::future::Future>::poll  (in server) + 2364  [0x1004ec22c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-native-0.1.0/src/native_task.rs:61
+    +           ! :   5386 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler_native::native_scheduler::NativeScheduler as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}>, core::pin::Pin<&mut base_http_hello_benchmark::base_server<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}::{closure#0}>> as core::future::future::Future>::poll  (in server) + 136  [0x1004f9800]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+    +           ! :   | 5386 <core::pin::Pin<&mut base_http_hello_benchmark::base_server<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}::{closure#0}> as futures_util::future::future::FutureExt>::poll_unpin  (in server) + 80  [0x1004d2b94]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/future/mod.rs:556
+    +           ! :   |   5378 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin  (in server) + 1404  [0x1004beb18]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+    +           ! :   |   + 2879 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12440  [0x1004af730]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 2849 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 2108  [0x1004b7d10]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +           ! :   |   + ! : 2844 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&[u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 172  [0x1004cd2b8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! : | 2839 <socket2::socket::Socket>::send_with_flags  (in server) + 32  [0x1005534b8]
+    +           ! :   |   + ! : | + 2838 __sendto  (in libsystem_kernel.dylib) + 8,4  [0x18468d39c,0x18468d398]
+    +           ! :   |   + ! : | + 1 DYLD-STUB$$send  (in server) + 4  [0x1005a9004]
+    +           ! :   |   + ! : | 5 <socket2::socket::Socket>::send_with_flags  (in server) + 40,100,...  [0x1005534c0,0x1005534fc,...]
+    +           ! :   |   + ! : 5 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&[u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 36,316,...  [0x1004cd230,0x1004cd348,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! 10 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 1692,172,...  [0x1004b7b70,0x1004b7580,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +           ! :   |   + ! 5 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 332,324,...  [0x1004b7620,0x1004b7618,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:182
+    +           ! :   |   + ! 4 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 392  [0x1004b765c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:182
+    +           ! :   |   + ! : 2 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result  (in server) + 16  [0x1004deabc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:58
+    +           ! :   |   + ! : 1 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result  (in server) + 0  [0x1004deaac]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:57
+    +           ! :   |   + ! : 1 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result  (in server) + 220  [0x1004deb88]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:67
+    +           ! :   |   + ! 2 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 600  [0x1004b772c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:182
+    +           ! :   |   + ! : 2 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::wait::{closure#0}  (in server) + 736  [0x1004b6cc4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:84
+    +           ! :   |   + ! :   1 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result  (in server) + 16  [0x1004deabc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:58
+    +           ! :   |   + ! :   1 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result  (in server) + 220  [0x1004deb88]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:67
+    +           ! :   |   + ! 2 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 1084  [0x1004b7910]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:183
+    +           ! :   |   + ! 1 core::ptr::drop_glue::<<base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>  (in server) + 196  [0x1004a79ec]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:56
+    +           ! :   |   + ! 1 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::wait::{closure#0}  (in server) + 756  [0x1004b6cd8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:0
+    +           ! :   |   + ! 1 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 52  [0x1004b7508]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:177
+    +           ! :   |   + ! 1 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 1700  [0x1004b7b78]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +           ! :   |   + ! : 1 <base_scheduler_selector::readiness_selector::ReadinessSelector>::check_open  (in server) + 36  [0x10053fb1c]
+    +           ! :   |   + ! 1 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 2144  [0x1004b7d34]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}>  (in server) + 0  [0x1004a7a14]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! 1 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 2560  [0x1004b7ed4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<<base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>  (in server) + 0  [0x1004a7928]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! 1 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 1056  [0x1004b78f4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:182
+    +           ! :   |   + !   1 core::ptr::drop_glue::<<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_stream_writer::SocketStreamWriter>::flush::{closure#0}>  (in server) + 0  [0x1004aabf4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + 1690 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7964  [0x1004ae5b4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1132 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 792  [0x1004ccef4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! : 1125 <socket2::socket::Socket>::recv_with_flags  (in server) + 32  [0x100553438]
+    +           ! :   |   + ! : | 1125 __recvfrom  (in libsystem_kernel.dylib) + 8,4  [0x18468d3c8,0x18468d3c4]
+    +           ! :   |   + ! : 5 <socket2::socket::Socket>::recv_with_flags  (in server) + 40,52  [0x100553440,0x10055344c]
+    +           ! :   |   + ! : 2 <socket2::socket::Socket>::recv_with_flags  (in server) + 56  [0x100553450]
+    +           ! :   |   + ! :   1 DYLD-STUB$$__error  (in server) + 4  [0x1005a8c74]
+    +           ! :   |   + ! :   1 __error  (in libsystem_kernel.dylib) + 4  [0x184689608]
+    +           ! :   |   + ! 353 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 964  [0x1004ccfa0]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! : 342 async_io::optimistic::<async_io::reactor::Readable<socket2::socket::Socket>>::{closure#0}  (in server) + 140  [0x1004cb264]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2071
+    +           ! :   |   + ! : | 335 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::future::future::Future>::poll  (in server) + 564  [0x1004e2834]
+    +           ! :   |   + ! : | + 323 <polling::kqueue::Poller>::modify  (in server) + 368  [0x100548db0]
+    +           ! :   |   + ! : | + ! 323 rustix::backend::event::syscalls::kevent  (in server) + 24  [0x100549c70]
+    +           ! :   |   + ! : | + !   323 kevent  (in libsystem_kernel.dylib) + 8,4  [0x18468efcc,0x18468efc8]
+    +           ! :   |   + ! : | + 5 <polling::kqueue::Poller>::modify  (in server) + 120  [0x100548cb8]
+    +           ! :   |   + ! : | + ! 4 <hashbrown::map::HashMap<polling::kqueue::SourceId, (), std::hash::random::RandomState>>::contains_key::<polling::kqueue::SourceId>  (in server) + 36  [0x100549150]
+    +           ! :   |   + ! : | + ! : 2 <std::hash::random::RandomState as core::hash::BuildHasher>::hash_one::<&polling::kqueue::SourceId>  (in server) + 96  [0x100549898]
+    +           ! :   |   + ! : | + ! : | 2 <std::hash::random::DefaultHasher as core::hash::Hasher>::write  (in server) + 0,68  [0x1005499a0,0x1005499e4]
+    +           ! :   |   + ! : | + ! : 2 <std::hash::random::RandomState as core::hash::BuildHasher>::hash_one::<&polling::kqueue::SourceId>  (in server) + 32,96  [0x100549858,0x100549898]
+    +           ! :   |   + ! : | + ! 1 <hashbrown::map::HashMap<polling::kqueue::SourceId, (), std::hash::random::RandomState>>::contains_key::<polling::kqueue::SourceId>  (in server) + 148  [0x1005491c0]
+    +           ! :   |   + ! : | + 3 <polling::kqueue::Poller>::modify  (in server) + 332  [0x100548d8c]
+    +           ! :   |   + ! : | + ! 3 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,16,...  [0x1844f44fc,0x1844f4500,...]
+    +           ! :   |   + ! : | + 1 <polling::kqueue::Poller>::modify  (in server) + 284  [0x100548d5c]
+    +           ! :   |   + ! : | + ! 1 <rustix::event::kqueue::Event>::new  (in server) + 0  [0x100549d00]
+    +           ! :   |   + ! : | + 1 <polling::kqueue::Poller>::modify  (in server) + 316  [0x100548d7c]
+    +           ! :   |   + ! : | + ! 1 <rustix::event::kqueue::Event>::new  (in server) + 0  [0x100549d00]
+    +           ! :   |   + ! : | + 1 <polling::kqueue::Poller>::modify  (in server) + 548  [0x100548e64]
+    +           ! :   |   + ! : | + ! 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 204  [0x1844f1944]
+    +           ! :   |   + ! : | + 1 <polling::kqueue::Poller>::modify  (in server) + 84  [0x100548c94]
+    +           ! :   |   + ! : | 3 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::future::future::Future>::poll  (in server) + 64  [0x1004e2640]
+    +           ! :   |   + ! : | + 3 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10056f0cc]
+    +           ! :   |   + ! : | +   2 DYLD-STUB$$pthread_mutex_lock  (in server) + 0,4  [0x1005a8f64,0x1005a8f68]
+    +           ! :   |   + ! : | +   1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 0  [0x1846c84d8]
+    +           ! :   |   + ! : | 2 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::future::future::Future>::poll  (in server) + 368,384  [0x1004e2770,0x1004e2780]
+    +           ! :   |   + ! : | 1 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::future::future::Future>::poll  (in server) + 176  [0x1004e26b0]
+    +           ! :   |   + ! : | + 1 <async_io::reactor::Direction>::is_empty  (in server) + 44  [0x100546070]
+    +           ! :   |   + ! : | 1 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::future::future::Future>::poll  (in server) + 464  [0x1004e27d0]
+    +           ! :   |   + ! : |   1 <async_io::reactor::Direction>::is_empty  (in server) + 12  [0x100546050]
+    +           ! :   |   + ! : 7 async_io::optimistic::<async_io::reactor::Readable<socket2::socket::Socket>>::{closure#0}  (in server) + 172  [0x1004cb284]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2072
+    +           ! :   |   + ! : | 3 DYLD-STUB$$pthread_mutex_unlock  (in server) + 8,4  [0x1005a8f84,0x1005a8f80]
+    +           ! :   |   + ! : | 2 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 32,68  [0x1846c8a3c,0x1846c8a60]
+    +           ! :   |   + ! : | 1 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::ops::drop::Drop>::drop  (in server) + 60  [0x1004e2a84]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/reactor.rs:673
+    +           ! :   |   + ! : | + 1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 136  [0x1846c8560]
+    +           ! :   |   + ! : | 1 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::ops::drop::Drop>::drop  (in server) + 180  [0x1004e2afc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/reactor.rs:678
+    +           ! :   |   + ! : 2 async_io::optimistic::<async_io::reactor::Readable<socket2::socket::Socket>>::{closure#0}  (in server) + 0,20  [0x1004cb1d8,0x1004cb1ec]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2059
+    +           ! :   |   + ! : 1 async_io::optimistic::<async_io::reactor::Readable<socket2::socket::Socket>>::{closure#0}  (in server) + 40  [0x1004cb200]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2060
+    +           ! :   |   + ! : 1 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::future::future::Future>::poll  (in server) + 692  [0x1004e28b4]
+    +           ! :   |   + ! 169 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 172  [0x1004ccc88]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! : 166 <socket2::socket::Socket>::recv_with_flags  (in server) + 32  [0x100553438]
+    +           ! :   |   + ! : | 158 __recvfrom  (in libsystem_kernel.dylib) + 8,4  [0x18468d3c8,0x18468d3c4]
+    +           ! :   |   + ! : | 7 __recvfrom  (in libsystem_kernel.dylib) + 28  [0x18468d3dc]
+    +           ! :   |   + ! : | + 5 cerror  (in libsystem_kernel.dylib) + 44  [0x18468a5f8]
+    +           ! :   |   + ! : | + ! 5 _pthread_exit_if_canceled  (in libsystem_pthread.dylib) + 0,8  [0x1846c7958,0x1846c7960]
+    +           ! :   |   + ! : | + 2 cerror  (in libsystem_kernel.dylib) + 0  [0x18468a5cc]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$recv  (in server) + 4  [0x1005a8fec]
+    +           ! :   |   + ! : 1 <socket2::socket::Socket>::recv_with_flags  (in server) + 56  [0x100553450]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$__error  (in server) + 0  [0x1005a8c70]
+    +           ! :   |   + ! : 1 base_scheduler_selector::socket_io::recv_poll  (in server) + 16  [0x10053b310]
+    +           ! :   |   + ! : 1 __recvfrom  (in libsystem_kernel.dylib) + 36  [0x18468d3e4]
+    +           ! :   |   + ! 15 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 604  [0x1004cce38]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! : 10 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 140  [0x1004cbb74]
+    +           ! :   |   + ! : | 4 <event_listener::Inner<()>>::with_inner::<event_listener::RegisterResult<()>, <event_listener::Inner<()>>::register::{closure#0}>  (in server) + 60  [0x1004e2fcc]
+    +           ! :   |   + ! : | + 3 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10056f0cc]
+    +           ! :   |   + ! : | + ! 2 pthread_mutex_lock  (in libsystem_pthread.dylib) + 112  [0x1846c8548]
+    +           ! :   |   + ! : | + ! 1 DYLD-STUB$$pthread_mutex_lock  (in server) + 4  [0x1005a8f68]
+    +           ! :   |   + ! : | + 1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 136  [0x1846c8560]
+    +           ! :   |   + ! : | 4 <event_listener::Inner<()>>::with_inner::<event_listener::RegisterResult<()>, <event_listener::Inner<()>>::register::{closure#0}>  (in server) + 364  [0x1004e30fc]
+    +           ! :   |   + ! : | + 3 <event_listener::TaskRef>::into_task  (in server) + 0,16,...  [0x10056155c,0x10056156c,...]
+    +           ! :   |   + ! : | + 1 <event_listener::TaskRef>::into_task  (in server) + 64  [0x10056159c]
+    +           ! :   |   + ! : | +   1 futures_util::stream::futures_unordered::task::waker_ref::clone_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 16  [0x1004ac660]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/sync.rs:0
+    +           ! :   |   + ! : | 2 <event_listener::Inner<()>>::with_inner::<event_listener::RegisterResult<()>, <event_listener::Inner<()>>::register::{closure#0}>  (in server) + 716,732  [0x1004e325c,0x1004e326c]
+    +           ! :   |   + ! : 2 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 96  [0x1004cbb48]
+    +           ! :   |   + ! : | 1 <event_listener::Inner<()>>::with_inner::<(), <event_listener::Inner<()>>::insert::{closure#0}>  (in server) + 48  [0x1004e342c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:139
+    +           ! :   |   + ! : | + 1 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10056f0cc]
+    +           ! :   |   + ! : | +   1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 36  [0x1846c84fc]
+    +           ! :   |   + ! : | 1 <event_listener::Inner<()>>::with_inner::<(), <event_listener::Inner<()>>::insert::{closure#0}>  (in server) + 164  [0x1004e34a0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:141
+    +           ! :   |   + ! : 2 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 28  [0x1004cbb04]
+    +           ! :   |   + ! : 1 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 80  [0x1004cbb38]
+    +           ! :   |   + ! :   1 <event_listener::Event>::inner  (in server) + 0  [0x1004e5df8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/lib.rs:469
+    +           ! :   |   + ! 14 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 36,1444,...  [0x1004ccc00,0x1004cd180,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! 3 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 584  [0x1004cce24]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! : 3 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 0,232,...  [0x1004cbae8,0x1004cbbd0,...]
+    +           ! :   |   + ! 1 <socket2::socket::Socket>::recv_with_flags  (in server) + 104  [0x100553480]
+    +           ! :   |   + ! 1 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 28  [0x1004ccbf8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:149
+    +           ! :   |   + ! 1 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 152  [0x1004ccc74]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + ! : 1 <base_scheduler_selector::native_socket::NativeSocket>::get_ref  (in server) + 4  [0x10053ae28]
+    +           ! :   |   + ! 1 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 380  [0x1004ccd58]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :   |   + !   1 std::sys::io::error::unix::decode_error_kind  (in server) + 0  [0x1005539d4]
+    +           ! :   |   + 122 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 3236  [0x1004ad33c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 84 base_http1::output::head_bytes  (in server) + 160  [0x10055721c]
+    +           ! :   |   + ! : 79 alloc::fmt::format::format_inner  (in server) + 308  [0x100591b78]
+    +           ! :   |   + ! : | 58 core::fmt::write  (in server) + 144  [0x100595738]
+    +           ! :   |   + ! : | + 53 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 112  [0x100591ea8]
+    +           ! :   |   + ! : | + ! 49 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 68  [0x1005a83a0]
+    +           ! :   |   + ! : | + ! : 48 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 44  [0x1005a8458]
+    +           ! :   |   + ! : | + ! : | 31 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    +           ! :   |   + ! : | + ! : | + 26 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    +           ! :   |   + ! : | + ! : | + ! 14 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 24,512,...  [0x1844e5028,0x1844e5210,...]
+    +           ! :   |   + ! : | + ! : | + ! 5 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 996  [0x1844e53f4]
+    +           ! :   |   + ! : | + ! : | + ! : 5 _platform_memmove  (in libsystem_platform.dylib) + 0,420,...  [0x1846d7d60,0x1846d7f04,...]
+    +           ! :   |   + ! : | + ! : | + ! 3 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    +           ! :   |   + ! : | + ! : | + ! : 3 _xzm_free  (in libsystem_malloc.dylib) + 80,252,...  [0x1844ec750,0x1844ec7fc,...]
+    +           ! :   |   + ! : | + ! : | + ! 2 default_zone_realloc  (in libsystem_malloc.dylib) + 0,32  [0x1844b8cf8,0x1844b8d18]
+    +           ! :   |   + ! : | + ! : | + ! 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 896  [0x1844e5390]
+    +           ! :   |   + ! : | + ! : | + !   2 _xzm_malloc  (in libsystem_malloc.dylib) + 0,276  [0x1844e7df4,0x1844e7f08]
+    +           ! :   |   + ! : | + ! : | + 5 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 72,104,...  [0x1844f4ae0,0x1844f4b00,...]
+    +           ! :   |   + ! : | + ! : | 6 _realloc  (in libsystem_malloc.dylib) + 252  [0x1844f528c]
+    +           ! :   |   + ! : | + ! : | + 6 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 460,188,...  [0x1844e44d0,0x1844e43c0,...]
+    +           ! :   |   + ! : | + ! : | 5 _realloc  (in libsystem_malloc.dylib) + 0,208,...  [0x1844f5190,0x1844f5260,...]
+    +           ! :   |   + ! : | + ! : | 3 __rustc::__rdl_realloc  (in server) + 0  [0x10056daa8]
+    +           ! :   |   + ! : | + ! : | 1 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 208  [0x1844f4b68]
+    +           ! :   |   + ! : | + ! : | 1 realloc  (in libsystem_malloc.dylib) + 0  [0x1844b78f4]
+    +           ! :   |   + ! : | + ! : | 1 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 708  [0x1844e45c8]
+    +           ! :   |   + ! : | + ! : 1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 4  [0x1005a8430]
+    +           ! :   |   + ! : | + ! 4 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 68  [0x1005a83a0]
+    +           ! :   |   + ! : | + 2 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 64  [0x100591e78]
+    +           ! :   |   + ! : | + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 452,460  [0x1846d7f24,0x1846d7f2c]
+    +           ! :   |   + ! : | + 2 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 28,92  [0x100591e54,0x100591e94]
+    +           ! :   |   + ! : | + 1 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 88  [0x1005a83b4]
+    +           ! :   |   + ! : | 19 core::fmt::write  (in server) + 96  [0x100595708]
+    +           ! :   |   + ! : | + 9 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 112  [0x100591ea8]
+    +           ! :   |   + ! : | + ! 8 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 68  [0x1005a83a0]
+    +           ! :   |   + ! : | + ! : 8 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 88  [0x1005a8484]
+    +           ! :   |   + ! : | + ! :   5 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,144,...  [0x1844ef9ec,0x1844efa20,...]
+    +           ! :   |   + ! : | + ! :   2 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : | + ! :   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! : | + ! 1 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 8  [0x1005a8364]
+    +           ! :   |   + ! : | + 5 <u16 as core::fmt::Display>::fmt  (in server) + 216  [0x100598e50]
+    +           ! :   |   + ! : | + ! 2 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 28,36  [0x100591e54,0x100591e5c]
+    +           ! :   |   + ! : | + ! 1 <core::fmt::Formatter>::pad_integral  (in server) + 176  [0x100593bf0]
+    +           ! :   |   + ! : | + ! : 1 <core::fmt::Formatter>::pad_integral::write_prefix  (in server) + 32  [0x10059741c]
+    +           ! :   |   + ! : | + ! 1 <core::fmt::Formatter>::pad_integral  (in server) + 0  [0x100593b40]
+    +           ! :   |   + ! : | + ! 1 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 64  [0x100591e78]
+    +           ! :   |   + ! : | + !   1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +           ! :   |   + ! : | + 2 <core::fmt::Formatter>::pad  (in server) + 0,28  [0x100594840,0x10059485c]
+    +           ! :   |   + ! : | + 1 <&str as core::fmt::Display>::fmt  (in server) + 0  [0x1005584d8]
+    +           ! :   |   + ! : | + 1 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 64  [0x100591e78]
+    +           ! :   |   + ! : | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 420  [0x1846d7f04]
+    +           ! :   |   + ! : | + 1 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 84  [0x100591e8c]
+    +           ! :   |   + ! : | 1 core::fmt::write  (in server) + 116  [0x10059571c]
+    +           ! :   |   + ! : | 1 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 84  [0x100591e8c]
+    +           ! :   |   + ! : 5 alloc::fmt::format::format_inner  (in server) + 16,84,...  [0x100591a54,0x100591a98,...]
+    +           ! :   |   + ! 23 base_http1::output::head_bytes  (in server) + 192  [0x10055723c]
+    +           ! :   |   + ! : 16 base_http1::wire::append_fields  (in server) + 320  [0x100554ec8]
+    +           ! :   |   + ! : | 14 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 108  [0x1005a28d8]
+    +           ! :   |   + ! : | + 14 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 92  [0x1005a2988]
+    +           ! :   |   + ! : | +   13 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    +           ! :   |   + ! : | +   ! 10 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    +           ! :   |   + ! : | +   ! : 3 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 996  [0x1844e53f4]
+    +           ! :   |   + ! : | +   ! : | 3 _platform_memmove  (in libsystem_platform.dylib) + 428,460  [0x1846d7f0c,0x1846d7f2c]
+    +           ! :   |   + ! : | +   ! : 3 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 400,512,...  [0x1844e51a0,0x1844e5210,...]
+    +           ! :   |   + ! : | +   ! : 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 896  [0x1844e5390]
+    +           ! :   |   + ! : | +   ! : | 2 _xzm_malloc  (in libsystem_malloc.dylib) + 276,448  [0x1844e7f08,0x1844e7fb4]
+    +           ! :   |   + ! : | +   ! : 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    +           ! :   |   + ! : | +   ! :   2 _xzm_free  (in libsystem_malloc.dylib) + 284,688  [0x1844ec81c,0x1844ec9b0]
+    +           ! :   |   + ! : | +   ! 3 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 72,48  [0x1844f4ae0,0x1844f4ac8]
+    +           ! :   |   + ! : | +   1 _realloc  (in libsystem_malloc.dylib) + 252  [0x1844f528c]
+    +           ! :   |   + ! : | +     1 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 264  [0x1844e440c]
+    +           ! :   |   + ! : | 2 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 108  [0x1005a28d8]
+    +           ! :   |   + ! : 4 base_http1::wire::append_fields  (in server) + 108,204  [0x100554df4,0x100554e54]
+    +           ! :   |   + ! : 3 base_http1::wire::append_fields  (in server) + 96  [0x100554de8]
+    +           ! :   |   + ! :   3 _platform_memmove  (in libsystem_platform.dylib) + 452,428  [0x1846d7f24,0x1846d7f0c]
+    +           ! :   |   + ! 12 base_http1::output::head_bytes  (in server) + 316  [0x1005572b8]
+    +           ! :   |   + ! : 11 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 108  [0x1005a28d8]
+    +           ! :   |   + ! : | 11 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 92  [0x1005a2988]
+    +           ! :   |   + ! : |   8 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    +           ! :   |   + ! : |   + 8 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    +           ! :   |   + ! : |   +   4 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 896  [0x1844e5390]
+    +           ! :   |   + ! : |   +   ! 4 _xzm_malloc  (in libsystem_malloc.dylib) + 108,208,...  [0x1844e7e60,0x1844e7ec4,...]
+    +           ! :   |   + ! : |   +   2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 400,996  [0x1844e51a0,0x1844e53f4]
+    +           ! :   |   + ! : |   +   1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 996  [0x1844e53f4]
+    +           ! :   |   + ! : |   +   ! 1 _platform_memmove  (in libsystem_platform.dylib) + 24  [0x1846d7d78]
+    +           ! :   |   + ! : |   +   1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    +           ! :   |   + ! : |   +     1 _xzm_free  (in libsystem_malloc.dylib) + 400  [0x1844ec890]
+    +           ! :   |   + ! : |   2 _realloc  (in libsystem_malloc.dylib) + 252  [0x1844f528c]
+    +           ! :   |   + ! : |   + 2 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 48,580  [0x1844e4334,0x1844e4548]
+    +           ! :   |   + ! : |   1 _realloc  (in libsystem_malloc.dylib) + 248  [0x1844f5288]
+    +           ! :   |   + ! : 1 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 108  [0x1005a28d8]
+    +           ! :   |   + ! 3 base_http1::output::head_bytes  (in server) + 20,64,...  [0x100557190,0x1005571bc,...]
+    +           ! :   |   + 84 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 3020  [0x1004ad264]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 20 base_http1::output::plan  (in server) + 472  [0x100557858]
+    +           ! :   |   + ! : 7 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 136  [0x100559744]
+    +           ! :   |   + ! : | 7 base_http::syntax::is_token  (in server) + 56,24  [0x10055f2b0,0x10055f290]
+    +           ! :   |   + ! : 6 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 116  [0x100559730]
+    +           ! :   |   + ! : | 5 _platform_memmove  (in libsystem_platform.dylib) + 452,428  [0x1846d7f24,0x1846d7f0c]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + ! : 3 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 288  [0x1005597dc]
+    +           ! :   |   + ! : | 3 <base_http::fields::Fields>::append  (in server) + 220  [0x10055e238]
+    +           ! :   |   + ! : |   2 <alloc::raw_vec::RawVec<base_http::fields::Field>>::grow_one  (in server) + 60  [0x1005a2b58]
+    +           ! :   |   + ! : |   + 2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 120  [0x1005a2bf8]
+    +           ! :   |   + ! : |   +   1 DYLD-STUB$$malloc  (in server) + 4  [0x1005a8e24]
+    +           ! :   |   + ! : |   +   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44  [0x1844f451c]
+    +           ! :   |   + ! : |   1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 168  [0x1005a2c28]
+    +           ! :   |   + ! : 2 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 96  [0x10055971c]
+    +           ! :   |   + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,280  [0x1844ef9ec,0x1844efaa8]
+    +           ! :   |   + ! : 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 220  [0x100559798]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + ! : 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 52  [0x1005596f0]
+    +           ! :   |   + ! 15 base_http1::output::plan  (in server) + 120  [0x1005576f8]
+    +           ! :   |   + ! : 5 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x10055b000]
+    +           ! :   |   + ! : | 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+    +           ! :   |   + ! : | + 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + ! : | + 1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    +           ! :   |   + ! : | 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 20,68  [0x100591c24,0x100591c54]
+    +           ! :   |   + ! : | 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! : |   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 280  [0x1844efaa8]
+    +           ! :   |   + ! : 4 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x10055b020]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$malloc  (in server) + 4  [0x1005a8e24]
+    +           ! :   |   + ! : | 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44  [0x1844f451c]
+    +           ! :   |   + ! : | 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308  [0x1844efac4]
+    +           ! :   |   + ! : 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x10055afd8]
+    +           ! :   |   + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 116,192  [0x1844efa04,0x1844efa50]
+    +           ! :   |   + ! : 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x10055b034]
+    +           ! :   |   + ! : | 2 _platform_memmove  (in libsystem_platform.dylib) + 460  [0x1846d7f2c]
+    +           ! :   |   + ! : 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 36,248  [0x10055af90,0x10055b064]
+    +           ! :   |   + ! 15 base_http1::output::plan  (in server) + 2944  [0x100558200]
+    +           ! :   |   + ! : 5 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 332  [0x10055961c]
+    +           ! :   |   + ! : | 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 120,160,...  [0x1844f18f0,0x1844f1918,...]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$free  (in server) + 0  [0x1005a8d78]
+    +           ! :   |   + ! : | 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +           ! :   |   + ! : 3 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 100  [0x100559534]
+    +           ! :   |   + ! : | 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 144,260,...  [0x1844efa20,0x1844efa94,...]
+    +           ! :   |   + ! : 3 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 140  [0x10055955c]
+    +           ! :   |   + ! : | 3 base_http::syntax::is_token  (in server) + 56,76  [0x10055f2b0,0x10055f2c4]
+    +           ! :   |   + ! : 2 <base_http::fields::Fields>::append  (in server) + 276  [0x10055e270]
+    +           ! :   |   + ! : 1 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 120  [0x100559548]
+    +           ! :   |   + ! : | 1 _platform_memmove  (in libsystem_platform.dylib) + 460  [0x1846d7f2c]
+    +           ! :   |   + ! : 1 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 292  [0x1005595f4]
+    +           ! :   |   + ! :   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef990]
+    +           ! :   |   + ! 8 base_http1::output::plan  (in server) + 48,132,...  [0x1005576b0,0x100557704,...]
+    +           ! :   |   + ! 4 base_http1::output::plan  (in server) + 584  [0x1005578c8]
+    +           ! :   |   + ! : 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x100556be8]
+    +           ! :   |   + ! : | 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+    +           ! :   |   + ! : 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x100556bfc]
+    +           ! :   |   + ! :   2 DYLD-STUB$$free  (in server) + 4  [0x1005a8d7c]
+    +           ! :   |   + ! 4 base_http1::output::plan  (in server) + 764  [0x10055797c]
+    +           ! :   |   + ! : 3 base_http1::wire::framing  (in server) + 84  [0x1005551a4]
+    +           ! :   |   + ! : | 3 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0,12,...  [0x1005549cc,0x1005549d8,...]
+    +           ! :   |   + ! : 1 base_http1::wire::framing  (in server) + 576  [0x100555390]
+    +           ! :   |   + ! :   1 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0  [0x1005549cc]
+    +           ! :   |   + ! 3 base_http1::output::plan  (in server) + 1064  [0x100557aa8]
+    +           ! :   |   + ! : 2 <base_http1::input::Exchange>::is_persistent  (in server) + 0,160  [0x100558c60,0x100558d00]
+    +           ! :   |   + ! : 1 <core::iter::adapters::map::Map<core::iter::adapters::filter::Filter<core::slice::iter::Iter<base_http::fields::Field>, base_http1::wire::has_token::{closure#0}>, base_http1::wire::has_token::{closure#1}> as core::iter::traits::iterator::Iterator>::try_fold::<(), <core::iter::adapters::flatten::FlattenCompat<_, _>>::iter_try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, <core::iter::adapters::flatten::FlattenCompat<_, _> as core::iter::traits::iterator::Iterator>::try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, core::iter::traits::iterator::Iterator::any::check<&[u8], base_http1::wire::has_token::{closure#2}>::{closure#0}>::{closure#0}>::{closure#0}, core::ops::control_flow::ControlFlow<()>>  (in server) + 708  [0x10055ad14]
+    +           ! :   |   + ! 2 base_http1::output::plan  (in server) + 372  [0x1005577f4]
+    +           ! :   |   + ! : 2 base_http1::output::validate_trailers  (in server) + 52  [0x1005574cc]
+    +           ! :   |   + ! :   2 <base_http::fields::Fields>::mark_trailers  (in server) + 0  [0x10055e094]
+    +           ! :   |   + ! 2 base_http1::output::plan  (in server) + 2372  [0x100557fc4]
+    +           ! :   |   + ! : 2 <base_http::fields::Fields>::contains  (in server) + 0,244  [0x10055e704,0x10055e7f8]
+    +           ! :   |   + ! 2 base_http1::output::plan  (in server) + 2876  [0x1005581bc]
+    +           ! :   |   + ! : 1 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 84  [0x1005570f0]
+    +           ! :   |   + ! : | 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! :   |   + ! : 1 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 156  [0x100557138]
+    +           ! :   |   + ! :   1 DYLD-STUB$$malloc  (in server) + 4  [0x1005a8e24]
+    +           ! :   |   + ! 1 base_http1::output::validate_trailers  (in server) + 244  [0x10055758c]
+    +           ! :   |   + ! 1 base_http1::output::plan  (in server) + 436  [0x100557834]
+    +           ! :   |   + ! : 1 <base_http::fields::Fields>::new  (in server) + 40  [0x10055e0d4]
+    +           ! :   |   + ! 1 base_http1::output::plan  (in server) + 1180  [0x100557b1c]
+    +           ! :   |   + ! : 1 base_http1::wire::has_token  (in server) + 108  [0x100556670]
+    +           ! :   |   + ! 1 base_http1::output::plan  (in server) + 1264  [0x100557b70]
+    +           ! :   |   + ! : 1 <base_http::fields::Fields>::contains  (in server) + 0  [0x10055e704]
+    +           ! :   |   + ! 1 base_http1::output::plan  (in server) + 2844  [0x10055819c]
+    +           ! :   |   + ! : 1 <u64>::_fmt  (in server) + 200  [0x100594cf0]
+    +           ! :   |   + ! 1 base_http1::output::plan  (in server) + 2908  [0x1005581dc]
+    +           ! :   |   + ! : 1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +           ! :   |   + ! 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 320  [0x10055b0ac]
+    +           ! :   |   + ! 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::clone::Clone>::clone  (in server) + 428  [0x10055a6c0]
+    +           ! :   |   + ! 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 224  [0x10055a930]
+    +           ! :   |   + 75 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9616  [0x1004aec28]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 25 base_http1::wire::request  (in server) + 488  [0x100555800]
+    +           ! :   |   + ! : 23 base_http1::wire::fields  (in server) + 72  [0x100555054]
+    +           ! :   |   + ! : | 11 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 288  [0x1005597dc]
+    +           ! :   |   + ! : | + 6 <base_http::fields::Fields>::append  (in server) + 220  [0x10055e238]
+    +           ! :   |   + ! : | + ! 4 <alloc::raw_vec::RawVec<base_http::fields::Field>>::grow_one  (in server) + 60  [0x1005a2b58]
+    +           ! :   |   + ! : | + ! : 2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 120  [0x1005a2bf8]
+    +           ! :   |   + ! : | + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192,360  [0x1844efa50,0x1844efaf8]
+    +           ! :   |   + ! : | + ! : 2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 36,64  [0x1005a2ba4,0x1005a2bc0]
+    +           ! :   |   + ! : | + ! 1 <alloc::raw_vec::RawVec<base_http::fields::Field>>::grow_one  (in server) + 60  [0x1005a2b58]
+    +           ! :   |   + ! : | + ! 1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 168  [0x1005a2c28]
+    +           ! :   |   + ! : | + 5 <base_http::fields::Fields>::append  (in server) + 204,220,...  [0x10055e228,0x10055e238,...]
+    +           ! :   |   + ! : | 4 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 152,80,...  [0x100559754,0x10055970c,...]
+    +           ! :   |   + ! : | 2 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 200  [0x100559784]
+    +           ! :   |   + ! : | + 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : | + 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 260  [0x1844efa94]
+    +           ! :   |   + ! : | 2 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 220  [0x100559798]
+    +           ! :   |   + ! : | + 2 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +           ! :   |   + ! : | 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 96  [0x10055971c]
+    +           ! :   |   + ! : | + 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 260  [0x1844efa94]
+    +           ! :   |   + ! : | 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 116  [0x100559730]
+    +           ! :   |   + ! : | + 1 DYLD-STUB$$memcpy  (in server) + 0  [0x1005a8e38]
+    +           ! :   |   + ! : | 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 136  [0x100559744]
+    +           ! :   |   + ! : | + 1 base_http::syntax::is_token  (in server) + 56  [0x10055f2b0]
+    +           ! :   |   + ! : | 1 <base_http::fields::Fields>::append  (in server) + 276  [0x10055e270]
+    +           ! :   |   + ! : 1 base_http1::wire::fields  (in server) + 44  [0x100555038]
+    +           ! :   |   + ! : | 1 <base_http::fields::Fields>::new  (in server) + 0  [0x10055e0ac]
+    +           ! :   |   + ! : 1 base_http1::wire::fields  (in server) + 44  [0x100555038]
+    +           ! :   |   + ! 10 base_http1::wire::request  (in server) + 876  [0x100555984]
+    +           ! :   |   + ! : 9 base_http1::wire::authority  (in server) + 932,20,...  [0x100556498,0x100556108,...]
+    +           ! :   |   + ! : 1 base_http1::wire::authority  (in server) + 1052  [0x100556510]
+    +           ! :   |   + ! :   1 <u16>::from_ascii_bytes_radix_impl  (in server) + 220  [0x100554c5c]
+    +           ! :   |   + ! 7 base_http1::wire::request  (in server) + 748  [0x100555904]
+    +           ! :   |   + ! : 3 base_http1::wire::singleton  (in server) + 68  [0x10055675c]
+    +           ! :   |   + ! : | 3 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0,240  [0x1005549cc,0x100554abc]
+    +           ! :   |   + ! : 2 base_http1::wire::singleton  (in server) + 36  [0x10055673c]
+    +           ! :   |   + ! : | 2 <base_http::fields::Fields>::headers  (in server) + 0,8  [0x10055e6c8,0x10055e6d0]
+    +           ! :   |   + ! : 2 base_http1::wire::singleton  (in server) + 200  [0x1005567e0]
+    +           ! :   |   + ! :   2 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0,252  [0x1005549cc,0x100554ac8]
+    +           ! :   |   + ! 7 base_http1::wire::request  (in server) + 928  [0x1005559b8]
+    +           ! :   |   + ! : 3 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 156  [0x100557138]
+    +           ! :   |   + ! : | 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,120  [0x1844f44fc,0x1844f4568]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$malloc  (in server) + 4  [0x1005a8e24]
+    +           ! :   |   + ! : 3 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 0,40,...  [0x10055709c,0x1005570c4,...]
+    +           ! :   |   + ! : 1 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 84  [0x1005570f0]
+    +           ! :   |   + ! :   1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! :   |   + ! 4 base_http1::wire::request  (in server) + 140  [0x1005556a4]
+    +           ! :   |   + ! : 4 base_http::syntax::is_token  (in server) + 56,0,...  [0x10055f2b0,0x10055f278,...]
+    +           ! :   |   + ! 3 base_http1::wire::request  (in server) + 1084  [0x100555a54]
+    +           ! :   |   + ! : 2 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 156  [0x100557138]
+    +           ! :   |   + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    +           ! :   |   + ! : | 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 280  [0x1844efaa8]
+    +           ! :   |   + ! : 1 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 84  [0x1005570f0]
+    +           ! :   |   + ! :   1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! :   |   + ! 3 base_http1::wire::request  (in server) + 700,960,...  [0x1005558d4,0x1005559d8,...]
+    +           ! :   |   + ! 2 <base_http::request::RequestHead>::new  (in server) + 184  [0x10055c7d0]
+    +           ! :   |   + ! 2 base_http1::wire::request  (in server) + 472  [0x1005557f0]
+    +           ! :   |   + ! : 2 <base_http::request::RequestHead>::new  (in server) + 52  [0x10055c74c]
+    +           ! :   |   + ! :   1 <<std::hash::random::RandomState>::new::KEYS::{K#0}::{closure#1} as core::ops::function::FnOnce<(core::option::Option<&mut core::option::Option<core::cell::Cell<(u64, u64)>>>,)>>::call_once  (in server) + 28  [0x10055ee94]
+    +           ! :   |   + ! :   | 1 _tlv_get_addr  (in libdyld.dylib) + 0  [0x1842a6e48]
+    +           ! :   |   + ! :   1 <<std::hash::random::RandomState>::new::KEYS::{K#0}::{closure#1} as core::ops::function::FnOnce<(core::option::Option<&mut core::option::Option<core::cell::Cell<(u64, u64)>>>,)>>::call_once  (in server) + 0  [0x10055ee78]
+    +           ! :   |   + ! 2 base_http1::wire::request  (in server) + 960  [0x1005559d8]
+    +           ! :   |   + ! : 2 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +           ! :   |   + ! 2 base_http1::wire::request  (in server) + 1620  [0x100555c6c]
+    +           ! :   |   + ! : 2 base_http1::wire::has_token  (in server) + 92  [0x100556660]
+    +           ! :   |   + ! :   2 <core::iter::adapters::map::Map<core::iter::adapters::filter::Filter<core::slice::iter::Iter<base_http::fields::Field>, base_http1::wire::has_token::{closure#0}>, base_http1::wire::has_token::{closure#1}> as core::iter::traits::iterator::Iterator>::try_fold::<(), <core::iter::adapters::flatten::FlattenCompat<_, _>>::iter_try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, <core::iter::adapters::flatten::FlattenCompat<_, _> as core::iter::traits::iterator::Iterator>::try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, core::iter::traits::iterator::Iterator::any::check<&[u8], base_http1::wire::has_token::{closure#2}>::{closure#0}>::{closure#0}>::{closure#0}, core::ops::control_flow::ControlFlow<()>>  (in server) + 56,104  [0x10055aa88,0x10055aab8]
+    +           ! :   |   + ! 2 base_http1::wire::request  (in server) + 1812  [0x100555d2c]
+    +           ! :   |   + ! : 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + ! : 1 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +           ! :   |   + ! 1 base_http1::wire::request  (in server) + 80  [0x100555668]
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<base_http1::error::Error>  (in server) + 16  [0x10055462c]
+    +           ! :   |   + ! 1 base_http1::wire::request  (in server) + 100  [0x10055567c]
+    +           ! :   |   + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! 1 base_http1::wire::request  (in server) + 120  [0x100555690]
+    +           ! :   |   + ! : 1 _platform_memmove  (in libsystem_platform.dylib) + 12  [0x1846d7d6c]
+    +           ! :   |   + ! 1 base_http1::wire::request  (in server) + 672  [0x1005558b8]
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 20  [0x1005546f4]
+    +           ! :   |   + ! 1 base_http1::wire::request  (in server) + 800  [0x100555938]
+    +           ! :   |   + ! : 1 core::str::converts::from_utf8  (in server) + 120  [0x10059669c]
+    +           ! :   |   + ! 1 base_http1::wire::authority  (in server) + 236  [0x1005561e0]
+    +           ! :   |   + 70 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7288  [0x1004ae310]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +           ! :   |   + ! 66 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 72  [0x1004f9204]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+    +           ! :   |   + ! : 19 ???  (in server)  load address 0x1004a4000 + 0x2e8bc  [0x1004d28bc]
+    +           ! :   |   + ! : | 7 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 136  [0x1004f5e54]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +           ! :   |   + ! : | + 7 base_http::syntax::is_token  (in server) + 24,56,...  [0x10055f290,0x10055f2b0,...]
+    +           ! :   |   + ! : | 3 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 284  [0x1004f5ee8]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +           ! :   |   + ! : | + 3 _platform_memmove  (in libsystem_platform.dylib) + 12,452  [0x1846d7d6c,0x1846d7f24]
+    +           ! :   |   + ! : | 2 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 20  [0x1004f5de0]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:311
+    +           ! :   |   + ! : | 2 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 96  [0x1004f5e2c]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +           ! :   |   + ! : | + 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    +           ! :   |   + ! : | + 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308  [0x1844efac4]
+    +           ! :   |   + ! : | 2 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 320  [0x1004f5f0c]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +           ! :   |   + ! : | + 1 <base_http::fields::Fields>::append  (in server) + 220  [0x10055e238]
+    +           ! :   |   + ! : | + ! 1 <alloc::raw_vec::RawVec<base_http::fields::Field>>::grow_one  (in server) + 60  [0x1005a2b58]
+    +           ! :   |   + ! : | + !   1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 120  [0x1005a2bf8]
+    +           ! :   |   + ! : | + !     1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    +           ! :   |   + ! : | + 1 <base_http::fields::Fields>::append  (in server) + 0  [0x10055e15c]
+    +           ! :   |   + ! : | 2 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 116,176  [0x1004f5e40,0x1004f5e7c]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +           ! :   |   + ! : | 1 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 116  [0x1004f5e40]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +           ! :   |   + ! : |   1 _platform_memmove  (in libsystem_platform.dylib) + 420  [0x1846d7f04]
+    +           ! :   |   + ! : 16 ???  (in server)  load address 0x1004a4000 + 0x2e91c  [0x1004d291c]
+    +           ! :   |   + ! : | 16 <deduplicated_symbol>  (in server) + 44  [0x1004d0e34]
+    +           ! :   |   + ! : |   5 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1004d207c]
+    +           ! :   |   + ! : |   + 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1004d1fdc]
+    +           ! :   |   + ! : |   + ! 2 DYLD-STUB$$free  (in server) + 0,4  [0x1005a8d78,0x1005a8d7c]
+    +           ! :   |   + ! : |   + ! 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 120  [0x1844f18f0]
+    +           ! :   |   + ! : |   + 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1004d1fbc]
+    +           ! :   |   + ! : |   +   1 DYLD-STUB$$free  (in server) + 4  [0x1005a8d7c]
+    +           ! :   |   + ! : |   +   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 84  [0x1844f18cc]
+    +           ! :   |   + ! : |   4 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1004d20f0]
+    +           ! :   |   + ! : |   + 2 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +           ! :   |   + ! : |   + 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,104  [0x1844f1878,0x1844f18e0]
+    +           ! :   |   + ! : |   3 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1004d20b8]
+    +           ! :   |   + ! : |   + 2 DYLD-STUB$$free  (in server) + 0  [0x1005a8d78]
+    +           ! :   |   + ! : |   + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 32  [0x1844f1898]
+    +           ! :   |   + ! : |   2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 92  [0x1004d2074]
+    +           ! :   |   + ! : |   + 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 344,384  [0x1844f19d0,0x1844f19f8]
+    +           ! :   |   + ! : |   1 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 16  [0x1004d2028]
+    +           ! :   |   + ! : |   1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 220  [0x1004f5b60]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3498
+    +           ! :   |   + ! : 13 ???  (in server)  load address 0x1004a4000 + 0x2e914  [0x1004d2914]
+    +           ! :   |   + ! : | 5 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1004d207c]
+    +           ! :   |   + ! : | + 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1004d1fa8]
+    +           ! :   |   + ! : | + ! 2 _free  (in libsystem_malloc.dylib) + 0,36  [0x1844f5110,0x1844f5134]
+    +           ! :   |   + ! : | + 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1004d1fbc]
+    +           ! :   |   + ! : | + ! 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +           ! :   |   + ! : | + ! 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 160  [0x1844f1918]
+    +           ! :   |   + ! : | + 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1004d1fdc]
+    +           ! :   |   + ! : | +   1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +           ! :   |   + ! : | 3 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1004d20b8]
+    +           ! :   |   + ! : | + 1 DYLD-STUB$$free  (in server) + 4  [0x1005a8d7c]
+    +           ! :   |   + ! : | + 1 _free  (in libsystem_malloc.dylib) + 76  [0x1844f515c]
+    +           ! :   |   + ! : | + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 292  [0x1844f199c]
+    +           ! :   |   + ! : | 3 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1004d20f0]
+    +           ! :   |   + ! : | + 2 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +           ! :   |   + ! : | + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+    +           ! :   |   + ! : | 2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1004d20f0]
+    +           ! :   |   + ! : 5 ???  (in server)  load address 0x1004a4000 + 0x2e80c  [0x1004d280c]
+    +           ! :   |   + ! : | 5 _platform_memmove  (in libsystem_platform.dylib) + 180,0  [0x1846d7e14,0x1846d7d60]
+    +           ! :   |   + ! : 4 ???  (in server)  load address 0x1004a4000 + 0x2e81c  [0x1004d281c]
+    +           ! :   |   + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,360  [0x1844ef9ec,0x1844efaf8]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$malloc  (in server) + 4  [0x1005a8e24]
+    +           ! :   |   + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! : 3 ???  (in server)  load address 0x1004a4000 + 0x2e840  [0x1004d2840]
+    +           ! :   |   + ! : | 3 <base_http::response::ResponseHead>::new  (in server) + 128,132  [0x10055f204,0x10055f208]
+    +           ! :   |   + ! : 2 ???  (in server)  load address 0x1004a4000 + 0x2e880  [0x1004d2880]
+    +           ! :   |   + ! : 1 ???  (in server)  load address 0x1004a4000 + 0x2e7f8  [0x1004d27f8]
+    +           ! :   |   + ! : 1 ???  (in server)  load address 0x1004a4000 + 0x2e80c  [0x1004d280c]
+    +           ! :   |   + ! : 1 ???  (in server)  load address 0x1004a4000 + 0x2e934  [0x1004d2934]
+    +           ! :   |   + ! : 1 <base_http::response::ResponseHead>::new  (in server) + 136  [0x10055f20c]
+    +           ! :   |   + ! 3 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 28  [0x1004f91d8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:111
+    +           ! :   |   + ! 1 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 140  [0x1004f9248]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:118
+    +           ! :   |   + 44 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10084  [0x1004aedfc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 17 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 368  [0x1004bbd2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +           ! :   |   + ! : 7 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x1004df340]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 5 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! : | + 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,144  [0x1844ef9ec,0x1844efa20]
+    +           ! :   |   + ! : | + 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0,120  [0x1844f44f0,0x1844f4568]
+    +           ! :   |   + ! : | 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 20,68  [0x100591c24,0x100591c54]
+    +           ! :   |   + ! : 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x1004df318]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 144,308  [0x1844efa20,0x1844efac4]
+    +           ! :   |   + ! : | 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x1004df374]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 3 _platform_memmove  (in libsystem_platform.dylib) + 0,428,...  [0x1846d7d60,0x1846d7f0c,...]
+    +           ! :   |   + ! : 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x1004df360]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : | 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef990]
+    +           ! :   |   + ! : 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 216,248  [0x1004df384,0x1004df3a4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! 11 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 128  [0x1004bbc3c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +           ! :   |   + ! : 6 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360,144,...  [0x1844efaf8,0x1844efa20,...]
+    +           ! :   |   + ! : 4 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,44,...  [0x1844f44fc,0x1844f451c,...]
+    +           ! :   |   + ! : 1 xzm_malloc_zone_malloc_type_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef3cc]
+    +           ! :   |   + ! 4 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 264  [0x1004bbcc4]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +           ! :   |   + ! : 4 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! :   2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360  [0x1844efaf8]
+    +           ! :   |   + ! :   1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! :   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    +           ! :   |   + ! 3 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 224  [0x1004bbc9c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    +           ! :   |   + ! : 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0,192  [0x1844ef990,0x1844efa50]
+    +           ! :   |   + ! : 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+    +           ! :   |   + ! :   1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +           ! :   |   + ! 2 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 448  [0x1004f58c8]  /rust/deps/hashbrown-0.17.1/src/map.rs:193
+    +           ! :   |   + ! 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 148  [0x1004bbc50]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +           ! :   |   + ! : 2 _platform_memmove  (in libsystem_platform.dylib) + 428,452  [0x1846d7f0c,0x1846d7f24]
+    +           ! :   |   + ! 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 92  [0x100591c6c]
+    +           ! :   |   + ! 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 44  [0x1004bbbe8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +           ! :   |   + ! 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 316  [0x1004bbcf8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    +           ! :   |   + ! 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 428  [0x1004bbd68]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +           ! :   |   + ! : 1 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 0  [0x1004f5708]  /rust/deps/hashbrown-0.17.1/src/map.rs:188
+    +           ! :   |   + ! 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 492  [0x1004bbda8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    +           ! :   |   + 42 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6120,7048,...  [0x1004ade80,0x1004ae220,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + 41 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8408  [0x1004ae770]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 31 alloc::vec::from_elem::<httparse::Header>  (in server) + 144,60,...  [0x1004dc8a0,0x1004dc84c,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3773
+    +           ! :   |   + ! 8 alloc::vec::from_elem::<httparse::Header>  (in server) + 96  [0x1004dc870]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3773
+    +           ! :   |   + ! : 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 260,384  [0x1844efa94,0x1844efb10]
+    +           ! :   |   + ! : 3 _xzm_xzone_malloc_tiny  (in libsystem_malloc.dylib) + 0,16,...  [0x1844e8a4c,0x1844e8a5c,...]
+    +           ! :   |   + ! : 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    +           ! :   |   + ! 2 alloc::vec::from_elem::<httparse::Header>  (in server) + 80  [0x1004dc860]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3773
+    +           ! :   |   + !   2 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! :   |   + 29 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10108  [0x1004aee14]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 14 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 368  [0x1004bbd2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +           ! :   |   + ! : 6 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x1004df318]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 5 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 144,360,...  [0x1844efa20,0x1844efaf8,...]
+    +           ! :   |   + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! : 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x1004df360]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44  [0x1844f451c]
+    +           ! :   |   + ! : | 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360  [0x1844efaf8]
+    +           ! :   |   + ! : 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x1004df340]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! : | + 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! : | 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+    +           ! :   |   + ! : |   1 _platform_memmove  (in libsystem_platform.dylib) + 0  [0x1846d7d60]
+    +           ! :   |   + ! : 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 92  [0x1004df308]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! :   |   + ! : 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x1004df374]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +           ! :   |   + ! : 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 216  [0x1004df384]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! 7 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 264  [0x1004bbcc4]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +           ! :   |   + ! : 4 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! : | 3 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! : | 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 260  [0x1844efa94]
+    +           ! :   |   + ! : 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+    +           ! :   |   + ! : | 2 _platform_memmove  (in libsystem_platform.dylib) + 460  [0x1846d7f2c]
+    +           ! :   |   + ! : 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 36  [0x100591c34]
+    +           ! :   |   + ! :   1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! :   |   + ! 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 128  [0x1004bbc3c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +           ! :   |   + ! : 1 __rustc::__rust_alloc  (in server) + 0  [0x1004fdc64]
+    +           ! :   |   + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    +           ! :   |   + ! 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 224  [0x1004bbc9c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    +           ! :   |   + ! : 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+    +           ! :   |   + ! :   2 _platform_memmove  (in libsystem_platform.dylib) + 428,452  [0x1846d7f0c,0x1846d7f24]
+    +           ! :   |   + ! 1 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 448  [0x1004f58c8]  /rust/deps/hashbrown-0.17.1/src/map.rs:193
+    +           ! :   |   + ! 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 92  [0x100591c6c]
+    +           ! :   |   + ! 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 244  [0x1004bbcb0]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +           ! :   |   + ! 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 376  [0x1004bbd34]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +           ! :   |   + 26 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10204  [0x1004aee74]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 11 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 368  [0x1004bbd2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +           ! :   |   + ! : 4 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x1004df340]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! : | + 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : | + 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360  [0x1844efaf8]
+    +           ! :   |   + ! : | 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 36  [0x100591c34]
+    +           ! :   |   + ! : | + 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! :   |   + ! : | 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+    +           ! :   |   + ! : |   1 _platform_memmove  (in libsystem_platform.dylib) + 12  [0x1846d7d6c]
+    +           ! :   |   + ! : 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x1004df360]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +           ! :   |   + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! : 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 92  [0x100591c6c]
+    +           ! :   |   + ! : 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 16  [0x1004df2bc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3876
+    +           ! :   |   + ! : 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x1004df318]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44  [0x1844f451c]
+    +           ! :   |   + ! : 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x1004df374]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +           ! :   |   + ! :   1 _platform_memmove  (in libsystem_platform.dylib) + 444  [0x1846d7f1c]
+    +           ! :   |   + ! 6 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 224  [0x1004bbc9c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    +           ! :   |   + ! : 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +           ! :   |   + ! : | 1 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+    +           ! :   |   + ! : | 2 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +           ! :   |   + ! : 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 0  [0x100591c10]
+    +           ! :   |   + ! 3 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 264  [0x1004bbcc4]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +           ! :   |   + ! : 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+    +           ! :   |   + ! :   2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,192  [0x1844ef9ec,0x1844efa50]
+    +           ! :   |   + ! :   1 DYLD-STUB$$malloc  (in server) + 4  [0x1005a8e24]
+    +           ! :   |   + ! 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 128  [0x1004bbc3c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +           ! :   |   + ! : 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    +           ! :   |   + ! 1 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 448  [0x1004f58c8]  /rust/deps/hashbrown-0.17.1/src/map.rs:193
+    +           ! :   |   + ! 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 92  [0x100591c6c]
+    +           ! :   |   + ! 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 492  [0x1004bbda8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    +           ! :   |   + ! 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 312  [0x1004df3e4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3879
+    +           ! :   |   + 24 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13136  [0x1004af9e8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 9 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1004abc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 4 _xzm_free_tc  (in libsystem_malloc.dylib) + 120  [0x1844f18f0]
+    +           ! :   |   + ! : 3 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +           ! :   |   + ! : 2 DYLD-STUB$$free  (in server) + 4  [0x1005a8d7c]
+    +           ! :   |   + ! 7 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1004abc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 4 _xzm_free_tc  (in libsystem_malloc.dylib) + 160,0,...  [0x1844f1918,0x1844f1878,...]
+    +           ! :   |   + ! : 3 _free  (in libsystem_malloc.dylib) + 0,96,...  [0x1844f5110,0x1844f5170,...]
+    +           ! :   |   + ! 5 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1004abc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 4 _xzm_free_tc  (in libsystem_malloc.dylib) + 260,284,...  [0x1844f197c,0x1844f1994,...]
+    +           ! :   |   + ! : 1 DYLD-STUB$$free  (in server) + 0  [0x1005a8d78]
+    +           ! :   |   + ! 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 36,60  [0x1004abbe8,0x1004abc00]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + 24 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12912,12440,...  [0x1004af908,0x1004af730,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + 24 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13424  [0x1004afb08]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:235
+    +           ! :   |   + ! 14 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1004abcdc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 5 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1004abc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,104,...  [0x1844f1878,0x1844f18e0,...]
+    +           ! :   |   + ! : | 2 DYLD-STUB$$free  (in server) + 0,4  [0x1005a8d78,0x1005a8d7c]
+    +           ! :   |   + ! : 4 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1004abc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 4 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,32,...  [0x1844f1878,0x1844f1898,...]
+    +           ! :   |   + ! : 4 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1004abc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 2 _free  (in libsystem_malloc.dylib) + 0,36  [0x1844f5110,0x1844f5134]
+    +           ! :   |   + ! : | 1 __rustc::__rdl_dealloc  (in server) + 0  [0x10056daa4]
+    +           ! :   |   + ! : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 160  [0x1844f1918]
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 92  [0x1004abc20]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! 5 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1004abd18]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 2 __rustc::__rdl_dealloc  (in server) + 0  [0x10056daa4]
+    +           ! :   |   + ! : 1 DYLD-STUB$$free  (in server) + 4  [0x1005a8d7c]
+    +           ! :   |   + ! : 1 _free  (in libsystem_malloc.dylib) + 108  [0x1844f517c]
+    +           ! :   |   + ! : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 160  [0x1844f1918]
+    +           ! :   |   + ! 4 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1004abd50]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 2 _free  (in libsystem_malloc.dylib) + 0,36  [0x1844f5110,0x1844f5134]
+    +           ! :   |   + ! : 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 84,292  [0x1844f18cc,0x1844f199c]
+    +           ! :   |   + ! 1 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 92  [0x1004abcd4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + !   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 32  [0x1844f1898]
+    +           ! :   |   + 22 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10420  [0x1004aef4c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 18 __xzm_xzone_free_to_freelist_chunk  (in libsystem_malloc.dylib) + 424  [0x1844ed82c]
+    +           ! :   |   + ! : 18 mach_absolute_time  (in libsystem_kernel.dylib) + 108,112,...  [0x1846890f8,0x1846890fc,...]
+    +           ! :   |   + ! 2 __xzm_xzone_free_to_freelist_chunk  (in libsystem_malloc.dylib) + 172,504  [0x1844ed730,0x1844ed87c]
+    +           ! :   |   + ! 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +           ! :   |   + ! 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 160  [0x1844f1918]
+    +           ! :   |   + 20 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10152  [0x1004aee40]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 16 core::ptr::drop_glue::<core::option::Option<base_http1::input::Exchange>>  (in server) + 32  [0x1004a50d8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 10 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1004abcdc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 5 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1004abc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | + 5 _xzm_free_tc  (in libsystem_malloc.dylib) + 312,120,...  [0x1844f19b0,0x1844f18f0,...]
+    +           ! :   |   + ! : | 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1004abc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | + 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +           ! :   |   + ! : | + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 292  [0x1844f199c]
+    +           ! :   |   + ! : | 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1004abc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | + 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 292,344  [0x1844f199c,0x1844f19d0]
+    +           ! :   |   + ! : | 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1004abc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 3 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1004abd50]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 2 DYLD-STUB$$free  (in server) + 0,4  [0x1005a8d78,0x1005a8d7c]
+    +           ! :   |   + ! : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 32  [0x1844f1898]
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 148  [0x1004abc58]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 92  [0x1004abcd4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 344  [0x1844f19d0]
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1004abd18]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! :   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+    +           ! :   |   + ! 1 core::ptr::drop_glue::<core::option::Option<base_http1::input::Exchange>>  (in server) + 44  [0x1004a50e4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! 1 <alloc::sync::Arc<base_http1::input::State>>::drop_slow  (in server) + 0  [0x100557148]
+    +           ! :   |   + ! 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +           ! :   |   + ! 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 312  [0x1844f19b0]
+    +           ! :   |   + 17 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7764  [0x1004ae4ec]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 17 base_http1::wire::strict_lines  (in server) + 108,92,...  [0x100554d14,0x100554d04,...]
+    +           ! :   |   + 14 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8456  [0x1004ae7a0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 13 <httparse::Request>::parse  (in server) + 80  [0x10055c3c8]
+    +           ! :   |   + ! : 7 <httparse::Request>::parse_with_config_and_uninit_headers  (in server) + 1644  [0x10055c2fc]
+    +           ! :   |   + ! : | 7 httparse::parse_headers_iter_uninit  (in server) + 1504,52,...  [0x10055b920,0x10055b374,...]
+    +           ! :   |   + ! : 5 <httparse::Request>::parse_with_config_and_uninit_headers  (in server) + 36,252,...  [0x10055bcb4,0x10055bd8c,...]
+    +           ! :   |   + ! : 1 httparse::parse_headers_iter_uninit  (in server) + 2192  [0x10055bbd0]
+    +           ! :   |   + ! 1 <httparse::Request>::parse  (in server) + 44  [0x10055c3a4]
+    +           ! :   |   + 12 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13332  [0x1004afaac]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:230
+    +           ! :   |   + ! 9 core::ptr::drop_glue::<base_http::response::Response<base_http::body::buffered::BufferedBody<&[u8]>>>  (in server) + 20  [0x1004a6998]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : 6 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1004abc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 4 _xzm_free_tc  (in libsystem_malloc.dylib) + 32,84,...  [0x1844f1898,0x1844f18cc,...]
+    +           ! :   |   + ! : | 1 DYLD-STUB$$free  (in server) + 0  [0x1005a8d78]
+    +           ! :   |   + ! : | 1 __rustc::__rust_dealloc  (in server) + 0  [0x1004fdc68]
+    +           ! :   |   + ! : 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1004abc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! : | 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,284  [0x1844f1878,0x1844f1994]
+    +           ! :   |   + ! : 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1004abc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + ! :   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 120  [0x1844f18f0]
+    +           ! :   |   + ! 2 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +           ! :   |   + ! 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 224  [0x1004f5b64]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3498
+    +           ! :   |   + 10 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8360  [0x1004ae740]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 5 <base_http1::input::RequestReader<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>>::take  (in server) + 104  [0x1004f8c8c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/input.rs:109
+    +           ! :   |   + ! : 2 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! :   |   + ! : 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0,260  [0x1844ef990,0x1844efa94]
+    +           ! :   |   + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0  [0x1844f44f0]
+    +           ! :   |   + ! 2 <base_http1::input::RequestReader<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>>::take  (in server) + 124  [0x1004f8ca0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/input.rs:109
+    +           ! :   |   + ! : 2 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    +           ! :   |   + ! 2 <base_http1::input::RequestReader<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>>::take  (in server) + 24,28  [0x1004f8c3c,0x1004f8c40]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/input.rs:109
+    +           ! :   |   + ! 1 <base_http1::input::RequestReader<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>>::take  (in server) + 152  [0x1004f8cbc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/input.rs:110
+    +           ! :   |   + 10 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9836  [0x1004aed04]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 3 base_http1::wire::framing  (in server) + 84  [0x1005551a4]
+    +           ! :   |   + ! : 3 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0,268  [0x1005549cc,0x100554ad8]
+    +           ! :   |   + ! 3 base_http1::wire::framing  (in server) + 440,636,...  [0x100555308,0x1005553cc,...]
+    +           ! :   |   + ! 2 base_http1::wire::framing  (in server) + 216  [0x100555228]
+    +           ! :   |   + ! : 2 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0  [0x1005549cc]
+    +           ! :   |   + ! 2 base_http1::wire::framing  (in server) + 396  [0x1005552dc]
+    +           ! :   |   + !   2 <base_http::fields::Fields>::headers  (in server) + 8  [0x10055e6d0]
+    +           ! :   |   + 8 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 11508  [0x1004af38c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 3 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 0,28  [0x1004b677c,0x1004b6798]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:16
+    +           ! :   |   + ! 2 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 124  [0x1004b67f8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:25
+    +           ! :   |   + ! : 2 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 28,64  [0x1004cbb04,0x1004cbb28]
+    +           ! :   |   + ! 2 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 200  [0x1004b6844]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:25
+    +           ! :   |   + ! 1 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 80  [0x1004b67cc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:18
+    +           ! :   |   + 7 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13128  [0x1004af9e0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 3 _free  (in libsystem_malloc.dylib) + 36,56,...  [0x1844f5134,0x1844f5148,...]
+    +           ! :   |   + ! 2 __rustc::__rdl_dealloc  (in server) + 0  [0x10056daa4]
+    +           ! :   |   + ! 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 120,208  [0x1844f18f0,0x1844f1948]
+    +           ! :   |   + 6 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8088  [0x1004ae630]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 2 <event_listener::Inner<()>>::with_inner::<core::option::Option<event_listener::State<()>>, <event_listener::Inner<()>>::remove::{closure#0}>  (in server) + 116  [0x1004e3364]
+    +           ! :   |   + ! : 1 <event_listener::sys::Inner<()>>::remove  (in server) + 96  [0x1004fda54]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:306
+    +           ! :   |   + ! : 1 <event_listener::sys::Inner<()>>::remove  (in server) + 312  [0x1004fdb2c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:344
+    +           ! :   |   + ! 2 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 32,104  [0x1846c8a3c,0x1846c8a84]
+    +           ! :   |   + ! 1 <event_listener::Inner<()>>::with_inner::<core::option::Option<event_listener::State<()>>, <event_listener::Inner<()>>::remove::{closure#0}>  (in server) + 80  [0x1004e3340]
+    +           ! :   |   + ! 1 <event_listener::sys::Inner<()>>::remove  (in server) + 316  [0x1004fdb30]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:344
+    +           ! :   |   + 6 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7252  [0x1004ae2ec]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +           ! :   |   + ! 4 _platform_memmove  (in libsystem_platform.dylib) + 180,204  [0x1846d7e14,0x1846d7e2c]
+    +           ! :   |   + ! 2 DYLD-STUB$$memcpy  (in server) + 0,4  [0x1005a8e38,0x1005a8e3c]
+    +           ! :   |   + 5 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6704  [0x1004ae0c8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:209
+    +           ! :   |   + 4 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10096  [0x1004aee08]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 3 <base_http1::input::Exchange>::new  (in server) + 40  [0x100558e98]
+    +           ! :   |   + ! : 1 DYLD-STUB$$malloc  (in server) + 4  [0x1005a8e24]
+    +           ! :   |   + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +           ! :   |   + ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308  [0x1844efac4]
+    +           ! :   |   + ! 1 <base_http1::input::Exchange>::new  (in server) + 84  [0x100558ec4]
+    +           ! :   |   + !   1 _platform_memmove  (in libsystem_platform.dylib) + 188  [0x1846d7e1c]
+    +           ! :   |   + 4 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10396  [0x1004aef34]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 3 _platform_memmove  (in libsystem_platform.dylib) + 180,144  [0x1846d7e14,0x1846d7df0]
+    +           ! :   |   + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + 4 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6820,7304,...  [0x1004ae13c,0x1004ae320,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +           ! :   |   + 3 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6412  [0x1004adfa4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 3 core::ptr::drop_glue::<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}>  (in server) + 20  [0x1004a7a28]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:41
+    +           ! :   |   + 3 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6560  [0x1004ae038]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 3 _platform_memmove  (in libsystem_platform.dylib) + 180,204,...  [0x1846d7e14,0x1846d7e2c,...]
+    +           ! :   |   + 3 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6700  [0x1004ae0c4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 36,180  [0x1846d7d84,0x1846d7e14]
+    +           ! :   |   + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + 3 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10172  [0x1004aee54]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 168,180  [0x1846d7e08,0x1846d7e14]
+    +           ! :   |   + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + 3 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6764  [0x1004ae104]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:210
+    +           ! :   |   + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +           ! :   |   + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1005a8e3c]
+    +           ! :   |   + 3 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6820  [0x1004ae13c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +           ! :   |   + ! 3 _platform_memmove  (in libsystem_platform.dylib) + 180,204  [0x1846d7e14,0x1846d7e2c]
+    +           ! :   |   + 2 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6884,13624  [0x1004ae17c,0x1004afbd0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:0
+    +           ! :   |   + 2 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 5880  [0x1004add90]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 2 <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>::check_open  (in server) + 28  [0x10053fd44]
+    +           ! :   |   + 2 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6684  [0x1004ae0b4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 180,204  [0x1846d7e14,0x1846d7e2c]
+    +           ! :   |   + 2 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10380  [0x1004aef24]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 24,180  [0x1846d7d78,0x1846d7e14]
+    +           ! :   |   + 2 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10440  [0x1004aef60]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 152,208  [0x1844f1910,0x1844f1948]
+    +           ! :   |   + 2 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12928  [0x1004af918]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 2 core::ptr::drop_glue::<<base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::write_body<base_http::body::buffered::BufferedBody<&[u8]>>::{closure#0}>  (in server) + 0  [0x1004a7d18]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + 2 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13236  [0x1004afa4c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:230
+    +           ! :   |   + 2 <base_http1::input::RequestReader<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>>::take  (in server) + 168  [0x1004f8ccc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/input.rs:112
+    +           ! :   |   + 1 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 140  [0x1004abd04]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 0  [0x1004ac698]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:189
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 2832  [0x1004ad1a8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 <base_http1::input::Exchange>::is_complete  (in server) + 8  [0x100558c40]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 2872  [0x1004ad1d0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 <base_http1::input::Exchange>::is_abandoned  (in server) + 8  [0x100558c54]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6364  [0x1004adf74]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 <base_scheduler_selector::readiness_selector::ReadinessSelector>::check_open  (in server) + 12  [0x10053fb04]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6516  [0x1004ae00c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 188  [0x1846d7e1c]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6644  [0x1004ae08c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6972  [0x1004ae1d4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8128  [0x1004ae658]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 futures_util::stream::futures_unordered::task::waker_ref::drop_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 28  [0x1004fd240]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:268
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10144  [0x1004aee38]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10244  [0x1004aee9c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +           ! :   |   + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8912  [0x1004ae968]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +           ! :   |   + ! 1 core::ptr::drop_glue::<base_http_server::cancellable<<base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>::{closure#0}>  (in server) + 20  [0x1004a6ea4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:93
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13200  [0x1004afa28]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +           ! :   |   + ! 1 core::ptr::drop_glue::<<base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::write_response_inner<base_http::body::buffered::BufferedBody<&[u8]>>::{closure#0}>  (in server) + 16  [0x1004a7ecc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:127
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13344  [0x1004afab8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:231
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13384  [0x1004afae0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:232
+    +           ! :   |   + 1 base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 1412  [0x1004acc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/result.rs:0
+    +           ! :   |   + 1 <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 3532  [0x1004b82a0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:0
+    +           ! :   |   + 1 base_http1::wire::request  (in server) + 360  [0x100555780]
+    +           ! :   |   + 1 base_http1::output::head_bytes  (in server) + 284  [0x100557298]
+    +           ! :   |   + 1 base_http1::output::plan  (in server) + 1580  [0x100557cac]
+    +           ! :   |   + 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 648  [0x1004bbe44]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:9
+    +           ! :   |   8 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin  (in server) + 256,304,...  [0x1004be69c,0x1004be6cc,...]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+    +           ! :   6 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler_native::native_scheduler::NativeScheduler as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}>, core::pin::Pin<&mut base_http_hello_benchmark::base_server<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}::{closure#0}>> as core::future::future::Future>::poll  (in server) + 52  [0x1004f97ac]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:113
+    +           ! :     6 <core::pin::Pin<&mut <base_scheduler_native::native_scheduler::NativeScheduler as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}> as futures_util::future::future::FutureExt>::poll_unpin  (in server) + 700  [0x1004d59c4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/future/mod.rs:556
+    +           ! :       3 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::native_socket::NativeSocket>::io<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<(), (base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 1416  [0x1004cc74c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :       + 3 async_io::optimistic::<async_io::reactor::Readable<socket2::socket::Socket>>::{closure#0}  (in server) + 140  [0x1004cb264]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2071
+    +           ! :       +   3 <async_io::reactor::Ready<&async_io::Async<socket2::socket::Socket>, socket2::socket::Socket> as core::future::future::Future>::poll  (in server) + 564  [0x1004e2834]
+    +           ! :       +     3 <polling::kqueue::Poller>::modify  (in server) + 368  [0x100548db0]
+    +           ! :       +       3 rustix::backend::event::syscalls::kevent  (in server) + 24  [0x100549c70]
+    +           ! :       +         3 kevent  (in libsystem_kernel.dylib) + 8  [0x18468efcc]
+    +           ! :       2 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::native_socket::NativeSocket>::io<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<(), (base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 1060  [0x1004cc5e8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +           ! :       + 2 <socket2::socket::Socket>::accept  (in server) + 72  [0x100553638]
+    +           ! :       +   1 DYLD-STUB$$accept  (in server) + 4  [0x1005a8cc8]
+    +           ! :       +   1 __accept  (in libsystem_kernel.dylib) + 8  [0x184691734]
+    +           ! :       1 <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::native_socket::NativeSocket>::io<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<(), (base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 0  [0x1004cc1c4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:149
+    +           ! 1 <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::run  (in server) + 340  [0x1004eb238]
+    +           1 base_scheduler_native::worker::run_loop  (in server) + 832  [0x100535e9c]
+    +             1 std::thread::functions::park  (in server) + 96  [0x10057dfd4]
+    +               1 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 132  [0x18450eb28]
+    +                 1 _dispatch_sema4_wait  (in libdispatch.dylib) + 28  [0x18450e49c]
+    +                   1 semaphore_wait_trap  (in libsystem_kernel.dylib) + 8  [0x184688b9c]
+    5394 Thread_48853128: async-io
+    + 5394 thread_start  (in libsystem_pthread.dylib) + 8  [0x1846c8cec]
+    +   5394 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x1846cdd00]
+    +     5394 <std::sys::thread::unix::Thread>::new::thread_start  (in server) + 392  [0x1005827c8]
+    +       5394 <std::thread::lifecycle::spawn_unchecked<async_io::driver::unparker::{closure#0}::{closure#0}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}  (in server) + 84  [0x1005476c8]
+    +         5394 std::sys::backtrace::__rust_begin_short_backtrace::<async_io::driver::unparker::{closure#0}::{closure#0}, ()>  (in server) + 12  [0x100543fdc]
+    +           5383 async_io::driver::main_loop  (in server) + 244  [0x1005478e0]
+    +           ! 5185 <async_io::reactor::ReactorLock>::react  (in server) + 168  [0x100546168]
+    +           ! : 5178 <polling::Poller>::wait  (in server) + 96  [0x100549560]
+    +           ! : | 5148 <polling::Poller>::wait_impl  (in server) + 196  [0x100549638]
+    +           ! : | + 5118 <polling::kqueue::Poller>::wait_deadline  (in server) + 144  [0x100548630]
+    +           ! : | + ! 5116 rustix::backend::event::syscalls::kevent  (in server) + 24  [0x100549c70]
+    +           ! : | + ! : 5116 kevent  (in libsystem_kernel.dylib) + 8,4  [0x18468efcc,0x18468efc8]
+    +           ! : | + ! 1 rustix::backend::event::syscalls::kevent  (in server) + 24  [0x100549c70]
+    +           ! : | + ! 1 kevent  (in libsystem_kernel.dylib) + 40  [0x18468efec]
+    +           ! : | + 30 <polling::kqueue::Poller>::wait_deadline  (in server) + 144,188  [0x100548630,0x10054865c]
+    +           ! : | 16 <polling::Poller>::wait_impl  (in server) + 196,400,...  [0x100549638,0x100549704,...]
+    +           ! : | 7 <polling::Poller>::wait_impl  (in server) + 492  [0x100549760]
+    +           ! : | + 3 <std::sys::pal::unix::sync::mutex::Mutex>::unlock  (in server) + 0  [0x10056f0dc]
+    +           ! : | + 3 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 0,20,...  [0x1846c8a1c,0x1846c8a30,...]
+    +           ! : | + 1 DYLD-STUB$$pthread_mutex_unlock  (in server) + 0  [0x1005a8f7c]
+    +           ! : | 6 <polling::Poller>::wait_impl  (in server) + 416  [0x100549714]
+    +           ! : | + 6 <rustix::event::kqueue::Event>::filter  (in server) + 0,20,...  [0x100549eac,0x100549ec0,...]
+    +           ! : | 1 <polling::Poller>::wait_impl  (in server) + 452  [0x100549738]
+    +           ! : |   1 <rustix::event::kqueue::Event>::filter  (in server) + 156  [0x100549f48]
+    +           ! : 6 <polling::Poller>::wait  (in server) + 96  [0x100549560]
+    +           ! : 1 <polling::Poller>::wait_impl  (in server) + 140  [0x100549600]
+    +           ! 95 <async_io::reactor::ReactorLock>::react  (in server) + 72  [0x100546108]
+    +           ! : 80 <async_io::reactor::Reactor>::process_timers  (in server) + 104  [0x100545294]
+    +           ! : | 79 <std::sys::pal::unix::time::Timespec>::now  (in server) + 24  [0x10056ea7c]
+    +           ! : | + 79 clock_gettime  (in libsystem_c.dylib) + 60  [0x184564100]
+    +           ! : | +   73 clock_gettime_nsec_np  (in libsystem_c.dylib) + 384  [0x1845561ac]
+    +           ! : | +   ! 73 mach_absolute_time  (in libsystem_kernel.dylib) + 108,112  [0x1846890f8,0x1846890fc]
+    +           ! : | +   5 clock_gettime_nsec_np  (in libsystem_c.dylib) + 12,228  [0x184556038,0x184556110]
+    +           ! : | +   1 ???  (in <unknown binary>)  [0x18bf1e780]
+    +           ! : | 1 <std::sys::pal::unix::time::Timespec>::now  (in server) + 8  [0x10056ea6c]
+    +           ! : 7 <async_io::reactor::Reactor>::process_timers  (in server) + 0,24,...  [0x10054522c,0x100545244,...]
+    +           ! : 5 <async_io::reactor::Reactor>::process_timers  (in server) + 100  [0x100545290]
+    +           ! : | 2 <async_io::reactor::Reactor>::process_timer_ops  (in server) + 172  [0x100545684]
+    +           ! : | + 2 <concurrent_queue::bounded::Bounded<async_io::reactor::TimerOp>>::pop  (in server) + 28,136  [0x100544730,0x10054479c]
+    +           ! : | 2 <async_io::reactor::Reactor>::process_timer_ops  (in server) + 0,44  [0x1005455d8,0x100545604]
+    +           ! : | 1 <concurrent_queue::bounded::Bounded<async_io::reactor::TimerOp>>::pop  (in server) + 300  [0x100544840]
+    +           ! : 3 <async_io::reactor::Reactor>::process_timers  (in server) + 56  [0x100545264]
+    +           ! :   3 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10056f0cc]
+    +           ! :     3 pthread_mutex_lock  (in libsystem_pthread.dylib) + 36,80,...  [0x1846c84fc,0x1846c8528,...]
+    +           ! 26 <async_io::reactor::ReactorLock>::react  (in server) + 1692  [0x10054675c]
+    +           ! : 20 futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 32  [0x1004fd3b4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:258
+    +           ! : | 8 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 64,16,...  [0x1004db47c,0x1004db44c,...]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:103
+    +           ! : | 6 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 140  [0x1004db4c8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:125
+    +           ! : | + 6 <futures_core::task::__internal::atomic_waker::AtomicWaker>::wake  (in server) + 0,12,...  [0x100554038,0x100554044,...]
+    +           ! : | 2 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 0  [0x1004db43c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:102
+    +           ! : | 2 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 96  [0x1004db49c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:123
+    +           ! : | 2 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 128  [0x1004db4bc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:125
+    +           ! : 5 futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 0  [0x1004fd394]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:256
+    +           ! : 1 futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 40  [0x1004fd3bc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:258
+    +           ! 25 <async_io::reactor::ReactorLock>::react  (in server) + 1844  [0x1005467f4]
+    +           ! : 16 _xzm_free_tc  (in libsystem_malloc.dylib) + 308,0,...  [0x1844f19ac,0x1844f1878,...]
+    +           ! : 9 _free  (in libsystem_malloc.dylib) + 44,56,...  [0x1844f513c,0x1844f5148,...]
+    +           ! 21 <async_io::reactor::ReactorLock>::react  (in server) + 912  [0x100546450]
+    +           ! : 19 <alloc::raw_vec::RawVec<slab::Entry<alloc::sync::Arc<async_io::reactor::Source>>>>::grow_one  (in server) + 20  [0x1005a1350]
+    +           ! : | 19 <alloc::raw_vec::RawVecInner>::grow_amortized  (in server) + 72  [0x1005a1478]
+    +           ! : |   14 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 108  [0x1005a13f8]
+    +           ! : |   + 5 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0,12,...  [0x1844f44f0,0x1844f44fc,...]
+    +           ! : |   + 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0,260  [0x1844ef990,0x1844efa94]
+    +           ! : |   + 2 __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+    +           ! : |   + 2 malloc  (in libsystem_malloc.dylib) + 0  [0x1844b5ce8]
+    +           ! : |   + 2 xzm_malloc_zone_malloc_type_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef3cc]
+    +           ! : |   3 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 56,0  [0x1005a13c4,0x1005a138c]
+    +           ! : |   2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 96  [0x1005a13ec]
+    +           ! : |     2 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+    +           ! : 2 <alloc::raw_vec::RawVec<slab::Entry<alloc::sync::Arc<async_io::reactor::Source>>>>::grow_one  (in server) + 0,20  [0x1005a133c,0x1005a1350]
+    +           ! 14 <async_io::reactor::ReactorLock>::react  (in server) + 168,1052,...  [0x100546168,0x1005464dc,...]
+    +           ! 4 <async_io::reactor::ReactorLock>::react  (in server) + 324  [0x100546204]
+    +           ! : 4 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 104,20  [0x1846c8a84,0x1846c8a30]
+    +           ! 4 <async_io::reactor::ReactorLock>::react  (in server) + 508  [0x1005462bc]
+    +           ! : 2 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10056f0cc]
+    +           ! : | 2 pthread_mutex_lock  (in libsystem_pthread.dylib) + 32,112  [0x1846c84f8,0x1846c8548]
+    +           ! : 2 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 16  [0x10056f0d0]
+    +           ! 3 <async_io::reactor::ReactorLock>::react  (in server) + 248  [0x1005461b8]
+    +           ! : 3 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10056f0cc]
+    +           ! :   3 pthread_mutex_lock  (in libsystem_pthread.dylib) + 0,64  [0x1846c84d8,0x1846c8518]
+    +           ! 3 <async_io::reactor::ReactorLock>::react  (in server) + 1480  [0x100546688]
+    +           ! : 2 DYLD-STUB$$pthread_mutex_unlock  (in server) + 4  [0x1005a8f80]
+    +           ! : 1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 20  [0x1846c8a30]
+    +           ! 2 <async_io::reactor::ReactorLock>::react  (in server) + 364  [0x10054622c]
+    +           ! : 2 <rustix::event::kqueue::Event>::filter  (in server) + 0,144  [0x100549eac,0x100549f3c]
+    +           ! 1 <async_io::reactor::ReactorLock>::react  (in server) + 348  [0x10054621c]
+    +           !   1 <rustix::event::kqueue::Event>::filter  (in server) + 0  [0x100549eac]
+    +           5 async_io::driver::main_loop  (in server) + 456  [0x1005479b4]
+    +           ! 3 <std::sys::pal::unix::sync::mutex::Mutex>::try_lock  (in server) + 12  [0x10056f0ec]
+    +           ! : 2 DYLD-STUB$$pthread_mutex_trylock  (in server) + 0  [0x1005a8f70]
+    +           ! : 1 pthread_mutex_trylock  (in libsystem_pthread.dylib) + 0  [0x1846cb228]
+    +           ! 2 <std::sys::pal::unix::sync::mutex::Mutex>::try_lock  (in server) + 20  [0x10056f0f4]
+    +           5 async_io::driver::main_loop  (in server) + 244,364,...  [0x1005478e0,0x100547958,...]
+    +           1 async_io::driver::main_loop  (in server) + 348  [0x100547948]
+    +             1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 72  [0x1846c8a64]
+    5394 Thread_48853130: base-native-0
+      5394 thread_start  (in libsystem_pthread.dylib) + 8  [0x1846c8cec]
+        5394 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x1846cdd00]
+          5394 <std::sys::thread::unix::Thread>::new::thread_start  (in server) + 392  [0x1005827c8]
+            5394 <std::thread::lifecycle::spawn_unchecked<<base_scheduler_selector::blocking_pool::BlockingPool>::start::{closure#0}::{closure#0}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}  (in server) + 84  [0x10053d524]
+              5394 std::sys::backtrace::__rust_begin_short_backtrace::<<base_scheduler_selector::blocking_pool::BlockingPool>::start::{closure#0}::{closure#0}, ()>  (in server) + 12  [0x10053b8d0]
+                5394 base_scheduler_selector::blocking_pool::work  (in server) + 208  [0x10053eeec]
+                  5394 _pthread_cond_wait  (in libsystem_pthread.dylib) + 980  [0x1846ce1d0]
+                    5394 __psynch_cvwait  (in libsystem_kernel.dylib) + 8  [0x18468c50c]
+
+Total number in stack (recursive counted multiple, when >=5):
+        45       _platform_memmove  (in libsystem_platform.dylib) + 0  [0x1846d7d60]
+        34       _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+        30       _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef990]
+        25       _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0  [0x1844f44f0]
+        18       _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+        12       DYLD-STUB$$free  (in server) + 0  [0x1005a8d78]
+        12       __rustc::__rdl_alloc  (in server) + 0  [0x10056da30]
+        10       DYLD-STUB$$memcpy  (in server) + 0  [0x1005a8e38]
+        9       <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x100591c40]
+        8       __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x1004fdc74]
+        8       pthread_mutex_lock  (in libsystem_pthread.dylib) + 0  [0x1846c84d8]
+        7       DYLD-STUB$$malloc  (in server) + 0  [0x1005a8e20]
+        7       <alloc::string::String as core::clone::Clone>::clone  (in server) + 0  [0x100591c10]
+        7       <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x100591c54]
+        6       <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0  [0x1005549cc]
+        6       <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10056f0cc]
+        6       pthread_mutex_unlock  (in libsystem_pthread.dylib) + 0  [0x1846c8a1c]
+        5       base_http::syntax::is_token  (in server) + 0  [0x10055f278]
+
+Sort by top of stack, same collapsed (when >= 5):
+        __psynch_cvwait  (in libsystem_kernel.dylib)        10788
+        kevent  (in libsystem_kernel.dylib)        5443
+        __sendto  (in libsystem_kernel.dylib)        2838
+        __recvfrom  (in libsystem_kernel.dylib)        1284
+        mach_absolute_time  (in libsystem_kernel.dylib)        91
+        _platform_memmove  (in libsystem_platform.dylib)        88
+        base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server)        83
+        _xzm_free_tc  (in libsystem_malloc.dylib)        80
+        _xzm_malloc_tc  (in libsystem_malloc.dylib)        62
+        _malloc_zone_malloc  (in libsystem_malloc.dylib)        39
+        _free  (in libsystem_malloc.dylib)        38
+        alloc::vec::from_elem::<httparse::Header>  (in server)        31
+        <polling::kqueue::Poller>::wait_deadline  (in server)        30
+        base_http::syntax::is_token  (in server)        22
+        <base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server)        19
+        xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib)        19
+        DYLD-STUB$$free  (in server)        18
+        <polling::Poller>::wait_impl  (in server)        17
+        base_http1::wire::strict_lines  (in server)        17
+        __rustc::__rdl_alloc  (in server)        15
+        <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&mut [u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server)        15
+        <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server)        14
+        <async_io::reactor::ReactorLock>::react  (in server)        14
+        <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server)        14
+        pthread_mutex_lock  (in libsystem_pthread.dylib)        14
+        pthread_mutex_unlock  (in libsystem_pthread.dylib)        13
+        DYLD-STUB$$memcpy  (in server)        11
+        __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server)        10
+        <rustix::event::kqueue::Event>::filter  (in server)        10
+        base_http1::wire::authority  (in server)        10
+        xzm_malloc_zone_size  (in libsystem_malloc.dylib)        10
+        <base_http::fields::Fields>::append  (in server)        9
+        base_http1::output::plan  (in server)        9
+        <alloc::string::String as core::clone::Clone>::clone  (in server)        9
+        _malloc_zone_realloc  (in libsystem_malloc.dylib)        9
+        httparse::parse_headers_iter_uninit  (in server)        8
+        <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin  (in server)        8
+        _xzm_malloc  (in libsystem_malloc.dylib)        8
+        DYLD-STUB$$malloc  (in server)        7
+        <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server)        7
+        <async_io::reactor::Reactor>::process_timers  (in server)        7
+        <base_http::request::RequestHead as core::clone::Clone>::clone  (in server)        7
+        DYLD-STUB$$pthread_mutex_unlock  (in server)        6
+        core::ptr::drop_glue::<base_http::fields::Fields>  (in server)        6
+        futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server)        6
+        <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server)        6
+        base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server)        6
+        <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result  (in server)        6
+        <socket2::socket::Socket>::recv_with_flags  (in server)        6
+        <futures_core::task::__internal::atomic_waker::AtomicWaker>::wake  (in server)        6
+        <polling::Poller>::wait  (in server)        6
+        <alloc::string::String as core::fmt::Write>::write_str  (in server)        6
+        _realloc  (in libsystem_malloc.dylib)        6
+        _xzm_free  (in libsystem_malloc.dylib)        6
+        <base_http::fields::Fields>::add::<&str, &[u8]>  (in server)        5
+        __rustc::__rdl_dealloc  (in server)        5
+        <socket2::socket::Socket>::send_with_flags  (in server)        5
+        <httparse::Request>::parse_with_config_and_uninit_headers  (in server)        5
+        <base_http1::input::RequestReader<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>>::take  (in server)        5
+        async_io::driver::main_loop  (in server)        5
+        alloc::fmt::format::format_inner  (in server)        5
+        <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server)        5
+        <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&[u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server)        5
+        <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server)        5
+        _pthread_exit_if_canceled  (in libsystem_pthread.dylib)        5
+        clock_gettime_nsec_np  (in libsystem_c.dylib)        5
+
+Binary Images:
+       0x1004a4000 -        0x100607e7b +server (0) <84FEEA6E-5CCB-3510-BC2F-052125D35964> /Users/*/server
+       0x184244000 -        0x1842935f7  libobjc.A.dylib (973.1) <C0680DF6-9900-3C29-A071-95A031686EF8> /usr/lib/libobjc.A.dylib
+       0x184294000 -        0x18429e23f  libsharedcache.dylib (0) <BBF95357-BEBF-3D89-8900-2BBB14A667C5> /usr/lib/libsharedcache.dylib
+       0x18429f000 -        0x1842c5d3b  libdyld.dylib (27062) <62863BCA-DD60-3D32-A9DB-89099BA6F3D7> /usr/lib/system/libdyld.dylib
+       0x1842c6000 -        0x1843856e3  dyld (1.0.0 - 27062) <D341DDCB-7969-3A9C-8E03-0CF4751398A9> /usr/lib/dyld
+       0x184386000 -        0x18438901f  libsystem_blocks.dylib (98.1) <6F304731-D95D-3501-B4AD-F2934F7F2446> /usr/lib/system/libsystem_blocks.dylib
+       0x18438a000 -        0x1843df0df  libxpc.dylib (3298.1.1) <0791121F-B5FC-3F84-BF04-115E86D2D882> /usr/lib/system/libxpc.dylib
+       0x1843e0000 -        0x1843ffc13  libsystem_trace.dylib (1966.1.1) <B48A8E3E-A12A-3342-8321-428B555E965E> /usr/lib/system/libsystem_trace.dylib
+       0x184400000 -        0x1844b4f27  libcorecrypto.dylib (2109.0.22) <807AA6C9-5D8A-3CA5-B4CE-FACE5296EF6A> /usr/lib/system/libcorecrypto.dylib
+       0x1844b5000 -        0x18450ac5f  libsystem_malloc.dylib (886.0.8) <2339CB57-FE5A-3154-A206-A76059C749EB> /usr/lib/system/libsystem_malloc.dylib
+       0x18450b000 -        0x18455119f  libdispatch.dylib (1605.0.2) <022BF08F-0B3A-3225-9E65-16D1553CE90D> /usr/lib/system/libdispatch.dylib
+       0x184552000 -        0x184554d2b  libsystem_featureflags.dylib (108) <20C1CAB2-1F13-3426-8146-9CAE9FF2A33D> /usr/lib/system/libsystem_featureflags.dylib
+       0x184555000 -        0x1845d7ca3  libsystem_c.dylib (1786.0.3) <FBA7B23E-AA60-3A90-9AA4-A7A2E0AD63EE> /usr/lib/system/libsystem_c.dylib
+       0x1845d8000 -        0x18466d033  libc++.1.dylib (2200.27) <1E9BA4AA-B5DA-3CF3-80AC-4B880049573F> /usr/lib/libc++.1.dylib
+       0x18466e000 -        0x184687eff  libc++abi.dylib (2200.27) <A21743EE-6E1C-3E74-97EA-7AF793DE4BDF> /usr/lib/libc++abi.dylib
+       0x184688000 -        0x1846c69ab  libsystem_kernel.dylib (13432.1.9) <F63BF418-8F75-34A4-AAF1-8CAF2B9B6A05> /usr/lib/system/libsystem_kernel.dylib
+       0x1846c7000 -        0x1846d391b  libsystem_pthread.dylib (553.0.1) <5A1828C3-CBC2-3B85-BD07-C8ED10021A41> /usr/lib/system/libsystem_pthread.dylib
+       0x1846d4000 -        0x1846dd4f3  libsystem_platform.dylib (402.0.1.0.1) <080E4444-A0FB-3913-9756-4E470015F32F> /usr/lib/system/libsystem_platform.dylib
+       0x1846de000 -        0x18470c903  libsystem_info.dylib (603) <BC387AEB-1CEF-3513-92D7-D7F913596711> /usr/lib/system/libsystem_info.dylib
+       0x188836000 -        0x18883fb13  libsystem_darwin.dylib (1786.0.3) <4E66C888-993C-3E6A-A8DA-A949C01C5B67> /usr/lib/system/libsystem_darwin.dylib
+       0x188c90000 -        0x188ca1b8b  libsystem_notify.dylib (368) <58FD36D8-37A7-311C-80F2-8E64DD8710CF> /usr/lib/system/libsystem_notify.dylib
+       0x18aded000 -        0x18ae07d93  libsystem_networkextension.dylib (2340.1.2) <22E1D190-486F-324F-ABA4-F36AB841BFE9> /usr/lib/system/libsystem_networkextension.dylib
+       0x18ae95000 -        0x18aeac247  libsystem_asl.dylib (409) <B4D449B7-A821-3A9A-8019-E917B291F10A> /usr/lib/system/libsystem_asl.dylib
+       0x18be40000 -        0x18be40f2f  libobjcMsgSend.dylib (973.1) <41179EDE-DC97-3BBE-8848-6400D12C1436> /usr/lib/objc/libobjcMsgSend.dylib
+       0x18cf8c000 -        0x18cf93edf  libsystem_symptoms.dylib (2394.0.4) <60EE7884-9F4E-3184-A6AC-FA40A7A0297D> /usr/lib/system/libsystem_symptoms.dylib
+       0x191324000 -        0x19135eaeb  libsystem_containermanager.dylib (833.0.8.0.1) <08A57205-555D-3792-8931-9D5B585AF326> /usr/lib/system/libsystem_containermanager.dylib
+       0x192977000 -        0x19297b317  libsystem_configuration.dylib (1446) <F3EB66A7-7A24-3AE5-B6E8-9A37BB00F119> /usr/lib/system/libsystem_configuration.dylib
+       0x19297c000 -        0x192982e03  libsystem_sandbox.dylib (3051.0.52) <1E892B56-092E-3832-BDE3-DCE356D7A4FA> /usr/lib/system/libsystem_sandbox.dylib
+       0x193e40000 -        0x193e40f2f  libobjcMsgSend1.dylib (973.1) <B40D9B2A-E1EE-37ED-8004-711A1F263DE1> /usr/lib/objc/libobjcMsgSend1.dylib
+       0x194560000 -        0x194562f93  libquarantine.dylib (217.0.4) <7FD4AE22-86EF-382B-83F5-ADF9336C1160> /usr/lib/system/libquarantine.dylib
+       0x194c72000 -        0x194c781e7  libsystem_coreservices.dylib (203) <57248E07-11A5-3857-918E-4A3A63B69FE8> /usr/lib/system/libsystem_coreservices.dylib
+       0x19523a000 -        0x195277b27  libsystem_m.dylib (3326.0.1) <A3FB340F-3ED5-30F4-8B64-9D5860F64D35> /usr/lib/system/libsystem_m.dylib
+       0x195278000 -        0x195278b47  libcharset.1.dylib (121) <3C9B584E-740A-3664-A1B0-52E561EA4B0B> /usr/lib/libcharset.1.dylib
+       0x195279000 -        0x19527c4f7  libmacho.dylib (27062) <50DEADEC-3E99-3519-AFC3-4A3FEB3F14C3> /usr/lib/system/libmacho.dylib
+       0x195296000 -        0x1952a2707  libcommonCrypto.dylib (600041) <41C99F45-C5E6-39DB-B1F2-A1BEA9D242A4> /usr/lib/system/libcommonCrypto.dylib
+       0x1952a3000 -        0x1952acc87  libunwind.dylib (2200.5) <3070AB81-B082-39E8-8A00-EF88DDE9AC47> /usr/lib/system/libunwind.dylib
+       0x1952b4000 -        0x1952be7eb  libcopyfile.dylib (260.0.3) <72D95AF9-BF5E-3A84-81A6-BCC5BDB99857> /usr/lib/system/libcopyfile.dylib
+       0x1952bf000 -        0x1952c28bf  libcompiler_rt.dylib (103.4) <DFB5CE7F-A36E-36AA-BECE-1392D3D43607> /usr/lib/system/libcompiler_rt.dylib
+       0x1952c3000 -        0x1952c8077  libsystem_collections.dylib (1786.0.3) <1E8022D4-5A37-3A7A-8936-603E6FA88358> /usr/lib/system/libsystem_collections.dylib
+       0x1952c9000 -        0x1952cbf1f  libsystem_secinit.dylib (182) <DE037464-4C5D-3E96-A33F-2A4557CC6A20> /usr/lib/system/libsystem_secinit.dylib
+       0x1952cc000 -        0x1952ce97f  libremovefile.dylib (96) <E6E6DFCF-6B2C-3F30-A59D-816CAB1190CE> /usr/lib/system/libremovefile.dylib
+       0x1952cf000 -        0x1952cfe27  libkeymgr.dylib (31) <5EC997EF-3ADA-360B-9FCD-5F940C83FA4E> /usr/lib/system/libkeymgr.dylib
+       0x1952d0000 -        0x1952d8af7  libsystem_dnssd.dylib (3111.0.5.0.1) <DE22096F-1E5B-3D6E-8164-771582DD6391> /usr/lib/system/libsystem_dnssd.dylib
+       0x1952d9000 -        0x1952ddf1b  libcache.dylib (95) <80BAE197-E285-3F6E-A1EE-B77FE37D7E5D> /usr/lib/system/libcache.dylib
+       0x1952de000 -        0x1952df8f3  libSystem.B.dylib (1359) <4FDC9AA6-B344-37FE-B8C6-A4C94A038F57> /usr/lib/libSystem.B.dylib
+       0x195318000 -        0x19531f0a3  libiconv.2.dylib (121) <C343D6F7-6932-30E8-8E8F-F756946D8413> /usr/lib/libiconv.2.dylib
+       0x19be40000 -        0x19be40f2f  libobjcMsgSend2.dylib (973.1) <BD27A84B-C9AE-3282-BBEA-3B6119837B5A> /usr/lib/objc/libobjcMsgSend2.dylib
+       0x1a3e40000 -        0x1a3e40f2f  libobjcMsgSend3.dylib (973.1) <C0860D68-DDFC-3BD7-8B06-DB0645CBBED4> /usr/lib/objc/libobjcMsgSend3.dylib
+       0x1abe40000 -        0x1abe40f2f  libobjcMsgSend4.dylib (973.1) <A6153BF5-622B-3B01-81B6-F64A365EF613> /usr/lib/objc/libobjcMsgSend4.dylib
+       0x1b3e40000 -        0x1b3e40f2f  libobjcMsgSend5.dylib (973.1) <3913A71C-B29A-3AEA-820B-BEC40AC1861A> /usr/lib/objc/libobjcMsgSend5.dylib
+       0x1bbe40000 -        0x1bbe40f2f  libobjcMsgSend6.dylib (973.1) <9BC523A3-E167-3F6C-8CAE-0F3EBA671791> /usr/lib/objc/libobjcMsgSend6.dylib
+       0x1c3e40000 -        0x1c3e40f2f  libobjcMsgSend7.dylib (973.1) <248B7BCE-5B4C-34C7-A340-43D5228628C5> /usr/lib/objc/libobjcMsgSend7.dylib
+       0x1cbe40000 -        0x1cbe40f2f  libobjcMsgSend8.dylib (973.1) <3E041BAD-A8E8-3069-B741-78CD1A45B176> /usr/lib/objc/libobjcMsgSend8.dylib
+       0x1d3e40000 -        0x1d3e40f2f  libobjcMsgSend9.dylib (973.1) <34A67969-21A0-39D6-BB81-8FDA5A2409DB> /usr/lib/objc/libobjcMsgSend9.dylib
+       0x1dbe40000 -        0x1dbe40f2f  libobjcMsgSend10.dylib (973.1) <678186C0-8EAD-3B35-8CBB-00285B41E4A0> /usr/lib/objc/libobjcMsgSend10.dylib
+       0x1e3e40000 -        0x1e3e40f2f  libobjcMsgSend11.dylib (973.1) <E05CB08C-E956-36FA-8967-AE8E346A8D2C> /usr/lib/objc/libobjcMsgSend11.dylib
+       0x20be40000 -        0x20be40f2f  libobjcMsgSend12.dylib (973.1) <10AB03AA-FF1F-3FDC-9DFB-BFC40042C501> /usr/lib/objc/libobjcMsgSend12.dylib
+       0x213e40000 -        0x213e40f2f  libobjcMsgSend13.dylib (973.1) <ABF53427-FA6F-3D0D-8F9D-7AD795CA5C92> /usr/lib/objc/libobjcMsgSend13.dylib
+       0x21be40000 -        0x21be40f2f  libobjcMsgSend14.dylib (973.1) <9A844C46-A6DA-34D4-8EBF-2AD775C30684> /usr/lib/objc/libobjcMsgSend14.dylib
+       0x223e40000 -        0x223e40f2f  libobjcMsgSend15.dylib (973.1) <7C995666-2B2D-3284-AA0A-EBF7C922838E> /usr/lib/objc/libobjcMsgSend15.dylib
+       0x22be40000 -        0x22be40f2f  libobjcMsgSend16.dylib (973.1) <B6C0E14B-53AE-3E22-9ED5-1729C49F46F2> /usr/lib/objc/libobjcMsgSend16.dylib
+       0x233e40000 -        0x233e40f2f  libobjcMsgSend17.dylib (973.1) <07B4CF85-251B-301B-832B-20B315A59E19> /usr/lib/objc/libobjcMsgSend17.dylib
+       0x23be40000 -        0x23be40f2f  libobjcMsgSend18.dylib (973.1) <43E575B7-04DB-3999-A633-1A3B638BA6E3> /usr/lib/objc/libobjcMsgSend18.dylib
+       0x243e40000 -        0x243e40f2f  libobjcMsgSend19.dylib (973.1) <736F4D85-76F7-3B28-8D87-C07E8F7A0EF4> /usr/lib/objc/libobjcMsgSend19.dylib
+       0x24be40000 -        0x24be40f2f  libobjcMsgSend20.dylib (973.1) <74E67C8B-6BCA-3184-A18E-A97F370052C6> /usr/lib/objc/libobjcMsgSend20.dylib
+       0x253e40000 -        0x253e40f2f  libobjcMsgSend21.dylib (973.1) <CC0D732F-98E7-3888-9E15-70984DA2FB04> /usr/lib/objc/libobjcMsgSend21.dylib
+       0x25be40000 -        0x25be40f2f  libobjcMsgSend22.dylib (973.1) <85A60286-5DE3-32BA-B18C-2A498B065C88> /usr/lib/objc/libobjcMsgSend22.dylib
+       0x263e40000 -        0x263e40f2f  libobjcMsgSend23.dylib (973.1) <5452A0D2-6B19-39BE-ADDD-80B7BCDE3A98> /usr/lib/objc/libobjcMsgSend23.dylib
+       0x26be40000 -        0x26be40f2f  libobjcMsgSend24.dylib (973.1) <94BBF2D6-722B-350D-8557-4D25A8E8D53A> /usr/lib/objc/libobjcMsgSend24.dylib
+       0x273e40000 -        0x273e40f2f  libobjcMsgSend25.dylib (973.1) <35481387-5A8E-3AE4-86A6-94CEB3CC8726> /usr/lib/objc/libobjcMsgSend25.dylib
+       0x28be40000 -        0x28be40f2f  libobjcMsgSend26.dylib (973.1) <9E0C8664-E7F4-39D1-AAFC-BD92B255E4E8> /usr/lib/objc/libobjcMsgSend26.dylib
+       0x293e40000 -        0x293e40f2f  libobjcMsgSend27.dylib (973.1) <FD424935-55A9-3650-955A-EED3441A1D19> /usr/lib/objc/libobjcMsgSend27.dylib
+       0x29be40000 -        0x29be40f2f  libobjcMsgSend28.dylib (973.1) <09BA7B97-7DF7-3C7F-932A-B6847662FC49> /usr/lib/objc/libobjcMsgSend28.dylib
+       0x2a3e40000 -        0x2a3e40f2f  libobjcMsgSend29.dylib (973.1) <36D5BA3F-2139-30B0-8558-556764BE9813> /usr/lib/objc/libobjcMsgSend29.dylib
+       0x2abe40000 -        0x2abe40f2f  libobjcMsgSend30.dylib (973.1) <9F05564A-9D12-372C-98FC-E9F0E6BE4F04> /usr/lib/objc/libobjcMsgSend30.dylib
+       0x2b0b5a000 -        0x2b0b60fe5  libRosetta.dylib (385) <E359944B-D230-33F9-A04E-0C3B17C3326E> /usr/lib/libRosetta.dylib
+       0x2b1549000 -        0x2b154c75b  libsystem_darwindirectory.dylib (129.0.1) <61264923-2AA5-3658-B8C4-550C71E9D4B3> /usr/lib/system/libsystem_darwindirectory.dylib
+       0x2b154d000 -        0x2b1557d9b  libsystem_eligibility.dylib (446.1.3) <EDDE8E9C-A2CF-3931-BBB3-321CB852EB30> /usr/lib/system/libsystem_eligibility.dylib
+       0x2b1558000 -        0x2b156142b  libsystem_sanitizers.dylib (32) <7138ED99-7AA0-34EA-B35B-20EF6ADB1EED> /usr/lib/system/libsystem_sanitizers.dylib
+       0x2b1562000 -        0x2b1562a13  libsystem_trial.dylib (511) <6AE48824-EC44-3A8C-B501-BE57DBE892E7> /usr/lib/system/libsystem_trial.dylib
+       0x2b3e40000 -        0x2b3e40f2f  libobjcMsgSend31.dylib (973.1) <0985E20F-78C3-3466-A2B2-DBB95F7104A3> /usr/lib/objc/libobjcMsgSend31.dylib
+       0x2bbe40000 -        0x2bbe40f2f  libobjcMsgSend32.dylib (973.1) <0D309D58-D576-3E5D-AD4B-6D55AB491702> /usr/lib/objc/libobjcMsgSend32.dylib
+       0x2c3e40000 -        0x2c3e40f2f  libobjcMsgSend33.dylib (973.1) <346E0484-48FA-369B-8A64-93B5F5341CFE> /usr/lib/objc/libobjcMsgSend33.dylib
+       0x2cbe40000 -        0x2cbe40f2f  libobjcMsgSend34.dylib (973.1) <6A31F809-BCBE-3E01-A367-E91FDACCE324> /usr/lib/objc/libobjcMsgSend34.dylib

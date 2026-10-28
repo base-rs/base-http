@@ -1,0 +1,966 @@
+Analysis of sampling base-http-hello-benchmark (pid 44524) every 1 millisecond
+Process:         base-http-hello-benchmark [44524]
+Path:            /Users/USER/*/base-http-hello-benchmark
+Load Address:    0x104544000
+Identifier:      base-http-hello-benchmark
+Version:         0
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  python3.13 [44522]
+Target Type:     live task
+
+Date/Time:       2026-10-26 20:09:37.103 +1300
+Launch Time:     2026-10-26 20:09:33.928 +1300
+OS Version:      macOS 27.0.1 (26A434)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         3664K
+Physical footprint (peak):  3664K
+Idle exit:                  untracked
+----
+
+Call graph:
+    5343 Thread_48829857   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 5343 start  (in dyld) + 6688  [0x1842f7e80]
+    +   5343 main  (in base-http-hello-benchmark) + 52  [0x104580e70]
+    +     5343 _RNvNtCs1coMeGJvsuS_3std2rt19lang_start_internal  (in base-http-hello-benchmark) + 936  [0x10461c370]
+    +       5343 _RNCINvNtCs1coMeGJvsuS_3std2rt10lang_startINtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtBI_5error5ErrorNtNtBI_6marker4SendNtB2b_4SyncEL_EEE0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 16  [0x104588ecc]
+    +         5343 _RINvNtNtCs1coMeGJvsuS_3std3sys9backtrace28___rust_begin_short_backtraceFEINtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB1e_5error5ErrorNtNtB1e_6marker4SendNtB2I_4SyncEL_EEB19_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 12  [0x10458d790]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166
+    +           5343 _RNvCsl3LbQkHRDRJ_25base_http_hello_benchmark4main  (in base-http-hello-benchmark) + 1284  [0x10457fd64]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/src/main.rs:176
+    +             5343 _RINvMs_NtCshZuGRpXIDnr_21base_scheduler_native16native_schedulerNtB5_15NativeScheduler8block_onINtNtB7_11native_task10NativeTaskINtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB27_5error5ErrorNtNtB27_6marker4SendNtB3B_4SyncEL_EEEECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 184  [0x10458cc6c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-native-0.1.0/src/native_scheduler.rs:129
+    +               5343 _RNvXso_CsiEjidqLhqkU_14event_listenerNtB5_13EventListenerNtB5_8Listener4waitCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 88  [0x1045995d8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/lib.rs:862
+    +                 5343 _RNvMsh_CsiEjidqLhqkU_14event_listenerINtB5_13InnerListeneruINtNtCs3vUkWdPtNor_5alloc4sync3ArcINtB5_5InneruEEE16wait_with_parkerCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 240  [0x104598f64]
+    +                   5343 _RNvMs5_Csbz0QwN3Uh40_7parkingNtB5_5Inner4park  (in base-http-hello-benchmark) + 384  [0x104601cc8]
+    +                     5343 _pthread_cond_wait  (in libsystem_pthread.dylib) + 980  [0x1846ce1d0]
+    +                       5343 __psynch_cvwait  (in libsystem_kernel.dylib) + 8  [0x18468c50c]
+    5343 Thread_48829859: base-native-task
+    + 5342 thread_start  (in libsystem_pthread.dylib) + 8  [0x1846c8cec]
+    + ! 5342 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x1846cdd00]
+    + !   5342 _RNvNvMs0_NtNtNtCs1coMeGJvsuS_3std3sys6thread4unixNtB7_6Thread3new12thread_start  (in base-http-hello-benchmark) + 392  [0x104622788]
+    + !     5342 _RNSNvYNCINvNtNtCs1coMeGJvsuS_3std6thread9lifecycle15spawn_uncheckedNCNvMs2_NtCshZuGRpXIDnr_21base_scheduler_native12task_serviceNtB1b_11TaskService3news_0uEs_0INtNtNtCs9nEiEE0E2Vj_4core3ops8function6FnOnceuE9call_once6vtableB1d_  (in base-http-hello-benchmark) + 180  [0x1045d8d04]
+    + !       5342 _RINvNtNtCs1coMeGJvsuS_3std3sys9backtrace28___rust_begin_short_backtraceNCNvMs2_NtCshZuGRpXIDnr_21base_scheduler_native12task_serviceNtB1f_11TaskService3news_0uEB1h_  (in base-http-hello-benchmark) + 40  [0x10463fd64]
+    + !         5342 _RNvNtCshZuGRpXIDnr_21base_scheduler_native6worker8run_loop  (in base-http-hello-benchmark) + 1100  [0x1045d5f68]
+    + !           5342 _RNvMs1_NtCsc5DSm4Nzi0D_10async_task3rawINtB5_7RawTaskINtNtCshZuGRpXIDnr_21base_scheduler_native11native_task10TaskFutureNCNvCsl3LbQkHRDRJ_25base_http_hello_benchmark4main0EINtBS_11TaskOutcomeINtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB38_5error5ErrorNtNtB38_6marker4SendNtB4C_4SyncEL_EEENCINvMs2_NtBU_12task_serviceNtB5k_11TaskService5spawnB1U_Es_0NtB5k_9TaskStateE3runB1Y_  (in base-http-hello-benchmark) + 340  [0x104594df4]
+    + !             5342 _RNvXs0_NtCshZuGRpXIDnr_21base_scheduler_native11native_taskINtB5_10TaskFutureNCNvCsl3LbQkHRDRJ_25base_http_hello_benchmark4main0ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollB1h_  (in base-http-hello-benchmark) + 2352  [0x104595ddc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-native-0.1.0/src/native_task.rs:61
+    + !               5340 _RNvXs_NtNtCsa8LNBO7KKdE_12futures_util6future6selectINtB4_6SelectINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNvXsc_NtCshZuGRpXIDnr_21base_scheduler_native19selector_operationsNtNtB1I_16native_scheduler15NativeSchedulerNtNtCs4YlPSH1h0Dn_14base_scheduler13socket_accept12SocketAccept13socket_accept0EIB12_QNCNCINvCsl3LbQkHRDRJ_25base_http_hello_benchmark11base_serverB2E_E00EENtNtNtB16_6future6future6Future4pollB4Q_  (in base-http-hello-benchmark) + 136  [0x10457d224]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+    + !               : 5340 _RNvYINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNCINvCsl3LbQkHRDRJ_25base_http_hello_benchmark11base_serverNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerE00ENtNtNtCsa8LNBO7KKdE_12futures_util6future6future9FutureExt10poll_unpinBG_  (in base-http-hello-benchmark) + 80  [0x104572e54]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/future/mod.rs:556
+    + !               :   5336 _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtNtB7_6stream9StreamExt15poll_next_unpinB3s_  (in base-http-hello-benchmark) + 1376  [0x10455eb84]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+    + !               :   | 1851 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 1924  [0x10454d014]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 1835 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1208  [0x104557964]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + ! 1825 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 172  [0x10456d578]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + ! : 1821 _RNvMNtCsjOHHXomo5FJ_7socket26socketNtB2_6Socket15send_with_flags  (in base-http-hello-benchmark) + 32  [0x1045f3478]
+    + !               :   | + ! : | 1821 __sendto  (in libsystem_kernel.dylib) + 8,4  [0x18468d39c,0x18468d398]
+    + !               :   | + ! : 4 _RNvMNtCsjOHHXomo5FJ_7socket26socketNtB2_6Socket15send_with_flags  (in base-http-hello-benchmark) + 40,0,...  [0x1045f3480,0x1045f3458,...]
+    + !               :   | + ! 8 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 316,36  [0x10456d608,0x10456d4f0]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + ! 2 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 652  [0x10456d758]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:152
+    + !               :   | + 8 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1456,2420,...  [0x104557a5c,0x104557e20,...]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + 2 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1652  [0x104557b20]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector13native_socketNtBH_12NativeSocket2iojNCNCNCINvMNtBJ_17socket_operationsNtNtBJ_18readiness_selector17ReadinessSelector16socket_operationQShjNCNCNvMs9_B28_B2w_16socket_recv_poll00E000E0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x1045477d4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + 2 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1680  [0x104557b3c]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtBJ_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtBJ_13native_socketNtB2J_12NativeSocket2iojNCNCNCINvBG_16socket_operationQShjNCNCNvMs9_BH_B1F_16socket_recv_poll00E000E0E0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 444  [0x104547a7c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:41
+    + !               :   | + 1 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 68  [0x1045574f0]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:78
+    + !               :   | + 1 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x1045574ac]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:79
+    + !               :   | + 1 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1012  [0x1045578a0]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + ! 1 _RNvMNtCs4zOBpIJU1sK_23base_scheduler_selector18readiness_selectorNtB2_17ReadinessSelector10check_open  (in base-http-hello-benchmark) + 36  [0x1045dfadc]
+    + !               :   | + 1 _RNvMNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB2_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseE6resultCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 224  [0x1045801a0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:67
+    + !               :   | 1741 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 12440  [0x10454f928]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 1723 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1208  [0x104557964]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + ! 1720 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 172  [0x10456d578]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + ! : 1720 _RNvMNtCsjOHHXomo5FJ_7socket26socketNtB2_6Socket15send_with_flags  (in base-http-hello-benchmark) + 32  [0x1045f3478]
+    + !               :   | + ! :   1720 __sendto  (in libsystem_kernel.dylib) + 8,4  [0x18468d39c,0x18468d398]
+    + !               :   | + ! 1 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 20  [0x10456d4e0]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:149
+    + !               :   | + ! 1 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 152  [0x10456d564]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + ! : 1 _RNvMNtCs4zOBpIJU1sK_23base_scheduler_selector13native_socketNtB2_12NativeSocket7get_ref  (in base-http-hello-benchmark) + 4  [0x1045dade8]
+    + !               :   | + ! 1 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 652  [0x10456d758]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:152
+    + !               :   | + 11 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 820,776,...  [0x1045577e0,0x1045577b4,...]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + 3 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1652  [0x104557b20]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + ! 3 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector13native_socketNtBH_12NativeSocket2iojNCNCNCINvMNtBJ_17socket_operationsNtNtBJ_18readiness_selector17ReadinessSelector16socket_operationQShjNCNCNvMs9_B28_B2w_16socket_recv_poll00E000E0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0,8  [0x1045477d4,0x1045477dc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + 1 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 80  [0x1045574fc]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:0
+    + !               :   | + 1 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 40  [0x1045574d4]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:79
+    + !               :   | + 1 _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1680  [0x104557b3c]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:81
+    + !               :   | + ! 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtBJ_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtBJ_13native_socketNtB2J_12NativeSocket2iojNCNCNCINvBG_16socket_operationQShjNCNCNvMs9_BH_B1F_16socket_recv_poll00E000E0E0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 444  [0x104547a7c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:41
+    + !               :   | + 1 _RNvMNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB2_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseE6resultCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 224  [0x1045801a0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:67
+    + !               :   | 1142 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 6440  [0x10454e1b8]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 844 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationQShjNCNCNvMs9_B12_B20_16socket_recv_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 792  [0x10456d1b4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + ! 843 _RNvMNtCsjOHHXomo5FJ_7socket26socketNtB2_6Socket15recv_with_flags  (in base-http-hello-benchmark) + 32  [0x1045f33f8]
+    + !               :   | + ! : 842 __recvfrom  (in libsystem_kernel.dylib) + 8,4  [0x18468d3c8,0x18468d3c4]
+    + !               :   | + ! : 1 DYLD-STUB$$recv  (in base-http-hello-benchmark) + 4  [0x104648f6c]
+    + !               :   | + ! 1 ???  (in <unknown binary>)  [0x18bf1f0c0]
+    + !               :   | + 210 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationQShjNCNCNvMs9_B12_B20_16socket_recv_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 964  [0x10456d260]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + ! 207 _RNCINvCs9kNBMHZ2XiP_8async_io10optimisticINtNtB4_7reactor8ReadableNtNtCsjOHHXomo5FJ_7socket26socket6SocketEE0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 140  [0x10456b524]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2071
+    + !               :   | + ! : 194 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 564  [0x104583e48]
+    + !               :   | + ! : | 180 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller6modify  (in base-http-hello-benchmark) + 368  [0x1045e8d70]
+    + !               :   | + ! : | + 180 _RNvNtNtNtCsuLWnt603xV_6rustix7backend5event8syscalls6kevent  (in base-http-hello-benchmark) + 24  [0x1045e9c30]
+    + !               :   | + ! : | +   180 kevent  (in libsystem_kernel.dylib) + 8,4  [0x18468efcc,0x18468efc8]
+    + !               :   | + ! : | 5 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller6modify  (in base-http-hello-benchmark) + 548  [0x1045e8e24]
+    + !               :   | + ! : | + 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 84,208  [0x1844f18cc,0x1844f1948]
+    + !               :   | + ! : | + 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | + ! : | + 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    + !               :   | + ! : | + 1 xzm_malloc_zone_try_free_default_tc  (in libsystem_malloc.dylib) + 0  [0x1844f0440]
+    + !               :   | + ! : | 5 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller6modify  (in base-http-hello-benchmark) + 64,152,...  [0x1045e8c40,0x1045e8c98,...]
+    + !               :   | + ! : | 3 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller6modify  (in base-http-hello-benchmark) + 332  [0x1045e8d4c]
+    + !               :   | + ! : | + 2 DYLD-STUB$$malloc  (in base-http-hello-benchmark) + 0,4  [0x104648da0,0x104648da4]
+    + !               :   | + ! : | + 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192  [0x1844efa50]
+    + !               :   | + ! : | 1 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller6modify  (in base-http-hello-benchmark) + 120  [0x1045e8c78]
+    + !               :   | + ! : |   1 _RINvMs1_NtCsjPjDV110NBJ_9hashbrown3mapINtB6_7HashMapNtNtCshzuYilkl4KH_7polling6kqueue8SourceIduNtNtNtCs1coMeGJvsuS_3std4hash6random11RandomStateE12contains_keyBO_EBS_  (in base-http-hello-benchmark) + 36  [0x1045e9110]
+    + !               :   | + ! : |     1 _RINvYNtNtNtCs1coMeGJvsuS_3std4hash6random11RandomStateNtNtCs9nEiEE0E2Vj_4core4hash11BuildHasher8hash_oneRNtNtCshzuYilkl4KH_7polling6kqueue8SourceIdEB1J_  (in base-http-hello-benchmark) + 160  [0x1045e9898]
+    + !               :   | + ! : |       1 _RNvXs2_NtNtCs1coMeGJvsuS_3std4hash6randomNtB5_13DefaultHasherNtNtCs9nEiEE0E2Vj_4core4hash6Hasher5write  (in base-http-hello-benchmark) + 100  [0x1045e99c4]
+    + !               :   | + ! : 5 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 56,180,...  [0x104583c4c,0x104583cc8,...]
+    + !               :   | + ! : 2 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 64  [0x104583c54]
+    + !               :   | + ! : | 2 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 12  [0x10460f08c]
+    + !               :   | + ! : |   2 pthread_mutex_lock  (in libsystem_pthread.dylib) + 80,112  [0x1846c8528,0x1846c8548]
+    + !               :   | + ! : 2 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 368  [0x104583d84]
+    + !               :   | + ! : | 2 _RINvNtNtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4task9waker_ref13clone_arc_rawINtB4_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0EEB3Q_  (in base-http-hello-benchmark) + 12  [0x10454c854]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:252
+    + !               :   | + ! : 2 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 480  [0x104583df4]
+    + !               :   | + ! : | 2 _RNvMs0_NtCs9kNBMHZ2XiP_8async_io7reactorNtB5_9Direction8is_empty  (in base-http-hello-benchmark) + 0,12  [0x1045e6004,0x1045e6010]
+    + !               :   | + ! : 1 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 176  [0x104583cc4]
+    + !               :   | + ! : | 1 _RNvMs0_NtCs9kNBMHZ2XiP_8async_io7reactorNtB5_9Direction8is_empty  (in base-http-hello-benchmark) + 0  [0x1045e6004]
+    + !               :   | + ! : 1 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 464  [0x104583de4]
+    + !               :   | + ! :   1 _RNvMs0_NtCs9kNBMHZ2XiP_8async_io7reactorNtB5_9Direction8is_empty  (in base-http-hello-benchmark) + 64  [0x1045e6044]
+    + !               :   | + ! 3 _RNCINvCs9kNBMHZ2XiP_8async_io10optimisticINtNtB4_7reactor8ReadableNtNtCsjOHHXomo5FJ_7socket26socket6SocketEE0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 172  [0x10456b544]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2072
+    + !               :   | + !   1 DYLD-STUB$$pthread_mutex_unlock  (in base-http-hello-benchmark) + 4  [0x104648f00]
+    + !               :   | + !   1 _RNvXsc_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core3ops4drop4Drop4dropCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x10458405c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/reactor.rs:670
+    + !               :   | + !   1 _RNvXsc_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core3ops4drop4Drop4dropCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 60  [0x104584098]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/reactor.rs:673
+    + !               :   | + !     1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 136  [0x1846c8560]
+    + !               :   | + 77 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationQShjNCNCNvMs9_B12_B20_16socket_recv_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 172  [0x10456cf48]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + ! 76 _RNvMNtCsjOHHXomo5FJ_7socket26socketNtB2_6Socket15recv_with_flags  (in base-http-hello-benchmark) + 32  [0x1045f33f8]
+    + !               :   | + ! : 71 __recvfrom  (in libsystem_kernel.dylib) + 8,4  [0x18468d3c8,0x18468d3c4]
+    + !               :   | + ! : 4 __recvfrom  (in libsystem_kernel.dylib) + 28  [0x18468d3dc]
+    + !               :   | + ! : | 3 cerror  (in libsystem_kernel.dylib) + 44  [0x18468a5f8]
+    + !               :   | + ! : | + 3 _pthread_exit_if_canceled  (in libsystem_pthread.dylib) + 0  [0x1846c7958]
+    + !               :   | + ! : | 1 _pthread_exit_if_canceled  (in libsystem_pthread.dylib) + 52  [0x1846c798c]
+    + !               :   | + ! : 1 recv  (in libsystem_c.dylib) + 0  [0x184567d7c]
+    + !               :   | + ! 1 _RNvMNtCsjOHHXomo5FJ_7socket26socketNtB2_6Socket15recv_with_flags  (in base-http-hello-benchmark) + 56  [0x1045f3410]
+    + !               :   | + !   1 __error  (in libsystem_kernel.dylib) + 0  [0x184689604]
+    + !               :   | + 6 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationQShjNCNCNvMs9_B12_B20_16socket_recv_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1456,36,...  [0x10456d44c,0x10456cec0,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | + 5 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationQShjNCNCNvMs9_B12_B20_16socket_recv_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 604  [0x10456d0f8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !               :   | +   2 _RNCNvMs0_NtCs4YlPSH1h0Dn_14base_scheduler12cancellationNtB7_12Cancellation9cancelled0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 96  [0x10456be08]
+    + !               :   | +   : 1 _RINvMs_NtCsiEjidqLhqkU_14event_listener3sysINtB7_5InneruE10with_inneruNCNvB2_6insert0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x104596398]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:111
+    + !               :   | +   : 1 _RINvMs_NtCsiEjidqLhqkU_14event_listener3sysINtB7_5InneruE10with_inneruNCNvB2_6insert0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 48  [0x1045963c8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:139
+    + !               :   | +   :   1 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 12  [0x10460f08c]
+    + !               :   | +   :     1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 0  [0x1846c84d8]
+    + !               :   | +   2 _RNCNvMs0_NtCs4YlPSH1h0Dn_14base_scheduler12cancellationNtB7_12Cancellation9cancelled0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 140  [0x10456be34]
+    + !               :   | +   : 2 _RINvMs_NtCsiEjidqLhqkU_14event_listener3sysINtB7_5InneruE10with_innerINtB7_14RegisterResultuENCNvB2_8register0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 96,716  [0x104595f8c,0x1045961f8]
+    + !               :   | +   1 _RNCNvMs0_NtCs4YlPSH1h0Dn_14base_scheduler12cancellationNtB7_12Cancellation9cancelled0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 80  [0x10456bdf8]
+    + !               :   | 85 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 4308  [0x10454d964]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 56 _RNvNtCsbOrZNTYrkg4_10base_http16output10head_bytes  (in base-http-hello-benchmark) + 160  [0x1045f71dc]
+    + !               :   | + ! 53 _RNvNvNtCs3vUkWdPtNor_5alloc3fmt6format12format_inner  (in base-http-hello-benchmark) + 308  [0x104631b38]
+    + !               :   | + ! : 28 _RNvNtCs9nEiEE0E2Vj_4core3fmt5write  (in base-http-hello-benchmark) + 144  [0x1046356f8]
+    + !               :   | + ! : | 27 _RNvXsZ_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core3fmt5Write9write_str  (in base-http-hello-benchmark) + 112  [0x104631e68]
+    + !               :   | + ! : | + 22 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_  (in base-http-hello-benchmark) + 68  [0x104648320]
+    + !               :   | + ! : | + ! 21 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_  (in base-http-hello-benchmark) + 44  [0x1046483d8]
+    + !               :   | + ! : | + ! : 15 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    + !               :   | + ! : | + ! : | 12 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    + !               :   | + ! : | + ! : | + 8 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 476,248,...  [0x1844e51ec,0x1844e5108,...]
+    + !               :   | + ! : | + ! : | + 2 default_zone_realloc  (in libsystem_malloc.dylib) + 0,4  [0x1844b8cf8,0x1844b8cfc]
+    + !               :   | + ! : | + ! : | + 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    + !               :   | + ! : | + ! : | +   2 _xzm_free  (in libsystem_malloc.dylib) + 144,348  [0x1844ec790,0x1844ec85c]
+    + !               :   | + ! : | + ! : | 2 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 0,144  [0x1844f4a98,0x1844f4b28]
+    + !               :   | + ! : | + ! : | 1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1056  [0x1844e5430]
+    + !               :   | + ! : | + ! : 4 _realloc  (in libsystem_malloc.dylib) + 252  [0x1844f528c]
+    + !               :   | + ! : | + ! : | 4 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 184,188,...  [0x1844e43bc,0x1844e43c0,...]
+    + !               :   | + ! : | + ! : 1 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 220  [0x1844f4b74]
+    + !               :   | + ! : | + ! : 1 _realloc  (in libsystem_malloc.dylib) + 20  [0x1844f51a4]
+    + !               :   | + ! : | + ! 1 _realloc  (in libsystem_malloc.dylib) + 492  [0x1844f537c]
+    + !               :   | + ! : | + 3 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_  (in base-http-hello-benchmark) + 132  [0x104648430]
+    + !               :   | + ! : | + 2 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_  (in base-http-hello-benchmark) + 68  [0x104648320]
+    + !               :   | + ! : | 1 _RNvXsZ_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core3fmt5Write9write_str  (in base-http-hello-benchmark) + 64  [0x104631e38]
+    + !               :   | + ! : |   1 _platform_memmove  (in libsystem_platform.dylib) + 436  [0x1846d7f14]
+    + !               :   | + ! : 19 _RNvNtCs9nEiEE0E2Vj_4core3fmt5write  (in base-http-hello-benchmark) + 96  [0x1046356c8]
+    + !               :   | + ! : | 8 _RNvXsZ_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core3fmt5Write9write_str  (in base-http-hello-benchmark) + 112  [0x104631e68]
+    + !               :   | + ! : | + 7 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_  (in base-http-hello-benchmark) + 68  [0x104648320]
+    + !               :   | + ! : | + ! 3 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_  (in base-http-hello-benchmark) + 88  [0x104648404]
+    + !               :   | + ! : | + ! : 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    + !               :   | + ! : | + ! : 1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + ! : | + ! 3 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_  (in base-http-hello-benchmark) + 0,4,...  [0x1046483ac,0x1046483b0,...]
+    + !               :   | + ! : | + ! 1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_  (in base-http-hello-benchmark) + 76  [0x1046483f8]
+    + !               :   | + ! : | + !   1 _RNvCsjVqd8RsBhQu_7___rustc35___rust_no_alloc_shim_is_unstable_v2  (in base-http-hello-benchmark) + 0  [0x10459dc08]
+    + !               :   | + ! : | + 1 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalEBa_  (in base-http-hello-benchmark) + 68  [0x104648320]
+    + !               :   | + ! : | 3 _RNvMsa_NtCs9nEiEE0E2Vj_4core3fmtNtB5_9Formatter3pad  (in base-http-hello-benchmark) + 0,28,...  [0x104634800,0x10463481c,...]
+    + !               :   | + ! : | 3 _RNvXs3_NtNtNtCs9nEiEE0E2Vj_4core3fmt3num3imptNtB9_7Display3fmt  (in base-http-hello-benchmark) + 216  [0x104638e10]
+    + !               :   | + ! : | + 2 _RNvMsa_NtCs9nEiEE0E2Vj_4core3fmtNtB5_9Formatter12pad_integral  (in base-http-hello-benchmark) + 176  [0x104633bb0]
+    + !               :   | + ! : | + ! 2 _RNvNvMsa_NtCs9nEiEE0E2Vj_4core3fmtNtB7_9Formatter12pad_integral12write_prefix  (in base-http-hello-benchmark) + 0,32  [0x1046373bc,0x1046373dc]
+    + !               :   | + ! : | + 1 _RNvXsZ_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core3fmt5Write9write_str  (in base-http-hello-benchmark) + 64  [0x104631e38]
+    + !               :   | + ! : | +   1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    + !               :   | + ! : | 2 _RNvXsZ_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core3fmt5Write9write_str  (in base-http-hello-benchmark) + 64  [0x104631e38]
+    + !               :   | + ! : | + 1 DYLD-STUB$$memcpy  (in base-http-hello-benchmark) + 4  [0x104648dbc]
+    + !               :   | + ! : | + 1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    + !               :   | + ! : | 2 _RNvXsZ_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core3fmt5Write9write_str  (in base-http-hello-benchmark) + 28,92  [0x104631e14,0x104631e54]
+    + !               :   | + ! : | 1 _RNvXsi_NtCs9nEiEE0E2Vj_4core3fmteNtB5_7Display3fmt  (in base-http-hello-benchmark) + 0  [0x10463a654]
+    + !               :   | + ! : 4 _RNvNtCs9nEiEE0E2Vj_4core3fmt5write  (in base-http-hello-benchmark) + 0,124,...  [0x104635668,0x1046356e4,...]
+    + !               :   | + ! : 2 _RNvXsZ_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core3fmt5Write9write_str  (in base-http-hello-benchmark) + 84  [0x104631e4c]
+    + !               :   | + ! 2 _RNvNvNtCs3vUkWdPtNor_5alloc3fmt6format12format_inner  (in base-http-hello-benchmark) + 16,92  [0x104631a14,0x104631a60]
+    + !               :   | + ! 1 _RNvNtCs9nEiEE0E2Vj_4core3fmt5write  (in base-http-hello-benchmark) + 424  [0x104635810]
+    + !               :   | + 20 _RNvNtCsbOrZNTYrkg4_10base_http16output10head_bytes  (in base-http-hello-benchmark) + 192  [0x1045f71fc]
+    + !               :   | + ! 8 _RNvNtCsbOrZNTYrkg4_10base_http14wire13append_fields  (in base-http-hello-benchmark) + 320  [0x1045f4e88]
+    + !               :   | + ! : 7 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 108  [0x104642858]
+    + !               :   | + ! : | 7 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 92  [0x104642908]
+    + !               :   | + ! : |   6 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    + !               :   | + ! : |   + 5 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    + !               :   | + ! : |   + ! 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 896  [0x1844e5390]
+    + !               :   | + ! : |   + ! : 2 _xzm_malloc  (in libsystem_malloc.dylib) + 108,208  [0x1844e7e60,0x1844e7ec4]
+    + !               :   | + ! : |   + ! 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 24,268  [0x1844e5028,0x1844e511c]
+    + !               :   | + ! : |   + ! 1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 996  [0x1844e53f4]
+    + !               :   | + ! : |   + !   1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    + !               :   | + ! : |   + 1 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 40  [0x1844f4ac0]
+    + !               :   | + ! : |   1 _realloc  (in libsystem_malloc.dylib) + 36  [0x1844f51b4]
+    + !               :   | + ! : 1 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 108  [0x104642858]
+    + !               :   | + ! 4 _RNvNtCsbOrZNTYrkg4_10base_http14wire13append_fields  (in base-http-hello-benchmark) + 96  [0x1045f4da8]
+    + !               :   | + ! : 4 _platform_memmove  (in libsystem_platform.dylib) + 428,452  [0x1846d7f0c,0x1846d7f24]
+    + !               :   | + ! 4 _RNvNtCsbOrZNTYrkg4_10base_http14wire13append_fields  (in base-http-hello-benchmark) + 168  [0x1045f4df0]
+    + !               :   | + ! : 4 _platform_memmove  (in libsystem_platform.dylib) + 452,0  [0x1846d7f24,0x1846d7d60]
+    + !               :   | + ! 3 _RNvNtCsbOrZNTYrkg4_10base_http14wire13append_fields  (in base-http-hello-benchmark) + 108,160,...  [0x1045f4db4,0x1045f4de8,...]
+    + !               :   | + ! 1 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 128  [0x10464286c]
+    + !               :   | + 8 _RNvNtCsbOrZNTYrkg4_10base_http16output10head_bytes  (in base-http-hello-benchmark) + 316  [0x1045f7278]
+    + !               :   | + ! 4 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 108  [0x104642858]
+    + !               :   | + ! : 4 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 92  [0x104642908]
+    + !               :   | + ! :   2 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    + !               :   | + ! :   | 2 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    + !               :   | + ! :   |   2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    + !               :   | + ! :   |     2 _xzm_free  (in libsystem_malloc.dylib) + 80,348  [0x1844ec750,0x1844ec85c]
+    + !               :   | + ! :   1 _realloc  (in libsystem_malloc.dylib) + 252  [0x1844f528c]
+    + !               :   | + ! :   | 1 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 92  [0x1844e4360]
+    + !               :   | + ! :   1 _realloc  (in libsystem_malloc.dylib) + 96  [0x1844f51f0]
+    + !               :   | + ! 3 _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 0,8  [0x1046427ec,0x1046427f4]
+    + !               :   | + ! 1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 168  [0x104642954]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http16output10head_bytes  (in base-http-hello-benchmark) + 296  [0x1045f7264]
+    + !               :   | 74 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 5648  [0x10454dea0]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 44 _xzm_xzone_malloc_freelist_outlined  (in libsystem_malloc.dylib) + 796  [0x1844ea2d0]
+    + !               :   | + ! 42 _platform_memset  (in libsystem_platform.dylib) + 140,148,...  [0x1846d7b1c,0x1846d7b24,...]
+    + !               :   | + ! 1 DYLD-STUB$$_platform_bzero  (in libsystem_malloc.dylib) + 12  [0x18450a58c]
+    + !               :   | + ! 1 __bzero  (in libsystem_platform.dylib) + 0  [0x1846d7a30]
+    + !               :   | + 11 _platform_memset  (in libsystem_platform.dylib) + 140,160  [0x1846d7b1c,0x1846d7b30]
+    + !               :   | + 8 _xzm_xzone_malloc_small_freelist  (in libsystem_malloc.dylib) + 276,648,...  [0x1844e8f60,0x1844e90d4,...]
+    + !               :   | + 5 _xzm_xzone_malloc_freelist_outlined  (in libsystem_malloc.dylib) + 324  [0x1844ea0f8]
+    + !               :   | + ! 3 _xzm_xzone_find_and_malloc_from_freelist_chunk  (in libsystem_malloc.dylib) + 340  [0x1844ea9e4]
+    + !               :   | + ! : 3 _xzm_xzone_malloc_from_freelist_chunk  (in libsystem_malloc.dylib) + 384,532,...  [0x1844ea620,0x1844ea6b4,...]
+    + !               :   | + ! 2 _xzm_xzone_find_and_malloc_from_freelist_chunk  (in libsystem_malloc.dylib) + 680,1868  [0x1844eab38,0x1844eafdc]
+    + !               :   | + 3 _RNvCsjVqd8RsBhQu_7___rustc18___rdl_alloc_zeroed  (in base-http-hello-benchmark) + 0  [0x10460db90]
+    + !               :   | + 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 116,432  [0x1844efa04,0x1844efb40]
+    + !               :   | + 1 _xzm_xzone_malloc_from_freelist_chunk  (in libsystem_malloc.dylib) + 672  [0x1844ea740]
+    + !               :   | 50 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 4120  [0x10454d8a8]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 13 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 472  [0x1045f7818]
+    + !               :   | + ! 4 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 136  [0x1045f9714]
+    + !               :   | + ! : 4 _RNvNtCslQfkZzKJjND_9base_http6syntax8is_token  (in base-http-hello-benchmark) + 56,0  [0x1045ff280,0x1045ff248]
+    + !               :   | + ! 3 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 288  [0x1045f97ac]
+    + !               :   | + ! : 2 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark) + 220  [0x1045fe208]
+    + !               :   | + ! : | 2 _RNvMs4_NtCs3vUkWdPtNor_5alloc7raw_vecINtB5_6RawVecNtNtCslQfkZzKJjND_9base_http6fields5FieldE8grow_oneBQ_  (in base-http-hello-benchmark) + 60  [0x104642ad8]
+    + !               :   | + ! : |   1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCslQfkZzKJjND_9base_http  (in base-http-hello-benchmark) + 120  [0x104642b78]
+    + !               :   | + ! : |   + 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    + !               :   | + ! : |   1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCslQfkZzKJjND_9base_http  (in base-http-hello-benchmark) + 36  [0x104642b24]
+    + !               :   | + ! : 1 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark) + 204  [0x1045fe1f8]
+    + !               :   | + ! 3 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 152,52  [0x1045f9724,0x1045f96c0]
+    + !               :   | + ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 96  [0x1045f96ec]
+    + !               :   | + ! : 1 DYLD-STUB$$malloc  (in base-http-hello-benchmark) + 4  [0x104648da4]
+    + !               :   | + ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 116  [0x1045f9700]
+    + !               :   | + ! : 1 _platform_memmove  (in libsystem_platform.dylib) + 0  [0x1846d7d60]
+    + !               :   | + ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 200  [0x1045f9754]
+    + !               :   | + !   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 64  [0x1844f4530]
+    + !               :   | + 12 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 2944  [0x1045f81c0]
+    + !               :   | + ! 3 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReNtNtCs3vUkWdPtNor_5alloc6string6StringECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 100  [0x1045f9504]
+    + !               :   | + ! : 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,120  [0x1844f44fc,0x1844f4568]
+    + !               :   | + ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    + !               :   | + ! 2 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReNtNtCs3vUkWdPtNor_5alloc6string6StringECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 140  [0x1045f952c]
+    + !               :   | + ! : 2 _RNvNtCslQfkZzKJjND_9base_http6syntax8is_token  (in base-http-hello-benchmark) + 24,56  [0x1045ff260,0x1045ff280]
+    + !               :   | + ! 2 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReNtNtCs3vUkWdPtNor_5alloc6string6StringECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 292  [0x1045f95c4]
+    + !               :   | + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44  [0x1844f451c]
+    + !               :   | + ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef990]
+    + !               :   | + ! 2 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReNtNtCs3vUkWdPtNor_5alloc6string6StringECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 164,312  [0x1045f9544,0x1045f95d8]
+    + !               :   | + ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReNtNtCs3vUkWdPtNor_5alloc6string6StringECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 120  [0x1045f9518]
+    + !               :   | + ! : 1 DYLD-STUB$$memcpy  (in base-http-hello-benchmark) + 4  [0x104648dbc]
+    + !               :   | + ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReNtNtCs3vUkWdPtNor_5alloc6string6StringECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 332  [0x1045f95ec]
+    + !               :   | + ! : 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    + !               :   | + ! 1 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark) + 276  [0x1045fe240]
+    + !               :   | + 7 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 0,2820,...  [0x1045f7640,0x1045f8144,...]
+    + !               :   | + 5 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 120  [0x1045f76b8]
+    + !               :   | + ! 3 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 148  [0x1045fafd0]
+    + !               :   | + ! : 2 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+    + !               :   | + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    + !               :   | + ! : 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 20  [0x104631be4]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 108  [0x1045fafa8]
+    + !               :   | + ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192  [0x1844efa50]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 180  [0x1045faff0]
+    + !               :   | + !   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 88  [0x1844ef9e8]
+    + !               :   | + 5 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 764  [0x1045f793c]
+    + !               :   | + ! 3 _RNvNtCsbOrZNTYrkg4_10base_http14wire7framing  (in base-http-hello-benchmark) + 440  [0x1045f52c8]
+    + !               :   | + ! : 3 _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark) + 52,68  [0x1045f49c0,0x1045f49d0]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7framing  (in base-http-hello-benchmark) + 40  [0x1045f5138]
+    + !               :   | + ! : 1 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields7headers  (in base-http-hello-benchmark) + 28  [0x1045fe6b4]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7framing  (in base-http-hello-benchmark) + 576  [0x1045f5350]
+    + !               :   | + !   1 _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark) + 0  [0x1045f498c]
+    + !               :   | + 3 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 372  [0x1045f77b4]
+    + !               :   | + ! 2 _RNvNtCsbOrZNTYrkg4_10base_http16output17validate_trailers  (in base-http-hello-benchmark) + 52  [0x1045f748c]
+    + !               :   | + ! : 2 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields13mark_trailers  (in base-http-hello-benchmark) + 0  [0x1045fe064]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http16output17validate_trailers  (in base-http-hello-benchmark) + 44  [0x1045f7484]
+    + !               :   | + !   1 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields3new  (in base-http-hello-benchmark) + 48  [0x1045fe0ac]
+    + !               :   | + !     1 _tlv_get_addr  (in libdyld.dylib) + 0  [0x1842a6e48]
+    + !               :   | + 2 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 584  [0x1045f7888]
+    + !               :   | + ! 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 88  [0x1045f6bbc]
+    + !               :   | + ! : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 292  [0x1844f199c]
+    + !               :   | + ! 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 120  [0x1045f6bdc]
+    + !               :   | + !   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 308  [0x1844f19ac]
+    + !               :   | + 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReNtNtCs3vUkWdPtNor_5alloc6string6StringECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 380  [0x1045f961c]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark) + 2876  [0x1045f817c]
+    + !               :   | + ! 1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner15try_allocate_inCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 156  [0x1045f70f8]
+    + !               :   | + !   1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 320  [0x1045fb07c]
+    + !               :   | 45 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9216  [0x10454ec90]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 16 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 488  [0x1045f57c0]
+    + !               :   | + ! 15 _RNvNtCsbOrZNTYrkg4_10base_http14wire6fields  (in base-http-hello-benchmark) + 72  [0x1045f5014]
+    + !               :   | + ! : 5 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 288  [0x1045f97ac]
+    + !               :   | + ! : | 3 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark) + 220  [0x1045fe208]
+    + !               :   | + ! : | + 3 _RNvMs4_NtCs3vUkWdPtNor_5alloc7raw_vecINtB5_6RawVecNtNtCslQfkZzKJjND_9base_http6fields5FieldE8grow_oneBQ_  (in base-http-hello-benchmark) + 60  [0x104642ad8]
+    + !               :   | + ! : | +   2 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCslQfkZzKJjND_9base_http  (in base-http-hello-benchmark) + 120  [0x104642b78]
+    + !               :   | + ! : | +   ! 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0,200  [0x1844ef990,0x1844efa58]
+    + !               :   | + ! : | +   1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCslQfkZzKJjND_9base_http  (in base-http-hello-benchmark) + 140  [0x104642b8c]
+    + !               :   | + ! : | 2 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark) + 220  [0x1045fe208]
+    + !               :   | + ! : 3 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 152,172  [0x1045f9724,0x1045f9738]
+    + !               :   | + ! : 2 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 136  [0x1045f9714]
+    + !               :   | + ! : | 2 _RNvNtCslQfkZzKJjND_9base_http6syntax8is_token  (in base-http-hello-benchmark) + 56  [0x1045ff280]
+    + !               :   | + ! : 2 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 200  [0x1045f9754]
+    + !               :   | + ! : | 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44,120  [0x1844f451c,0x1844f4568]
+    + !               :   | + ! : 2 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 220  [0x1045f9768]
+    + !               :   | + ! : | 2 _platform_memmove  (in libsystem_platform.dylib) + 0,452  [0x1846d7d60,0x1846d7f24]
+    + !               :   | + ! : 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 96  [0x1045f96ec]
+    + !               :   | + ! :   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire6fields  (in base-http-hello-benchmark) + 44  [0x1045f4ff8]
+    + !               :   | + !   1 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields3new  (in base-http-hello-benchmark) + 48  [0x1045fe0ac]
+    + !               :   | + !     1 _tlv_get_addr  (in libdyld.dylib) + 0  [0x1842a6e48]
+    + !               :   | + 7 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 876  [0x1045f5944]
+    + !               :   | + ! 6 _RNvNtCsbOrZNTYrkg4_10base_http14wire9authority  (in base-http-hello-benchmark) + 424,1008,...  [0x1045f625c,0x1045f64a4,...]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire9authority  (in base-http-hello-benchmark) + 1052  [0x1045f64d0]
+    + !               :   | + !   1 _RNvMsz_NtCs9nEiEE0E2Vj_4core3numt27from_ascii_bytes_radix_impl  (in base-http-hello-benchmark) + 0  [0x1045f4b40]
+    + !               :   | + 3 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 748  [0x1045f58c4]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire9singleton  (in base-http-hello-benchmark) + 68  [0x1045f671c]
+    + !               :   | + ! : 1 _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark) + 352  [0x1045f4aec]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire9singleton  (in base-http-hello-benchmark) + 200  [0x1045f67a0]
+    + !               :   | + ! : 1 _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark) + 252  [0x1045f4a88]
+    + !               :   | + ! 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire9singleton  (in base-http-hello-benchmark) + 108  [0x1045f6744]
+    + !               :   | + 3 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 800  [0x1045f58f8]
+    + !               :   | + ! 3 _RNvNtNtCs9nEiEE0E2Vj_4core3str8converts9from_utf8  (in base-http-hello-benchmark) + 120,524  [0x10463665c,0x1046367f0]
+    + !               :   | + 3 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 1084  [0x1045f5a14]
+    + !               :   | + ! 3 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner15try_allocate_inCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 156  [0x1045f70f8]
+    + !               :   | + !   1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + !   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    + !               :   | + !   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 144  [0x1844efa20]
+    + !               :   | + 3 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 80,192,...  [0x1045f5628,0x1045f5698,...]
+    + !               :   | + 2 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 960  [0x1045f5998]
+    + !               :   | + ! 1 DYLD-STUB$$memcpy  (in base-http-hello-benchmark) + 4  [0x104648dbc]
+    + !               :   | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCsbOrZNTYrkg4_10base_http15error5ErrorEBF_  (in base-http-hello-benchmark) + 36  [0x1045f4600]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 100  [0x1045f563c]
+    + !               :   | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 260  [0x1844efa94]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 120  [0x1045f5650]
+    + !               :   | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 140  [0x1045f5664]
+    + !               :   | + ! 1 _RNvNtCslQfkZzKJjND_9base_http6syntax8is_token  (in base-http-hello-benchmark) + 24  [0x1045ff260]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 472  [0x1045f57b0]
+    + !               :   | + ! 1 _RNvMNtCslQfkZzKJjND_9base_http7requestNtB2_11RequestHead3new  (in base-http-hello-benchmark) + 52  [0x1045fc71c]
+    + !               :   | + !   1 _RNvYNCNKNvNvMNtNtCs1coMeGJvsuS_3std4hash6randomNtBb_11RandomState3new4KEYS0s_0INtNtNtCs9nEiEE0E2Vj_4core3ops8function6FnOnceTINtNtB1l_6option6OptionQIB20_INtNtB1l_4cell4CellTyyEEEEEE9call_onceCslQfkZzKJjND_9base_http  (in base-http-hello-benchmark) + 0  [0x1045fee48]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 672  [0x1045f5878]
+    + !               :   | + ! 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 20  [0x1045f46b4]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 928  [0x1045f5978]
+    + !               :   | + ! 1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner15try_allocate_inCsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark) + 156  [0x1045f70f8]
+    + !               :   | + !   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360  [0x1844efaf8]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 1116  [0x1045f5a34]
+    + !               :   | +   1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    + !               :   | 39 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 8084  [0x10454e824]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:214
+    + !               :   | + 39 _RNvXs_NtNtCsa8LNBO7KKdE_12futures_util6future6selectINtB4_6SelectINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNvMs0_NtCs4YlPSH1h0Dn_14base_scheduler12cancellationNtB1G_12Cancellation9cancelled0EIB12_QNCINvXCsl3LbQkHRDRJ_25base_http_hello_benchmarkNtB38_5HelloNtCs86Ijsjh7w0m_16base_http_server7Handler4callINtNtCsbOrZNTYrkg4_10base_http15input12IncomingBodyNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderEINtNtB4P_6output13InterimWriterINtNtB5D_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtB1I_12buffer_lease11BufferLeaseEEE0EENtNtNtB16_6future6future6Future4pollB38_  (in base-http-hello-benchmark) + 72  [0x10457cc28]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+    + !               :   | +   15 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2eb7c  [0x104572b7c]
+    + !               :   | +   ! 6 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReBT_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 320  [0x10458cb70]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    + !               :   | +   ! : 4 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark) + 220  [0x1045fe208]
+    + !               :   | +   ! : | 4 _RNvMs4_NtCs3vUkWdPtNor_5alloc7raw_vecINtB5_6RawVecNtNtCslQfkZzKJjND_9base_http6fields5FieldE8grow_oneBQ_  (in base-http-hello-benchmark) + 60  [0x104642ad8]
+    + !               :   | +   ! : |   2 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCslQfkZzKJjND_9base_http  (in base-http-hello-benchmark) + 120  [0x104642b78]
+    + !               :   | +   ! : |   + 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 280,308  [0x1844efaa8,0x1844efac4]
+    + !               :   | +   ! : |   2 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCslQfkZzKJjND_9base_http  (in base-http-hello-benchmark) + 64,120  [0x104642b40,0x104642b78]
+    + !               :   | +   ! : 2 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark) + 244,260  [0x1045fe220,0x1045fe230]
+    + !               :   | +   ! 4 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReBT_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 156,124  [0x10458cacc,0x10458caac]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    + !               :   | +   ! 2 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReBT_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 136  [0x10458cab8]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    + !               :   | +   ! : 2 _RNvNtCslQfkZzKJjND_9base_http6syntax8is_token  (in base-http-hello-benchmark) + 56  [0x1045ff280]
+    + !               :   | +   ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReBT_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 20  [0x10458ca44]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:311
+    + !               :   | +   ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReBT_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 96  [0x10458ca90]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    + !               :   | +   ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    + !               :   | +   ! 1 _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReBT_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 284  [0x10458cb4c]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    + !               :   | +   !   1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    + !               :   | +   13 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2ebdc  [0x104572bdc]
+    + !               :   | +   ! 13 <deduplicated_symbol>  (in base-http-hello-benchmark) + 44  [0x104570ff4]
+    + !               :   | +   !   7 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 100  [0x10457233c]
+    + !               :   | +   !   : 3 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 68  [0x104572268]
+    + !               :   | +   !   : | 2 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | +   !   : | 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    + !               :   | +   !   : 3 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 120  [0x10457229c]
+    + !               :   | +   !   : | 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,204  [0x1844f1878,0x1844f1944]
+    + !               :   | +   !   : | 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    + !               :   | +   !   : 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 88  [0x10457227c]
+    + !               :   | +   !   :   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 344  [0x1844f19d0]
+    + !               :   | +   !   2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 160  [0x104572378]
+    + !               :   | +   !   : 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 0  [0x104648cf8]
+    + !               :   | +   !   : 1 _RNvCsjVqd8RsBhQu_7___rustc13___rdl_dealloc  (in base-http-hello-benchmark) + 0  [0x10460da64]
+    + !               :   | +   !   2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 216  [0x1045723b0]
+    + !               :   | +   !   : 2 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | +   !   1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 92  [0x104572334]
+    + !               :   | +   !   : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+    + !               :   | +   !   1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 48  [0x104572308]
+    + !               :   | +   5 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2ebd4  [0x104572bd4]
+    + !               :   | +   ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 100  [0x10457233c]
+    + !               :   | +   ! : 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 68  [0x104572268]
+    + !               :   | +   ! : | 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    + !               :   | +   ! : 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 120  [0x10457229c]
+    + !               :   | +   ! :   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 332  [0x1844f19c4]
+    + !               :   | +   ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 160  [0x104572378]
+    + !               :   | +   ! : 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 292  [0x1844f199c]
+    + !               :   | +   ! 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 216  [0x1045723b0]
+    + !               :   | +   !   1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | +   2 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2eadc  [0x104572adc]
+    + !               :   | +   ! 1 DYLD-STUB$$malloc  (in base-http-hello-benchmark) + 4  [0x104648da4]
+    + !               :   | +   ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308  [0x1844efac4]
+    + !               :   | +   1 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2eacc  [0x104572acc]
+    + !               :   | +   ! 1 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    + !               :   | +   1 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2eb00  [0x104572b00]
+    + !               :   | +   ! 1 _RNvMNtCslQfkZzKJjND_9base_http8responseNtB2_12ResponseHead3new  (in base-http-hello-benchmark) + 84  [0x1045ff1a8]
+    + !               :   | +   1 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2eb28  [0x104572b28]
+    + !               :   | +   1 ???  (in base-http-hello-benchmark)  load address 0x104544000 + 0x2ebc4  [0x104572bc4]
+    + !               :   | 37 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 6676  [0x10454e2a4]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 25 _RINvNtCs3vUkWdPtNor_5alloc3vec9from_elemNtCs3hGFgeqgkou_8httparse6HeaderECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 144,136,...  [0x10457deb4,0x10457deac,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3773
+    + !               :   | + 12 _RINvNtCs3vUkWdPtNor_5alloc3vec9from_elemNtCs3hGFgeqgkou_8httparse6HeaderECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 96  [0x10457de84]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3773
+    + !               :   | +   4 _xzm_xzone_malloc_tiny  (in libsystem_malloc.dylib) + 452,244,...  [0x1844e8c10,0x1844e8b40,...]
+    + !               :   | +   3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0,92,...  [0x1844ef990,0x1844ef9ec,...]
+    + !               :   | +   2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44,64  [0x1844f451c,0x1844f4530]
+    + !               :   | +   1 DYLD-STUB$$malloc  (in base-http-hello-benchmark) + 4  [0x104648da4]
+    + !               :   | +   1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | +   1 _RNvCsjVqd8RsBhQu_7___rustc12___rust_alloc  (in base-http-hello-benchmark) + 0  [0x10459dbf8]
+    + !               :   | 30 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 6676,5464,...  [0x10454e2a4,0x10454dde8,...]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | 22 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9688  [0x10454ee68]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 12 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 368  [0x10455be30]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    + !               :   | + ! 4 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 148  [0x104580954]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 2 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+    + !               :   | + ! : | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 144  [0x1844efa20]
+    + !               :   | + ! : 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 68  [0x104631c14]
+    + !               :   | + ! : | 1 _platform_memmove  (in libsystem_platform.dylib) + 444  [0x1846d7f1c]
+    + !               :   | + ! : 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 20  [0x104631be4]
+    + !               :   | + ! 3 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 180  [0x104580974]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192,260  [0x1844efa50,0x1844efa94]
+    + !               :   | + ! : 1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + ! 3 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 200  [0x104580988]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 3 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 108  [0x10458092c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 148  [0x104580954]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + 4 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 264  [0x10455bdc8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    + !               :   | + ! 2 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 68  [0x104631c14]
+    + !               :   | + ! : 1 DYLD-STUB$$memcpy  (in base-http-hello-benchmark) + 4  [0x104648dbc]
+    + !               :   | + ! : 1 _platform_memmove  (in libsystem_platform.dylib) + 436  [0x1846d7f14]
+    + !               :   | + ! 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+    + !               :   | + ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360  [0x1844efaf8]
+    + !               :   | + ! 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 24  [0x104631be8]
+    + !               :   | + 2 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 0,604  [0x10455bcc0,0x10455bf1c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:9
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 128  [0x10455bd40]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + ! 1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 148  [0x10455bd54]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 104  [0x10455bd28]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 492  [0x10455beac]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    + !               :   | 22 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9716  [0x10454ee84]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 7 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 368  [0x10455be30]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    + !               :   | + ! 3 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 180  [0x104580974]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 2 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192  [0x1844efa50]
+    + !               :   | + ! 2 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 148  [0x104580954]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+    + !               :   | + ! : | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    + !               :   | + ! : 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 68  [0x104631c14]
+    + !               :   | + ! :   1 _platform_memmove  (in libsystem_platform.dylib) + 12  [0x1846d7d6c]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 108  [0x10458092c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 168  [0x104580968]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + !   1 _RNvCsjVqd8RsBhQu_7___rustc35___rust_no_alloc_shim_is_unstable_v2  (in base-http-hello-benchmark) + 0  [0x10459dc08]
+    + !               :   | + 5 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 224  [0x10455bda0]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    + !               :   | + ! 5 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 68  [0x104631c14]
+    + !               :   | + !   5 _platform_memmove  (in libsystem_platform.dylib) + 452,460  [0x1846d7f24,0x1846d7f2c]
+    + !               :   | + 2 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 148  [0x10455bd54]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 12,452  [0x1846d7d6c,0x1846d7f24]
+    + !               :   | + 2 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 264  [0x10455bdc8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    + !               :   | + ! 2 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+    + !               :   | + !   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 56  [0x1844f4528]
+    + !               :   | + !   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 284  [0x1844efaac]
+    + !               :   | + 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 92  [0x104631c2c]
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 128  [0x10455bd40]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 104  [0x10455bd28]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 316  [0x10455bdfc]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 456  [0x10455be88]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 492  [0x10455beac]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    + !               :   | 20 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9808  [0x10454eee0]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 7 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 368  [0x10455be30]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    + !               :   | + ! 4 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 200  [0x104580988]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 4 _platform_memmove  (in libsystem_platform.dylib) + 452,428,...  [0x1846d7f24,0x1846d7f0c,...]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 148  [0x104580954]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 68  [0x104631c14]
+    + !               :   | + ! :   1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 180  [0x104580974]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + ! : 1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + ! 1 _RNvXsb_NtCs3vUkWdPtNor_5alloc3vecINtB5_3VecNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 120  [0x104580938]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    + !               :   | + 3 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 224  [0x10455bda0]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    + !               :   | + ! 3 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+    + !               :   | + !   2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    + !               :   | + !   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192  [0x1844efa50]
+    + !               :   | + 2 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 128  [0x10455bd40]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + ! 1 _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+    + !               :   | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef990]
+    + !               :   | + 2 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 264  [0x10455bdc8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    + !               :   | + ! 2 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+    + !               :   | + !   2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    + !               :   | + 1 _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 92  [0x104631c2c]
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 44  [0x10455bcec]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 428  [0x10455be6c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    + !               :   | + ! 1 _RNvXNtCsjPjDV110NBJ_9hashbrown3mapINtB2_7HashMapNtNtCs3vUkWdPtNor_5alloc6string6StringNtNtCslQfkZzKJjND_9base_http6fields11FieldPolicyNtNtNtCs1coMeGJvsuS_3std4hash6random11RandomStateENtNtCs9nEiEE0E2Vj_4core5clone5Clone5cloneCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 420  [0x1045894b0]  /rust/deps/hashbrown-0.17.1/src/map.rs:189
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 452  [0x10455be84]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 492  [0x10455beac]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    + !               :   | + 1 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 560  [0x10455bef0]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:9
+    + !               :   | 15 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 10020  [0x10454efb4]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 14 __xzm_xzone_free_to_freelist_chunk  (in libsystem_malloc.dylib) + 424  [0x1844ed82c]
+    + !               :   | + ! 14 mach_absolute_time  (in libsystem_kernel.dylib) + 108,112  [0x1846890f8,0x1846890fc]
+    + !               :   | + 1 __xzm_xzone_free_to_freelist_chunk  (in libsystem_malloc.dylib) + 100  [0x1844ed6e8]
+    + !               :   | 12 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 11104  [0x10454f3f0]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:230
+    + !               :   | + 11 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueINtNtCslQfkZzKJjND_9base_http8response8ResponseINtNtNtBG_4body8buffered12BufferedBodyRShEEECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 20  [0x104546824]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 5 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 68  [0x10454be00]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : 2 _free  (in libsystem_malloc.dylib) + 0,36  [0x1844f5110,0x1844f5134]
+    + !               :   | + ! : 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,172  [0x1844f1878,0x1844f1924]
+    + !               :   | + ! : 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | + ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 120  [0x10454be34]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : 1 _free  (in libsystem_malloc.dylib) + 76  [0x1844f515c]
+    + !               :   | + ! : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 160  [0x1844f1918]
+    + !               :   | + ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 20  [0x10454bdd0]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 2 _RNvXsg_NtCsjPjDV110NBJ_9hashbrown3rawINtB5_8RawTableTNtNtCs3vUkWdPtNor_5alloc6string6StringNtNtCslQfkZzKJjND_9base_http6fields11FieldPolicyEENtNtNtCs9nEiEE0E2Vj_4core3ops4drop4Drop4dropCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 20  [0x104589670]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3496
+    + !               :   | + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+    + !               :   | 11 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 11732,1924,...  [0x10454f664,0x10454d014,...]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | 11 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 11196  [0x10454f44c]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:235
+    + !               :   | + 5 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 100  [0x10454bed4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 3 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 68  [0x10454be00]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | + ! : 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    + !               :   | + ! : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 32  [0x1844f1898]
+    + !               :   | + ! 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 88  [0x10454be14]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | + ! 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 120  [0x10454be34]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + !   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 368  [0x1844f19e8]
+    + !               :   | + 3 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 216  [0x10454bf48]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,292  [0x1844f1878,0x1844f199c]
+    + !               :   | + ! 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    + !               :   | + 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 160  [0x10454bf10]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | + ! 1 _free  (in libsystem_malloc.dylib) + 108  [0x1844f517c]
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 92  [0x10454becc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | +   1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 0  [0x104648cf8]
+    + !               :   | 10 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 6728  [0x10454e2d8]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 9 _RNvMs4_Cs3hGFgeqgkou_8httparseNtB5_7Request5parse  (in base-http-hello-benchmark) + 80  [0x1045fc398]
+    + !               :   | + ! 5 _RNvMs4_Cs3hGFgeqgkou_8httparseNtB5_7Request36parse_with_config_and_uninit_headers  (in base-http-hello-benchmark) + 1644  [0x1045fc2cc]
+    + !               :   | + ! : 5 _RNvCs3hGFgeqgkou_8httparse25parse_headers_iter_uninit  (in base-http-hello-benchmark) + 212,8,...  [0x1045fb3e4,0x1045fb318,...]
+    + !               :   | + ! 3 _RNvMs4_Cs3hGFgeqgkou_8httparseNtB5_7Request36parse_with_config_and_uninit_headers  (in base-http-hello-benchmark) + 128,500,...  [0x1045fbce0,0x1045fbe54,...]
+    + !               :   | + ! 1 _RNvMs4_Cs3hGFgeqgkou_8httparseNtB5_7Request36parse_with_config_and_uninit_headers  (in base-http-hello-benchmark) + 1236  [0x1045fc134]
+    + !               :   | + !   1 _RNvNtNtCs9nEiEE0E2Vj_4core3str8converts9from_utf8  (in base-http-hello-benchmark) + 0  [0x1046365e4]
+    + !               :   | + 1 _RNvMs4_Cs3hGFgeqgkou_8httparseNtB5_7Request5parse  (in base-http-hello-benchmark) + 80  [0x1045fc398]
+    + !               :   | 10 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7276  [0x10454e4fc]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 7 _xzm_free_outlined  (in libsystem_malloc.dylib) + 76,0,...  [0x1844ecef8,0x1844eceac,...]
+    + !               :   | + 1 _xzm_chunk_list_slot_push  (in libsystem_malloc.dylib) + 124  [0x1844edadc]
+    + !               :   | + ! 1 _xzm_chunk_list_push  (in libsystem_malloc.dylib) + 0  [0x1844eb130]
+    + !               :   | + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+    + !               :   | + 1 _xzm_xzone_free_freelist  (in libsystem_malloc.dylib) + 56  [0x1844edc60]
+    + !               :   | 10 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9756  [0x10454eeac]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 9 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueINtNtB4_6option6OptionNtNtCsbOrZNTYrkg4_10base_http15input8ExchangeEECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 32  [0x1045450d4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 5 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 100  [0x10454bed4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 68  [0x10454be00]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : | 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | + ! : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 344  [0x1844f19d0]
+    + !               :   | + ! : 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 120  [0x10454be34]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : | 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 80,312  [0x1844f18c8,0x1844f19b0]
+    + !               :   | + ! : 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 124  [0x10454be38]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 92  [0x10454becc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! : 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 292,332  [0x1844f199c,0x1844f19c4]
+    + !               :   | + ! 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http7request11RequestHeadECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 216  [0x10454bf48]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + !   1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 4  [0x104648cfc]
+    + !               :   | + !   1 _xzm_free_tc  (in libsystem_malloc.dylib) + 344  [0x1844f19d0]
+    + !               :   | + 1 _RNvMsn_NtCs3vUkWdPtNor_5alloc4syncINtB5_3ArcNtNtCsbOrZNTYrkg4_10base_http15input5StateE9drop_slowBK_  (in base-http-hello-benchmark) + 0  [0x1045f7108]
+    + !               :   | 10 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 13140  [0x10454fbe4]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 5 _xzm_free_tc  (in libsystem_malloc.dylib) + 156,188,...  [0x1844f1914,0x1844f1934,...]
+    + !               :   | + 2 free  (in libsystem_malloc.dylib) + 0  [0x1844b66f0]
+    + !               :   | + 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 0  [0x104648cf8]
+    + !               :   | + 1 _RNvCsjVqd8RsBhQu_7___rustc13___rdl_dealloc  (in base-http-hello-benchmark) + 0  [0x10460da64]
+    + !               :   | + 1 _free  (in libsystem_malloc.dylib) + 76  [0x1844f515c]
+    + !               :   | 10 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 13148  [0x10454fbec]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 5 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 68  [0x10454be00]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,384  [0x1844f1878,0x1844f19f8]
+    + !               :   | + ! 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 0  [0x104648cf8]
+    + !               :   | + ! 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    + !               :   | + 2 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 120  [0x10454be34]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 284,292  [0x1844f1994,0x1844f199c]
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 88  [0x10454be14]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + ! 1 _RNvCsjVqd8RsBhQu_7___rustc13___rdl_dealloc  (in base-http-hello-benchmark) + 0  [0x10460da64]
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNtNtCslQfkZzKJjND_9base_http6fields6FieldsECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x10454bdbc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | + 1 _RNvXsg_NtCsjPjDV110NBJ_9hashbrown3rawINtB5_8RawTableTNtNtCs3vUkWdPtNor_5alloc6string6StringNtNtCslQfkZzKJjND_9base_http6fields11FieldPolicyEENtNtNtCs9nEiEE0E2Vj_4core3ops4drop4Drop4dropCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 8  [0x104589664]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3486
+    + !               :   | 7 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 6052  [0x10454e034]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 7 _RNvNtCsbOrZNTYrkg4_10base_http14wire12strict_lines  (in base-http-hello-benchmark) + 92,108,...  [0x1045f4cc4,0x1045f4cd4,...]
+    + !               :   | 7 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 6624  [0x10454e270]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 4 _RNvMs_NtCsbOrZNTYrkg4_10base_http15inputINtB4_13RequestReaderNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderE4takeCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 104  [0x10457c6ec]  /Users/samuel/Developer/base-rs/base-http1/src/input.rs:108
+    + !               :   | + ! 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 280,308,...  [0x1844efaa8,0x1844efac4,...]
+    + !               :   | + ! 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    + !               :   | + 1 _RNvMs_NtCsbOrZNTYrkg4_10base_http15inputINtB4_13RequestReaderNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderE4takeCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 88  [0x10457c6dc]  /Users/samuel/Developer/base-rs/base-http1/src/input.rs:108
+    + !               :   | + ! 1 _RNvCsjVqd8RsBhQu_7___rustc35___rust_no_alloc_shim_is_unstable_v2  (in base-http-hello-benchmark) + 0  [0x10459dc08]
+    + !               :   | + 1 _RNvMs_NtCsbOrZNTYrkg4_10base_http15inputINtB4_13RequestReaderNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderE4takeCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 124  [0x10457c700]  /Users/samuel/Developer/base-rs/base-http1/src/input.rs:108
+    + !               :   | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    + !               :   | + 1 _RNvMs_NtCsbOrZNTYrkg4_10base_http15inputINtB4_13RequestReaderNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderE4takeCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 104  [0x10457c6ec]  /Users/samuel/Developer/base-rs/base-http1/src/input.rs:108
+    + !               :   | 7 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9436  [0x10454ed6c]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 3 _RNvNtCsbOrZNTYrkg4_10base_http14wire7framing  (in base-http-hello-benchmark) + 8,84,...  [0x1045f5118,0x1045f5164,...]
+    + !               :   | + 2 _RNvNtCsbOrZNTYrkg4_10base_http14wire7framing  (in base-http-hello-benchmark) + 84  [0x1045f5164]
+    + !               :   | + ! 2 _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark) + 0,260  [0x1045f498c,0x1045f4a90]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7framing  (in base-http-hello-benchmark) + 396  [0x1045f529c]
+    + !               :   | + ! 1 _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields7headers  (in base-http-hello-benchmark) + 8  [0x1045fe6a0]
+    + !               :   | + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7framing  (in base-http-hello-benchmark) + 440  [0x1045f52c8]
+    + !               :   | +   1 _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark) + 68  [0x1045f49d0]
+    + !               :   | 7 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 8100,8324,...  [0x10454e834,0x10454e914,...]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:214
+    + !               :   | 6 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 6500  [0x10454e1f4]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 2 _RINvMs_NtCsiEjidqLhqkU_14event_listener3sysINtB7_5InneruE10with_innerINtNtCs9nEiEE0E2Vj_4core6option6OptionINtB7_5StateuEENCNvB2_6remove0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 60  [0x1045962c8]
+    + !               :   | + ! 2 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 12  [0x10460f08c]
+    + !               :   | + !   1 DYLD-STUB$$pthread_mutex_lock  (in base-http-hello-benchmark) + 0  [0x104648ee4]
+    + !               :   | + !   1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 0  [0x1846c84d8]
+    + !               :   | + 2 _RINvMs_NtCsiEjidqLhqkU_14event_listener3sysINtB7_5InneruE10with_innerINtNtCs9nEiEE0E2Vj_4core6option6OptionINtB7_5StateuEENCNvB2_6remove0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 132  [0x104596310]
+    + !               :   | + 1 _RINvMs_NtCsiEjidqLhqkU_14event_listener3sysINtB7_5InneruE10with_innerINtNtCs9nEiEE0E2Vj_4core6option6OptionINtB7_5StateuEENCNvB2_6remove0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 116  [0x104596300]
+    + !               :   | + ! 1 _RNvMs0_NtCsiEjidqLhqkU_14event_listener3sysINtB5_5InneruE6removeCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 144  [0x104588588]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.2/src/intrusive.rs:324
+    + !               :   | + 1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 104  [0x1846c8a84]
+    + !               :   | 5 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 11008,11040,...  [0x10454f390,0x10454f3b0,...]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:230
+    + !               :   | 4 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 8048  [0x10454e800]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:214
+    + !               :   | + 4 _platform_memmove  (in libsystem_platform.dylib) + 180,0  [0x1846d7e14,0x1846d7d60]
+    + !               :   | 3 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7760  [0x10454e6e0]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:214
+    + !               :   | + 3 _platform_memmove  (in libsystem_platform.dylib) + 180,168  [0x1846d7e14,0x1846d7e08]
+    + !               :   | 3 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 11776  [0x10454f690]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 1 _RNCINvNtCsbOrZNTYrkg4_10base_http16output4waitNCNvXs1_NtNtCslQfkZzKJjND_9base_http4body8bufferedINtBQ_12BufferedBodyRShENtBS_12ReadableBody4read0E0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 28  [0x104556eac]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:16
+    + !               :   | + 1 _RNCINvNtCsbOrZNTYrkg4_10base_http16output4waitNCNvXs1_NtNtCslQfkZzKJjND_9base_http4body8bufferedINtBQ_12BufferedBodyRShENtBS_12ReadableBody4read0E0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 124  [0x104556f0c]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:25
+    + !               :   | + ! 1 _RNCNvMs0_NtCs4YlPSH1h0Dn_14base_scheduler12cancellationNtB7_12Cancellation9cancelled0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 56  [0x10456bde0]
+    + !               :   | + 1 _RNCINvNtCsbOrZNTYrkg4_10base_http16output4waitNCNvXs1_NtNtCslQfkZzKJjND_9base_http4body8bufferedINtBQ_12BufferedBodyRShENtBS_12ReadableBody4read0E0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 272  [0x104556fa0]  /Users/samuel/Developer/base-rs/base-http1/src/output.rs:26
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7620  [0x10454e654]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 2 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9700  [0x10454ee74]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 _RNvMNtCsbOrZNTYrkg4_10base_http15inputNtB2_8Exchange3new  (in base-http-hello-benchmark) + 40  [0x1045f8e58]
+    + !               :   | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    + !               :   | + 1 _RNvMNtCsbOrZNTYrkg4_10base_http15inputNtB2_8Exchange3new  (in base-http-hello-benchmark) + 84  [0x1045f8e84]
+    + !               :   | +   1 _platform_memmove  (in libsystem_platform.dylib) + 0  [0x1846d7d60]
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9844  [0x10454ef04]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 2 _platform_memmove  (in libsystem_platform.dylib) + 144,180  [0x1846d7df0,0x1846d7e14]
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7640  [0x10454e668]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:209
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 2012  [0x10454d06c]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 1 _RNCNvXs0_NtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB7_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtNtB1V_20socket_stream_writer18SocketStreamWriter5flush0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 40  [0x10455aaf4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:289
+    + !               :   | + 1 _RNvMNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB2_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseE6resultCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 224  [0x1045801a0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:67
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 2036  [0x10454d084]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCNvXs0_NtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtBJ_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtNtB2x_20socket_stream_writer18SocketStreamWriter5flush0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 16  [0x10454aca8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:289
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCNvXs0_NtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtBJ_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtNtB2x_20socket_stream_writer18SocketStreamWriter5flush0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x10454ac98]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 12696  [0x10454fa28]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 1 _RNCNvXs0_NtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB7_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtNtB1V_20socket_stream_writer18SocketStreamWriter5flush0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 212  [0x10455aba0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:290
+    + !               :   | + ! 1 _RNvMNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB2_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseE6resultCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x1045800c0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:57
+    + !               :   | + 1 _RNCNvXs0_NtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB7_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtNtB1V_20socket_stream_writer18SocketStreamWriter5flush0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 84  [0x10455ab20]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-selector-0.1.0/src/readiness_socket_stream_writer.rs:291
+    + !               :   | 2 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 13088  [0x10454fbb0]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:229
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCINvMNtCsbOrZNTYrkg4_10base_http16outputINtBH_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE10write_bodyINtNtNtCslQfkZzKJjND_9base_http4body8buffered12BufferedBodyRShEE0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 20  [0x104547b44]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:174
+    + !               :   | + 1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCINvMNtCsbOrZNTYrkg4_10base_http16outputINtBH_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE10write_bodyINtNtNtCslQfkZzKJjND_9base_http4body8buffered12BufferedBodyRShEE0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 0  [0x104547b30]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    + !               :   | 2 _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 632,648  [0x10455bf38,0x10455bf48]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:9
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7436  [0x10454e59c]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 _platform_memmove  (in libsystem_platform.dylib) + 212  [0x1846d7e34]
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7496  [0x10454e5d8]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 _platform_memmove  (in libsystem_platform.dylib) + 24  [0x1846d7d78]
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7636  [0x10454e664]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 DYLD-STUB$$memcpy  (in base-http-hello-benchmark) + 4  [0x104648dbc]
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 7924  [0x10454e784]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 _platform_memmove  (in libsystem_platform.dylib) + 0  [0x1846d7d60]
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9748  [0x10454eea4]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 _platform_memmove  (in libsystem_platform.dylib) + 8  [0x1846d7d68]
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9980  [0x10454ef8c]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 DYLD-STUB$$memcpy  (in base-http-hello-benchmark) + 0  [0x104648db8]
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 10040  [0x10454efc8]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:191
+    + !               :   | + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 372  [0x1844f19ec]
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 8824  [0x10454eb08]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:210
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 9016  [0x10454ebc8]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:218
+    + !               :   | 1 _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark) + 11180  [0x10454f43c]  /Users/samuel/Developer/base-rs/base-http-server/src/lib.rs:232
+    + !               :   | 1 _RNCNvXs0_NtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writerINtB7_27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtNtB1V_20socket_stream_writer18SocketStreamWriter5flush0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 400  [0x10455ac5c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/sync.rs:0
+    + !               :   | 1 _xzm_xzone_free_freelist  (in libsystem_malloc.dylib) + 1100  [0x1844ee074]
+    + !               :   3 _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtNtB7_6stream9StreamExt15poll_next_unpinB3s_  (in base-http-hello-benchmark) + 1376,2832,...  [0x10455eb84,0x10455f134,...]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+    + !               :   1 _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtNtB7_6stream9StreamExt15poll_next_unpinB3s_  (in base-http-hello-benchmark) + 5448  [0x10455fb6c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+    + !               :     1 _RNvMs1_NtCsc5DSm4Nzi0D_10async_task3rawINtB5_7RawTaskINtNtCshZuGRpXIDnr_21base_scheduler_native11native_task10TaskFutureNCNvCsl3LbQkHRDRJ_25base_http_hello_benchmark4main0EINtBS_11TaskOutcomeINtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB38_5error5ErrorNtNtB38_6marker4SendNtB4C_4SyncEL_EEENCINvMs2_NtBU_12task_serviceNtB5k_11TaskService5spawnB1U_Es_0NtB5k_9TaskStateE11wake_by_refB1Y_  (in base-http-hello-benchmark) + 0  [0x104594c10]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-task-4.7.1/src/raw.rs:298
+    + !               2 _RNvXs_NtNtCsa8LNBO7KKdE_12futures_util6future6selectINtB4_6SelectINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNvXsc_NtCshZuGRpXIDnr_21base_scheduler_native19selector_operationsNtNtB1I_16native_scheduler15NativeSchedulerNtNtCs4YlPSH1h0Dn_14base_scheduler13socket_accept12SocketAccept13socket_accept0EIB12_QNCNCINvCsl3LbQkHRDRJ_25base_http_hello_benchmark11base_serverB2E_E00EENtNtNtB16_6future6future6Future4pollB4Q_  (in base-http-hello-benchmark) + 52  [0x10457d1d0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:113
+    + !                 2 _RNvYINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNvXsc_NtCshZuGRpXIDnr_21base_scheduler_native19selector_operationsNtNtBJ_16native_scheduler15NativeSchedulerNtNtCs4YlPSH1h0Dn_14base_scheduler13socket_accept12SocketAccept13socket_accept0ENtNtNtCsa8LNBO7KKdE_12futures_util6future6future9FutureExt10poll_unpinCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 700  [0x104575c84]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/future/mod.rs:556
+    + !                   1 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellableTNtNtB14_13native_socket12NativeSocketNtNtNtB9_3net11socket_addr10SocketAddrENCINvMB31_B2Z_2ioB2Y_NCNCNCINvB11_16socket_operationuB2Y_NCNCNvXs6_B12_B20_NtNtCs4YlPSH1h0Dn_14base_scheduler13socket_accept12SocketAccept13socket_accept00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 1416  [0x10456ca0c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + !                   | 1 _RNCINvCs9kNBMHZ2XiP_8async_io10optimisticINtNtB4_7reactor8ReadableNtNtCsjOHHXomo5FJ_7socket26socket6SocketEE0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 140  [0x10456b524]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/async-io-2.6.0/src/lib.rs:2071
+    + !                   |   1 _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 564  [0x104583e48]
+    + !                   |     1 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller6modify  (in base-http-hello-benchmark) + 368  [0x1045e8d70]
+    + !                   |       1 _RNvNtNtNtCsuLWnt603xV_6rustix7backend5event8syscalls6kevent  (in base-http-hello-benchmark) + 24  [0x1045e9c30]
+    + !                   |         1 kevent  (in libsystem_kernel.dylib) + 8  [0x18468efcc]
+    + !                   1 _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellableTNtNtB14_13native_socket12NativeSocketNtNtNtB9_3net11socket_addr10SocketAddrENCINvMB31_B2Z_2ioB2Y_NCNCNCINvB11_16socket_operationuB2Y_NCNCNvXs6_B12_B20_NtNtCs4YlPSH1h0Dn_14base_scheduler13socket_accept12SocketAccept13socket_accept00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark) + 356  [0x10456c5e8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    + 1 _RNvNtCsbOrZNTYrkg4_10base_http14wire7request  (in base-http-hello-benchmark) + 488  [0x1045f57c0]
+    +   1 _RNvNtCsbOrZNTYrkg4_10base_http14wire6fields  (in base-http-hello-benchmark) + 16  [0x1045f4fdc]
+    5343 Thread_48829860: async-io
+    + 5343 thread_start  (in libsystem_pthread.dylib) + 8  [0x1846c8cec]
+    +   5343 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x1846cdd00]
+    +     5343 _RNvNvMs0_NtNtNtCs1coMeGJvsuS_3std3sys6thread4unixNtB7_6Thread3new12thread_start  (in base-http-hello-benchmark) + 392  [0x104622788]
+    +       5343 _RNSNvYNCINvNtNtCs1coMeGJvsuS_3std6thread9lifecycle15spawn_uncheckedNCNCNvNtCs9kNBMHZ2XiP_8async_io6driver8unparker00uEs_0INtNtNtCs9nEiEE0E2Vj_4core3ops8function6FnOnceuE9call_once6vtableB1b_  (in base-http-hello-benchmark) + 84  [0x1045e7688]
+    +         5343 _RINvNtNtCs1coMeGJvsuS_3std3sys9backtrace28___rust_begin_short_backtraceNCNCNvNtCs9kNBMHZ2XiP_8async_io6driver8unparker00uEB1f_  (in base-http-hello-benchmark) + 12  [0x1045e3f9c]
+    +           5338 _RNvNtCs9kNBMHZ2XiP_8async_io6driver9main_loop  (in base-http-hello-benchmark) + 244  [0x1045e78a0]
+    +           ! 5217 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 168  [0x1045e6128]
+    +           ! : 5211 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller4wait  (in base-http-hello-benchmark) + 96  [0x1045e9520]
+    +           ! : | 5176 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller9wait_impl  (in base-http-hello-benchmark) + 196  [0x1045e95f8]
+    +           ! : | + 5155 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller13wait_deadline  (in base-http-hello-benchmark) + 144  [0x1045e85f0]
+    +           ! : | + ! 5151 _RNvNtNtNtCsuLWnt603xV_6rustix7backend5event8syscalls6kevent  (in base-http-hello-benchmark) + 24  [0x1045e9c30]
+    +           ! : | + ! : 5151 kevent  (in libsystem_kernel.dylib) + 8,4  [0x18468efcc,0x18468efc8]
+    +           ! : | + ! 4 _RNvNtNtNtCsuLWnt603xV_6rustix7backend5event8syscalls6kevent  (in base-http-hello-benchmark) + 24,68  [0x1045e9c30,0x1045e9c5c]
+    +           ! : | + 21 _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller13wait_deadline  (in base-http-hello-benchmark) + 144,188  [0x1045e85f0,0x1045e861c]
+    +           ! : | 15 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller9wait_impl  (in base-http-hello-benchmark) + 196,400,...  [0x1045e95f8,0x1045e96c4,...]
+    +           ! : | 11 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller9wait_impl  (in base-http-hello-benchmark) + 416  [0x1045e96d4]
+    +           ! : | + 11 _RNvMNtNtCsuLWnt603xV_6rustix5event6kqueueNtB2_5Event6filter  (in base-http-hello-benchmark) + 144,0  [0x1045e9efc,0x1045e9e6c]
+    +           ! : | 6 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller9wait_impl  (in base-http-hello-benchmark) + 492  [0x1045e9720]
+    +           ! : | + 4 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 0,20,...  [0x1846c8a1c,0x1846c8a30,...]
+    +           ! : | + 2 DYLD-STUB$$pthread_mutex_unlock  (in base-http-hello-benchmark) + 0  [0x104648efc]
+    +           ! : | 2 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller9wait_impl  (in base-http-hello-benchmark) + 428  [0x1045e96e0]
+    +           ! : | + 2 _RNvMNtNtCsuLWnt603xV_6rustix5event6kqueueNtB2_5Event6filter  (in base-http-hello-benchmark) + 0,144  [0x1045e9e6c,0x1045e9efc]
+    +           ! : | 1 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller9wait_impl  (in base-http-hello-benchmark) + 60  [0x1045e9570]
+    +           ! : |   1 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex8try_lock  (in base-http-hello-benchmark) + 12  [0x10460f0ac]
+    +           ! : |     1 pthread_mutex_trylock  (in libsystem_pthread.dylib) + 36  [0x1846cb24c]
+    +           ! : 6 _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller4wait  (in base-http-hello-benchmark) + 96  [0x1045e9520]
+    +           ! 63 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 72  [0x1045e60c8]
+    +           ! : 49 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor14process_timers  (in base-http-hello-benchmark) + 104  [0x1045e5254]
+    +           ! : | 46 _RNvMNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4timeNtB2_8Timespec3now  (in base-http-hello-benchmark) + 24  [0x10460ea3c]
+    +           ! : | + 46 clock_gettime  (in libsystem_c.dylib) + 60  [0x184564100]
+    +           ! : | +   39 clock_gettime_nsec_np  (in libsystem_c.dylib) + 384  [0x1845561ac]
+    +           ! : | +   ! 39 mach_absolute_time  (in libsystem_kernel.dylib) + 108,112  [0x1846890f8,0x1846890fc]
+    +           ! : | +   4 clock_gettime_nsec_np  (in libsystem_c.dylib) + 228,12,...  [0x184556110,0x184556038,...]
+    +           ! : | +   3 ???  (in <unknown binary>)  [0x18bf1e780]
+    +           ! : | 2 _RNvMNtCs1coMeGJvsuS_3std4timeNtB2_7Instant3now  (in base-http-hello-benchmark) + 0  [0x10460dd54]
+    +           ! : | 1 _RNvMNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4timeNtB2_8Timespec3now  (in base-http-hello-benchmark) + 0  [0x10460ea24]
+    +           ! : 6 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor14process_timers  (in base-http-hello-benchmark) + 100  [0x1045e5250]
+    +           ! : | 5 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor17process_timer_ops  (in base-http-hello-benchmark) + 172  [0x1045e5644]
+    +           ! : | + 5 _RNvMNtCsiQkkmPKY8lO_16concurrent_queue7boundedINtB2_7BoundedNtNtCs9kNBMHZ2XiP_8async_io7reactor7TimerOpE3popB10_  (in base-http-hello-benchmark) + 0,192,...  [0x1045e46d4,0x1045e4794,...]
+    +           ! : | 1 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor17process_timer_ops  (in base-http-hello-benchmark) + 140  [0x1045e5624]
+    +           ! : 3 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor14process_timers  (in base-http-hello-benchmark) + 56  [0x1045e5224]
+    +           ! : | 1 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 12  [0x10460f08c]
+    +           ! : | + 1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 80  [0x1846c8528]
+    +           ! : | 1 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 16  [0x10460f090]
+    +           ! : | 1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 136  [0x1846c8560]
+    +           ! : 1 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor14process_timers  (in base-http-hello-benchmark) + 420  [0x1045e5390]
+    +           ! : | 1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 104  [0x1846c8a84]
+    +           ! : 1 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor14process_timers  (in base-http-hello-benchmark) + 496  [0x1045e53dc]
+    +           ! : | 1 _RNvMsz_NtNtNtCs3vUkWdPtNor_5alloc11collections5btree3mapINtB5_8IntoIterTNtNtCs1coMeGJvsuS_3std4time7InstantjENtNtNtCs9nEiEE0E2Vj_4core4task4wake5WakerE10dying_nextCs9kNBMHZ2XiP_8async_io  (in base-http-hello-benchmark) + 136  [0x1045e33c4]
+    +           ! : 1 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor14process_timers  (in base-http-hello-benchmark) + 592  [0x1045e543c]
+    +           ! : | 1 _RNvMsz_NtNtNtCs3vUkWdPtNor_5alloc11collections5btree3mapINtB5_8IntoIterTNtNtCs1coMeGJvsuS_3std4time7InstantjENtNtNtCs9nEiEE0E2Vj_4core4task4wake5WakerE10dying_nextCs9kNBMHZ2XiP_8async_io  (in base-http-hello-benchmark) + 432  [0x1045e34ec]
+    +           ! : 1 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor14process_timers  (in base-http-hello-benchmark) + 0  [0x1045e51ec]
+    +           ! : 1 _RNvMNtCs9kNBMHZ2XiP_8async_io7reactorNtB2_7Reactor17process_timer_ops  (in base-http-hello-benchmark) + 68  [0x1045e55dc]
+    +           ! 16 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 168,1640,...  [0x1045e6128,0x1045e66e8,...]
+    +           ! 12 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 912  [0x1045e6410]
+    +           ! : 11 _RNvMs4_NtCs3vUkWdPtNor_5alloc7raw_vecINtB5_6RawVecINtCsab50ef3ldbo_4slab5EntryINtNtB7_4sync3ArcNtNtCs9kNBMHZ2XiP_8async_io7reactor6SourceEEE8grow_oneB1z_  (in base-http-hello-benchmark) + 20  [0x1046412d0]
+    +           ! : | 10 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner14grow_amortizedCs9kNBMHZ2XiP_8async_io  (in base-http-hello-benchmark) + 72  [0x1046413f8]
+    +           ! : | + 7 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs9kNBMHZ2XiP_8async_io  (in base-http-hello-benchmark) + 108  [0x104641378]
+    +           ! : | + ! 3 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0,44,...  [0x1844f44f0,0x1844f451c,...]
+    +           ! : | + ! 2 malloc  (in libsystem_malloc.dylib) + 0  [0x1844b5ce8]
+    +           ! : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 168  [0x1844efa38]
+    +           ! : | + ! 1 xzm_malloc_zone_malloc_type_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef3cc]
+    +           ! : | + 2 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs9kNBMHZ2XiP_8async_io  (in base-http-hello-benchmark) + 96  [0x10464136c]
+    +           ! : | + ! 2 _RNvCsjVqd8RsBhQu_7___rustc35___rust_no_alloc_shim_is_unstable_v2  (in base-http-hello-benchmark) + 0  [0x10459dc08]
+    +           ! : | + 1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growCs9kNBMHZ2XiP_8async_io  (in base-http-hello-benchmark) + 132  [0x104641390]
+    +           ! : | 1 _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner14grow_amortizedCs9kNBMHZ2XiP_8async_io  (in base-http-hello-benchmark) + 88  [0x104641408]
+    +           ! : 1 _RNvMs4_NtCs3vUkWdPtNor_5alloc7raw_vecINtB5_6RawVecINtCsab50ef3ldbo_4slab5EntryINtNtB7_4sync3ArcNtNtCs9kNBMHZ2XiP_8async_io7reactor6SourceEEE8grow_oneB1z_  (in base-http-hello-benchmark) + 0  [0x1046412bc]
+    +           ! 10 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 1692  [0x1045e671c]
+    +           ! : 8 _RINvNtNtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4task9waker_ref12wake_arc_rawINtB4_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0EEB3P_  (in base-http-hello-benchmark) + 32  [0x10458ac98]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:258
+    +           ! : | 4 _RNvXs0_NtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4taskINtB5_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtB5_7ArcWake11wake_by_refB3s_  (in base-http-hello-benchmark) + 132  [0x10458b61c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:125
+    +           ! : | + 4 _RNvMNtNtNtCsd6sc0bp2aqi_12futures_core4task10___internal12atomic_wakerNtB2_11AtomicWaker4wake  (in base-http-hello-benchmark) + 36,0  [0x1045f401c,0x1045f3ff8]
+    +           ! : | 1 _RNvXs0_NtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4taskINtB5_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtB5_7ArcWake11wake_by_refB3s_  (in base-http-hello-benchmark) + 0  [0x10458b598]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:102
+    +           ! : | 1 _RNvXs0_NtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4taskINtB5_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtB5_7ArcWake11wake_by_refB3s_  (in base-http-hello-benchmark) + 36  [0x10458b5bc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:103
+    +           ! : | 1 _RNvXs0_NtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4taskINtB5_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtB5_7ArcWake11wake_by_refB3s_  (in base-http-hello-benchmark) + 112  [0x10458b608]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:124
+    +           ! : | 1 _RNvXs0_NtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4taskINtB5_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0ENtB5_7ArcWake11wake_by_refB3s_  (in base-http-hello-benchmark) + 144  [0x10458b628]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:127
+    +           ! : 1 _RINvNtNtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4task9waker_ref12wake_arc_rawINtB4_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0EEB3P_  (in base-http-hello-benchmark) + 4  [0x10458ac7c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:256
+    +           ! : 1 _RINvNtNtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4task9waker_ref12wake_arc_rawINtB4_4TaskNCINvCs86Ijsjh7w0m_16base_http_server16serve_connectionNtNtCshZuGRpXIDnr_21base_scheduler_native16native_scheduler15NativeSchedulerNtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0EEB3P_  (in base-http-hello-benchmark) + 40  [0x10458aca0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:258
+    +           ! 8 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 1844  [0x1045e67b4]
+    +           ! : 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,200  [0x1844f1878,0x1844f1940]
+    +           ! : 2 free  (in libsystem_malloc.dylib) + 0  [0x1844b66f0]
+    +           ! : 1 DYLD-STUB$$free  (in base-http-hello-benchmark) + 0  [0x104648cf8]
+    +           ! : 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +           ! : 1 xzm_malloc_zone_try_free_default_tc  (in libsystem_malloc.dylib) + 0  [0x1844f0440]
+    +           ! 3 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 248  [0x1045e6178]
+    +           ! : 3 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 12  [0x10460f08c]
+    +           ! :   2 pthread_mutex_lock  (in libsystem_pthread.dylib) + 20,32  [0x1846c84ec,0x1846c84f8]
+    +           ! :   1 DYLD-STUB$$pthread_mutex_lock  (in base-http-hello-benchmark) + 0  [0x104648ee4]
+    +           ! 3 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 324  [0x1045e61c4]
+    +           ! : 3 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 104  [0x1846c8a84]
+    +           ! 2 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 364  [0x1045e61ec]
+    +           ! : 2 _RNvMNtNtCsuLWnt603xV_6rustix5event6kqueueNtB2_5Event6filter  (in base-http-hello-benchmark) + 0  [0x1045e9e6c]
+    +           ! 2 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 508  [0x1045e627c]
+    +           ! : 2 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 12  [0x10460f08c]
+    +           ! :   1 DYLD-STUB$$pthread_mutex_lock  (in base-http-hello-benchmark) + 4  [0x104648ee8]
+    +           ! :   1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 8  [0x1846c84e0]
+    +           ! 1 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 408  [0x1045e6218]
+    +           ! : 1 _RNvMNtNtCsuLWnt603xV_6rustix5event6kqueueNtB2_5Event6filter  (in base-http-hello-benchmark) + 0  [0x1045e9e6c]
+    +           ! 1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 124  [0x1846c8a98]
+    +           3 _RNvNtCs9kNBMHZ2XiP_8async_io6driver9main_loop  (in base-http-hello-benchmark) + 244  [0x1045e78a0]
+    +           1 _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark) + 1868  [0x1045e67cc]
+    +           1 _RNvNtCs9kNBMHZ2XiP_8async_io6driver9main_loop  (in base-http-hello-benchmark) + 456  [0x1045e7974]
+    +             1 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex8try_lock  (in base-http-hello-benchmark) + 12  [0x10460f0ac]
+    +               1 pthread_mutex_trylock  (in libsystem_pthread.dylib) + 0  [0x1846cb228]
+    5343 Thread_48829862: base-native-0
+      5343 thread_start  (in libsystem_pthread.dylib) + 8  [0x1846c8cec]
+        5343 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x1846cdd00]
+          5343 _RNvNvMs0_NtNtNtCs1coMeGJvsuS_3std3sys6thread4unixNtB7_6Thread3new12thread_start  (in base-http-hello-benchmark) + 392  [0x104622788]
+            5343 _RNSNvYNCINvNtNtCs1coMeGJvsuS_3std6thread9lifecycle15spawn_uncheckedNCNCNvMs_NtCs4zOBpIJU1sK_23base_scheduler_selector13blocking_poolNtB1c_12BlockingPool5start00uEs_0INtNtNtCs9nEiEE0E2Vj_4core3ops8function6FnOnceuE9call_once6vtableB1e_  (in base-http-hello-benchmark) + 84  [0x1045dd4e4]
+              5343 _RINvNtNtCs1coMeGJvsuS_3std3sys9backtrace28___rust_begin_short_backtraceNCNCNvMs_NtCs4zOBpIJU1sK_23base_scheduler_selector13blocking_poolNtB1g_12BlockingPool5start00uEB1i_  (in base-http-hello-benchmark) + 12  [0x1045db890]
+                5343 _RNvNtCs4zOBpIJU1sK_23base_scheduler_selector13blocking_pool4work  (in base-http-hello-benchmark) + 208  [0x1045deeac]
+                  5343 _pthread_cond_wait  (in libsystem_pthread.dylib) + 980  [0x1846ce1d0]
+                    5343 __psynch_cvwait  (in libsystem_kernel.dylib) + 8  [0x18468c50c]
+
+Total number in stack (recursive counted multiple, when >=5):
+        32       _platform_memmove  (in libsystem_platform.dylib) + 0  [0x1846d7d60]
+        28       _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef990]
+        24       _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+        15       DYLD-STUB$$free  (in base-http-hello-benchmark) + 0  [0x104648cf8]
+        14       _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0  [0x1844f44f0]
+        13       _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+        10       _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark) + 0  [0x10460d9f0]
+        8       pthread_mutex_lock  (in libsystem_pthread.dylib) + 0  [0x1846c84d8]
+        7       _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 48  [0x104631c00]
+        6       DYLD-STUB$$memcpy  (in base-http-hello-benchmark) + 0  [0x104648db8]
+        6       _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark) + 0  [0x1045f498c]
+        6       _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in base-http-hello-benchmark) + 12  [0x10460f08c]
+        5       _RNvNtCslQfkZzKJjND_9base_http6syntax8is_token  (in base-http-hello-benchmark) + 0  [0x1045ff248]
+        5       _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 0  [0x104631bd0]
+        5       _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark) + 68  [0x104631c14]
+        5       pthread_mutex_unlock  (in libsystem_pthread.dylib) + 0  [0x1846c8a1c]
+
+Sort by top of stack, same collapsed (when >= 5):
+        __psynch_cvwait  (in libsystem_kernel.dylib)        10686
+        kevent  (in libsystem_kernel.dylib)        5332
+        __sendto  (in libsystem_kernel.dylib)        3541
+        __recvfrom  (in libsystem_kernel.dylib)        913
+        _RNCINvCs86Ijsjh7w0m_16base_http_server9exchangesNtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_reader27ReadinessSocketStreamReaderINtNtBO_30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseENtCsl3LbQkHRDRJ_25base_http_hello_benchmark5HelloE0B4z_  (in base-http-hello-benchmark)        58
+        _platform_memmove  (in libsystem_platform.dylib)        56
+        _platform_memset  (in libsystem_platform.dylib)        53
+        mach_absolute_time  (in libsystem_kernel.dylib)        53
+        _xzm_free_tc  (in libsystem_malloc.dylib)        40
+        _xzm_malloc_tc  (in libsystem_malloc.dylib)        39
+        _RINvNtCs3vUkWdPtNor_5alloc3vec9from_elemNtCs3hGFgeqgkou_8httparse6HeaderECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark)        25
+        _RNCNvMNtCsbOrZNTYrkg4_10base_http16outputINtB4_14ResponseWriterINtNtCs4zOBpIJU1sK_23base_scheduler_selector30readiness_socket_stream_writer27ReadinessSocketStreamWriterNtNtCs4YlPSH1h0Dn_14base_scheduler12buffer_lease11BufferLeaseEE9write_all0Csl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark)        23
+        _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller13wait_deadline  (in base-http-hello-benchmark)        21
+        _malloc_zone_malloc  (in libsystem_malloc.dylib)        21
+        DYLD-STUB$$free  (in base-http-hello-benchmark)        17
+        _RNvMs_NtCs9kNBMHZ2XiP_8async_io7reactorNtB4_11ReactorLock5react  (in base-http-hello-benchmark)        17
+        _RNvMNtNtCsuLWnt603xV_6rustix5event6kqueueNtB2_5Event6filter  (in base-http-hello-benchmark)        16
+        _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller9wait_impl  (in base-http-hello-benchmark)        15
+        _RNvXs4_NtCslQfkZzKJjND_9base_http7requestNtB5_11RequestHeadNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark)        14
+        _free  (in libsystem_malloc.dylib)        14
+        _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationRShjNCNCNvMsa_B12_B20_16socket_send_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark)        12
+        _RNvCsjVqd8RsBhQu_7___rustc11___rdl_alloc  (in base-http-hello-benchmark)        11
+        _RNvNtCslQfkZzKJjND_9base_http6syntax8is_token  (in base-http-hello-benchmark)        11
+        xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib)        11
+        pthread_mutex_lock  (in libsystem_pthread.dylib)        10
+        pthread_mutex_unlock  (in libsystem_pthread.dylib)        10
+        _RINvXs2J_NtNtCs9nEiEE0E2Vj_4core5slice4iterINtB7_4IterNtNtCslQfkZzKJjND_9base_http6fields5FieldENtNtNtNtBb_4iter6traits8iterator8Iterator4findQNCNvNtCsbOrZNTYrkg4_10base_http14wire9singleton0EB2n_  (in base-http-hello-benchmark)        9
+        _xzm_xzone_malloc_small_freelist  (in libsystem_malloc.dylib)        8
+        _RNvNtCsbOrZNTYrkg4_10base_http14wire12strict_lines  (in base-http-hello-benchmark)        7
+        _RNvNtCsbOrZNTYrkg4_10base_http16output4plan  (in base-http-hello-benchmark)        7
+        _xzm_free_outlined  (in libsystem_malloc.dylib)        7
+        DYLD-STUB$$memcpy  (in base-http-hello-benchmark)        6
+        _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReRShECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark)        6
+        _RNvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB5_6Fields6append  (in base-http-hello-benchmark)        6
+        _RNvMs5_NtCs3vUkWdPtNor_5alloc7raw_vecNtB5_11RawVecInner11finish_growB7_  (in base-http-hello-benchmark)        6
+        _RNvMs_CshzuYilkl4KH_7pollingNtB4_6Poller4wait  (in base-http-hello-benchmark)        6
+        _RNvNtCsbOrZNTYrkg4_10base_http14wire9authority  (in base-http-hello-benchmark)        6
+        _RNvXs0_NtNtCs9nEiEE0E2Vj_4core6future7poll_fnINtB5_6PollFnNCNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector17socket_operationsNtNtB14_18readiness_selector17ReadinessSelector11cancellablejNCINvMNtB14_13native_socketNtB35_12NativeSocket2iojNCNCNCINvB11_16socket_operationQShjNCNCNvMs9_B12_B20_16socket_recv_poll00E000E0E00ENtNtB7_6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark)        6
+        DYLD-STUB$$malloc  (in base-http-hello-benchmark)        5
+        _RINvMs4_NtCslQfkZzKJjND_9base_http6fieldsNtB6_6Fields3addReBT_ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark)        5
+        _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueNCINvMNtCs4zOBpIJU1sK_23base_scheduler_selector13native_socketNtBH_12NativeSocket2iojNCNCNCINvMNtBJ_17socket_operationsNtNtBJ_18readiness_selector17ReadinessSelector16socket_operationQShjNCNCNvMs9_B28_B2w_16socket_recv_poll00E000E0ECsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark)        5
+        _RINvNvMs2_NtCs3vUkWdPtNor_5alloc7raw_vecINtB8_11RawVecInnerpE7reserve21do_reserve_and_handleNtNtBa_5alloc6GlobalECsbOrZNTYrkg4_10base_http1  (in base-http-hello-benchmark)        5
+        _RNvCs3hGFgeqgkou_8httparse25parse_headers_iter_uninit  (in base-http-hello-benchmark)        5
+        _RNvCsjVqd8RsBhQu_7___rustc35___rust_no_alloc_shim_is_unstable_v2  (in base-http-hello-benchmark)        5
+        _RNvMNtCshzuYilkl4KH_7polling6kqueueNtB2_6Poller6modify  (in base-http-hello-benchmark)        5
+        _RNvMNtCsiQkkmPKY8lO_16concurrent_queue7boundedINtB2_7BoundedNtNtCs9kNBMHZ2XiP_8async_io7reactor7TimerOpE3popB10_  (in base-http-hello-benchmark)        5
+        _RNvNtCs9nEiEE0E2Vj_4core3fmt5write  (in base-http-hello-benchmark)        5
+        _RNvXs4_NtCs3vUkWdPtNor_5alloc6stringNtB5_6StringNtNtCs9nEiEE0E2Vj_4core5clone5Clone5clone  (in base-http-hello-benchmark)        5
+        _RNvXsb_NtCs9kNBMHZ2XiP_8async_io7reactorINtB5_5ReadyRINtB7_5AsyncNtNtCsjOHHXomo5FJ_7socket26socket6SocketEB11_ENtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4pollCsl3LbQkHRDRJ_25base_http_hello_benchmark  (in base-http-hello-benchmark)        5
+        xzm_malloc_zone_size  (in libsystem_malloc.dylib)        5
+
+Binary Images:
+       0x104544000 -        0x1046a78b3 +base-http-hello-benchmark (0) <6A0FEE01-025F-3480-AECA-74E7D661B205> /Users/*/base-http-hello-benchmark
+       0x184244000 -        0x1842935f7  libobjc.A.dylib (973.1) <C0680DF6-9900-3C29-A071-95A031686EF8> /usr/lib/libobjc.A.dylib
+       0x184294000 -        0x18429e23f  libsharedcache.dylib (0) <BBF95357-BEBF-3D89-8900-2BBB14A667C5> /usr/lib/libsharedcache.dylib
+       0x18429f000 -        0x1842c5d3b  libdyld.dylib (27062) <62863BCA-DD60-3D32-A9DB-89099BA6F3D7> /usr/lib/system/libdyld.dylib
+       0x1842c6000 -        0x1843856e3  dyld (1.0.0 - 27062) <D341DDCB-7969-3A9C-8E03-0CF4751398A9> /usr/lib/dyld
+       0x184386000 -        0x18438901f  libsystem_blocks.dylib (98.1) <6F304731-D95D-3501-B4AD-F2934F7F2446> /usr/lib/system/libsystem_blocks.dylib
+       0x18438a000 -        0x1843df0df  libxpc.dylib (3298.1.1) <0791121F-B5FC-3F84-BF04-115E86D2D882> /usr/lib/system/libxpc.dylib
+       0x1843e0000 -        0x1843ffc13  libsystem_trace.dylib (1966.1.1) <B48A8E3E-A12A-3342-8321-428B555E965E> /usr/lib/system/libsystem_trace.dylib
+       0x184400000 -        0x1844b4f27  libcorecrypto.dylib (2109.0.22) <807AA6C9-5D8A-3CA5-B4CE-FACE5296EF6A> /usr/lib/system/libcorecrypto.dylib
+       0x1844b5000 -        0x18450ac5f  libsystem_malloc.dylib (886.0.8) <2339CB57-FE5A-3154-A206-A76059C749EB> /usr/lib/system/libsystem_malloc.dylib
+       0x18450b000 -        0x18455119f  libdispatch.dylib (1605.0.2) <022BF08F-0B3A-3225-9E65-16D1553CE90D> /usr/lib/system/libdispatch.dylib
+       0x184552000 -        0x184554d2b  libsystem_featureflags.dylib (108) <20C1CAB2-1F13-3426-8146-9CAE9FF2A33D> /usr/lib/system/libsystem_featureflags.dylib
+       0x184555000 -        0x1845d7ca3  libsystem_c.dylib (1786.0.3) <FBA7B23E-AA60-3A90-9AA4-A7A2E0AD63EE> /usr/lib/system/libsystem_c.dylib
+       0x1845d8000 -        0x18466d033  libc++.1.dylib (2200.27) <1E9BA4AA-B5DA-3CF3-80AC-4B880049573F> /usr/lib/libc++.1.dylib
+       0x18466e000 -        0x184687eff  libc++abi.dylib (2200.27) <A21743EE-6E1C-3E74-97EA-7AF793DE4BDF> /usr/lib/libc++abi.dylib
+       0x184688000 -        0x1846c69ab  libsystem_kernel.dylib (13432.1.9) <F63BF418-8F75-34A4-AAF1-8CAF2B9B6A05> /usr/lib/system/libsystem_kernel.dylib
+       0x1846c7000 -        0x1846d391b  libsystem_pthread.dylib (553.0.1) <5A1828C3-CBC2-3B85-BD07-C8ED10021A41> /usr/lib/system/libsystem_pthread.dylib
+       0x1846d4000 -        0x1846dd4f3  libsystem_platform.dylib (402.0.1.0.1) <080E4444-A0FB-3913-9756-4E470015F32F> /usr/lib/system/libsystem_platform.dylib
+       0x1846de000 -        0x18470c903  libsystem_info.dylib (603) <BC387AEB-1CEF-3513-92D7-D7F913596711> /usr/lib/system/libsystem_info.dylib
+       0x188836000 -        0x18883fb13  libsystem_darwin.dylib (1786.0.3) <4E66C888-993C-3E6A-A8DA-A949C01C5B67> /usr/lib/system/libsystem_darwin.dylib
+       0x188c90000 -        0x188ca1b8b  libsystem_notify.dylib (368) <58FD36D8-37A7-311C-80F2-8E64DD8710CF> /usr/lib/system/libsystem_notify.dylib
+       0x18aded000 -        0x18ae07d93  libsystem_networkextension.dylib (2340.1.2) <22E1D190-486F-324F-ABA4-F36AB841BFE9> /usr/lib/system/libsystem_networkextension.dylib
+       0x18ae95000 -        0x18aeac247  libsystem_asl.dylib (409) <B4D449B7-A821-3A9A-8019-E917B291F10A> /usr/lib/system/libsystem_asl.dylib
+       0x18be40000 -        0x18be40f2f  libobjcMsgSend.dylib (973.1) <41179EDE-DC97-3BBE-8848-6400D12C1436> /usr/lib/objc/libobjcMsgSend.dylib
+       0x18cf8c000 -        0x18cf93edf  libsystem_symptoms.dylib (2394.0.4) <60EE7884-9F4E-3184-A6AC-FA40A7A0297D> /usr/lib/system/libsystem_symptoms.dylib
+       0x191324000 -        0x19135eaeb  libsystem_containermanager.dylib (833.0.8.0.1) <08A57205-555D-3792-8931-9D5B585AF326> /usr/lib/system/libsystem_containermanager.dylib
+       0x192977000 -        0x19297b317  libsystem_configuration.dylib (1446) <F3EB66A7-7A24-3AE5-B6E8-9A37BB00F119> /usr/lib/system/libsystem_configuration.dylib
+       0x19297c000 -        0x192982e03  libsystem_sandbox.dylib (3051.0.52) <1E892B56-092E-3832-BDE3-DCE356D7A4FA> /usr/lib/system/libsystem_sandbox.dylib
+       0x193e40000 -        0x193e40f2f  libobjcMsgSend1.dylib (973.1) <B40D9B2A-E1EE-37ED-8004-711A1F263DE1> /usr/lib/objc/libobjcMsgSend1.dylib
+       0x194560000 -        0x194562f93  libquarantine.dylib (217.0.4) <7FD4AE22-86EF-382B-83F5-ADF9336C1160> /usr/lib/system/libquarantine.dylib
+       0x194c72000 -        0x194c781e7  libsystem_coreservices.dylib (203) <57248E07-11A5-3857-918E-4A3A63B69FE8> /usr/lib/system/libsystem_coreservices.dylib
+       0x19523a000 -        0x195277b27  libsystem_m.dylib (3326.0.1) <A3FB340F-3ED5-30F4-8B64-9D5860F64D35> /usr/lib/system/libsystem_m.dylib
+       0x195278000 -        0x195278b47  libcharset.1.dylib (121) <3C9B584E-740A-3664-A1B0-52E561EA4B0B> /usr/lib/libcharset.1.dylib
+       0x195279000 -        0x19527c4f7  libmacho.dylib (27062) <50DEADEC-3E99-3519-AFC3-4A3FEB3F14C3> /usr/lib/system/libmacho.dylib
+       0x195296000 -        0x1952a2707  libcommonCrypto.dylib (600041) <41C99F45-C5E6-39DB-B1F2-A1BEA9D242A4> /usr/lib/system/libcommonCrypto.dylib
+       0x1952a3000 -        0x1952acc87  libunwind.dylib (2200.5) <3070AB81-B082-39E8-8A00-EF88DDE9AC47> /usr/lib/system/libunwind.dylib
+       0x1952b4000 -        0x1952be7eb  libcopyfile.dylib (260.0.3) <72D95AF9-BF5E-3A84-81A6-BCC5BDB99857> /usr/lib/system/libcopyfile.dylib
+       0x1952bf000 -        0x1952c28bf  libcompiler_rt.dylib (103.4) <DFB5CE7F-A36E-36AA-BECE-1392D3D43607> /usr/lib/system/libcompiler_rt.dylib
+       0x1952c3000 -        0x1952c8077  libsystem_collections.dylib (1786.0.3) <1E8022D4-5A37-3A7A-8936-603E6FA88358> /usr/lib/system/libsystem_collections.dylib
+       0x1952c9000 -        0x1952cbf1f  libsystem_secinit.dylib (182) <DE037464-4C5D-3E96-A33F-2A4557CC6A20> /usr/lib/system/libsystem_secinit.dylib
+       0x1952cc000 -        0x1952ce97f  libremovefile.dylib (96) <E6E6DFCF-6B2C-3F30-A59D-816CAB1190CE> /usr/lib/system/libremovefile.dylib
+       0x1952cf000 -        0x1952cfe27  libkeymgr.dylib (31) <5EC997EF-3ADA-360B-9FCD-5F940C83FA4E> /usr/lib/system/libkeymgr.dylib
+       0x1952d0000 -        0x1952d8af7  libsystem_dnssd.dylib (3111.0.5.0.1) <DE22096F-1E5B-3D6E-8164-771582DD6391> /usr/lib/system/libsystem_dnssd.dylib
+       0x1952d9000 -        0x1952ddf1b  libcache.dylib (95) <80BAE197-E285-3F6E-A1EE-B77FE37D7E5D> /usr/lib/system/libcache.dylib
+       0x1952de000 -        0x1952df8f3  libSystem.B.dylib (1359) <4FDC9AA6-B344-37FE-B8C6-A4C94A038F57> /usr/lib/libSystem.B.dylib
+       0x195318000 -        0x19531f0a3  libiconv.2.dylib (121) <C343D6F7-6932-30E8-8E8F-F756946D8413> /usr/lib/libiconv.2.dylib
+       0x19be40000 -        0x19be40f2f  libobjcMsgSend2.dylib (973.1) <BD27A84B-C9AE-3282-BBEA-3B6119837B5A> /usr/lib/objc/libobjcMsgSend2.dylib
+       0x1a3e40000 -        0x1a3e40f2f  libobjcMsgSend3.dylib (973.1) <C0860D68-DDFC-3BD7-8B06-DB0645CBBED4> /usr/lib/objc/libobjcMsgSend3.dylib
+       0x1abe40000 -        0x1abe40f2f  libobjcMsgSend4.dylib (973.1) <A6153BF5-622B-3B01-81B6-F64A365EF613> /usr/lib/objc/libobjcMsgSend4.dylib
+       0x1b3e40000 -        0x1b3e40f2f  libobjcMsgSend5.dylib (973.1) <3913A71C-B29A-3AEA-820B-BEC40AC1861A> /usr/lib/objc/libobjcMsgSend5.dylib
+       0x1bbe40000 -        0x1bbe40f2f  libobjcMsgSend6.dylib (973.1) <9BC523A3-E167-3F6C-8CAE-0F3EBA671791> /usr/lib/objc/libobjcMsgSend6.dylib
+       0x1c3e40000 -        0x1c3e40f2f  libobjcMsgSend7.dylib (973.1) <248B7BCE-5B4C-34C7-A340-43D5228628C5> /usr/lib/objc/libobjcMsgSend7.dylib
+       0x1cbe40000 -        0x1cbe40f2f  libobjcMsgSend8.dylib (973.1) <3E041BAD-A8E8-3069-B741-78CD1A45B176> /usr/lib/objc/libobjcMsgSend8.dylib
+       0x1d3e40000 -        0x1d3e40f2f  libobjcMsgSend9.dylib (973.1) <34A67969-21A0-39D6-BB81-8FDA5A2409DB> /usr/lib/objc/libobjcMsgSend9.dylib
+       0x1dbe40000 -        0x1dbe40f2f  libobjcMsgSend10.dylib (973.1) <678186C0-8EAD-3B35-8CBB-00285B41E4A0> /usr/lib/objc/libobjcMsgSend10.dylib
+       0x1e3e40000 -        0x1e3e40f2f  libobjcMsgSend11.dylib (973.1) <E05CB08C-E956-36FA-8967-AE8E346A8D2C> /usr/lib/objc/libobjcMsgSend11.dylib
+       0x20be40000 -        0x20be40f2f  libobjcMsgSend12.dylib (973.1) <10AB03AA-FF1F-3FDC-9DFB-BFC40042C501> /usr/lib/objc/libobjcMsgSend12.dylib
+       0x213e40000 -        0x213e40f2f  libobjcMsgSend13.dylib (973.1) <ABF53427-FA6F-3D0D-8F9D-7AD795CA5C92> /usr/lib/objc/libobjcMsgSend13.dylib
+       0x21be40000 -        0x21be40f2f  libobjcMsgSend14.dylib (973.1) <9A844C46-A6DA-34D4-8EBF-2AD775C30684> /usr/lib/objc/libobjcMsgSend14.dylib
+       0x223e40000 -        0x223e40f2f  libobjcMsgSend15.dylib (973.1) <7C995666-2B2D-3284-AA0A-EBF7C922838E> /usr/lib/objc/libobjcMsgSend15.dylib
+       0x22be40000 -        0x22be40f2f  libobjcMsgSend16.dylib (973.1) <B6C0E14B-53AE-3E22-9ED5-1729C49F46F2> /usr/lib/objc/libobjcMsgSend16.dylib
+       0x233e40000 -        0x233e40f2f  libobjcMsgSend17.dylib (973.1) <07B4CF85-251B-301B-832B-20B315A59E19> /usr/lib/objc/libobjcMsgSend17.dylib
+       0x23be40000 -        0x23be40f2f  libobjcMsgSend18.dylib (973.1) <43E575B7-04DB-3999-A633-1A3B638BA6E3> /usr/lib/objc/libobjcMsgSend18.dylib
+       0x243e40000 -        0x243e40f2f  libobjcMsgSend19.dylib (973.1) <736F4D85-76F7-3B28-8D87-C07E8F7A0EF4> /usr/lib/objc/libobjcMsgSend19.dylib
+       0x24be40000 -        0x24be40f2f  libobjcMsgSend20.dylib (973.1) <74E67C8B-6BCA-3184-A18E-A97F370052C6> /usr/lib/objc/libobjcMsgSend20.dylib
+       0x253e40000 -        0x253e40f2f  libobjcMsgSend21.dylib (973.1) <CC0D732F-98E7-3888-9E15-70984DA2FB04> /usr/lib/objc/libobjcMsgSend21.dylib
+       0x25be40000 -        0x25be40f2f  libobjcMsgSend22.dylib (973.1) <85A60286-5DE3-32BA-B18C-2A498B065C88> /usr/lib/objc/libobjcMsgSend22.dylib
+       0x263e40000 -        0x263e40f2f  libobjcMsgSend23.dylib (973.1) <5452A0D2-6B19-39BE-ADDD-80B7BCDE3A98> /usr/lib/objc/libobjcMsgSend23.dylib
+       0x26be40000 -        0x26be40f2f  libobjcMsgSend24.dylib (973.1) <94BBF2D6-722B-350D-8557-4D25A8E8D53A> /usr/lib/objc/libobjcMsgSend24.dylib
+       0x273e40000 -        0x273e40f2f  libobjcMsgSend25.dylib (973.1) <35481387-5A8E-3AE4-86A6-94CEB3CC8726> /usr/lib/objc/libobjcMsgSend25.dylib
+       0x28be40000 -        0x28be40f2f  libobjcMsgSend26.dylib (973.1) <9E0C8664-E7F4-39D1-AAFC-BD92B255E4E8> /usr/lib/objc/libobjcMsgSend26.dylib
+       0x293e40000 -        0x293e40f2f  libobjcMsgSend27.dylib (973.1) <FD424935-55A9-3650-955A-EED3441A1D19> /usr/lib/objc/libobjcMsgSend27.dylib
+       0x29be40000 -        0x29be40f2f  libobjcMsgSend28.dylib (973.1) <09BA7B97-7DF7-3C7F-932A-B6847662FC49> /usr/lib/objc/libobjcMsgSend28.dylib
+       0x2a3e40000 -        0x2a3e40f2f  libobjcMsgSend29.dylib (973.1) <36D5BA3F-2139-30B0-8558-556764BE9813> /usr/lib/objc/libobjcMsgSend29.dylib
+       0x2abe40000 -        0x2abe40f2f  libobjcMsgSend30.dylib (973.1) <9F05564A-9D12-372C-98FC-E9F0E6BE4F04> /usr/lib/objc/libobjcMsgSend30.dylib
+       0x2b0b5a000 -        0x2b0b60fe5  libRosetta.dylib (385) <E359944B-D230-33F9-A04E-0C3B17C3326E> /usr/lib/libRosetta.dylib
+       0x2b1549000 -        0x2b154c75b  libsystem_darwindirectory.dylib (129.0.1) <61264923-2AA5-3658-B8C4-550C71E9D4B3> /usr/lib/system/libsystem_darwindirectory.dylib
+       0x2b154d000 -        0x2b1557d9b  libsystem_eligibility.dylib (446.1.3) <EDDE8E9C-A2CF-3931-BBB3-321CB852EB30> /usr/lib/system/libsystem_eligibility.dylib
+       0x2b1558000 -        0x2b156142b  libsystem_sanitizers.dylib (32) <7138ED99-7AA0-34EA-B35B-20EF6ADB1EED> /usr/lib/system/libsystem_sanitizers.dylib
+       0x2b1562000 -        0x2b1562a13  libsystem_trial.dylib (511) <6AE48824-EC44-3A8C-B501-BE57DBE892E7> /usr/lib/system/libsystem_trial.dylib
+       0x2b3e40000 -        0x2b3e40f2f  libobjcMsgSend31.dylib (973.1) <0985E20F-78C3-3466-A2B2-DBB95F7104A3> /usr/lib/objc/libobjcMsgSend31.dylib
+       0x2bbe40000 -        0x2bbe40f2f  libobjcMsgSend32.dylib (973.1) <0D309D58-D576-3E5D-AD4B-6D55AB491702> /usr/lib/objc/libobjcMsgSend32.dylib
+       0x2c3e40000 -        0x2c3e40f2f  libobjcMsgSend33.dylib (973.1) <346E0484-48FA-369B-8A64-93B5F5341CFE> /usr/lib/objc/libobjcMsgSend33.dylib
+       0x2cbe40000 -        0x2cbe40f2f  libobjcMsgSend34.dylib (973.1) <6A31F809-BCBE-3E01-A367-E91FDACCE324> /usr/lib/objc/libobjcMsgSend34.dylib

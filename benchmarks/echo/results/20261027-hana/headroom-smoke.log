@@ -1,0 +1,8 @@
+tokio c=64 b=4096 r=1: 188750 echoes/s, p99=440.57 us, server CPU=65.1%, client CPU=138.8%
+tokio-adapter-poll c=64 b=4096 r=1: 161910 echoes/s, p99=516.86 us, server CPU=68.9%, client CPU=122.3%
+iouring-poll c=64 b=4096 r=1: 165840 echoes/s, p99=498.94 us, server CPU=70.0%, client CPU=124.0%
+native-poll c=64 b=4096 r=1: 182340 echoes/s, p99=499.71 us, server CPU=66.5%, client CPU=133.6%
+tokio-adapter-poll c=64 b=64 r=1: 198500 echoes/s, p99=436.48 us, server CPU=70.0%, client CPU=121.7%
+native-poll c=64 b=64 r=1: 219100 echoes/s, p99=396.03 us, server CPU=66.3%, client CPU=140.6%
+iouring-poll c=64 b=64 r=1: 183490 echoes/s, p99=473.60 us, server CPU=70.3%, client CPU=122.4%
+tokio c=64 b=64 r=1: 229880 echoes/s, p99=367.10 us, server CPU=65.2%, client CPU=141.8%

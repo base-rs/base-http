@@ -1,0 +1,174 @@
+[
+  {
+    "backend": "tokio-task-raw",
+    "concurrency": 16,
+    "repetition": 1,
+    "requests": 4729478,
+    "load": {
+      "requests_per_second": 235303.85,
+      "latency_mean_ms": 0.06743,
+      "latency_p50_ms": 0.063,
+      "latency_p99_ms": 0.10400000000000001,
+      "errors": 0
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 0.6744930413039241,
+      "system_seconds": 2.33006686995901
+    }
+  },
+  {
+    "backend": "base-native-raw",
+    "concurrency": 16,
+    "repetition": 1,
+    "requests": 4591056,
+    "load": {
+      "requests_per_second": 228413.42,
+      "latency_mean_ms": 0.07588,
+      "latency_p50_ms": 0.065,
+      "latency_p99_ms": 0.106,
+      "errors": 0
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 0.7710644348489759,
+      "system_seconds": 2.348043674483605
+    }
+  },
+  {
+    "backend": "tokio-task-raw",
+    "concurrency": 64,
+    "repetition": 1,
+    "requests": 4875557,
+    "load": {
+      "requests_per_second": 242567.89,
+      "latency_mean_ms": 0.26125,
+      "latency_p50_ms": 0.253,
+      "latency_p99_ms": 0.34400000000000003,
+      "errors": 0
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 0.637875836545445,
+      "system_seconds": 2.270509810468835
+    }
+  },
+  {
+    "backend": "base-native-raw",
+    "concurrency": 64,
+    "repetition": 1,
+    "requests": 4734394,
+    "load": {
+      "requests_per_second": 235547.69,
+      "latency_mean_ms": 0.27129000000000003,
+      "latency_p50_ms": 0.26,
+      "latency_p99_ms": 0.35100000000000003,
+      "errors": 0
+    },
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "cpu_us_per_request": {
+      "user_seconds": 0.7223733385941263,
+      "system_seconds": 2.2980765859368697
+    }
+  }
+]

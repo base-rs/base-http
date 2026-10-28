@@ -1,0 +1,751 @@
+commit 587e74620d1dc1468a588f02b7ea1fd37b722db7
+Author: Samuel Williams <samuel.williams@shopify.com>
+Date:   Tue Oct 27 22:43:56 2026 +1300
+
+    Avoid redundant io_uring scalar stream receives.
+
+diff --git a/context/design.md b/context/design.md
+index de2e035..216f47d 100644
+--- a/context/design.md
++++ b/context/design.md
+@@ -208,7 +208,7 @@ io\_uring retains stable shared monitor storage privately. Application ownership
+ 
+ The io\_uring backend lazily submits a multishot `PollAdd` when an operation needs readiness. Its stable monitor address is the SQE's `user_data`. Readiness CQEs with `MORE` keep that registration alive across successive operations; only a terminal CQE retires it. An unsupported multishot poll falls back to one-shot polling for that record. A terminal successful notification remains usable, and the next readiness wait can rearm it. Ordinary numeric request IDs are even; the low bit identifies monitor pointers and the existing high bit identifies cancellation CQEs. Supported Linux user-space addresses leave the high tag bit clear.
+ 
+-Readiness is cached per direction. A `WouldBlock` result clears only the readiness tick observed before the syscall, so a newer notification racing that syscall remains visible. All current monitor operations attempt a nonblocking syscall first and preserve readiness on successful transfers, including short receives. A short TCP receive does not establish exhaustion: urgent-data boundaries can leave ordinary bytes queued, even after another socket alias has consumed the urgent byte and removed `POLLPRI`. Stream and packet resources share this conservative private monitor policy. The public compile-time OOB option does not select a different io_uring implementation: multishot poll completions can include advisory priority bits for ordinary TCP wakeups, so these completions alone do not establish that urgent data is present. EOF also preserves readiness, so subsequent EOF reads complete without waiting for another edge. Payload operations use direct nonblocking syscalls with no borrowed pointer retained by the kernel. `socket_monitor_wait` consumes neither bytes nor cached readiness and may report spurious readiness; callers retry their nonblocking operation.
++Readiness is cached per direction. A drained read clears only the generation observed before its syscall, preserving notifications racing it. Ordinary scalar stream reads with OOB support disabled wait on cached readiness after a short positive read instead of issuing an extra empty receive. Full reads keep probing; sticky closure flags inhibit short-read clearing to preserve EOF. OOB-enabled scalar reads, pooled reads, packet reads, and flagged/message receives retain syscall-first retries and clear only after `WouldBlock`. Urgent marks can leave ordinary data queued after a short receive, including when an alias consumes the urgent byte; use `with_oob_support::<true>()` when progress across those marks is required. Multishot ring poll completions can forward broad TCP wake keys containing `POLLPRI` for ordinary input. Only isolated priority notifications are unambiguous and become sticky `Unsupported` errors for disabled scalar readers; disabled support does not guarantee urgent-data detection. EOF also preserves readiness. Payload operations use direct nonblocking syscalls with no borrowed pointer retained by the kernel. `socket_monitor_wait` consumes neither bytes nor cached readiness and may report spurious readiness; callers retry their nonblocking operation.
+ 
+ Private monitor storage has one application owner, held by its bound resource, and independent backend retention. It retains a concrete shared record and an ownership-role flag, without generic projection, erased owners, or application-handle reference counting. `retained()` gives the backend an independently retained owner without extending the application's registration lifetime. The exclusive resource borrow serializes application waits. Dropping or cancelling an individual wait releases any cached waker, while leaving the poll armed. Notifications advance a readiness generation and consume that waker under the same lock; normal notification-driven completion therefore skips the cleanup lock. Dropping the resource requests registration retirement. The worker retains storage until the final original CQE and any issued cancellation CQE both arrive. Generation numbers drawn from the controller's unique request counter reject delayed cancellation commands, including after address reuse. Cancellation compares opaque tokens against live records instead of dereferencing a potentially stale command pointer.
+ 
+@@ -218,7 +218,7 @@ io\_uring allocates shared retirement status once per monitor, independently of
+ 
+ Persistent registrations do not consume permits reserved for transient I/O operations: otherwise enough idle sockets could prevent another connection from making progress. Worker tables reserve initial capacity and can grow when a new registration needs space. Ordinary reuse allocates nothing after capacity exists. A directional record has at most one waiter, and independent reader/writer records support simultaneous tasks.
+ 
+-A suspended wait retains its original ring even if its polling task changes threads. A borrowed monitor operation likewise keeps the route selected by its first readiness wait through every retry, and retries the nonblocking syscall on each poll before consulting readiness. A later operation without cached readiness can select a changed compatible worker, retiring the former registration before rebinding the record to its own ring. This fixup is confined to migration; normal repeated waits keep their registration. Neither permanent task pinning nor a new stealing policy is introduced. Timers retain their existing worker-owned registration contract.
++A suspended wait retains its original ring even if its polling task changes threads. A borrowed monitor operation likewise keeps the route selected by its first readiness wait through every retry. Generic monitor operations probe the nonblocking syscall on every poll; the ordinary scalar stream policy may wait first after a drained read. A later operation without cached readiness can select a changed compatible worker, retiring the former registration before rebinding the record to its own ring. This fixup is confined to migration; normal repeated waits keep their registration. Neither permanent task pinning nor a new stealing policy is introduced. Timers retain their existing worker-owned registration contract.
+ 
+ ## Sequential file monitor machinery
+ 
+diff --git a/crates/iouring/readme.md b/crates/iouring/readme.md
+index 954740d..9ccbfbf 100644
+--- a/crates/iouring/readme.md
++++ b/crates/iouring/readme.md
+@@ -49,7 +49,7 @@ Call the bound handle’s uncancellable `close()` while the drivers remain activ
+ 
+ ## Borrowed I/O
+ 
+-Bound readers and writers attempt nonblocking syscalls with `MSG_DONTWAIT`. Ready calls allocate no request, acquire no ring capacity, and continue in the same task poll. After `WouldBlock`, their private persistent directional registration waits on the current worker's ring, then retries the syscall. Readiness remains advisory and is cleared only after `WouldBlock`. Worker migration retires the previous registration before installing its replacement. No borrowed payload or vector pointer survives a poll; dropping a borrowed operation ends access immediately. Close retires the handle's registration before exclusive socket close.
++Bound readers and writers attempt nonblocking syscalls with `MSG_DONTWAIT`. Ready calls allocate no request, acquire no ring capacity, and continue in the same task poll. After `WouldBlock`, their private persistent directional registration waits on the current worker's ring, then retries the syscall. Readiness remains advisory. Ordinary scalar stream reads with OOB support disabled clear only their observed generation after a short positive read and wait before probing again; full reads keep draining. Closure notifications inhibit short-read clearing so the final data cannot hide EOF. OOB-enabled scalar reads, pooled reads, and flagged/message receives retain syscall-first retries and clear only after `WouldBlock`. Use `with_oob_support::<true>()` when normal reads must progress across urgent marks, including with an OOB-consuming alias. Ring poll completions can forward broad TCP wake hints containing `POLLPRI` for ordinary data, so disabled support rejects only unambiguous isolated priority notifications and does not guarantee urgent-data detection. Worker migration retires the previous registration before installing its replacement. No borrowed payload or vector pointer survives a poll; dropping a borrowed operation ends access immediately. Close retires the handle's registration before exclusive socket close.
+ 
+ ## Receiving message sequences
+ 
+diff --git a/crates/iouring/src/io_uring_selector/monitor.rs b/crates/iouring/src/io_uring_selector/monitor.rs
+index ade182c..b6f4c7b 100644
+--- a/crates/iouring/src/io_uring_selector/monitor.rs
++++ b/crates/iouring/src/io_uring_selector/monitor.rs
+@@ -9,6 +9,11 @@ use std::task::Waker;
+ 
+ pub(super) const MONITOR_TAG: u64 = 1;
+ const NO_SLOT: usize = usize::MAX;
++// Low bits retain conditions that make a short stream read unsafe to treat as
++// drained. The upper bits identify a notification, including across wraparound.
++const READ_CLOSED: u64 = 1;
++const URGENT: u64 = 2;
++const NEXT_GENERATION: u64 = 4;
+ pub(crate) type State = SocketMonitor;
+ pub(crate) type Storage = MonitorStorage;
+ 
+@@ -51,15 +56,28 @@ impl IoUringMonitorRegistration {
+     }
+ 
+     fn clear_readiness(&self, observed: u64) {
+-        // A WouldBlock consumes only the notification observed before its syscall. A later notification remains ready without a read-modify-write on either side.
++        // A drained read consumes only the notification observed before its syscall. A later notification remains ready without a read-modify-write on either side.
+         self.cleared.store(observed, Ordering::Release);
+     }
+ 
+-    fn notify(&self) {
++    fn notify(&self, events: i32) {
+         let waker = {
+             let mut status = self.status.lock().unwrap();
+-            // The status lock serializes publishers. Readers snapshot this wrapping generation before their syscall and clear that generation only after WouldBlock.
+-            let next = self.readiness.load(Ordering::Relaxed).wrapping_add(1);
++            // The status lock serializes publishers. Sticky closure and urgent
++            // flags survive both subsequent notifications and readiness clears.
++            let closed = events & (libc::POLLRDHUP | libc::POLLHUP | libc::POLLERR) as i32 != 0;
++            // TCP's ordinary wake key includes POLLPRI too; ring poll
++            // completions can forward that hint without vfs_poll. Only an
++            // isolated priority notification is unambiguous here. Disabled OOB
++            // support does not guarantee detection; enabled reads probe until
++            // WouldBlock regardless of these hints.
++            let urgent = events & (libc::POLLPRI | libc::POLLIN) as i32 == libc::POLLPRI as i32;
++            let flags = (u64::from(closed) * READ_CLOSED) | (u64::from(urgent) * URGENT);
++            let next = self
++                .readiness
++                .load(Ordering::Relaxed)
++                .wrapping_add(NEXT_GENERATION)
++                | flags;
+             self.readiness.store(next, Ordering::Release);
+             status.waker.take()
+         };
+@@ -330,6 +348,70 @@ impl IoUringSelector {
+         })
+         .await
+     }
++    // Ordinary scalar reads can wait after draining a stream. Flagged/message
++    // receives retain their syscall-first semantics, as does OOB-enabled input:
++    // an urgent mark can stop a short read while normal data remains queued.
++    pub(crate) async fn socket_stream_recv_poll<const SUPPORT_OOB: bool>(
++        &self,
++        monitor: &mut Storage,
++        probe: &mut bool,
++        buffer: &mut [u8],
++        cancellation: &Cancellation,
++    ) -> OperationResult<usize> {
++        if SUPPORT_OOB {
++            return self
++                .socket_monitor_recv_poll(monitor, buffer, SocketRecvFlags::default(), cancellation)
++                .await;
++        }
++        let state = monitor.as_ref();
++        let registration = state.registration();
++        let mut route = None;
++        let mut wait = Wait::new(registration);
++        let mut cancelled = pin!(cancellation.cancelled());
++        poll_fn(|context| {
++            loop {
++                cancellation.check()?;
++                self.check_monitor(state)?;
++                let observed = registration.readiness.load(Ordering::Acquire);
++                if observed & URGENT != 0 {
++                    return Poll::Ready(Err(io::Error::new(
++                        io::ErrorKind::Unsupported,
++                        "TCP urgent data is not supported by this reader",
++                    )
++                    .into()));
++                }
++                if *probe || registration.is_ready() {
++                    match syscall("monitor-recv", || {
++                        crate::retained_socket::recv(
++                            state.socket(),
++                            buffer,
++                            SocketRecvFlags::default(),
++                        )
++                    }) {
++                        Ok(count) => {
++                            *probe = count == buffer.len() || observed & READ_CLOSED != 0;
++                            if count != 0 && !*probe {
++                                registration.clear_readiness(observed);
++                            }
++                            return Poll::Ready(Ok(count));
++                        }
++                        Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
++                            *probe = false;
++                            registration.clear_readiness(observed);
++                        }
++                        Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
++                        Err(error) => return Poll::Ready(Err(error.into())),
++                    }
++                }
++                let controller = route.get_or_insert_with(|| self.route_ref());
++                if cancelled.as_mut().poll(context).is_ready() {
++                    return Poll::Ready(Err(base_scheduler::Cancelled.into()));
++                }
++                std::task::ready!(self.poll_monitor_wait(monitor, controller, &mut wait, context))?;
++            }
++        })
++        .await
++    }
+     pub(crate) async fn socket_monitor_send_poll(
+         &self,
+         monitor: &mut Storage,
+@@ -454,7 +536,7 @@ impl Monitors {
+             self.slots.len() - 1
+         });
+         let events = match submission.storage.interest() {
+-            Interest::Readable => libc::POLLIN | libc::POLLRDHUP,
++            Interest::Readable => libc::POLLIN | libc::POLLPRI | libc::POLLRDHUP,
+             Interest::Writable => libc::POLLOUT,
+         };
+         let entry = opcode::PollAdd::new(
+@@ -517,9 +599,10 @@ impl Monitors {
+                     result >= 0,
+                     "multishot poll errors carry a final CQE without MORE"
+                 );
+-                entry.submission.storage.registration().notify();
++                entry.submission.storage.registration().notify(result);
+                 return;
+             }
++            let events = result;
+             let result = if result < 0 {
+                 Err(io::Error::from_raw_os_error(-result))
+             } else {
+@@ -536,7 +619,7 @@ impl Monitors {
+                 entry.original = Some(Ok(()));
+             } else {
+                 if result.is_ok() {
+-                    entry.submission.storage.registration().notify();
++                    entry.submission.storage.registration().notify(events);
+                 }
+                 entry.original = Some(result);
+             }
+diff --git a/crates/iouring/src/io_uring_selector/monitor/tests.rs b/crates/iouring/src/io_uring_selector/monitor/tests.rs
+index 20fc362..758f414 100644
+--- a/crates/iouring/src/io_uring_selector/monitor/tests.rs
++++ b/crates/iouring/src/io_uring_selector/monitor/tests.rs
+@@ -221,7 +221,7 @@ fn full_reads_keep_progress_and_short_reads_preserve_racing_notifications() {
+     super::super::tests::BEFORE_SYSCALL.with(|hook| {
+         *hook.borrow_mut() = Some((
+             "monitor-recv",
+-            Box::new(move || notified.registration().notify()),
++            Box::new(move || notified.registration().notify(libc::POLLIN as i32)),
+         ));
+     });
+     let mut short = [0; 8];
+@@ -910,7 +910,7 @@ fn cached_readiness_survives_success_and_newer_notifications_survive_would_block
+     let (socket, _peer) = sockets(&selector);
+     let mut writer = selector.socket_monitor(&socket, Interest::Writable);
+     let inspect = writer.retained();
+-    inspect.registration().notify();
++    inspect.registration().notify(libc::POLLIN as i32);
+     let before = inspect.registration().readiness.load(Ordering::Acquire);
+     let mut attempts = 0;
+     assert_eq!(
+@@ -922,7 +922,7 @@ fn cached_readiness_survives_success_and_newer_notifications_survive_would_block
+                 attempts += 1;
+                 if attempts == 1 {
+                     // A notification racing the syscall's EAGAIN must not be cleared using the older readiness tick.
+-                    inspect.registration().notify();
++                    inspect.registration().notify(libc::POLLIN as i32);
+                     Err(io::ErrorKind::WouldBlock.into())
+                 } else {
+                     Ok(5)
+@@ -951,7 +951,7 @@ fn readiness_generations_preserve_a_notification_across_wraparound() {
+     registration.readiness.store(u64::MAX, Ordering::Release);
+     registration.cleared.store(u64::MAX, Ordering::Release);
+     assert!(!registration.is_ready());
+-    registration.notify();
++    registration.notify(libc::POLLIN as i32);
+     assert!(registration.is_ready());
+     registration.clear_readiness(u64::MAX);
+     assert!(registration.is_ready());
+@@ -1424,7 +1424,7 @@ fn a_general_tcp_monitor_keeps_syscall_first_behavior_after_short_reads() {
+     let (socket, mut peer) = sockets(&selector);
+     let mut reader = selector.socket_monitor(&socket, Interest::Readable);
+     let never = Cancellation::never();
+-    reader.registration().notify();
++    reader.registration().notify(libc::POLLIN as i32);
+     peer.write_all(b"a").unwrap();
+     let mut buffer = [0; 16];
+     assert_eq!(
+@@ -1467,7 +1467,7 @@ fn a_stream_monitor_on_a_datagram_socket_keeps_message_semantics() {
+         .unwrap();
+     let mut reader = selector.socket_monitor(&socket, Interest::Readable);
+ 
+-    reader.registration().notify();
++    reader.registration().notify(libc::POLLIN as i32);
+     for payload in [&b"x"[..], b"", b"yz"] {
+         peer.send(payload).unwrap();
+     }
+@@ -1798,3 +1798,338 @@ fn cancellation_racing_would_block_does_not_wait_for_readiness() {
+         .is_none()
+     );
+ }
++
++#[test]
++fn scalar_stream_reads_skip_empty_probes_and_continue_after_full_reads() {
++    let (selector, driver) = IoUringSelector::new(options()).unwrap();
++    let mut worker = driver.enter();
++    let waker = worker.waker();
++    let mut context = Context::from_waker(&waker);
++    let (socket, mut peer) = sockets(&selector);
++    let mut monitor = selector.socket_monitor(&socket, Interest::Readable);
++    let mut probe = true;
++    let never = Cancellation::never();
++    let mut bytes = [0; 2];
++    peer.write_all(b"abc").unwrap();
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap(),
++        2
++    );
++    assert_eq!(&bytes, b"ab");
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap(),
++        1
++    );
++    assert_eq!(bytes[0], b'c');
++    let attempts = Arc::new(AtomicUsize::new(0));
++    let counted = Arc::clone(&attempts);
++    let _cleanup = super::super::tests::Failures::new([]);
++    super::super::tests::BEFORE_SYSCALL.with(|hook| {
++        *hook.borrow_mut() = Some((
++            "monitor-recv",
++            Box::new(move || {
++                counted.fetch_add(1, Ordering::Relaxed);
++            }),
++        ));
++    });
++    {
++        let mut receive = pin!(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ));
++        assert!(receive.as_mut().poll(&mut context).is_pending());
++        assert!(receive.as_mut().poll(&mut context).is_pending());
++        assert_eq!(
++            attempts.load(Ordering::Relaxed),
++            0,
++            "a drained scalar stream should wait without another receive"
++        );
++        peer.write_all(b"d").unwrap();
++        assert_eq!(
++            drive(&mut worker, &mut context, receive.as_mut()).unwrap(),
++            1
++        );
++    }
++    assert_eq!(attempts.load(Ordering::Relaxed), 1);
++    assert_eq!(bytes[0], b'd');
++    let mut close = pin!(selector.socket_monitor_close(&mut monitor));
++    drive(&mut worker, &mut context, close.as_mut()).unwrap();
++}
++
++#[test]
++fn scalar_short_reads_preserve_notifications_racing_the_syscall() {
++    let (selector, _driver) = IoUringSelector::new(options()).unwrap();
++    let (socket, mut peer) = sockets(&selector);
++    let mut monitor = selector.socket_monitor(&socket, Interest::Readable);
++    let inspect = monitor.retained();
++    inspect.registration().notify(libc::POLLIN as i32);
++    let mut probe = false;
++    let never = Cancellation::never();
++    let mut bytes = [0; 8];
++    peer.write_all(b"a").unwrap();
++    let notified = inspect.retained();
++    let _cleanup = super::super::tests::Failures::new([]);
++    super::super::tests::BEFORE_SYSCALL.with(|hook| {
++        *hook.borrow_mut() = Some((
++            "monitor-recv",
++            Box::new(move || notified.registration().notify(libc::POLLIN as i32)),
++        ));
++    });
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap(),
++        1
++    );
++    assert!(inspect.registration().is_ready());
++    peer.write_all(b"b").unwrap();
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap(),
++        1
++    );
++    assert_eq!(bytes[0], b'b');
++    assert!(!inspect.registration().is_ready());
++}
++
++#[test]
++fn scalar_short_reads_preserve_shutdown_and_eof() {
++    let (selector, driver) = IoUringSelector::new(options()).unwrap();
++    let mut worker = driver.enter();
++    let waker = worker.waker();
++    let mut context = Context::from_waker(&waker);
++    let (socket, mut peer) = sockets(&selector);
++    let mut monitor = selector.socket_monitor(&socket, Interest::Readable);
++    let inspect = monitor.retained();
++    let mut probe = true;
++    let never = Cancellation::never();
++    let mut bytes = [0; 8];
++    {
++        let mut read = pin!(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ));
++        assert!(read.as_mut().poll(&mut context).is_pending());
++    }
++    peer.write_all(b"last").unwrap();
++    peer.shutdown(std::net::Shutdown::Write).unwrap();
++    until(&mut worker, || {
++        inspect.registration().readiness.load(Ordering::Acquire) & READ_CLOSED != 0
++    });
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap(),
++        4
++    );
++    assert_eq!(&bytes[..4], b"last");
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap(),
++        0
++    );
++    let mut close = pin!(selector.socket_monitor_close(&mut monitor));
++    drive(&mut worker, &mut context, close.as_mut()).unwrap();
++}
++
++#[test]
++fn scalar_stream_waits_can_be_cancelled_and_abandoned_without_consuming_input() {
++    let (selector, driver) = IoUringSelector::new(options()).unwrap();
++    let mut worker = driver.enter();
++    let waker = worker.waker();
++    let mut context = Context::from_waker(&waker);
++    let (socket, mut peer) = sockets(&selector);
++    let mut monitor = selector.socket_monitor(&socket, Interest::Readable);
++    let mut probe = true;
++    let cancellation = Cancellation::new();
++    let never = Cancellation::never();
++    let mut bytes = [0; 8];
++    {
++        let mut read = pin!(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &cancellation
++        ));
++        assert!(read.as_mut().poll(&mut context).is_pending());
++        peer.write_all(b"saved").unwrap();
++        cancellation.cancel();
++        assert!(matches!(
++            read.as_mut().poll(&mut context),
++            Poll::Ready(Err(OperationError::Cancelled(_)))
++        ));
++    }
++    {
++        let mut read = pin!(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ));
++        assert!(read.as_mut().poll(&mut context).is_pending());
++    }
++    bytes.fill(0xff);
++    {
++        let mut read = pin!(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ));
++        assert_eq!(drive(&mut worker, &mut context, read.as_mut()).unwrap(), 5);
++    }
++    assert_eq!(&bytes[..5], b"saved");
++    peer.write_all(b"again").unwrap();
++    let _failures =
++        super::super::tests::Failures::new([("monitor-recv", io::ErrorKind::Interrupted.into())]);
++    {
++        let mut read = pin!(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ));
++        assert_eq!(drive(&mut worker, &mut context, read.as_mut()).unwrap(), 5);
++    }
++    assert_eq!(&bytes[..5], b"again");
++    probe = true;
++    let _failures = super::super::tests::Failures::new([(
++        "monitor-recv",
++        io::ErrorKind::ConnectionReset.into(),
++    )]);
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap_err()
++        .kind(),
++        io::ErrorKind::ConnectionReset
++    );
++    let mut close = pin!(selector.socket_monitor_close(&mut monitor));
++    drive(&mut worker, &mut context, close.as_mut()).unwrap();
++}
++
++#[test]
++fn scalar_stream_reads_report_wait_failures_and_selector_shutdown() {
++    let (selector, _driver) = IoUringSelector::new(options()).unwrap();
++    let (socket, _peer) = sockets(&selector);
++    let mut monitor = selector.socket_monitor(&socket, Interest::Readable);
++    let submission = staged(&selector, &monitor);
++    let token = submission.token();
++    let mut monitors = Monitors::new(1);
++    monitors.insert(submission);
++    monitors.complete(token, -libc::EBADF, false, false);
++    let mut probe = false;
++    let never = Cancellation::never();
++    let mut bytes = [0; 8];
++    let error = block_on(selector.socket_stream_recv_poll::<false>(
++        &mut monitor,
++        &mut probe,
++        &mut bytes,
++        &never,
++    ))
++    .unwrap_err();
++    assert!(
++        matches!(error, OperationError::Io(error) if error.raw_os_error() == Some(libc::EBADF))
++    );
++    selector.close();
++    assert_eq!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &never
++        ))
++        .unwrap_err()
++        .kind(),
++        io::ErrorKind::BrokenPipe
++    );
++}
++
++#[test]
++fn cancellation_racing_a_scalar_would_block_registers_no_wait() {
++    let (selector, _driver) = IoUringSelector::new(options()).unwrap();
++    let (socket, _peer) = sockets(&selector);
++    let mut monitor = selector.socket_monitor(&socket, Interest::Readable);
++    let cancellation = Cancellation::new();
++    let token = cancellation.clone();
++    let _cleanup = super::super::tests::Failures::new([]);
++    super::super::tests::BEFORE_SYSCALL.with(|hook| {
++        *hook.borrow_mut() = Some((
++            "monitor-recv",
++            Box::new(move || {
++                token.cancel();
++            }),
++        ));
++    });
++    let mut probe = true;
++    let mut bytes = [0; 8];
++    assert!(matches!(
++        block_on(selector.socket_stream_recv_poll::<false>(
++            &mut monitor,
++            &mut probe,
++            &mut bytes,
++            &cancellation
++        )),
++        Err(OperationError::Cancelled(_))
++    ));
++    assert!(!monitor.registration().status.lock().unwrap().pending);
++}
++
++#[test]
++fn broad_tcp_wake_hints_are_not_urgent_and_closure_remains_sticky() {
++    let (selector, _driver) = IoUringSelector::new(options()).unwrap();
++    let (socket, _peer) = sockets(&selector);
++    let monitor = selector.socket_monitor(&socket, Interest::Readable);
++    let registration = monitor.registration();
++    registration.notify((libc::POLLIN | libc::POLLPRI) as i32);
++    assert_eq!(registration.readiness.load(Ordering::Acquire) & URGENT, 0);
++    registration.notify(libc::POLLRDHUP as i32);
++    registration.clear_readiness(registration.readiness.load(Ordering::Acquire));
++    registration.notify(libc::POLLIN as i32);
++    assert_ne!(
++        registration.readiness.load(Ordering::Acquire) & READ_CLOSED,
++        0
++    );
++    registration.notify(libc::POLLPRI as i32);
++    registration.clear_readiness(registration.readiness.load(Ordering::Acquire));
++    registration.notify(libc::POLLIN as i32);
++    assert_ne!(registration.readiness.load(Ordering::Acquire) & URGENT, 0);
++}
+diff --git a/crates/iouring/src/io_uring_socket_stream_reader.rs b/crates/iouring/src/io_uring_socket_stream_reader.rs
+index b6d0d2b..db4eabe 100644
+--- a/crates/iouring/src/io_uring_socket_stream_reader.rs
++++ b/crates/iouring/src/io_uring_socket_stream_reader.rs
+@@ -16,17 +16,18 @@ use std::{
+ };
+ 
+ /// A scheduler-bound stream reader with reusable registration and lazily allocated receive storage. Normally obtained through [`SocketStreamReading`](base_scheduler::SocketStreamReading).
+-pub(crate) struct IoUringSocketStreamReader<'a> {
++pub(crate) struct IoUringSocketStreamReader<'a, const SUPPORT_OOB: bool = false> {
+     scheduler: &'a IoUringSelector,
+     operations: crate::operation_state::OperationState,
+     owned: Option<crate::io_uring_selector::socket_read::State>,
+     monitor: MonitorStorage,
+     pool: Option<IoUringBufferPool>,
++    probe: bool,
+     eof: bool,
+     closed: bool,
+ }
+ 
+-impl<'a> IoUringSocketStreamReader<'a> {
++impl<'a, const SUPPORT_OOB: bool> IoUringSocketStreamReader<'a, SUPPORT_OOB> {
+     /// Construct the default backend composition without submitting payload I/O. Applications normally use the scheduler factory.
+     pub(crate) fn new(scheduler: &'a IoUringSelector, socket: &NativeSocket) -> io::Result<Self> {
+         if scheduler.socket_type(socket)? != base_scheduler::SocketType::Stream {
+@@ -41,6 +42,7 @@ impl<'a> IoUringSocketStreamReader<'a> {
+             owned: None,
+             monitor: scheduler.socket_monitor(socket, Interest::Readable),
+             pool: None,
++            probe: true,
+             eof: false,
+             closed: false,
+         })
+@@ -62,9 +64,22 @@ impl<'a> IoUringSocketStreamReader<'a> {
+     }
+ }
+ 
+-impl SocketStreamReader for IoUringSocketStreamReader<'_> {
++impl<const SUPPORT_OOB: bool> SocketStreamReader for IoUringSocketStreamReader<'_, SUPPORT_OOB> {
+     type Buffer = <IoUringBufferPool as BufferPool>::Buffer;
+ 
++    fn with_oob_support<const OOB: bool>(self) -> impl SocketStreamReader<Buffer = Self::Buffer> {
++        IoUringSocketStreamReader::<OOB> {
++            scheduler: self.scheduler,
++            operations: self.operations,
++            owned: self.owned,
++            monitor: self.monitor,
++            pool: self.pool,
++            probe: true,
++            eof: self.eof,
++            closed: self.closed,
++        }
++    }
++
+     async fn read(&mut self, cancellation: &Cancellation) -> OperationResult<Option<Self::Buffer>> {
+         cancellation.check()?;
+         if self.closed || self.eof {
+@@ -123,10 +138,10 @@ impl SocketStreamReader for IoUringSocketStreamReader<'_> {
+         }
+         let count = self
+             .scheduler
+-            .socket_monitor_recv_poll(
++            .socket_stream_recv_poll::<SUPPORT_OOB>(
+                 &mut self.monitor,
++                &mut self.probe,
+                 buffer,
+-                SocketRecvFlags::default(),
+                 cancellation,
+             )
+             .await?;
+diff --git a/crates/iouring/src/io_uring_socket_stream_reader/tests.rs b/crates/iouring/src/io_uring_socket_stream_reader/tests.rs
+index 85bd03a..338a6b6 100644
+--- a/crates/iouring/src/io_uring_socket_stream_reader/tests.rs
++++ b/crates/iouring/src/io_uring_socket_stream_reader/tests.rs
+@@ -46,11 +46,15 @@ fn urgent<const OOB: bool>(consume_urgent: bool) {
+         worker.turn(Some(Duration::from_millis(1))).unwrap();
+         assert_eq!(drive(reading, &mut worker).unwrap(), 1);
+     }
+-    peer.write_all(b"before").unwrap();
++    if OOB {
++        peer.write_all(b"before").unwrap();
++    }
+     socket2::SockRef::from(&peer)
+         .send_with_flags(b"!", libc::MSG_OOB)
+         .unwrap();
+-    peer.write_all(b"after").unwrap();
++    if OOB {
++        peer.write_all(b"after").unwrap();
++    }
+     std::thread::sleep(Duration::from_millis(10));
+     if consume_urgent {
+         let mut urgent = [std::mem::MaybeUninit::uninit(); 1];
+@@ -63,6 +67,26 @@ fn urgent<const OOB: bool>(consume_urgent: bool) {
+             1
+         );
+     }
++    if !OOB {
++        worker.turn(Some(Duration::from_millis(10))).unwrap();
++        assert_eq!(
++            drive(reader.read_into(&mut buffer, &never), &mut worker)
++                .unwrap_err()
++                .kind(),
++            io::ErrorKind::Unsupported
++        );
++        // Urgent state remains sticky after normal readiness is consumed.
++        assert_eq!(
++            block_on(reader.read_into(&mut buffer, &never))
++                .unwrap_err()
++                .kind(),
++            io::ErrorKind::Unsupported
++        );
++    }
++    let mut reader = reader.with_oob_support::<true>();
++    if !OOB {
++        peer.write_all(b"beforeafter").unwrap();
++    }
+     let mut received = Vec::new();
+     while received.len() < 11 {
+         let count = drive(reader.read_into(&mut buffer, &never), &mut worker).unwrap();
+@@ -88,7 +112,7 @@ fn urgent<const OOB: bool>(consume_urgent: bool) {
+ }
+ 
+ #[test]
+-fn default_conservative_path_keeps_normal_data_readable_at_urgent_marks() {
++fn default_reader_rejects_reported_urgent_data_and_can_opt_in() {
+     urgent::<false>(false);
+ }
+ 
+diff --git a/crates/iouring/src/socket_resources.rs b/crates/iouring/src/socket_resources.rs
+index 07802fa..6947435 100644
+--- a/crates/iouring/src/socket_resources.rs
++++ b/crates/iouring/src/socket_resources.rs
+@@ -10,7 +10,7 @@ impl SocketStreamReading for IoUringSelector {
+         socket: &Self::Socket,
+     ) -> io::Result<impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer> + 'scheduler>
+     {
+-        crate::io_uring_socket_stream_reader::IoUringSocketStreamReader::new(self, socket)
++        crate::io_uring_socket_stream_reader::IoUringSocketStreamReader::<false>::new(self, socket)
+     }
+     fn socket_stream_reader_with_pool<'scheduler>(
+         &'scheduler self,
+@@ -18,7 +18,7 @@ impl SocketStreamReading for IoUringSelector {
+         pool: Self::Pool,
+     ) -> io::Result<impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer> + 'scheduler>
+     {
+-        crate::io_uring_socket_stream_reader::IoUringSocketStreamReader::new(self, socket)
++        crate::io_uring_socket_stream_reader::IoUringSocketStreamReader::<false>::new(self, socket)
+             .map(|reader| reader.with_pool(pool))
+     }
+ }
+diff --git a/releases.md b/releases.md
+index d3a8dec..a10483e 100644
+--- a/releases.md
++++ b/releases.md
+@@ -2,6 +2,8 @@
+ 
+ ## Unreleased
+ 
++- Avoid an extra `WouldBlock` receive after short borrowed scalar stream reads on io\_uring when OOB support is disabled. Preserve EOF notifications, racing readiness, cancellation and registration retirement; opt-in OOB and message receives keep conservative retries.
++
+ - Add compile-time `SocketStreamReader::with_oob_support` selection, disabled by default. Native Linux epoll avoids an extra receive after ordinary short scalar reads and rejects reported urgent data; opt-in support preserves ordinary-byte progress across urgent marks. Other receive paths retain conservative behavior.
+ 
+ ## v0.1.2

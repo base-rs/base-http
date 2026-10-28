@@ -1,0 +1,842 @@
+[
+  {
+    "run": "diagnostic-low-supervisor-r1",
+    "samples": 7709,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 7709,
+        "mean_ns": 753.2041769360487,
+        "p50_ns": 251,
+        "p99_ns": 7144,
+        "max_ns": 29154
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 7709,
+        "mean_ns": 35.378907770138795,
+        "p50_ns": 32,
+        "p99_ns": 111,
+        "max_ns": 12675
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 7709,
+        "mean_ns": 95.20521468413543,
+        "p50_ns": 76,
+        "p99_ns": 297,
+        "max_ns": 14942
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 7709,
+        "mean_ns": 17732.338954468803,
+        "p50_ns": 3690,
+        "p99_ns": 196910,
+        "max_ns": 400424
+      },
+      "connection_poll_to_consumption": {
+        "samples": 7709,
+        "mean_ns": 67.5110909326761,
+        "p50_ns": 60,
+        "p99_ns": 173,
+        "max_ns": 15021
+      },
+      "consumption_to_read_return": {
+        "samples": 7709,
+        "mean_ns": 160.7924503826696,
+        "p50_ns": 146,
+        "p99_ns": 354,
+        "max_ns": 15103
+      },
+      "read_return_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 3249.6348423920094,
+        "p50_ns": 3036,
+        "p99_ns": 5419,
+        "max_ns": 26345
+      },
+      "publication_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 22094.06563756648,
+        "p50_ns": 7046,
+        "p99_ns": 201563,
+        "max_ns": 406676
+      }
+    },
+    "inner_poll_index": {
+      "mean": 5.901803087300558,
+      "max": 64
+    },
+    "cq_batch_len": {
+      "mean": 10.840575950188091,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-low-supervisor-r2",
+    "samples": 7709,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 7709,
+        "mean_ns": 606.3392139058244,
+        "p50_ns": 224,
+        "p99_ns": 6783,
+        "max_ns": 21898
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 7709,
+        "mean_ns": 34.14787910234791,
+        "p50_ns": 27,
+        "p99_ns": 113,
+        "max_ns": 178
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 7709,
+        "mean_ns": 85.34933194966922,
+        "p50_ns": 77,
+        "p99_ns": 257,
+        "max_ns": 481
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 7709,
+        "mean_ns": 15098.95005837333,
+        "p50_ns": 3667,
+        "p99_ns": 192785,
+        "max_ns": 319908
+      },
+      "connection_poll_to_consumption": {
+        "samples": 7709,
+        "mean_ns": 70.41665585679077,
+        "p50_ns": 62,
+        "p99_ns": 159,
+        "max_ns": 14697
+      },
+      "consumption_to_read_return": {
+        "samples": 7709,
+        "mean_ns": 147.05292515241925,
+        "p50_ns": 133,
+        "p99_ns": 332,
+        "max_ns": 14997
+      },
+      "read_return_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 3195.307951744714,
+        "p50_ns": 3059,
+        "p99_ns": 5110,
+        "max_ns": 22013
+      },
+      "publication_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 19237.564016085096,
+        "p50_ns": 7002,
+        "p99_ns": 197602,
+        "max_ns": 326097
+      }
+    },
+    "inner_poll_index": {
+      "mean": 5.246076015047347,
+      "max": 64
+    },
+    "cq_batch_len": {
+      "mean": 9.313399922168893,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-low-supervisor-r3",
+    "samples": 7709,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 7709,
+        "mean_ns": 709.8250097288883,
+        "p50_ns": 225,
+        "p99_ns": 7236,
+        "max_ns": 23019
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 7709,
+        "mean_ns": 34.99610844467505,
+        "p50_ns": 32,
+        "p99_ns": 116,
+        "max_ns": 286
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 7709,
+        "mean_ns": 95.08730055778959,
+        "p50_ns": 80,
+        "p99_ns": 285,
+        "max_ns": 12737
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 7709,
+        "mean_ns": 16982.6790764042,
+        "p50_ns": 3549,
+        "p99_ns": 201161,
+        "max_ns": 439905
+      },
+      "connection_poll_to_consumption": {
+        "samples": 7709,
+        "mean_ns": 67.02010636917888,
+        "p50_ns": 60,
+        "p99_ns": 165,
+        "max_ns": 12761
+      },
+      "consumption_to_read_return": {
+        "samples": 7709,
+        "mean_ns": 166.71059800233493,
+        "p50_ns": 133,
+        "p99_ns": 362,
+        "max_ns": 117363
+      },
+      "read_return_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 3207.602801919834,
+        "p50_ns": 3089,
+        "p99_ns": 5138,
+        "max_ns": 20942
+      },
+      "publication_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 21263.921001426905,
+        "p50_ns": 6910,
+        "p99_ns": 205710,
+        "max_ns": 554038
+      }
+    },
+    "inner_poll_index": {
+      "mean": 5.695031781035154,
+      "max": 64
+    },
+    "cq_batch_len": {
+      "mean": 10.401738228045142,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-low-tasks-r1",
+    "samples": 7709,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 7709,
+        "mean_ns": 522.2026203139188,
+        "p50_ns": 164,
+        "p99_ns": 5753,
+        "max_ns": 23016
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 7709,
+        "mean_ns": 30.840186794655597,
+        "p50_ns": 24,
+        "p99_ns": 98,
+        "max_ns": 2960
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 7709,
+        "mean_ns": 14856.609287845375,
+        "p50_ns": 3445,
+        "p99_ns": 192084,
+        "max_ns": 480642
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 7709,
+        "mean_ns": 32.265922947204565,
+        "p50_ns": 30,
+        "p99_ns": 57,
+        "max_ns": 12728
+      },
+      "connection_poll_to_consumption": {
+        "samples": 7709,
+        "mean_ns": 64.43403813724218,
+        "p50_ns": 59,
+        "p99_ns": 163,
+        "max_ns": 12651
+      },
+      "consumption_to_read_return": {
+        "samples": 7709,
+        "mean_ns": 137.7331690232196,
+        "p50_ns": 124,
+        "p99_ns": 311,
+        "max_ns": 12849
+      },
+      "read_return_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 3202.596705149825,
+        "p50_ns": 3065,
+        "p99_ns": 5327,
+        "max_ns": 20842
+      },
+      "publication_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 18846.68193021144,
+        "p50_ns": 6671,
+        "p99_ns": 196110,
+        "max_ns": 486924
+      }
+    },
+    "inner_poll_index": {
+      "mean": 1,
+      "max": 1
+    },
+    "cq_batch_len": {
+      "mean": 9.282916072123491,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-low-tasks-r2",
+    "samples": 7709,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 7709,
+        "mean_ns": 548.3254637436762,
+        "p50_ns": 160,
+        "p99_ns": 5714,
+        "max_ns": 19449
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 7709,
+        "mean_ns": 31.66947723440135,
+        "p50_ns": 24,
+        "p99_ns": 104,
+        "max_ns": 219
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 7709,
+        "mean_ns": 24915.408483590607,
+        "p50_ns": 3563,
+        "p99_ns": 197427,
+        "max_ns": 33574626
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 7709,
+        "mean_ns": 30.690880788688546,
+        "p50_ns": 29,
+        "p99_ns": 57,
+        "max_ns": 443
+      },
+      "connection_poll_to_consumption": {
+        "samples": 7709,
+        "mean_ns": 68.2759112725386,
+        "p50_ns": 59,
+        "p99_ns": 168,
+        "max_ns": 14762
+      },
+      "consumption_to_read_return": {
+        "samples": 7709,
+        "mean_ns": 149.50992346607862,
+        "p50_ns": 136,
+        "p99_ns": 338,
+        "max_ns": 14907
+      },
+      "read_return_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 3216.6430146581915,
+        "p50_ns": 3098,
+        "p99_ns": 5247,
+        "max_ns": 26951
+      },
+      "publication_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 28960.523154754184,
+        "p50_ns": 6834,
+        "p99_ns": 201062,
+        "max_ns": 33578460
+      }
+    },
+    "inner_poll_index": {
+      "mean": 1,
+      "max": 1
+    },
+    "cq_batch_len": {
+      "mean": 9.910623946037099,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-low-tasks-r3",
+    "samples": 7709,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 7709,
+        "mean_ns": 570.6672720197172,
+        "p50_ns": 170,
+        "p99_ns": 5687,
+        "max_ns": 30462
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 7709,
+        "mean_ns": 35.319626410688805,
+        "p50_ns": 26,
+        "p99_ns": 107,
+        "max_ns": 12909
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 7709,
+        "mean_ns": 17272.601764171748,
+        "p50_ns": 3657,
+        "p99_ns": 202057,
+        "max_ns": 362990
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 7709,
+        "mean_ns": 30.45946296536516,
+        "p50_ns": 29,
+        "p99_ns": 53,
+        "max_ns": 119
+      },
+      "connection_poll_to_consumption": {
+        "samples": 7709,
+        "mean_ns": 72.06239460370995,
+        "p50_ns": 66,
+        "p99_ns": 170,
+        "max_ns": 12815
+      },
+      "consumption_to_read_return": {
+        "samples": 7709,
+        "mean_ns": 151.22558049033597,
+        "p50_ns": 141,
+        "p99_ns": 299,
+        "max_ns": 12903
+      },
+      "read_return_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 3241.0813335062912,
+        "p50_ns": 3132,
+        "p99_ns": 4945,
+        "max_ns": 30257
+      },
+      "publication_to_response_written": {
+        "samples": 7709,
+        "mean_ns": 21373.417434167855,
+        "p50_ns": 7009,
+        "p99_ns": 206413,
+        "max_ns": 368471
+      }
+    },
+    "inner_poll_index": {
+      "mean": 1,
+      "max": 1
+    },
+    "cq_batch_len": {
+      "mean": 10.377610585030483,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-supervisor-r1",
+    "samples": 9296,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 9296,
+        "mean_ns": 2132.6005808950085,
+        "p50_ns": 1463,
+        "p99_ns": 7344,
+        "max_ns": 24056
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 9296,
+        "mean_ns": 48.3052925989673,
+        "p50_ns": 43,
+        "p99_ns": 107,
+        "max_ns": 12702
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 9296,
+        "mean_ns": 104.08874784853701,
+        "p50_ns": 92,
+        "p99_ns": 244,
+        "max_ns": 22808
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 9296,
+        "mean_ns": 67955.28635972462,
+        "p50_ns": 38964,
+        "p99_ns": 202970,
+        "max_ns": 33054994
+      },
+      "connection_poll_to_consumption": {
+        "samples": 9296,
+        "mean_ns": 66.48773666092943,
+        "p50_ns": 63,
+        "p99_ns": 141,
+        "max_ns": 14662
+      },
+      "consumption_to_read_return": {
+        "samples": 9296,
+        "mean_ns": 129.2415017211704,
+        "p50_ns": 115,
+        "p99_ns": 255,
+        "max_ns": 15249
+      },
+      "read_return_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 3069.5827237521517,
+        "p50_ns": 2955,
+        "p99_ns": 4963,
+        "max_ns": 22094
+      },
+      "publication_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 73505.59294320138,
+        "p50_ns": 44601,
+        "p99_ns": 207896,
+        "max_ns": 33060184
+      }
+    },
+    "inner_poll_index": {
+      "mean": 18.232680722891565,
+      "max": 64
+    },
+    "cq_batch_len": {
+      "mean": 35.41168244406196,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-supervisor-r2",
+    "samples": 9296,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 9296,
+        "mean_ns": 2894.515813253012,
+        "p50_ns": 2378,
+        "p99_ns": 9395,
+        "max_ns": 22315
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 9296,
+        "mean_ns": 54.27065404475043,
+        "p50_ns": 48,
+        "p99_ns": 117,
+        "max_ns": 12785
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 9296,
+        "mean_ns": 127.59326592082616,
+        "p50_ns": 115,
+        "p99_ns": 302,
+        "max_ns": 14692
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 9296,
+        "mean_ns": 84496.7074010327,
+        "p50_ns": 64445,
+        "p99_ns": 219207,
+        "max_ns": 33304616
+      },
+      "connection_poll_to_consumption": {
+        "samples": 9296,
+        "mean_ns": 66.64382530120481,
+        "p50_ns": 62,
+        "p99_ns": 169,
+        "max_ns": 2614
+      },
+      "consumption_to_read_return": {
+        "samples": 9296,
+        "mean_ns": 141.96643717728054,
+        "p50_ns": 127,
+        "p99_ns": 322,
+        "max_ns": 12986
+      },
+      "read_return_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 3120.710735800344,
+        "p50_ns": 2960,
+        "p99_ns": 5109,
+        "max_ns": 26397
+      },
+      "publication_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 90902.40813253012,
+        "p50_ns": 70957,
+        "p99_ns": 224322,
+        "max_ns": 33310559
+      }
+    },
+    "inner_poll_index": {
+      "mean": 23.79840791738382,
+      "max": 64
+    },
+    "cq_batch_len": {
+      "mean": 46.84014629948365,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-supervisor-r3",
+    "samples": 9296,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 9296,
+        "mean_ns": 2685.10832616179,
+        "p50_ns": 2051,
+        "p99_ns": 8245,
+        "max_ns": 33519
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 9296,
+        "mean_ns": 56.09315834767642,
+        "p50_ns": 47,
+        "p99_ns": 115,
+        "max_ns": 15024
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 9296,
+        "mean_ns": 117.70546471600689,
+        "p50_ns": 107,
+        "p99_ns": 307,
+        "max_ns": 3474
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 9296,
+        "mean_ns": 80741.50602409638,
+        "p50_ns": 55927,
+        "p99_ns": 227389,
+        "max_ns": 32548783
+      },
+      "connection_poll_to_consumption": {
+        "samples": 9296,
+        "mean_ns": 65.71729776247848,
+        "p50_ns": 62,
+        "p99_ns": 164,
+        "max_ns": 2486
+      },
+      "consumption_to_read_return": {
+        "samples": 9296,
+        "mean_ns": 203.08756454388984,
+        "p50_ns": 191,
+        "p99_ns": 405,
+        "max_ns": 12037
+      },
+      "read_return_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 3116.90824010327,
+        "p50_ns": 2980,
+        "p99_ns": 5167,
+        "max_ns": 22586
+      },
+      "publication_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 86986.1260757315,
+        "p50_ns": 62595,
+        "p99_ns": 232045,
+        "max_ns": 32553987
+      }
+    },
+    "inner_poll_index": {
+      "mean": 22.80486230636833,
+      "max": 64
+    },
+    "cq_batch_len": {
+      "mean": 44.58573580034423,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-tasks-r1",
+    "samples": 9296,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 9296,
+        "mean_ns": 2749.451699655766,
+        "p50_ns": 2479,
+        "p99_ns": 8615,
+        "max_ns": 26451
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 9296,
+        "mean_ns": 48.880701376936315,
+        "p50_ns": 44,
+        "p99_ns": 120,
+        "max_ns": 305
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 9296,
+        "mean_ns": 105366.5220524957,
+        "p50_ns": 87278,
+        "p99_ns": 235040,
+        "max_ns": 33164814
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 9296,
+        "mean_ns": 30.98644578313253,
+        "p50_ns": 29,
+        "p99_ns": 55,
+        "max_ns": 136
+      },
+      "connection_poll_to_consumption": {
+        "samples": 9296,
+        "mean_ns": 68.7091222030981,
+        "p50_ns": 64,
+        "p99_ns": 161,
+        "max_ns": 3255
+      },
+      "consumption_to_read_return": {
+        "samples": 9296,
+        "mean_ns": 138.1890060240964,
+        "p50_ns": 125,
+        "p99_ns": 297,
+        "max_ns": 13354
+      },
+      "read_return_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 3125.8738166953526,
+        "p50_ns": 2985,
+        "p99_ns": 5205,
+        "max_ns": 26659
+      },
+      "publication_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 111528.61284423409,
+        "p50_ns": 93148,
+        "p99_ns": 239021,
+        "max_ns": 33168359
+      }
+    },
+    "inner_poll_index": {
+      "mean": 1,
+      "max": 1
+    },
+    "cq_batch_len": {
+      "mean": 54.87984079173838,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-tasks-r2",
+    "samples": 9296,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 9296,
+        "mean_ns": 2452.116932013769,
+        "p50_ns": 2013,
+        "p99_ns": 8870,
+        "max_ns": 26795
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 9296,
+        "mean_ns": 48.92416092943201,
+        "p50_ns": 46,
+        "p99_ns": 110,
+        "max_ns": 293
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 9296,
+        "mean_ns": 83842.01656626505,
+        "p50_ns": 68621,
+        "p99_ns": 220344,
+        "max_ns": 32532399
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 9296,
+        "mean_ns": 29.85423838209983,
+        "p50_ns": 28,
+        "p99_ns": 50,
+        "max_ns": 3154
+      },
+      "connection_poll_to_consumption": {
+        "samples": 9296,
+        "mean_ns": 66.0401247848537,
+        "p50_ns": 63,
+        "p99_ns": 152,
+        "max_ns": 290
+      },
+      "consumption_to_read_return": {
+        "samples": 9296,
+        "mean_ns": 128.09348106712565,
+        "p50_ns": 116,
+        "p99_ns": 271,
+        "max_ns": 3475
+      },
+      "read_return_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 3076.0414156626507,
+        "p50_ns": 2970,
+        "p99_ns": 4765,
+        "max_ns": 21701
+      },
+      "publication_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 89643.08691910499,
+        "p50_ns": 73673,
+        "p99_ns": 224279,
+        "max_ns": 32537243
+      }
+    },
+    "inner_poll_index": {
+      "mean": 1,
+      "max": 1
+    },
+    "cq_batch_len": {
+      "mean": 47.90307659208261,
+      "max": 64
+    }
+  },
+  {
+    "run": "diagnostic-tasks-r3",
+    "samples": 9296,
+    "stages": {
+      "publication_to_cq_end": {
+        "samples": 9296,
+        "mean_ns": 2935.265813253012,
+        "p50_ns": 2639,
+        "p99_ns": 8800,
+        "max_ns": 167179
+      },
+      "cq_end_to_latest_driver_return": {
+        "samples": 9296,
+        "mean_ns": 51.258390705679865,
+        "p50_ns": 44,
+        "p99_ns": 129,
+        "max_ns": 3232
+      },
+      "latest_driver_return_to_task_poll": {
+        "samples": 9296,
+        "mean_ns": 107368.20008605852,
+        "p50_ns": 89240,
+        "p99_ns": 238307,
+        "max_ns": 33177548
+      },
+      "task_poll_to_connection_poll": {
+        "samples": 9296,
+        "mean_ns": 30.222999139414803,
+        "p50_ns": 28,
+        "p99_ns": 57,
+        "max_ns": 167
+      },
+      "connection_poll_to_consumption": {
+        "samples": 9296,
+        "mean_ns": 70.9480421686747,
+        "p50_ns": 64,
+        "p99_ns": 173,
+        "max_ns": 12834
+      },
+      "consumption_to_read_return": {
+        "samples": 9296,
+        "mean_ns": 145.05131239242684,
+        "p50_ns": 128,
+        "p99_ns": 330,
+        "max_ns": 15105
+      },
+      "read_return_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 3149.2972246127365,
+        "p50_ns": 3001,
+        "p99_ns": 5068,
+        "max_ns": 41506
+      },
+      "publication_to_response_written": {
+        "samples": 9296,
+        "mean_ns": 113750.24386833046,
+        "p50_ns": 95552,
+        "p99_ns": 242174,
+        "max_ns": 33181878
+      }
+    },
+    "inner_poll_index": {
+      "mean": 1,
+      "max": 1
+    },
+    "cq_batch_len": {
+      "mean": 56.871127366609294,
+      "max": 64
+    }
+  }
+]

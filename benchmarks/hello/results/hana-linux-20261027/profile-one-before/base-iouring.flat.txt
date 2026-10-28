@@ -1,0 +1,44 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 3K of event 'cpu/cycles/P'
+# Event count (approx.): 25215181516
+#
+# Overhead  Command          Shared Object      Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+# ........  ...............  .................  .........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+     6.23%  base-native-tas  [kernel.kallsyms]  [k] syscall_return_via_sysret
+     5.85%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSRETQ_unsafe_stack
+     2.67%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64_after_hwframe
+     2.57%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64
+     1.71%  base-native-tas  baseline           [.] base_http_server::exchanges::<base_scheduler_iouring::io_uring_socket_stream_reader::IoUringSocketStreamReader, base_scheduler_iouring::io_uring_socket_stream_writer::IoUringSocketStreamWriter<base_scheduler_iouring::io_uring_buffer::IoUringBuffer>, base_http_hello_benchmark::Hello>::{closure#0}
+     1.27%  base-native-tas  [kernel.kallsyms]  [k] fdget
+     1.09%  base-native-tas  [kernel.kallsyms]  [k] __memcg_slab_post_alloc_hook
+     1.03%  base-native-tas  [kernel.kallsyms]  [k] tcp_ack
+     0.91%  base-native-tas  [kernel.kallsyms]  [k] do_syscall_64
+     0.89%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock_irqsave
+     0.84%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock
+     0.83%  base-native-tas  baseline           [.] <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_io<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<(), (base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+     0.72%  base-native-tas  [kernel.kallsyms]  [k] dequeue_entities
+     0.72%  base-native-tas  [kernel.kallsyms]  [k] __tcp_transmit_skb
+     0.69%  base-native-tas  [kernel.kallsyms]  [k] tcp_sendmsg_locked
+     0.69%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_unlock
+     0.66%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_lock
+     0.63%  base-native-tas  [kernel.kallsyms]  [k] __schedule
+     0.63%  base-native-tas  [kernel.kallsyms]  [k] kmem_cache_alloc_lru_noprof
+     0.62%  base-native-tas  [kernel.kallsyms]  [k] __inet_lookup_established
+     0.62%  base-native-tas  [kernel.kallsyms]  [k] kmem_cache_alloc_noprof
+     0.61%  base-native-tas  [kernel.kallsyms]  [k] ip_finish_output2
+     0.60%  base-native-tas  baseline           [.] base_scheduler_native::worker::run_loop
+     0.58%  base-native-tas  baseline           [.] <base_http::fields::Fields>::add::<&str, &[u8]>
+     0.57%  base-native-tas  [kernel.kallsyms]  [k] do_accept
+     0.55%  base-native-tas  [kernel.kallsyms]  [k] kmem_cache_free
+     0.51%  base-native-tas  [kernel.kallsyms]  [k] native_sched_clock
+     0.51%  base-native-tas  [kernel.kallsyms]  [k] __virt_addr_valid
+
+
+#
+# (Tip: For tracepoint events, try: perf report -s trace_fields)
+#

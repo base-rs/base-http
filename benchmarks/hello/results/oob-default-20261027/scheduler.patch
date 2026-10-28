@@ -1,0 +1,663 @@
+diff --git a/context/design.md b/context/design.md
+index 89b1889..de2e035 100644
+--- a/context/design.md
++++ b/context/design.md
+@@ -154,7 +154,7 @@ Unregistered worker-driven socket operations attempt their nonblocking syscall b
+ 
+ The controller anchors each registration with a strong reference before adding its kernel filters. Registration state retains only a weak controller reference and no native socket or payload. Deregistration marks the record inactive, deletes its filters synchronously and queues successful deletions for driver retirement. The driver clears its preceding event batch before reclaiming those records and polling again. A callback can therefore close a socket remotely without blocking on a live batch; a collected old event always inspects retained state and skips a record observed inactive. Publication already admitted before retirement can finish against the old record. Failed additions, including partial addition with failed rollback, and failed deletions remain quarantined until the driver stops. Normal group closure wakes waiters without freeing batch storage; sole-driver destruction releases its records after dispatch has ended. An idle driver is interrupted after sixteen pending retirements; a smaller group can remain retained until the next turn or stop. All waker callbacks and record destruction occur outside the routing lock.
+ 
+-Readability and writability each retain advisory readiness and a notification generation. A `WouldBlock` clears only the generation observed before its syscall. Independent inline listeners support concurrent waits in the same direction; abandoning one wait cannot replace or remove another's waker. Bound scalar stream readers retain their registration and, after establishing progress, wait first when readiness is clear. On macOS, kqueue also supplies the readable byte count and directional EOF. A positive short receive may clear its observed readiness only when it consumed at least the reported byte count and that event did not report EOF. An urgent-data boundary can stop a short receive before already-queued ordinary bytes, including when another alias consumed the urgent byte; the byte-count comparison preserves progress in that case. Publishing the count precedes advancing the notification generation, so a concurrent event either supplies a conservative byte hint or prevents the old generation from being cleared. Other edge backends retain readiness until `WouldBlock`, and message receives preserve their first-poll syscall contract. EOF remains readable through the final data read. All payload access finishes inside the polling future; neither kqueue nor a readiness registration retains borrowed payload pointers. Registration owners retain no native-socket owner. The final socket alias synchronously deregisters its filters before releasing its descriptor, including on another thread, so an event batch temporarily retaining a record cannot prevent exclusive close. Closing or dropping a driver closes readiness admission across its group and wakes pending waits. Readiness records retire at a driver batch boundary; the kernel retains no payload storage for these waits.
++Readability and writability each retain advisory readiness and a notification generation. A `WouldBlock` clears only the generation observed before its syscall. Independent inline listeners support concurrent waits in the same direction; abandoning one wait cannot replace or remove another's waker. Bound scalar stream readers retain their registration and, after establishing progress, wait first when readiness is clear. On macOS, kqueue also supplies the readable byte count and directional EOF. A positive short receive may clear its observed readiness only when it consumed at least the reported byte count and that event did not report EOF. An urgent-data boundary can stop a short receive before already-queued ordinary bytes, including when another alias consumed the urgent byte; the byte-count comparison preserves progress in that case. Publishing the count precedes advancing the notification generation, so a concurrent event either supplies a conservative byte hint or prevents the old generation from being cleared. On Linux, ordinary scalar stream readers default to OOB support disabled: a positive short receive clears the observed readiness unless the event reports EOF, and a reported urgent condition returns `Unsupported`. EOF and urgent conditions remain sticky across readiness clears. `reader.with_oob_support::<true>()` selects a compile-time specialization which retains Linux readiness until `WouldBlock`, preserving progress across urgent marks even if an alias consumes the urgent byte. OOB-disabled aliases must not consume urgent data. This setting is not a socket filter or a promise to detect every urgent byte: conservative paths may continue normal reads without rejecting it. The setting preserves the bound scheduler, pool, registration, and EOF/close state. Linux compatibility polling and other edge backends retain readiness until `WouldBlock`, and message receives preserve their first-poll syscall contract. EOF remains readable through the final data read. All payload access finishes inside the polling future; neither kqueue nor a readiness registration retains borrowed payload pointers. Registration owners retain no native-socket owner. The final socket alias synchronously deregisters its filters before releasing its descriptor, including on another thread, so an event batch temporarily retaining a record cannot prevent exclusive close. Closing or dropping a driver closes readiness admission across its group and wakes pending waits. Readiness records retire at a driver batch boundary; the kernel retains no payload storage for these waits.
+ 
+ Independent `async-io` socket fallback operations also attempt immediate progress first. After `WouldBlock`, they await descriptor readiness before another attempt. Repeated polling because a containing task wakes for another descriptor must not retry the blocked syscall. This matters for the io\_uring selector's fallback listener, which can share one supervisor task with active connections.
+ 
+@@ -208,7 +208,7 @@ io\_uring retains stable shared monitor storage privately. Application ownership
+ 
+ The io\_uring backend lazily submits a multishot `PollAdd` when an operation needs readiness. Its stable monitor address is the SQE's `user_data`. Readiness CQEs with `MORE` keep that registration alive across successive operations; only a terminal CQE retires it. An unsupported multishot poll falls back to one-shot polling for that record. A terminal successful notification remains usable, and the next readiness wait can rearm it. Ordinary numeric request IDs are even; the low bit identifies monitor pointers and the existing high bit identifies cancellation CQEs. Supported Linux user-space addresses leave the high tag bit clear.
+ 
+-Readiness is cached per direction. A `WouldBlock` result clears only the readiness tick observed before the syscall, so a newer notification racing that syscall remains visible. All current monitor operations attempt a nonblocking syscall first and preserve readiness on successful transfers, including short receives. A short TCP receive does not establish exhaustion: urgent-data boundaries can leave ordinary bytes queued, even after another socket alias has consumed the urgent byte and removed `POLLPRI`. Stream and packet resources currently share this conservative private monitor policy. EOF also preserves readiness, so subsequent EOF reads complete without waiting for another edge. Payload operations use direct nonblocking syscalls with no borrowed pointer retained by the kernel. `socket_monitor_wait` consumes neither bytes nor cached readiness and may report spurious readiness; callers retry their nonblocking operation.
++Readiness is cached per direction. A `WouldBlock` result clears only the readiness tick observed before the syscall, so a newer notification racing that syscall remains visible. All current monitor operations attempt a nonblocking syscall first and preserve readiness on successful transfers, including short receives. A short TCP receive does not establish exhaustion: urgent-data boundaries can leave ordinary bytes queued, even after another socket alias has consumed the urgent byte and removed `POLLPRI`. Stream and packet resources share this conservative private monitor policy. The public compile-time OOB option does not select a different io_uring implementation: multishot poll completions can include advisory priority bits for ordinary TCP wakeups, so these completions alone do not establish that urgent data is present. EOF also preserves readiness, so subsequent EOF reads complete without waiting for another edge. Payload operations use direct nonblocking syscalls with no borrowed pointer retained by the kernel. `socket_monitor_wait` consumes neither bytes nor cached readiness and may report spurious readiness; callers retry their nonblocking operation.
+ 
+ Private monitor storage has one application owner, held by its bound resource, and independent backend retention. It retains a concrete shared record and an ownership-role flag, without generic projection, erased owners, or application-handle reference counting. `retained()` gives the backend an independently retained owner without extending the application's registration lifetime. The exclusive resource borrow serializes application waits. Dropping or cancelling an individual wait releases any cached waker, while leaving the poll armed. Notifications advance a readiness generation and consume that waker under the same lock; normal notification-driven completion therefore skips the cleanup lock. Dropping the resource requests registration retirement. The worker retains storage until the final original CQE and any issued cancellation CQE both arrive. Generation numbers drawn from the controller's unique request counter reject delayed cancellation commands, including after address reuse. Cancellation compares opaque tokens against live records instead of dereferencing a potentially stale command pointer.
+ 
+diff --git a/context/io.md b/context/io.md
+index 1d07145..3940c1c 100644
+--- a/context/io.md
++++ b/context/io.md
+@@ -20,6 +20,8 @@ A stream reader's `read(cancellation)` returns an owned chunk or `None` at EOF.
+ 
+ For parser-owned scratch storage, reuse `read_into(&mut bytes, cancellation)` or `read_vectored(&mut slices, cancellation)` on the same reader. Borrowed bytes are accessed only synchronously inside a poll; a pending operation leaves no independent kernel or worker access to them. Storage may be inline or a reused `Vec`; choose the layout the parser needs. Stack placement alone is not the optimization.
+ 
++Stream readers default to OOB support disabled. Use `reader.with_oob_support::<true>()` when ordinary reads must preserve progress across TCP urgent-data boundaries, including when an alias handles urgent data. This compile-time selection preserves the reader's scheduler and existing state. Disabled support permits an `Unsupported` error for reported urgent data; it is not a network filter or a guarantee of detection. Do not consume urgent data through socket aliases while support is disabled.
++
+ Readers create default pool storage lazily for owned reception. Borrowed-only use does not allocate a receive pool. To share a specific budget across connections, create it with `scheduler.buffer_pool(options)` and pass `pool.clone()` to `socket_stream_reader_with_pool` or `socket_packet_reader_with_pool`. Pooling supplies ownership, retention, reuse, and backpressure; it does not inherently make a receive faster. The backend retains control of allocation, registration, publication, and hot-buffer reuse.
+ 
+ Parse while a chunk is uniquely writable when mutation is useful. Freeze it before retaining immutable views. Completed frames wholly inside one chunk can retain ranges; copy or assemble only the incomplete frame crossing chunks when contiguous records are required. A small long-lived view can pin an entire slot, so selective copying can improve memory use. Framing, decryption, and compaction belong to the protocol.
+diff --git a/crates/conformance/src/socket_resources.rs b/crates/conformance/src/socket_resources.rs
+index 1c0d650..3f78545 100644
+--- a/crates/conformance/src/socket_resources.rs
++++ b/crates/conformance/src/socket_resources.rs
+@@ -11,7 +11,10 @@ where
+     S::Socket: 'static,
+ {
+     let never = Cancellation::never();
+-    let mut reader = scheduler.socket_stream_reader(receiver).unwrap();
++    let mut reader = scheduler
++        .socket_stream_reader(receiver)
++        .unwrap()
++        .with_oob_support::<true>();
+     let mut writer = scheduler.socket_stream_writer(receiver).unwrap();
+     let mut sender_read = scheduler.socket_stream_reader(sender).unwrap();
+     let mut sender_write = scheduler.socket_stream_writer(sender).unwrap();
+@@ -35,6 +38,8 @@ where
+         assert_eq!(write.unwrap(), 1);
+         assert_eq!(returned, [byte]);
+     }
++    // Selecting a different const specialization preserves the live reader.
++    let mut reader = reader.with_oob_support::<false>();
+     let mut incoming = [0];
+     let mut outgoing = [0];
+     let (server, client) = zip(
+diff --git a/crates/iouring/src/io_uring_socket_stream_reader.rs b/crates/iouring/src/io_uring_socket_stream_reader.rs
+index 7bf1299..b6d0d2b 100644
+--- a/crates/iouring/src/io_uring_socket_stream_reader.rs
++++ b/crates/iouring/src/io_uring_socket_stream_reader.rs
+@@ -250,3 +250,6 @@ impl SocketStreamReader for IoUringSocketStreamReader<'_> {
+         self.scheduler.socket_monitor_close(&mut self.monitor).await
+     }
+ }
++
++#[cfg(test)]
++mod tests;
+diff --git a/crates/iouring/src/io_uring_socket_stream_reader/tests.rs b/crates/iouring/src/io_uring_socket_stream_reader/tests.rs
+new file mode 100644
+index 0000000..85bd03a
+--- /dev/null
++++ b/crates/iouring/src/io_uring_socket_stream_reader/tests.rs
+@@ -0,0 +1,99 @@
++// Released under the MIT License.
++// Copyright, 2026, by Samuel Williams.
++
++use super::*;
++use crate::retained_socket::SocketSource;
++use base_scheduler::{SocketRegistration, SocketStreamReading};
++use base_scheduler_selector::{SelectorDriver, SelectorWorker};
++use futures_lite::future::{block_on, poll_once};
++use std::{
++    io::Write,
++    time::{Duration, Instant},
++};
++
++fn drive<F: Future>(future: F, worker: &mut impl SelectorWorker) -> F::Output {
++    let mut future = pin!(future);
++    let deadline = Instant::now() + Duration::from_secs(3);
++    loop {
++        if let Some(result) = block_on(poll_once(future.as_mut())) {
++            return result;
++        }
++        assert!(Instant::now() < deadline, "stream reader stalled");
++        worker.turn(Some(Duration::from_millis(10))).unwrap();
++    }
++}
++
++fn urgent<const OOB: bool>(consume_urgent: bool) {
++    let (selector, driver) = IoUringSelector::new(crate::IoUringOptions::default()).unwrap();
++    let mut worker = driver.enter();
++    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
++    let mut peer = std::net::TcpStream::connect(listener.local_addr().unwrap()).unwrap();
++    peer.set_nodelay(true).unwrap();
++    let socket = selector
++        .register_socket(listener.accept().unwrap().0)
++        .unwrap();
++    let mut reader = selector
++        .socket_stream_reader(&socket)
++        .unwrap()
++        .with_oob_support::<OOB>();
++    let never = Cancellation::never();
++    let mut buffer = [0; 64];
++    {
++        let mut reading = Box::pin(reader.read_into(&mut buffer, &never));
++        assert!(block_on(poll_once(&mut reading)).is_none());
++        worker.turn(Some(Duration::from_millis(1))).unwrap();
++        peer.write_all(b"x").unwrap();
++        worker.turn(Some(Duration::from_millis(1))).unwrap();
++        assert_eq!(drive(reading, &mut worker).unwrap(), 1);
++    }
++    peer.write_all(b"before").unwrap();
++    socket2::SockRef::from(&peer)
++        .send_with_flags(b"!", libc::MSG_OOB)
++        .unwrap();
++    peer.write_all(b"after").unwrap();
++    std::thread::sleep(Duration::from_millis(10));
++    if consume_urgent {
++        let mut urgent = [std::mem::MaybeUninit::uninit(); 1];
++        assert_eq!(
++            socket
++                .retain_socket()
++                .get_ref()
++                .recv_out_of_band(&mut urgent)
++                .unwrap(),
++            1
++        );
++    }
++    let mut received = Vec::new();
++    while received.len() < 11 {
++        let count = drive(reader.read_into(&mut buffer, &never), &mut worker).unwrap();
++        assert!(count != 0);
++        received.extend_from_slice(&buffer[..count]);
++    }
++    assert_eq!(received, b"beforeafter");
++    peer.shutdown(std::net::Shutdown::Write).unwrap();
++    assert_eq!(
++        drive(reader.read_into(&mut buffer, &never), &mut worker).unwrap(),
++        0
++    );
++    let mut reader = reader.with_oob_support::<false>();
++    assert_eq!(block_on(reader.read_into(&mut buffer, &never)).unwrap(), 0);
++    drive(reader.close(), &mut worker).unwrap();
++    let mut reader = reader.with_oob_support::<true>();
++    assert_eq!(
++        block_on(reader.read_into(&mut buffer, &never))
++            .unwrap_err()
++            .kind(),
++        io::ErrorKind::BrokenPipe
++    );
++}
++
++#[test]
++fn default_conservative_path_keeps_normal_data_readable_at_urgent_marks() {
++    urgent::<false>(false);
++}
++
++#[test]
++fn opt_in_reads_past_urgent_marks_with_or_without_an_alias_consuming_oob() {
++    urgent::<true>(false);
++    urgent::<true>(true);
++}
+diff --git a/crates/selector/src/readiness_driver.rs b/crates/selector/src/readiness_driver.rs
+index 70413e4..b6c195c 100644
+--- a/crates/selector/src/readiness_driver.rs
++++ b/crates/selector/src/readiness_driver.rs
+@@ -141,8 +141,9 @@ impl Wake for Controller {
+ }
+ 
+ pub(crate) struct Direction {
+-    // Low bits are advisory readiness and readable EOF; upper bits identify
+-    // the notification. EOF inhibits short-read clearing, not WouldBlock clear.
++    // Low bits are advisory readiness (1), EOF (2), and urgent data (4);
++    // upper bits identify the notification. EOF inhibits short-read clearing,
++    // not WouldBlock clear. Urgent data remains sticky for OOB-disabled readers.
+     tick: AtomicUsize,
+     #[cfg(target_os = "macos")]
+     available: AtomicUsize,
+@@ -163,7 +164,7 @@ impl Direction {
+     pub(crate) fn publish(&self) {
+         // Increment the generation before publishing readiness. A racing clear
+         // can at most cause a spurious retry, never erase this notification.
+-        self.tick.fetch_add(4, Ordering::AcqRel);
++        self.tick.fetch_add(8, Ordering::AcqRel);
+         self.tick.fetch_or(1, Ordering::Release);
+         self.changed.notify();
+     }
+@@ -177,7 +178,25 @@ impl Direction {
+         }
+         self.publish();
+     }
+-    pub(crate) fn clear_after_read(&self, observed: usize, count: usize, capacity: usize) {
++    #[cfg(target_os = "linux")]
++    fn publish_readable(&self, read_closed: bool, urgent: bool) {
++        // These conditions stay sticky even when ordinary readiness is cleared.
++        let flags = (usize::from(read_closed) << 1) | (usize::from(urgent) << 2);
++        if flags != 0 {
++            self.tick.fetch_or(flags, Ordering::Release);
++        }
++        self.publish();
++    }
++    pub(crate) fn clear_after_read<const SUPPORT_OOB: bool>(
++        &self,
++        observed: usize,
++        count: usize,
++        capacity: usize,
++    ) {
++        #[cfg(target_os = "linux")]
++        if !SUPPORT_OOB && count != 0 && count < capacity && observed & 2 == 0 {
++            self.clear(observed);
++        }
+         #[cfg(target_os = "macos")]
+         if count != 0
+             && count < capacity
+@@ -188,7 +207,7 @@ impl Direction {
+         }
+         // polling's other edge backends do not expose directional EOF here.
+         // Retain advisory readiness until WouldBlock rather than lose EOF.
+-        #[cfg(not(target_os = "macos"))]
++        #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+         let _ = (observed, count, capacity);
+     }
+     pub(crate) fn clear(&self, observed: usize) {
+@@ -335,7 +354,7 @@ impl SocketRegistrations {
+         if let Err(error) = unsafe {
+             owner
+                 .poller
+-                .add_with_mode(socket, Event::all(token), PollMode::Edge)
++                .add_with_mode(socket, Event::all(token).with_priority(), PollMode::Edge)
+         } {
+             registration.inactive.store(true, Ordering::Release);
+             return Err(error);
+@@ -428,7 +447,11 @@ impl DriverState {
+                 registration
+                     .readable
+                     .publish_readable(available, read_closed);
+-                #[cfg(not(target_os = "macos"))]
++                #[cfg(target_os = "linux")]
++                registration
++                    .readable
++                    .publish_readable(event.is_interrupt(), event.is_priority());
++                #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+                 registration.readable.publish();
+             }
+             if event.writable {
+diff --git a/crates/selector/src/readiness_driver/epoll.rs b/crates/selector/src/readiness_driver/epoll.rs
+index 47d79fd..884cea6 100644
+--- a/crates/selector/src/readiness_driver/epoll.rs
++++ b/crates/selector/src/readiness_driver/epoll.rs
+@@ -15,7 +15,8 @@ mod syscalls;
+ pub(super) const INTERRUPT: usize = usize::MAX;
+ const TIMER: usize = usize::MAX - 1;
+ const BATCH: usize = 1024;
+-const READ: u32 = (libc::EPOLLIN | libc::EPOLLPRI | libc::EPOLLERR | libc::EPOLLHUP) as u32;
++const READ: u32 =
++    (libc::EPOLLIN | libc::EPOLLPRI | libc::EPOLLRDHUP | libc::EPOLLERR | libc::EPOLLHUP) as u32;
+ const WRITE: u32 = (libc::EPOLLOUT | libc::EPOLLERR | libc::EPOLLHUP) as u32;
+ 
+ pub(super) struct Poller {
+@@ -93,7 +94,8 @@ impl Poller {
+                     .raw
+                     .extend(compatible.iter().map(|event| libc::epoll_event {
+                         events: (u32::from(event.readable) * libc::EPOLLIN as u32)
+-                            | (u32::from(event.writable) * libc::EPOLLOUT as u32),
++                            | (u32::from(event.writable) * libc::EPOLLOUT as u32)
++                            | (u32::from(event.is_priority()) * libc::EPOLLPRI as u32),
+                         u64: event.key as u64,
+                     }));
+                 Ok(count)
+@@ -308,12 +310,20 @@ impl Events {
+         self.raw
+             .iter()
+             .filter(|event| event.u64 as usize != TIMER)
+-            .map(|event| {
+-                Event::new(
+-                    event.u64 as usize,
+-                    event.events & READ != 0,
+-                    event.events & WRITE != 0,
+-                )
++            .map(|raw| {
++                let mut event = Event::new(
++                    raw.u64 as usize,
++                    raw.events & READ != 0,
++                    raw.events & WRITE != 0,
++                );
++                event.set_priority(raw.events & libc::EPOLLPRI as u32 != 0);
++                // The compatibility backend does not expose directional EOF;
++                // inhibit short-read clearing there rather than lose closure.
++                event.set_interrupt(
++                    self.compatible.is_some()
++                        || raw.events & (libc::EPOLLHUP | libc::EPOLLRDHUP) as u32 != 0,
++                );
++                event
+             })
+     }
+ }
+diff --git a/crates/selector/src/readiness_socket_stream_reader.rs b/crates/selector/src/readiness_socket_stream_reader.rs
+index ff772f8..c4d7396 100644
+--- a/crates/selector/src/readiness_socket_stream_reader.rs
++++ b/crates/selector/src/readiness_socket_stream_reader.rs
+@@ -20,7 +20,7 @@ use std::{
+ };
+ 
+ /// Scheduler-bound stream reader; registration remains private to this backend.
+-pub(crate) struct ReadinessSocketStreamReader<'a> {
++pub(crate) struct ReadinessSocketStreamReader<'a, const SUPPORT_OOB: bool = false> {
+     scheduler: &'a ReadinessSelector,
+     socket: NativeSocket,
+     #[cfg(unix)]
+@@ -32,7 +32,7 @@ pub(crate) struct ReadinessSocketStreamReader<'a> {
+     closed: bool,
+ }
+ 
+-impl<'a> ReadinessSocketStreamReader<'a> {
++impl<'a, const SUPPORT_OOB: bool> ReadinessSocketStreamReader<'a, SUPPORT_OOB> {
+     /// Construct the default backend composition without submitting payload I/O. Applications normally use the scheduler factory.
+     pub(crate) fn new(scheduler: &'a ReadinessSelector, socket: &NativeSocket) -> io::Result<Self> {
+         if scheduler.socket_type(socket)? != base_scheduler::SocketType::Stream {
+@@ -107,6 +107,13 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+                     .direction(Interest::Readable);
+                 loop {
+                     let observed = direction.snapshot();
++                    #[cfg(target_os = "linux")]
++                    if !SUPPORT_OOB && observed & 4 != 0 {
++                        return Err(io::Error::new(
++                            io::ErrorKind::Unsupported,
++                            "TCP urgent data is not supported by this reader",
++                        ));
++                    }
+                     if !probe && observed & 1 == 0 {
+                         direction.wait(group).await?;
+                         continue;
+@@ -114,10 +121,9 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+                     probe = false;
+                     match receive(self.socket.get_ref()) {
+                         Ok(count) => {
+-                            // A short read must consume the event's reported
+-                            // bytes before clearing. An urgent-data boundary can
+-                            // leave bytes queued even after a short receive.
+-                            direction.clear_after_read(observed, count, capacity);
++                            // The backend and OOB policy determine when a short
++                            // receive is sufficient to clear this generation.
++                            direction.clear_after_read::<SUPPORT_OOB>(observed, count, capacity);
+                             return Ok(count);
+                         }
+                         Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+@@ -147,9 +153,23 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+     }
+ }
+ 
+-impl SocketStreamReader for ReadinessSocketStreamReader<'_> {
++impl<const SUPPORT_OOB: bool> SocketStreamReader for ReadinessSocketStreamReader<'_, SUPPORT_OOB> {
+     type Buffer = <base_scheduler::HeapBufferPool as BufferPool>::Buffer;
+ 
++    fn with_oob_support<const OOB: bool>(self) -> impl SocketStreamReader<Buffer = Self::Buffer> {
++        ReadinessSocketStreamReader::<OOB> {
++            scheduler: self.scheduler,
++            socket: self.socket,
++            #[cfg(unix)]
++            registration: self.registration,
++            #[cfg(unix)]
++            established: self.established,
++            pool: self.pool,
++            eof: self.eof,
++            closed: self.closed,
++        }
++    }
++
+     async fn read(&mut self, cancellation: &Cancellation) -> OperationResult<Option<Self::Buffer>> {
+         cancellation.check()?;
+         if self.closed || self.eof {
+diff --git a/crates/selector/src/readiness_socket_stream_reader/tests.rs b/crates/selector/src/readiness_socket_stream_reader/tests.rs
+index 946dd60..2880417 100644
+--- a/crates/selector/src/readiness_socket_stream_reader/tests.rs
++++ b/crates/selector/src/readiness_socket_stream_reader/tests.rs
+@@ -3,8 +3,9 @@
+ 
+ use super::*;
+ use crate::{ReadinessWorker, SelectorDriver, SelectorOptions, SelectorWorker};
++use base_scheduler::SocketStreamReading;
+ use futures_lite::future::{block_on, poll_once};
+-#[cfg(target_os = "macos")]
++#[cfg(any(target_os = "macos", target_os = "linux"))]
+ use std::sync::atomic::{AtomicUsize, Ordering};
+ use std::{
+     io::Write,
+@@ -44,8 +45,8 @@ fn drive<F: Future>(future: F, worker: &mut ReadinessWorker) -> F::Output {
+     }
+ }
+ 
+-fn prime(
+-    reader: &mut ReadinessSocketStreamReader<'_>,
++fn prime<const OOB: bool>(
++    reader: &mut ReadinessSocketStreamReader<'_, OOB>,
+     peer: &mut std::net::TcpStream,
+     worker: &mut ReadinessWorker,
+ ) {
+@@ -58,7 +59,7 @@ fn prime(
+     assert_eq!(buffer[0], b'x');
+ }
+ 
+-#[cfg(target_os = "macos")]
++#[cfg(any(target_os = "macos", target_os = "linux"))]
+ #[test]
+ fn short_reads_wait_without_a_syscall_and_full_reads_keep_ready() {
+     let (selector, mut worker, socket, mut peer) = setup();
+@@ -66,7 +67,7 @@ fn short_reads_wait_without_a_syscall_and_full_reads_keep_ready() {
+         return;
+     }
+     let never = Cancellation::never();
+-    let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++    let mut reader = ReadinessSocketStreamReader::<false>::new(&selector, &socket).unwrap();
+     // Initial ready progress still needs no registration.
+     peer.write_all(b"a").unwrap();
+     assert_eq!(
+@@ -125,7 +126,7 @@ fn short_reads_wait_without_a_syscall_and_full_reads_keep_ready() {
+     assert_eq!(block_on(reader.read_into(&mut buffer, &never)).unwrap(), 0);
+ }
+ 
+-#[cfg(target_os = "macos")]
++#[cfg(any(target_os = "macos", target_os = "linux"))]
+ #[test]
+ fn a_readability_event_during_a_short_read_is_not_erased() {
+     let (selector, mut worker, socket, mut peer) = setup();
+@@ -133,7 +134,7 @@ fn a_readability_event_during_a_short_read_is_not_erased() {
+         return;
+     }
+     let never = Cancellation::never();
+-    let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++    let mut reader = ReadinessSocketStreamReader::<false>::new(&selector, &socket).unwrap();
+     prime(&mut reader, &mut peer, &mut worker);
+     let registration = reader.registration.as_ref().unwrap().clone();
+     let direction = registration.direction(Interest::Readable);
+@@ -169,7 +170,7 @@ fn cancellation_shutdown_and_immediate_errors_preserve_stream_state() {
+     if selector.readiness.is_none() {
+         return;
+     }
+-    let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++    let mut reader = ReadinessSocketStreamReader::<false>::new(&selector, &socket).unwrap();
+     let cancellation = Cancellation::new();
+     let mut buffer = [0x5a; 8];
+     {
+@@ -222,7 +223,7 @@ fn cancellation_shutdown_and_immediate_errors_preserve_stream_state() {
+     );
+ 
+     let (selector, _worker, socket, _peer) = setup();
+-    let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++    let mut reader = ReadinessSocketStreamReader::<false>::new(&selector, &socket).unwrap();
+     // Closure between the initial attempt and lazy registration is propagated.
+     let error = block_on(reader.read_with(8, &never, |_| {
+         selector.close();
+@@ -236,18 +237,18 @@ fn cancellation_shutdown_and_immediate_errors_preserve_stream_state() {
+         socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None).unwrap(),
+     )
+     .unwrap();
+-    let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++    let mut reader = ReadinessSocketStreamReader::<false>::new(&selector, &socket).unwrap();
+     assert!(block_on(reader.read_into(&mut buffer, &never)).is_err());
+     assert!(reader.registration.is_none());
+ }
+ 
+-#[cfg(target_os = "macos")]
++#[cfg(any(target_os = "macos", target_os = "linux"))]
+ #[test]
+ fn data_and_peer_eof_in_one_event_leave_eof_immediately_readable() {
+     for shutdown in [std::net::Shutdown::Write, std::net::Shutdown::Both] {
+         let (selector, mut worker, socket, mut peer) = setup();
+         let never = Cancellation::never();
+-        let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++        let mut reader = ReadinessSocketStreamReader::<false>::new(&selector, &socket).unwrap();
+         prime(&mut reader, &mut peer, &mut worker);
+         let registration = reader.registration.as_ref().unwrap().clone();
+         let direction = registration.direction(Interest::Readable);
+@@ -268,13 +269,13 @@ fn data_and_peer_eof_in_one_event_leave_eof_immediately_readable() {
+     }
+ }
+ 
+-#[cfg(target_os = "macos")]
++#[cfg(any(target_os = "macos", target_os = "linux"))]
+ #[test]
+ fn urgent_boundaries_keep_trailing_bytes_ready_even_if_an_alias_consumes_urgent_data() {
+     for consume_urgent in [false, true] {
+         let (selector, mut worker, socket, mut peer) = setup();
+         let never = Cancellation::never();
+-        let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++        let mut reader = ReadinessSocketStreamReader::<true>::new(&selector, &socket).unwrap();
+         prime(&mut reader, &mut peer, &mut worker);
+         let registration = reader.registration.as_ref().unwrap().clone();
+         let direction = registration.direction(Interest::Readable);
+@@ -316,3 +317,91 @@ fn urgent_boundaries_keep_trailing_bytes_ready_even_if_an_alias_consumes_urgent_
+         assert_eq!(&buffer[..5], b"after");
+     }
+ }
++
++#[cfg(target_os = "linux")]
++#[test]
++fn default_reader_rejects_urgent_data_and_opt_in_preserves_the_live_reader() {
++    let (selector, mut worker, socket, mut peer) = setup();
++    let never = Cancellation::never();
++    let mut reader = selector.socket_stream_reader(&socket).unwrap();
++    let mut buffer = [0; 64];
++    {
++        let mut reading = Box::pin(reader.read_into(&mut buffer, &never));
++        assert!(block_on(poll_once(&mut reading)).is_none());
++        peer.write_all(b"x").unwrap();
++        assert_eq!(drive(reading, &mut worker).unwrap(), 1);
++    }
++    peer.write_all(b"before").unwrap();
++    socket2::SockRef::from(&peer)
++        .send_with_flags(b"!", libc::MSG_OOB)
++        .unwrap();
++    peer.write_all(b"after").unwrap();
++    std::thread::sleep(Duration::from_millis(10));
++    assert_eq!(
++        drive(reader.read_into(&mut buffer, &never), &mut worker)
++            .unwrap_err()
++            .kind(),
++        io::ErrorKind::Unsupported
++    );
++    // Changing the specialization keeps registration and unread normal bytes.
++    let mut reader = reader.with_oob_support::<true>();
++    assert_eq!(
++        drive(reader.read_into(&mut buffer, &never), &mut worker).unwrap(),
++        6
++    );
++    assert_eq!(&buffer[..6], b"before");
++    assert_eq!(
++        drive(reader.read_into(&mut buffer, &never), &mut worker).unwrap(),
++        5
++    );
++    assert_eq!(&buffer[..5], b"after");
++    peer.shutdown(std::net::Shutdown::Write).unwrap();
++    assert_eq!(
++        drive(reader.read_into(&mut buffer, &never), &mut worker).unwrap(),
++        0
++    );
++    let mut reader = reader.with_oob_support::<false>();
++    assert_eq!(block_on(reader.read_into(&mut buffer, &never)).unwrap(), 0);
++    block_on(reader.close()).unwrap();
++    let mut reader = reader.with_oob_support::<true>();
++    assert_eq!(
++        block_on(reader.read_into(&mut buffer, &never))
++            .unwrap_err()
++            .kind(),
++        io::ErrorKind::BrokenPipe
++    );
++}
++
++#[test]
++fn compile_time_options_preserve_the_pool_eof_and_closed_state() {
++    let (selector, mut worker, socket, mut peer) = setup();
++    let never = Cancellation::never();
++    let pool = selector.buffer_pool(BufferPoolOptions::new(1, 8)).unwrap();
++    let lease = block_on(pool.acquire(&never)).unwrap();
++    let reader = selector
++        .socket_stream_reader_with_pool(&socket, pool)
++        .unwrap();
++    let mut reader = reader.with_oob_support::<true>();
++    {
++        let mut reading = pin!(reader.read(&never));
++        assert!(block_on(poll_once(reading.as_mut())).is_none());
++    }
++    drop(lease);
++    peer.write_all(b"one").unwrap();
++    let chunk = drive(reader.read(&never), &mut worker).unwrap().unwrap();
++    assert_eq!(chunk.as_ref(), b"one");
++    drop(chunk);
++    let mut reader = reader.with_oob_support::<false>();
++    peer.shutdown(std::net::Shutdown::Write).unwrap();
++    assert!(drive(reader.read(&never), &mut worker).unwrap().is_none());
++    let mut reader = reader.with_oob_support::<true>();
++    assert_eq!(block_on(reader.read_into(&mut [0; 8], &never)).unwrap(), 0);
++    block_on(reader.close()).unwrap();
++    let mut reader = reader.with_oob_support::<false>();
++    assert_eq!(
++        block_on(reader.read_into(&mut [0; 8], &never))
++            .unwrap_err()
++            .kind(),
++        io::ErrorKind::BrokenPipe
++    );
++}
+diff --git a/crates/selector/src/socket_receiving.rs b/crates/selector/src/socket_receiving.rs
+index ea220ce..ce2322b 100644
+--- a/crates/selector/src/socket_receiving.rs
++++ b/crates/selector/src/socket_receiving.rs
+@@ -13,7 +13,7 @@ impl SocketStreamReading for ReadinessSelector {
+         socket: &Self::Socket,
+     ) -> io::Result<impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer> + 'scheduler>
+     {
+-        ReadinessSocketStreamReader::new(self, socket)
++        ReadinessSocketStreamReader::<false>::new(self, socket)
+     }
+     fn socket_stream_reader_with_pool<'scheduler>(
+         &'scheduler self,
+@@ -21,7 +21,7 @@ impl SocketStreamReading for ReadinessSelector {
+         pool: Self::Pool,
+     ) -> io::Result<impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer> + 'scheduler>
+     {
+-        ReadinessSocketStreamReader::new(self, socket).map(|reader| reader.with_pool(pool))
++        ReadinessSocketStreamReader::<false>::new(self, socket).map(|reader| reader.with_pool(pool))
+     }
+ }
+ impl SocketPacketReading for ReadinessSelector {
+diff --git a/src/socket_stream_reader.rs b/src/socket_stream_reader.rs
+index c10e1d8..54a6c79 100644
+--- a/src/socket_stream_reader.rs
++++ b/src/socket_stream_reader.rs
+@@ -15,6 +15,25 @@ use std::{
+ pub trait SocketStreamReader: Send {
+     type Buffer: ReceiveBuffer;
+ 
++    /// Select whether ordinary reads must preserve progress across TCP urgent-data
++    /// boundaries. OOB support is disabled by default. The const parameter lets
++    /// backends specialize readiness handling without a runtime option check.
++    ///
++    /// With support disabled, backends may reject observed urgent data with
++    /// `Unsupported`; this is not a filter or a guarantee that every urgent byte
++    /// is detected. Socket aliases must not consume urgent data in this mode.
++    /// With support enabled, ordinary reads remain usable across urgent marks;
++    /// receiving the urgent byte itself remains a separate socket operation.
++    /// Backends that always use conservative reads need no specialization.
++    fn with_oob_support<const SUPPORT_OOB: bool>(
++        self,
++    ) -> impl SocketStreamReader<Buffer = Self::Buffer>
++    where
++        Self: Sized,
++    {
++        self
++    }
++
+     /// Read an owned initialized chunk. `None` means EOF or a closed reader. Holding every pool lease waits for capacity with cancellation. Idle readiness waits need not retain a payload buffer.
+     fn read(
+         &mut self,
+diff --git a/tests/resource_defaults.rs b/tests/resource_defaults.rs
+index 0df55da..e4a44d9 100644
+--- a/tests/resource_defaults.rs
++++ b/tests/resource_defaults.rs
+@@ -448,6 +448,11 @@ fn socket_defaults_preserve_owners_and_forward_flags_and_addresses() {
+         let (result, owner) = reader.read_owned(owner, &cancelled).await;
+         assert!(matches!(result, Err(OperationError::Cancelled(_))));
+         assert_eq!(owner.as_ptr(), pointer);
++        let mut reader = reader
++            .with_oob_support::<true>()
++            .with_oob_support::<false>();
++        assert_eq!(reader.read_into(&mut buffer, &never).await.unwrap(), 1);
++        assert_eq!(buffer[0], b'c');
+         let mut writer = StreamWriter {
+             bytes: Vec::new(),
+             dont_route: false,

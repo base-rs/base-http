@@ -1,0 +1,94 @@
+{
+  "cohort": "five isolated interleaved eight-second samples per variant, one second warmup, wrk t4/c64, one app worker, macOS M4 Pro",
+  "baseline": "preserved notifier-only implementation",
+  "changes": "early ready-write return plus direct event-pointer dispatch with driver-owned retirement",
+  "measurements": {
+    "before-native-raw": {
+      "median_requests_per_second": 134847.36,
+      "min_requests_per_second": 133623.07,
+      "max_requests_per_second": 137291.9,
+      "median_p99_ms": 0.665,
+      "median_cpu_percent": 99.53526313462838,
+      "errors": 0,
+      "median_user_cpu_us_per_request": 0.3378600558383891,
+      "median_system_cpu_us_per_request": 7.045040108857088
+    },
+    "after-native-raw": {
+      "median_requests_per_second": 135704.56,
+      "min_requests_per_second": 135331.85,
+      "max_requests_per_second": 136846.08,
+      "median_p99_ms": 0.664,
+      "median_cpu_percent": 99.42501461776418,
+      "errors": 0,
+      "median_user_cpu_us_per_request": 0.2921778878329135,
+      "median_system_cpu_us_per_request": 7.038232322403201
+    },
+    "tokio-task-raw": {
+      "median_requests_per_second": 136763.5,
+      "min_requests_per_second": 133349.33,
+      "max_requests_per_second": 137711.61,
+      "median_p99_ms": 0.661,
+      "median_cpu_percent": 99.53870429177589,
+      "errors": 0,
+      "median_user_cpu_us_per_request": 0.26075791632251144,
+      "median_system_cpu_us_per_request": 7.0174749612966405
+    },
+    "before-base-http": {
+      "median_requests_per_second": 129593.55,
+      "min_requests_per_second": 127994.77,
+      "max_requests_per_second": 131390.47,
+      "median_p99_ms": 0.6940000000000001,
+      "median_cpu_percent": 99.53933710354663,
+      "errors": 0,
+      "median_user_cpu_us_per_request": 0.8153214849794843,
+      "median_system_cpu_us_per_request": 6.86221691858039
+    },
+    "after-base-http": {
+      "median_requests_per_second": 130147.62,
+      "min_requests_per_second": 129465.11,
+      "max_requests_per_second": 131620.46,
+      "median_p99_ms": 0.6930000000000001,
+      "median_cpu_percent": 99.5394179396062,
+      "errors": 0,
+      "median_user_cpu_us_per_request": 0.7782769031947083,
+      "median_system_cpu_us_per_request": 6.877268322992367
+    },
+    "hyper-http": {
+      "median_requests_per_second": 131124.85,
+      "min_requests_per_second": 124834.88,
+      "max_requests_per_second": 133266.11,
+      "median_p99_ms": 0.6930000000000001,
+      "median_cpu_percent": 99.41740240254275,
+      "errors": 0,
+      "median_user_cpu_us_per_request": 0.6975448958215604,
+      "median_system_cpu_us_per_request": 6.893362523383578
+    }
+  },
+  "comparisons": {
+    "after-native-raw": {
+      "median_user_cpu_reduction_percent": 13.521032515109466,
+      "paired_user_cpu_reduction_percent": [
+        16.51866303458087,
+        7.952650892650004,
+        13.209682095001929,
+        13.932476834128204,
+        2.902837239883471
+      ],
+      "median_throughput_change_percent": 0.6356817070797716
+    },
+    "after-base-http": {
+      "median_user_cpu_reduction_percent": 4.5435552070246406,
+      "paired_user_cpu_reduction_percent": [
+        8.245522154893592,
+        3.599001110848765,
+        4.4834371424275705,
+        3.2503509383430718,
+        6.503007028314567
+      ],
+      "median_throughput_change_percent": 0.4275444264008499
+    }
+  },
+  "base_vs_hyper_median_throughput_percent": -0.7452668201336388,
+  "native_raw_vs_tokio_median_throughput_percent": -0.7742855367111834,
+  "errors": 0
+}

@@ -1,0 +1,190 @@
+after {'wire_rtt.p50_us': 58.367, 'wire_rtt.p99_us': 265.471, 'scheduled_latency.p50_us': 59.199, 'scheduled_latency.p99_us': 2916.351, 'send_delay.p50_us': 0.949, 'send_delay.p99_us': 2652.159, 'dispatch_lag.p50_us': 0.899, 'dispatch_lag.p99_us': 10.607}
+before {'wire_rtt.p50_us': 58.271, 'wire_rtt.p99_us': 308.223, 'scheduled_latency.p50_us': 59.103, 'scheduled_latency.p99_us': 2230.271, 'send_delay.p50_us': 0.964, 'send_delay.p99_us': 1963.007, 'dispatch_lag.p50_us': 0.891, 'dispatch_lag.p99_us': 10.687}
+borrowed {'wire_rtt.p50_us': 33.855, 'wire_rtt.p99_us': 268.799, 'scheduled_latency.p50_us': 35.263, 'scheduled_latency.p99_us': 2664.447, 'send_delay.p50_us': 0.981, 'send_delay.p99_us': 2400.255, 'dispatch_lag.p50_us': 0.925, 'dispatch_lag.p99_us': 9.711}
+tokio {'wire_rtt.p50_us': 29.967, 'wire_rtt.p99_us': 261.759, 'scheduled_latency.p50_us': 31.135, 'scheduled_latency.p99_us': 3018.751, 'send_delay.p50_us': 0.965, 'send_delay.p99_us': 2752.511, 'dispatch_lag.p50_us': 0.918, 'dispatch_lag.p99_us': 10.087}
+paired {
+  "after_vs_before": {
+    "wire_rtt.mean_us": {
+      "median_percent": -12.08284916324921,
+      "range_percent": [
+        -32.39457558627473,
+        81.44694787835671
+      ],
+      "values_percent": [
+        81.44694787835671,
+        -12.08284916324921,
+        -32.39457558627473,
+        -8.093147962862556,
+        -17.056213109067443
+      ]
+    },
+    "wire_rtt.p50_us": {
+      "median_percent": -2.1984282578461523,
+      "range_percent": [
+        -39.05267341547237,
+        55.52826534076161
+      ],
+      "values_percent": [
+        55.52826534076161,
+        -17.792727085514237,
+        -39.05267341547237,
+        -0.2205109652522963,
+        -2.1984282578461523
+      ]
+    },
+    "wire_rtt.p99_us": {
+      "median_percent": -7.398480561232768,
+      "range_percent": [
+        -22.14721209650694,
+        54.98380589320018
+      ],
+      "values_percent": [
+        54.98380589320018,
+        -7.398480561232768,
+        -7.171333341979336,
+        -14.534930877968232,
+        -22.14721209650694
+      ]
+    },
+    "scheduled_latency.mean_us": {
+      "median_percent": -22.27124631317222,
+      "range_percent": [
+        -78.46476033897923,
+        452.94221872111143
+      ],
+      "values_percent": [
+        452.94221872111143,
+        -22.27124631317222,
+        -38.08101923069734,
+        2.7422921769669317,
+        -78.46476033897923
+      ]
+    },
+    "scheduled_latency.p50_us": {
+      "median_percent": -2.580347886188239,
+      "range_percent": [
+        -39.122249407388786,
+        55.82086633421337
+      ],
+      "values_percent": [
+        55.82086633421337,
+        -16.18868754547147,
+        -39.122249407388786,
+        -0.1086974982591471,
+        -2.580347886188239
+      ]
+    },
+    "scheduled_latency.p99_us": {
+      "median_percent": 11.524164876169518,
+      "range_percent": [
+        -94.94825579004029,
+        2310.0887729959395
+      ],
+      "values_percent": [
+        2310.0887729959395,
+        -59.88933919042054,
+        11.524164876169518,
+        30.76218091882108,
+        -94.94825579004029
+      ]
+    }
+  },
+  "after_vs_tokio": {
+    "wire_rtt.mean_us": {
+      "median_percent": 57.44998227222562,
+      "range_percent": [
+        -23.13447785101629,
+        119.0977895413742
+      ],
+      "values_percent": [
+        119.0977895413742,
+        42.678509043867294,
+        91.49275893590494,
+        -23.13447785101629,
+        57.44998227222562
+      ]
+    },
+    "wire_rtt.p50_us": {
+      "median_percent": 115.09858116823288,
+      "range_percent": [
+        13.479887928838718,
+        160.9770747822605
+      ],
+      "values_percent": [
+        149.26232918360162,
+        75.60394442611533,
+        160.9770747822605,
+        13.479887928838718,
+        115.09858116823288
+      ]
+    },
+    "wire_rtt.p99_us": {
+      "median_percent": 2.4703652666643316,
+      "range_percent": [
+        -17.349452025138124,
+        38.38645471597919
+      ],
+      "values_percent": [
+        38.38645471597919,
+        -1.6435607808518715,
+        23.716896145243858,
+        -17.349452025138124,
+        2.4703652666643316
+      ]
+    },
+    "scheduled_latency.mean_us": {
+      "median_percent": 22.751056204107666,
+      "range_percent": [
+        -53.04099948151069,
+        510.76094362334084
+      ],
+      "values_percent": [
+        510.76094362334084,
+        22.751056204107666,
+        113.34194367042781,
+        -53.04099948151069,
+        -32.22260336916195
+      ]
+    },
+    "scheduled_latency.p50_us": {
+      "median_percent": 111.79564237415475,
+      "range_percent": [
+        12.210245158828581,
+        156.53123494459606
+      ],
+      "values_percent": [
+        142.69440467850507,
+        76.21215894133968,
+        156.53123494459606,
+        12.210245158828581,
+        111.79564237415475
+      ]
+    },
+    "scheduled_latency.p99_us": {
+      "median_percent": -28.298093563659865,
+      "range_percent": [
+        -78.47695951073806,
+        1268.158900937897
+      ],
+      "values_percent": [
+        1268.158900937897,
+        -50.12521771014759,
+        137.38875721283583,
+        -28.298093563659865,
+        -78.47695951073806
+      ]
+    }
+  }
+}
+unpaced 1
+before {'requests_per_second': 69518.39, 'total_cpu_us_per_request': 6.653, 'latency_p99_ms': 0.017}
+after {'requests_per_second': 70833.29, 'total_cpu_us_per_request': 7.116, 'latency_p99_ms': 0.017}
+borrowed {'requests_per_second': 69390.47, 'total_cpu_us_per_request': 6.222, 'latency_p99_ms': 0.017}
+tokio {'requests_per_second': 68676.25, 'total_cpu_us_per_request': 5.825, 'latency_p99_ms': 0.017}
+after/before {'median_percent': 1.7536449376924113, 'min_percent': 0.4188100443637932, 'max_percent': 3.372068860272859, 'values_percent': [3.293858016646767, 1.1512687447100767, 1.7536449376924113, 0.4188100443637932, 3.372068860272859]}
+unpaced 64
+before {'requests_per_second': 262015.44, 'total_cpu_us_per_request': 2.69, 'latency_p99_ms': 0.466}
+after {'requests_per_second': 263380.13, 'total_cpu_us_per_request': 2.663, 'latency_p99_ms': 0.463}
+borrowed {'requests_per_second': 241785.14, 'total_cpu_us_per_request': 2.935, 'latency_p99_ms': 0.311}
+tokio {'requests_per_second': 248718.59, 'total_cpu_us_per_request': 2.834, 'latency_p99_ms': 0.305}
+after/before {'median_percent': 0.5363833655234407, 'min_percent': -1.4545815778327031, 'max_percent': 5.0329640739472215, 'values_percent': [5.0329640739472215, 0.5363833655234407, -1.4545815778327031, 0.14869945143072272, 0.7007373305939479]}

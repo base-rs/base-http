@@ -1,0 +1,12 @@
+
+running 7 tests
+test readiness_socket_stream_writer::readiness_tests::ready_write_admission_is_lazy_and_prevents_syscalls_after_cancel_or_close ... ok
+test readiness_socket_stream_writer::readiness_tests::a_blocked_registered_write_waits_without_a_same_generation_probe ... ok
+test readiness_socket_stream_writer::readiness_tests::ready_writes_skip_registration_and_blocked_writes_retain_it ... ok
+test readiness_socket_stream_writer::readiness_tests::ready_results_win_cancellation_and_closure_after_admission ... ok
+test readiness_socket_stream_writer::readiness_tests::blocked_writes_report_failed_registration_and_closure_during_the_first_wait ... ok
+test readiness_socket_stream_writer::readiness_tests::pending_writes_observe_cancellation_and_scheduler_closure ... ok
+test readiness_socket_stream_writer::readiness_tests::worker_driven_writes_resume_after_real_tcp_backpressure ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 170 filtered out; finished in 0.02s
+

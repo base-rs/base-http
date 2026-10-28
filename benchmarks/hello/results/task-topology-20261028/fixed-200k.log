@@ -1,0 +1,2487 @@
+owned-tasks 200000/s r1: achieved 200000/s; scheduled p99 311.30 us; RTT p99 238.97 us; dispatch p99 11.78 us; drain 0.01 ms
+borrowed-tasks 200000/s r1: achieved 200000/s; scheduled p99 209.28 us; RTT p99 207.87 us; dispatch p99 11.41 us; drain 0.01 ms
+borrowed-supervisor 200000/s r1: achieved 200000/s; scheduled p99 789.50 us; RTT p99 292.10 us; dispatch p99 12.63 us; drain 0.01 ms
+owned-supervisor 200000/s r1: achieved 200000/s; scheduled p99 230.14 us; RTT p99 216.96 us; dispatch p99 12.14 us; drain 0.01 ms
+tokio-tasks 200000/s r1: achieved 200000/s; scheduled p99 1364.99 us; RTT p99 252.93 us; dispatch p99 11.78 us; drain 0.02 ms
+tokio-supervisor 200000/s r1: achieved 200002/s; scheduled p99 248.83 us; RTT p99 236.80 us; dispatch p99 12.13 us; drain 0.01 ms
+borrowed-supervisor 200000/s r2: achieved 199990/s; scheduled p99 262.14 us; RTT p99 243.97 us; dispatch p99 12.50 us; drain 0.31 ms
+tokio-tasks 200000/s r2: achieved 200000/s; scheduled p99 2025.47 us; RTT p99 269.82 us; dispatch p99 12.34 us; drain 0.01 ms
+tokio-supervisor 200000/s r2: achieved 200000/s; scheduled p99 878.59 us; RTT p99 249.09 us; dispatch p99 10.30 us; drain 0.01 ms
+owned-tasks 200000/s r2: achieved 200000/s; scheduled p99 308.74 us; RTT p99 233.73 us; dispatch p99 11.26 us; drain 0.01 ms
+borrowed-tasks 200000/s r2: achieved 200000/s; scheduled p99 239.62 us; RTT p99 229.63 us; dispatch p99 11.00 us; drain 0.01 ms
+owned-supervisor 200000/s r2: achieved 200000/s; scheduled p99 1290.24 us; RTT p99 273.92 us; dispatch p99 11.28 us; drain 0.01 ms
+tokio-tasks 200000/s r3: achieved 200000/s; scheduled p99 353.79 us; RTT p99 240.25 us; dispatch p99 11.01 us; drain 0.01 ms
+owned-supervisor 200000/s r3: achieved 200000/s; scheduled p99 179.84 us; RTT p99 169.34 us; dispatch p99 10.89 us; drain 0.01 ms
+borrowed-supervisor 200000/s r3: achieved 200000/s; scheduled p99 212.35 us; RTT p99 194.94 us; dispatch p99 9.39 us; drain 0.01 ms
+tokio-supervisor 200000/s r3: achieved 200000/s; scheduled p99 192.64 us; RTT p99 179.71 us; dispatch p99 11.00 us; drain 0.01 ms
+owned-tasks 200000/s r3: achieved 200000/s; scheduled p99 210.94 us; RTT p99 193.02 us; dispatch p99 10.62 us; drain 0.01 ms
+borrowed-tasks 200000/s r3: achieved 200000/s; scheduled p99 296.70 us; RTT p99 251.52 us; dispatch p99 10.31 us; drain 0.01 ms
+tokio-tasks 200000/s r4: achieved 200000/s; scheduled p99 399.36 us; RTT p99 244.48 us; dispatch p99 10.16 us; drain 0.01 ms
+borrowed-supervisor 200000/s r4: achieved 200000/s; scheduled p99 737.28 us; RTT p99 275.45 us; dispatch p99 11.27 us; drain 0.01 ms
+borrowed-tasks 200000/s r4: achieved 200000/s; scheduled p99 483.58 us; RTT p99 259.07 us; dispatch p99 11.69 us; drain 0.01 ms
+owned-tasks 200000/s r4: achieved 200000/s; scheduled p99 3330.05 us; RTT p99 291.33 us; dispatch p99 11.19 us; drain 0.01 ms
+owned-supervisor 200000/s r4: achieved 200000/s; scheduled p99 441.34 us; RTT p99 244.35 us; dispatch p99 11.70 us; drain 0.01 ms
+tokio-supervisor 200000/s r4: achieved 200000/s; scheduled p99 262.91 us; RTT p99 237.06 us; dispatch p99 9.71 us; drain 0.02 ms
+tokio-tasks 200000/s r5: achieved 200000/s; scheduled p99 543.74 us; RTT p99 249.22 us; dispatch p99 11.46 us; drain 0.01 ms
+owned-supervisor 200000/s r5: achieved 200000/s; scheduled p99 1676.29 us; RTT p99 333.57 us; dispatch p99 11.76 us; drain 0.02 ms
+borrowed-tasks 200000/s r5: achieved 200000/s; scheduled p99 359.94 us; RTT p99 245.38 us; dispatch p99 9.76 us; drain 0.01 ms
+tokio-supervisor 200000/s r5: achieved 200000/s; scheduled p99 289.28 us; RTT p99 238.46 us; dispatch p99 10.83 us; drain 0.01 ms
+owned-tasks 200000/s r5: achieved 200000/s; scheduled p99 487.94 us; RTT p99 254.46 us; dispatch p99 11.68 us; drain 0.01 ms
+borrowed-supervisor 200000/s r5: achieved 199999/s; scheduled p99 1374.21 us; RTT p99 277.25 us; dispatch p99 9.62 us; drain 0.05 ms
+[
+  {
+    "rate": 200000,
+    "medians": {
+      "owned-supervisor": {
+        "achieved_rate": 200000.125,
+        "target_delivery_min": 1.0,
+        "target_delivery_max": 1.000000625,
+        "drain_ms": 0.010428000000000002,
+        "scheduled_latency": {
+          "mean_us": 41.75272688500008,
+          "p50_us": 16.863,
+          "p95_us": 61.695,
+          "p99_us": 441.343,
+          "p999_us": 3225.599,
+          "max_us": 6635.519
+        },
+        "wire_rtt": {
+          "mean_us": 27.010367312500065,
+          "p50_us": 15.703,
+          "p95_us": 59.423,
+          "p99_us": 244.351,
+          "p999_us": 416.255,
+          "max_us": 3883.007
+        },
+        "send_delay": {
+          "mean_us": 14.742422226250026,
+          "p50_us": 0.926,
+          "p95_us": 3.617,
+          "p99_us": 126.975,
+          "p999_us": 2908.159,
+          "max_us": 6328.319
+        },
+        "dispatch_lag": {
+          "mean_us": 1.2517950437500027,
+          "p50_us": 0.905,
+          "p95_us": 3.017,
+          "p99_us": 11.695,
+          "p999_us": 16.927,
+          "max_us": 1328.127
+        }
+      },
+      "owned-tasks": {
+        "achieved_rate": 200000.0,
+        "target_delivery_min": 1.0,
+        "target_delivery_max": 1.0000025,
+        "drain_ms": 0.009402,
+        "scheduled_latency": {
+          "mean_us": 36.1601411249999,
+          "p50_us": 14.815,
+          "p95_us": 53.215,
+          "p99_us": 311.295,
+          "p999_us": 3016.703,
+          "max_us": 7536.639
+        },
+        "wire_rtt": {
+          "mean_us": 25.772334859999905,
+          "p50_us": 14.015,
+          "p95_us": 50.655,
+          "p99_us": 238.975,
+          "p999_us": 424.703,
+          "max_us": 3823.615
+        },
+        "send_delay": {
+          "mean_us": 13.961074623125029,
+          "p50_us": 0.911,
+          "p95_us": 3.441,
+          "p99_us": 17.983,
+          "p999_us": 2697.215,
+          "max_us": 7217.151
+        },
+        "dispatch_lag": {
+          "mean_us": 1.2301040800000052,
+          "p50_us": 0.887,
+          "p95_us": 2.707,
+          "p99_us": 11.263,
+          "p999_us": 16.151,
+          "max_us": 1429.503
+        }
+      },
+      "borrowed-supervisor": {
+        "achieved_rate": 200000.0,
+        "target_delivery_min": 0.9999525,
+        "target_delivery_max": 1.0,
+        "drain_ms": 0.010697,
+        "scheduled_latency": {
+          "mean_us": 41.581528892500124,
+          "p50_us": 15.911,
+          "p95_us": 49.247,
+          "p99_us": 737.279,
+          "p999_us": 2928.639,
+          "max_us": 5873.663
+        },
+        "wire_rtt": {
+          "mean_us": 24.84174348499997,
+          "p50_us": 15.175,
+          "p95_us": 47.423,
+          "p99_us": 275.455,
+          "p999_us": 404.735,
+          "max_us": 2836.479
+        },
+        "send_delay": {
+          "mean_us": 13.91648491312502,
+          "p50_us": 0.904,
+          "p95_us": 3.625,
+          "p99_us": 420.095,
+          "p999_us": 2611.199,
+          "max_us": 5554.175
+        },
+        "dispatch_lag": {
+          "mean_us": 1.1997752156250008,
+          "p50_us": 0.884,
+          "p95_us": 2.739,
+          "p99_us": 11.271,
+          "p999_us": 16.031,
+          "max_us": 1330.175
+        }
+      },
+      "borrowed-tasks": {
+        "achieved_rate": 200000.0,
+        "target_delivery_min": 1.0,
+        "target_delivery_max": 1.0000025,
+        "drain_ms": 0.00726,
+        "scheduled_latency": {
+          "mean_us": 31.40631720499994,
+          "p50_us": 14.279,
+          "p95_us": 49.183,
+          "p99_us": 296.703,
+          "p999_us": 2199.551,
+          "max_us": 6205.439
+        },
+        "wire_rtt": {
+          "mean_us": 21.43258480249986,
+          "p50_us": 13.247,
+          "p95_us": 47.071,
+          "p99_us": 245.375,
+          "p999_us": 397.311,
+          "max_us": 2291.711
+        },
+        "send_delay": {
+          "mean_us": 10.466079967500006,
+          "p50_us": 0.912,
+          "p95_us": 2.853,
+          "p99_us": 15.399,
+          "p999_us": 1886.207,
+          "max_us": 5885.951
+        },
+        "dispatch_lag": {
+          "mean_us": 1.1913500618750055,
+          "p50_us": 0.901,
+          "p95_us": 2.441,
+          "p99_us": 10.999,
+          "p999_us": 15.887,
+          "max_us": 1326.079
+        }
+      },
+      "tokio-supervisor": {
+        "achieved_rate": 200000.125,
+        "target_delivery_min": 0.999999375,
+        "target_delivery_max": 1.00001125,
+        "drain_ms": 0.010634,
+        "scheduled_latency": {
+          "mean_us": 33.12994119500002,
+          "p50_us": 14.527,
+          "p95_us": 42.111,
+          "p99_us": 262.911,
+          "p999_us": 2416.639,
+          "max_us": 5689.343
+        },
+        "wire_rtt": {
+          "mean_us": 20.757314597499917,
+          "p50_us": 13.807,
+          "p95_us": 40.383,
+          "p99_us": 237.055,
+          "p999_us": 374.527,
+          "max_us": 2865.151
+        },
+        "send_delay": {
+          "mean_us": 9.712943107499994,
+          "p50_us": 0.903,
+          "p95_us": 2.887,
+          "p99_us": 15.759,
+          "p999_us": 2097.151,
+          "max_us": 5369.855
+        },
+        "dispatch_lag": {
+          "mean_us": 1.1815415100000064,
+          "p50_us": 0.887,
+          "p95_us": 2.381,
+          "p99_us": 10.831,
+          "p999_us": 15.887,
+          "max_us": 1292.287
+        }
+      },
+      "tokio-tasks": {
+        "achieved_rate": 200000.125,
+        "target_delivery_min": 0.9999975,
+        "target_delivery_max": 1.0000025,
+        "drain_ms": 0.008815,
+        "scheduled_latency": {
+          "mean_us": 46.476725322499995,
+          "p50_us": 14.023,
+          "p95_us": 42.271,
+          "p99_us": 543.743,
+          "p999_us": 5410.815,
+          "max_us": 7208.959
+        },
+        "wire_rtt": {
+          "mean_us": 21.680920027500065,
+          "p50_us": 12.991,
+          "p95_us": 40.415,
+          "p99_us": 249.215,
+          "p999_us": 431.871,
+          "max_us": 2850.815
+        },
+        "send_delay": {
+          "mean_us": 24.795839385624994,
+          "p50_us": 0.912,
+          "p95_us": 3.283,
+          "p99_us": 228.479,
+          "p999_us": 5091.327,
+          "max_us": 6889.471
+        },
+        "dispatch_lag": {
+          "mean_us": 1.211069870624997,
+          "p50_us": 0.896,
+          "p95_us": 2.543,
+          "p99_us": 11.455,
+          "p999_us": 16.127,
+          "max_us": 1309.695
+        }
+      }
+    },
+    "paired": {
+      "owned-supervisor_vs_owned-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 11.765554033595272,
+          "min_percent": 3.6433238730116724,
+          "max_percent": 15.802196284273773,
+          "values_percent": [
+            3.6433238730116724,
+            14.83528470656681,
+            11.765554033595272,
+            11.473421334284684,
+            15.802196284273773
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -9.212679150538762,
+          "min_percent": -16.124835665763904,
+          "max_percent": 31.086641279871728,
+          "values_percent": [
+            -9.212679150538762,
+            17.19613052835145,
+            -12.267968065981783,
+            -16.124835665763904,
+            31.086641279871728
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 11.438465522700136,
+          "min_percent": -1.3585818016352391,
+          "max_percent": 27.377520016203572,
+          "values_percent": [
+            0.9014887601599186,
+            27.377520016203572,
+            11.438465522700136,
+            -1.3585818016352391,
+            18.56259622377152
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 14.854697314833976,
+          "min_percent": 5.3476603985756155,
+          "max_percent": 17.990083106362164,
+          "values_percent": [
+            5.3476603985756155,
+            17.990083106362164,
+            14.854697314833976,
+            13.175835302058726,
+            14.91005909474643
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -14.745215532157985,
+          "min_percent": -86.74664351584227,
+          "max_percent": 317.9114774806873,
+          "values_percent": [
+            -26.069162691337798,
+            317.9114774806873,
+            -14.745215532157985,
+            -86.74664351584227,
+            243.54719378605756
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 13.276536506486881,
+          "min_percent": -57.519738248945,
+          "max_percent": 83.87635805306924,
+          "values_percent": [
+            -1.349442735599804,
+            83.87635805306924,
+            13.276536506486881,
+            -57.519738248945,
+            57.754601991038236
+          ]
+        }
+      },
+      "owned-supervisor_vs_borrowed-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": 4.059308072487644,
+          "min_percent": 1.9464720194647178,
+          "max_percent": 10.900191811627757,
+          "values_percent": [
+            2.3463468682786814,
+            4.059308072487644,
+            1.9464720194647178,
+            10.402091724966422,
+            10.900191811627757
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -11.291862554682252,
+          "min_percent": -25.723138020164683,
+          "max_percent": 20.314016021814485,
+          "values_percent": [
+            -25.723138020164683,
+            12.277070259502288,
+            -13.13204372560185,
+            -11.291862554682252,
+            20.314016021814485
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 10.587500174493393,
+          "min_percent": -2.933624186977435,
+          "max_percent": 23.00404492925643,
+          "values_percent": [
+            -2.933624186977435,
+            10.587500174493393,
+            8.29005690240816,
+            12.620366710587373,
+            23.00404492925643
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 6.184400729055373,
+          "min_percent": 3.1817903689653093,
+          "max_percent": 12.171156893819335,
+          "values_percent": [
+            3.1817903689653093,
+            6.184400729055373,
+            3.3285723157175484,
+            10.49093904448104,
+            12.171156893819335
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -15.310500068283172,
+          "min_percent": -70.84963578352456,
+          "max_percent": 392.18899608229106,
+          "values_percent": [
+            -70.84963578352456,
+            392.18899608229106,
+            -15.310500068283172,
+            -40.13894333081506,
+            21.982132240630413
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -5.0304508920925635,
+          "min_percent": -24.68913904426403,
+          "max_percent": 99.79117801684325,
+          "values_percent": [
+            -24.68913904426403,
+            99.79117801684325,
+            -5.0304508920925635,
+            -9.104227819271859,
+            18.380857942381688
+          ]
+        }
+      },
+      "owned-supervisor_vs_borrowed-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 18.540046803049748,
+          "min_percent": 12.153656948563984,
+          "max_percent": 29.06627665306751,
+          "values_percent": [
+            18.540046803049748,
+            20.001519872330718,
+            12.153656948563984,
+            13.08722403184943,
+            29.06627665306751
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 4.3719422141616615,
+          "min_percent": -32.67188562295493,
+          "max_percent": 35.941721854304646,
+          "values_percent": [
+            4.3719422141616615,
+            19.286594580000084,
+            -32.67188562295493,
+            -5.681840113328018,
+            35.941721854304646
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 25.292760660710513,
+          "min_percent": 7.567092178008927,
+          "max_percent": 51.06385854714619,
+          "values_percent": [
+            25.292760660710513,
+            33.146323432330796,
+            7.567092178008927,
+            16.948867245293986,
+            51.06385854714619
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 18.096505357518033,
+          "min_percent": 14.981687512956942,
+          "max_percent": 26.041740864733963,
+          "values_percent": [
+            18.096505357518033,
+            18.987252623424176,
+            14.981687512956942,
+            15.48315999724499,
+            26.041740864733963
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 9.969466597221889,
+          "min_percent": -39.38753568383198,
+          "max_percent": 438.4633683200134,
+          "values_percent": [
+            9.969466597221889,
+            438.4633683200134,
+            -39.38753568383198,
+            -8.734798369669738,
+            365.7193659966383
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 27.827356633148458,
+          "min_percent": 5.032540263200613,
+          "max_percent": 109.82178461297742,
+          "values_percent": [
+            27.827356633148458,
+            109.82178461297742,
+            7.134081818960913,
+            5.032540263200613,
+            99.58148325974699
+          ]
+        }
+      },
+      "owned-supervisor_vs_tokio-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": 14.211565172892747,
+          "min_percent": 11.06096425245362,
+          "max_percent": 21.438400811182735,
+          "values_percent": [
+            11.598322791557102,
+            15.103141628398586,
+            11.06096425245362,
+            14.211565172892747,
+            21.438400811182735
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 3.0777667629874994,
+          "min_percent": -8.378413760193249,
+          "max_percent": 39.88207814210172,
+          "values_percent": [
+            -8.378413760193249,
+            9.969207545957826,
+            -5.769262872055703,
+            3.0777667629874994,
+            39.88207814210172
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 29.074642808001492,
+          "min_percent": 14.67498505128868,
+          "max_percent": 47.20762251770423,
+          "values_percent": [
+            14.67498505128868,
+            29.074642808001492,
+            16.74656260404568,
+            32.11957858251269,
+            47.20762251770423
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 17.161623925651593,
+          "min_percent": 12.190681680264316,
+          "max_percent": 21.807668479383224,
+          "values_percent": [
+            12.247886573919997,
+            17.399763741227158,
+            12.190681680264316,
+            17.161623925651593,
+            21.807668479383224
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 46.85320018074395,
+          "min_percent": -7.510318248128245,
+          "max_percent": 479.47068401093753,
+          "values_percent": [
+            -7.510318248128245,
+            46.85320018074395,
+            -6.644552764497325,
+            67.86783360148492,
+            479.47068401093753
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 15.320936051589573,
+          "min_percent": -5.47702085198366,
+          "max_percent": 78.51737204930309,
+          "values_percent": [
+            -5.47702085198366,
+            0.49665079320933003,
+            15.320936051589573,
+            47.54037499178783,
+            78.51737204930309
+          ]
+        }
+      },
+      "owned-supervisor_vs_tokio-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 19.63114437842426,
+          "min_percent": 15.507278180089257,
+          "max_percent": 29.38498340921367,
+          "values_percent": [
+            15.675874769797415,
+            15.507278180089257,
+            19.63114437842426,
+            20.26018012470172,
+            29.38498340921367
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -0.052356235095862846,
+          "min_percent": -29.515306653347483,
+          "max_percent": 33.84707983066831,
+          "values_percent": [
+            -14.22070399759614,
+            1.5180321914736616,
+            -29.515306653347483,
+            -0.052356235095862846,
+            33.84707983066831
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 17.40686785425032,
+          "min_percent": 11.684055818266259,
+          "max_percent": 40.93658976990988,
+          "values_percent": [
+            11.684055818266259,
+            16.783490306239244,
+            17.40686785425032,
+            29.850200336700873,
+            40.93658976990988
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 18.722797003210843,
+          "min_percent": 17.334537120633374,
+          "max_percent": 26.185552306924343,
+          "values_percent": [
+            17.569546120058565,
+            17.334537120633374,
+            18.722797003210843,
+            19.636104174099177,
+            26.185552306924343
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -36.29931013576595,
+          "min_percent": -83.13959579220669,
+          "max_percent": 208.28663541415705,
+          "values_percent": [
+            -83.13959579220669,
+            -36.29931013576595,
+            -49.168011622681185,
+            10.5128468370564,
+            208.28663541415705
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -12.392061746791116,
+          "min_percent": -52.38489055231099,
+          "max_percent": 34.86577051213891,
+          "values_percent": [
+            -52.38489055231099,
+            -12.392061746791116,
+            -16.190391133811886,
+            16.944997330019174,
+            34.86577051213891
+          ]
+        }
+      },
+      "owned-tasks_vs_owned-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -10.526994775204802,
+          "min_percent": -13.645851971133771,
+          "max_percent": -3.5152518627013962,
+          "values_percent": [
+            -3.5152518627013962,
+            -12.918751187385224,
+            -10.526994775204802,
+            -10.292517442232596,
+            -13.645851971133771
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 10.147539396844563,
+          "min_percent": -23.714576082166406,
+          "max_percent": 19.2248036635823,
+          "values_percent": [
+            10.147539396844563,
+            -14.67295076281674,
+            13.983453700477732,
+            19.2248036635823,
+            -23.714576082166406
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -10.264378165158872,
+          "min_percent": -21.49321168501389,
+          "max_percent": 1.3772934599370679,
+          "values_percent": [
+            -0.8934345481291461,
+            -21.49321168501389,
+            -10.264378165158872,
+            1.3772934599370679,
+            -15.656367872323763
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -12.933469559468714,
+          "min_percent": -15.247114530926298,
+          "max_percent": -5.076202336476299,
+          "values_percent": [
+            -5.076202336476299,
+            -15.247114530926298,
+            -12.933469559468714,
+            -11.641915667680557,
+            -12.975416784402382
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 17.29546983690968,
+          "min_percent": -76.0714875306048,
+          "max_percent": 654.5258449777157,
+          "values_percent": [
+            35.26155477246755,
+            -76.0714875306048,
+            17.29546983690968,
+            654.5258449777157,
+            -70.89191767280902
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -11.720464728127155,
+          "min_percent": -45.61562940509262,
+          "max_percent": 135.40344592513372,
+          "values_percent": [
+            1.3679017868931664,
+            -45.61562940509262,
+            -11.720464728127155,
+            135.40344592513372,
+            -36.610407089308985
+          ]
+        }
+      },
+      "owned-tasks_vs_borrowed-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -4.2330841986903955,
+          "min_percent": -9.383855024711707,
+          "max_percent": -0.9610628224153706,
+          "values_percent": [
+            -1.2513849964153057,
+            -9.383855024711707,
+            -8.785427763529952,
+            -0.9610628224153706,
+            -4.2330841986903955
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -4.197288977607627,
+          "min_percent": -18.18586418802103,
+          "max_percent": 5.76210270280082,
+          "values_percent": [
+            -18.18586418802103,
+            -4.197288977607627,
+            -0.9849032794201462,
+            5.76210270280082,
+            -8.217942845188597
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -2.8252440533207412,
+          "min_percent": -13.181305335175574,
+          "max_percent": 14.171479655849438,
+          "values_percent": [
+            -3.8008487231078525,
+            -13.181305335175574,
+            -2.8252440533207412,
+            14.171479655849438,
+            3.746079157293636
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -2.383518225039627,
+          "min_percent": -10.035397130969393,
+          "max_percent": -2.0559260845621874,
+          "values_percent": [
+            -2.0559260845621874,
+            -10.005656464081447,
+            -10.035397130969393,
+            -2.3723228995057744,
+            -2.383518225039627
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -0.663053152563442,
+          "min_percent": -64.49334052293432,
+          "max_percent": 351.66714364575694,
+          "values_percent": [
+            -60.570764138958296,
+            17.77350530054209,
+            -0.663053152563442,
+            351.66714364575694,
+            -64.49334052293432
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -16.16132339774625,
+          "min_percent": -24.95885606614081,
+          "max_percent": 113.9717799136931,
+          "values_percent": [
+            -23.658960431525887,
+            8.655174668611165,
+            -16.16132339774625,
+            113.9717799136931,
+            -24.95885606614081
+          ]
+        }
+      },
+      "owned-tasks_vs_borrowed-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 4.498822098943678,
+          "min_percent": 0.34724734138753544,
+          "max_percent": 14.373065599758439,
+          "values_percent": [
+            14.373065599758439,
+            4.498822098943678,
+            0.34724734138753544,
+            1.447701773434673,
+            11.454083596335929
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 3.703718797758526,
+          "min_percent": -23.257089921636144,
+          "max_percent": 14.963126169595565,
+          "values_percent": [
+            14.963126169595565,
+            1.7837312906358482,
+            -23.257089921636144,
+            12.450640943988311,
+            3.703718797758526
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 18.559596345333883,
+          "min_percent": -3.474000944406952,
+          "max_percent": 27.412745130878168,
+          "values_percent": [
+            24.17335185066296,
+            4.528902286206682,
+            -3.474000944406952,
+            18.559596345333883,
+            27.412745130878168
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 2.0387078999930974,
+          "min_percent": 0.11056595950522663,
+          "max_percent": 12.101687793262839,
+          "values_percent": [
+            12.101687793262839,
+            0.8451299387280953,
+            0.11056595950522663,
+            2.0387078999930974,
+            9.687299665218308
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 35.56197646797339,
+          "min_percent": -28.904325200621482,
+          "max_percent": 588.6195337718653,
+          "values_percent": [
+            48.74641029439171,
+            28.846274231579816,
+            -28.904325200621482,
+            588.6195337718653,
+            35.56197646797339
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 26.513889763472555,
+          "min_percent": -5.422530452433283,
+          "max_percent": 147.2502191222778,
+          "values_percent": [
+            29.5759093286716,
+            14.110256932769992,
+            -5.422530452433283,
+            147.2502191222778,
+            26.513889763472555
+          ]
+        }
+      },
+      "owned-tasks_vs_tokio-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": 2.456319906425919,
+          "min_percent": -0.6304176516942372,
+          "max_percent": 7.675360670883369,
+          "values_percent": [
+            7.675360670883369,
+            0.23325315256212953,
+            -0.6304176516942372,
+            2.456319906425919,
+            4.867096400376614
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 6.7096362957775435,
+          "min_percent": -6.166520131520303,
+          "max_percent": 22.894265043977136,
+          "values_percent": [
+            0.9189227995050508,
+            -6.166520131520303,
+            7.407448625849278,
+            22.894265043977136,
+            6.7096362957775435
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 13.650439116778546,
+          "min_percent": 1.33235659760218,
+          "max_percent": 33.93925289762605,
+          "values_percent": [
+            13.650439116778546,
+            1.33235659760218,
+            4.763253923542465,
+            33.93925289762605,
+            24.16025560023074
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 3.5217664733421916,
+          "min_percent": -2.319465983413116,
+          "max_percent": 6.549956733009399,
+          "values_percent": [
+            6.549956733009399,
+            -0.500312695434646,
+            -2.319465983413116,
+            3.5217664733421916,
+            6.002615818820134
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 25.10298154168895,
+          "min_percent": -64.86021368304478,
+          "max_percent": 1166.60618992739,
+          "values_percent": [
+            25.10298154168895,
+            -64.86021368304478,
+            9.501710453231183,
+            1166.60618992739,
+            68.67280376384043
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 1.8047864175169348,
+          "min_percent": -45.345528997151106,
+          "max_percent": 247.31512686153283,
+          "values_percent": [
+            -4.184039331193279,
+            -45.345528997151106,
+            1.8047864175169348,
+            247.31512686153283,
+            13.161435416916945
+          ]
+        }
+      },
+      "owned-tasks_vs_tokio-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 7.882380109306442,
+          "min_percent": 0.5851803086826202,
+          "max_percent": 11.729300100316387,
+          "values_percent": [
+            11.609576427255996,
+            0.5851803086826202,
+            7.037580060189841,
+            7.882380109306442,
+            11.729300100316387
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -5.516216141416297,
+          "min_percent": -19.659112193294625,
+          "max_percent": 19.162382045083625,
+          "values_percent": [
+            -5.516216141416297,
+            -13.377658687361704,
+            -19.659112193294625,
+            19.162382045083625,
+            2.1058122504664656
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 10.68623187883404,
+          "min_percent": -8.317032478428432,
+          "max_percent": 31.638618653653428,
+          "values_percent": [
+            10.68623187883404,
+            -8.317032478428432,
+            5.355782945821708,
+            31.638618653653428,
+            18.87103880882497
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 5.708169818052089,
+          "min_percent": -0.5555941384818297,
+          "max_percent": 11.601478072927573,
+          "values_percent": [
+            11.601478072927573,
+            -0.5555941384818297,
+            3.367820192650739,
+            5.708169818052089,
+            9.812450973400843
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -40.37638040538057,
+          "min_percent": -84.75737248274598,
+          "max_percent": 733.8479914062285,
+          "values_percent": [
+            -77.19435512761622,
+            -84.75737248274598,
+            -40.37638040538057,
+            733.8479914062285,
+            -10.26367235992004
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -26.013266779754794,
+          "min_percent": -52.35497418981725,
+          "max_percent": 175.29255355192075,
+          "values_percent": [
+            -51.73356261934491,
+            -52.35497418981725,
+            -26.013266779754794,
+            175.29255355192075,
+            -14.50913709648839
+          ]
+        }
+      },
+      "borrowed-supervisor_vs_owned-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -3.9009562408967136,
+          "min_percent": -9.828830440746705,
+          "max_percent": -1.9093078758949833,
+          "values_percent": [
+            -2.2925555626313376,
+            -3.9009562408967136,
+            -1.9093078758949833,
+            -9.422006016770146,
+            -9.828830440746705
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 12.729229673707088,
+          "min_percent": -16.884164200895167,
+          "max_percent": 34.631428057835834,
+          "values_percent": [
+            34.631428057835834,
+            -10.934619358277441,
+            15.117247243759714,
+            12.729229673707088,
+            -16.884164200895167
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -9.573866990200186,
+          "min_percent": -18.701860530266956,
+          "max_percent": 3.022286721231282,
+          "values_percent": [
+            3.022286721231282,
+            -9.573866990200186,
+            -7.655418363921651,
+            -11.206114026443625,
+            -18.701860530266956
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -5.8242083456643945,
+          "min_percent": -10.850522746538571,
+          "max_percent": -3.0836743165510216,
+          "values_percent": [
+            -3.0836743165510216,
+            -5.8242083456643945,
+            -3.2213474367449813,
+            -9.494841056837833,
+            -10.850522746538571
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 18.078392339815053,
+          "min_percent": -79.68260144050832,
+          "max_percent": 243.04888699634577,
+          "values_percent": [
+            243.04888699634577,
+            -79.68260144050832,
+            18.078392339815053,
+            67.0535161994186,
+            -18.020780451080263
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 5.296909313928411,
+          "min_percent": -49.94773993896289,
+          "max_percent": 32.78297277569977,
+          "values_percent": [
+            32.78297277569977,
+            -49.94773993896289,
+            5.296909313928411,
+            10.016118022706188,
+            -15.526883536633962
+          ]
+        }
+      },
+      "borrowed-supervisor_vs_owned-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 4.42019476483182,
+          "min_percent": 0.9703888690688389,
+          "max_percent": 10.355610501054468,
+          "values_percent": [
+            1.2672430862649353,
+            10.355610501054468,
+            9.63160550789417,
+            0.9703888690688389,
+            4.42019476483182
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 4.381179752446229,
+          "min_percent": -5.448173358459741,
+          "max_percent": 22.22826655507899,
+          "values_percent": [
+            22.22826655507899,
+            4.381179752446229,
+            0.9947001134579914,
+            -5.448173358459741,
+            8.953757520739769
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 2.9073847686028387,
+          "min_percent": -12.412451602245111,
+          "max_percent": 15.182565674436631,
+          "values_percent": [
+            3.9510210564829062,
+            15.182565674436631,
+            2.9073847686028387,
+            -12.412451602245111,
+            -3.610815163061787
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 2.4417169946100437,
+          "min_percent": 2.099081651777346,
+          "max_percent": 11.154828466901368,
+          "values_percent": [
+            2.099081651777346,
+            11.118094839025062,
+            11.154828466901368,
+            2.429969625379691,
+            2.4417169946100437
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 0.6674788924021957,
+          "min_percent": -77.85980197877088,
+          "max_percent": 181.63730824802485,
+          "values_percent": [
+            153.61891453444483,
+            -15.09125949438841,
+            0.6674788924021957,
+            -77.85980197877088,
+            181.63730824802485
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 19.276691919194477,
+          "min_percent": -53.26486509560483,
+          "max_percent": 33.2602286662093,
+          "values_percent": [
+            30.991142595464627,
+            -7.965727076514028,
+            19.276691919194477,
+            -53.26486509560483,
+            33.2602286662093
+          ]
+        }
+      },
+      "borrowed-supervisor_vs_borrowed-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 15.320313093700122,
+          "min_percent": 2.4321389793702464,
+          "max_percent": 16.38057116465246,
+          "values_percent": [
+            15.822450366120622,
+            15.320313093700122,
+            10.01229834334081,
+            2.4321389793702464,
+            16.38057116465246
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 6.32413508266072,
+          "min_percent": -22.4937281080157,
+          "max_percent": 40.51743629462503,
+          "values_percent": [
+            40.51743629462503,
+            6.243059517225458,
+            -22.4937281080157,
+            6.32413508266072,
+            12.98909831889965
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 20.399071524577693,
+          "min_percent": -0.6676187501229114,
+          "max_percent": 29.079467128823254,
+          "values_percent": [
+            29.079467128823254,
+            20.399071524577693,
+            -0.6676187501229114,
+            3.84344382915216,
+            22.81210641001916
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 12.057187125853929,
+          "min_percent": 4.518217508092848,
+          "max_percent": 14.454793753063932,
+          "values_percent": [
+            14.454793753063932,
+            12.057187125853929,
+            11.277727869532184,
+            4.518217508092848,
+            12.365553102072813
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 52.461728389955795,
+          "min_percent": -28.429776577924713,
+          "max_percent": 281.7931015322211,
+          "values_percent": [
+            277.2490311975879,
+            9.40174863844081,
+            -28.429776577924713,
+            52.461728389955795,
+            281.7931015322211
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 15.552723458209194,
+          "min_percent": 5.0205452991966215,
+          "max_percent": 69.73296415809018,
+          "values_percent": [
+            69.73296415809018,
+            5.0205452991966215,
+            12.80887697722115,
+            15.552723458209194,
+            68.59269879331946
+          ]
+        }
+      },
+      "borrowed-supervisor_vs_tokio-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": 9.039869234595987,
+          "min_percent": 3.4505446304554432,
+          "max_percent": 10.613018441577381,
+          "values_percent": [
+            9.039869234595987,
+            10.613018441577381,
+            8.940468514936617,
+            3.4505446304554432,
+            9.502426305497202
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 16.198772436776277,
+          "min_percent": -2.0555067105067604,
+          "max_percent": 23.351449963893444,
+          "values_percent": [
+            23.351449963893444,
+            -2.0555067105067604,
+            8.475830639192928,
+            16.198772436776277,
+            16.264158380964776
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 17.31410795529953,
+          "min_percent": 7.809124811208279,
+          "max_percent": 19.677058264521353,
+          "values_percent": [
+            18.140791897067743,
+            16.717208187487454,
+            7.809124811208279,
+            17.31410795529953,
+            19.677058264521353
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 8.590899703999465,
+          "min_percent": 6.037313954300894,
+          "max_percent": 10.562156903620323,
+          "values_percent": [
+            8.7865273247687,
+            10.562156903620323,
+            8.576630031690403,
+            6.037313954300894,
+            8.590899703999465
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 180.42911859906962,
+          "min_percent": -70.16325002191009,
+          "max_percent": 375.04554426695336,
+          "values_percent": [
+            217.28482383625837,
+            -70.16325002191009,
+            10.232611257325864,
+            180.42911859906962,
+            375.04554426695336
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 25.510421668890903,
+          "min_percent": -49.69915499235055,
+          "max_percent": 62.31819308210858,
+          "values_percent": [
+            25.510421668890903,
+            -49.69915499235055,
+            21.429381454215623,
+            62.31819308210858,
+            50.799187598548265
+          ]
+        }
+      },
+      "borrowed-supervisor_vs_tokio-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 13.023941068139976,
+          "min_percent": 8.929258717573706,
+          "max_percent": 17.347017516783716,
+          "values_percent": [
+            13.023941068139976,
+            11.001389803233131,
+            17.347017516783716,
+            8.929258717573706,
+            16.6679527741338
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 11.248119093955022,
+          "min_percent": -18.85996129112817,
+          "max_percent": 15.485891185994394,
+          "values_percent": [
+            15.485891185994394,
+            -9.582578208677528,
+            -18.85996129112817,
+            12.670208893197366,
+            11.248119093955022
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 14.578825315026855,
+          "min_percent": 5.602794277806589,
+          "max_percent": 15.299038823404686,
+          "values_percent": [
+            15.059468206994264,
+            5.602794277806589,
+            8.418880932030802,
+            15.299038823404686,
+            14.578825315026855
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 12.493760251016184,
+          "min_percent": 8.276846236175528,
+          "max_percent": 14.89832322511595,
+          "values_percent": [
+            13.944084222268692,
+            10.500729217306759,
+            14.89832322511595,
+            8.276846236175528,
+            12.493760251016184
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -39.97840532970031,
+          "min_percent": -87.05767695513784,
+          "max_percent": 152.73097768614954,
+          "values_percent": [
+            -42.16057102207999,
+            -87.05767695513784,
+            -39.97840532970031,
+            84.61559649338064,
+            152.73097768614954
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -11.751072155811803,
+          "min_percent": -56.15024691139108,
+          "max_percent": 28.658346284244484,
+          "values_percent": [
+            -36.775242184955445,
+            -56.15024691139108,
+            -11.751072155811803,
+            28.658346284244484,
+            13.925319393935066
+          ]
+        }
+      },
+      "borrowed-tasks_vs_owned-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -15.640323505062725,
+          "min_percent": -22.520427029283706,
+          "max_percent": -10.836612268593171,
+          "values_percent": [
+            -15.640323505062725,
+            -16.66772212019505,
+            -10.836612268593171,
+            -11.57268130320681,
+            -22.520427029283706
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -4.188809867302112,
+          "min_percent": -26.439066214583573,
+          "max_percent": 48.526363652468675,
+          "values_percent": [
+            -4.188809867302112,
+            -16.16828332463246,
+            48.526363652468675,
+            6.024121038997188,
+            -26.439066214583573
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -20.186929019149513,
+          "min_percent": -33.80282950419239,
+          "max_percent": -7.034765024126899,
+          "values_percent": [
+            -20.186929019149513,
+            -24.894659182366986,
+            -7.034765024126899,
+            -14.492545028028914,
+            -33.80282950419239
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -15.32348929609203,
+          "min_percent": -20.661203729867196,
+          "max_percent": -13.02962918444618,
+          "values_percent": [
+            -15.32348929609203,
+            -15.957383841373185,
+            -13.02962918444618,
+            -13.407288125484584,
+            -20.661203729867196
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -9.06566786736942,
+          "min_percent": -81.42863453980232,
+          "max_percent": 64.98256774114624,
+          "values_percent": [
+            -9.06566786736942,
+            -81.42863453980232,
+            64.98256774114624,
+            9.570787346802835,
+            -78.52784159275828
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -21.769484534527418,
+          "min_percent": -52.34050640430259,
+          "max_percent": -4.791410595792122,
+          "values_percent": [
+            -21.769484534527418,
+            -52.34050640430259,
+            -6.659021758375971,
+            -4.791410595792122,
+            -49.89515141048722
+          ]
+        }
+      },
+      "borrowed-tasks_vs_owned-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": -4.305141444258586,
+          "min_percent": -12.566827272127256,
+          "max_percent": -0.3460457068704459,
+          "values_percent": [
+            -12.566827272127256,
+            -4.305141444258586,
+            -0.3460457068704459,
+            -1.4270424545130278,
+            -10.276952828233988
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -3.571442606587205,
+          "min_percent": -13.015587404540218,
+          "max_percent": 30.30519679001984,
+          "values_percent": [
+            -13.015587404540218,
+            -1.7524719009784917,
+            30.30519679001984,
+            -11.07209424461172,
+            -3.571442606587205
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -15.654233750319557,
+          "min_percent": -21.514916033494014,
+          "max_percent": 3.599031326685509,
+          "values_percent": [
+            -19.46742315511869,
+            -4.332679466781597,
+            3.599031326685509,
+            -15.654233750319557,
+            -21.514916033494014
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -1.997975025312182,
+          "min_percent": -10.795277066283504,
+          "max_percent": -0.11044384620694236,
+          "values_percent": [
+            -10.795277066283504,
+            -0.8380473496752638,
+            -0.11044384620694236,
+            -1.997975025312182,
+            -8.831742320929925
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -26.233002346624033,
+          "min_percent": -85.47819295042983,
+          "max_percent": 40.65553253722567,
+          "values_percent": [
+            -32.77148685330636,
+            -22.388132216949806,
+            40.65553253722567,
+            -85.47819295042983,
+            -26.233002346624033
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -20.957295529401787,
+          "min_percent": -59.55514201160529,
+          "max_percent": 5.733427293385218,
+          "values_percent": [
+            -22.825160542498512,
+            -12.365458909695814,
+            5.733427293385218,
+            -59.55514201160529,
+            -20.957295529401787
+          ]
+        }
+      },
+      "borrowed-tasks_vs_borrowed-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -13.285008237232287,
+          "min_percent": -14.075004960645543,
+          "max_percent": -2.374390502437995,
+          "values_percent": [
+            -13.660952877533727,
+            -13.285008237232287,
+            -9.101071874794508,
+            -2.374390502437995,
+            -14.075004960645543
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -5.947976983536318,
+          "min_percent": -28.834454543898392,
+          "max_percent": 29.021816633580077,
+          "values_percent": [
+            -28.834454543898392,
+            -5.876204568650678,
+            29.021816633580077,
+            -5.947976983536318,
+            -11.495886339617744
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -16.942881092246232,
+          "min_percent": -22.528344573813207,
+          "max_percent": 0.6721058548304404,
+          "values_percent": [
+            -22.528344573813207,
+            -16.942881092246232,
+            0.6721058548304404,
+            -3.701190645675778,
+            -18.574802661440327
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -10.759851674941867,
+          "min_percent": -12.629260233739215,
+          "max_percent": -4.322899505766065,
+          "values_percent": [
+            -12.629260233739215,
+            -10.759851674941867,
+            -10.134757498602752,
+            -4.322899505766065,
+            -11.00475435816165
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -34.409768893458235,
+          "min_percent": -73.80780333676077,
+          "max_percent": 39.72291159448271,
+          "values_percent": [
+            -73.49231098551874,
+            -8.593782782679671,
+            39.72291159448271,
+            -34.409768893458235,
+            -73.80780333676077
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -13.459417478666335,
+          "min_percent": -41.083925272842414,
+          "max_percent": -4.78053630829417,
+          "values_percent": [
+            -41.083925272842414,
+            -4.78053630829417,
+            -11.354493831019663,
+            -13.459417478666335,
+            -40.68545036900345
+          ]
+        }
+      },
+      "borrowed-tasks_vs_tokio-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -4.081930169837444,
+          "min_percent": -5.91004562902876,
+          "max_percent": 0.9942247240295243,
+          "values_percent": [
+            -5.856015919266577,
+            -4.081930169837444,
+            -0.9742818253456464,
+            0.9942247240295243,
+            -5.91004562902876
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 2.898562879775901,
+          "min_percent": -12.216267805184987,
+          "max_percent": 39.95748729905235,
+          "values_percent": [
+            -12.216267805184987,
+            -7.810925499925725,
+            39.95748729905235,
+            9.287296197085082,
+            2.898562879775901
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -2.552719139130455,
+          "min_percent": -8.474372783735273,
+          "max_percent": 12.972089165599998,
+          "values_percent": [
+            -8.474372783735273,
+            -3.0580496099080423,
+            8.533716251105862,
+            12.972089165599998,
+            -2.552719139130455
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -2.4273481221765203,
+          "min_percent": -4.9524063103241645,
+          "max_percent": 1.453427433442811,
+          "values_percent": [
+            -4.9524063103241645,
+            -1.33416718782573,
+            -2.4273481221765203,
+            1.453427433442811,
+            -3.3592620637433734
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 24.424863194355616,
+          "min_percent": -72.72735550443836,
+          "max_percent": 83.93410697916785,
+          "values_percent": [
+            -15.89512560733992,
+            -72.72735550443836,
+            54.02021397536323,
+            83.93410697916785,
+            24.424863194355616
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -10.5541410287195,
+          "min_percent": -52.10380515132,
+          "max_percent": 40.47110983135988,
+          "values_percent": [
+            -26.054186179185645,
+            -52.10380515132,
+            7.64168982795137,
+            40.47110983135988,
+            -10.5541410287195
+          ]
+        }
+      },
+      "borrowed-tasks_vs_tokio-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 0.24693263369086615,
+          "min_percent": -3.7451539755687158,
+          "max_percent": 6.667181109653519,
+          "values_percent": [
+            -2.416206261510123,
+            -3.7451539755687158,
+            6.667181109653519,
+            6.342852744207517,
+            0.24693263369086615
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -1.5408382320486358,
+          "min_percent": -17.81383561264712,
+          "max_percent": 5.968610800927698,
+          "values_percent": [
+            -17.81383561264712,
+            -14.895690878835378,
+            4.688351959376491,
+            5.968610800927698,
+            -1.5408382320486358
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -6.7039653790358145,
+          "min_percent": -12.289361586771596,
+          "max_percent": 11.031601583918738,
+          "values_percent": [
+            -10.861525255474469,
+            -12.289361586771596,
+            9.147570578516628,
+            11.031601583918738,
+            -6.7039653790358145
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 0.11409826713257853,
+          "min_percent": -1.3889853462045965,
+          "max_percent": 3.5961469853728056,
+          "values_percent": [
+            -0.44621069511260325,
+            -1.3889853462045965,
+            3.2536567962896834,
+            3.5961469853728056,
+            0.11409826713257853
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -33.804205295516454,
+          "min_percent": -88.169912084646,
+          "max_percent": 21.089796398728964,
+          "values_percent": [
+            -84.66810403878121,
+            -88.169912084646,
+            -16.136080341218406,
+            21.089796398728964,
+            -33.804205295516454
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -32.42570988581305,
+          "min_percent": -62.75045443962395,
+          "max_percent": 11.34168233669981,
+          "values_percent": [
+            -62.75045443962395,
+            -58.24650027888936,
+            -21.771291223821155,
+            11.34168233669981,
+            -32.42570988581305
+          ]
+        }
+      },
+      "tokio-supervisor_vs_owned-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -12.443192728669262,
+          "min_percent": -17.653724578040197,
+          "max_percent": -9.959362703992781,
+          "values_percent": [
+            -10.392918550595432,
+            -13.121398264834404,
+            -9.959362703992781,
+            -12.443192728669262,
+            -17.653724578040197
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -2.9858686888942554,
+          "min_percent": -28.511213639238896,
+          "max_percent": 9.144584921575039,
+          "values_percent": [
+            9.144584921575039,
+            -9.065453656007794,
+            6.122485133722688,
+            -2.9858686888942554,
+            -28.511213639238896
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -22.525448977031083,
+          "min_percent": -32.068735103731946,
+          "max_percent": -12.797023731658008,
+          "values_percent": [
+            -12.797023731658008,
+            -22.525448977031083,
+            -14.344373170834023,
+            -24.31099079115897,
+            -32.068735103731946
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -14.647820122860377,
+          "min_percent": -17.90336253178865,
+          "max_percent": -10.866037622453273,
+          "values_percent": [
+            -10.91146296625749,
+            -14.820952944658183,
+            -10.866037622453273,
+            -14.647820122860377,
+            -17.90336253178865
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -31.904786632554128,
+          "min_percent": -82.74287159657028,
+          "max_percent": 8.120168764637636,
+          "values_percent": [
+            8.120168764637636,
+            -31.904786632554128,
+            7.117477299139785,
+            -40.42932594376709,
+            -82.74287159657028
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -13.285476667251162,
+          "min_percent": -43.98304274141908,
+          "max_percent": 5.794380267476584,
+          "values_percent": [
+            5.794380267476584,
+            -0.4941963630522239,
+            -13.285476667251162,
+            -32.22194263396304,
+            -43.98304274141908
+          ]
+        }
+      },
+      "tokio-supervisor_vs_owned-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": -2.397431323581878,
+          "min_percent": -7.128242360240245,
+          "max_percent": 0.6344171292624878,
+          "values_percent": [
+            -7.128242360240245,
+            -0.23271034833830528,
+            0.6344171292624878,
+            -2.397431323581878,
+            -4.6412045030734035
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -6.287751067935221,
+          "min_percent": -18.629237935378452,
+          "max_percent": 6.571769628669344,
+          "values_percent": [
+            -0.9105554974369601,
+            6.571769628669344,
+            -6.896587453308667,
+            -18.629237935378452,
+            -6.287751067935221
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -12.010898702073991,
+          "min_percent": -25.3392878961083,
+          "max_percent": -1.3148382632539146,
+          "values_percent": [
+            -12.010898702073991,
+            -1.3148382632539146,
+            -4.546683827727183,
+            -25.3392878961083,
+            -19.458928691337075
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -3.4019574755315585,
+          "min_percent": -6.147310551633667,
+          "max_percent": 2.3745426934492997,
+          "values_percent": [
+            -6.147310551633667,
+            0.5028284098051561,
+            2.3745426934492997,
+            -3.4019574755315585,
+            -5.662705370478605
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -20.065853932764742,
+          "min_percent": -92.1048862073118,
+          "max_percent": 184.57771227751954,
+          "values_percent": [
+            -20.065853932764742,
+            184.57771227751954,
+            -8.677225601228766,
+            -92.1048862073118,
+            -40.713619641960506
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -1.7727913205526913,
+          "min_percent": -71.20770382112728,
+          "max_percent": 82.96764777905807,
+          "values_percent": [
+            4.366745688284279,
+            82.96764777905807,
+            -1.7727913205526913,
+            -71.20770382112728,
+            -11.630672029235656
+          ]
+        }
+      },
+      "tokio-supervisor_vs_borrowed-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -8.290425601251384,
+          "min_percent": -9.594728171334443,
+          "max_percent": -3.3354533248533658,
+          "values_percent": [
+            -8.290425601251384,
+            -9.594728171334443,
+            -8.206746892878291,
+            -3.3354533248533658,
+            -8.6778226073153
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -13.940571055163264,
+          "min_percent": -18.93082729933755,
+          "max_percent": 2.0986444888038136,
+          "values_percent": [
+            -18.93082729933755,
+            2.0986444888038136,
+            -7.813566016733098,
+            -13.940571055163264,
+            -13.988970124113164
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -14.75876026939298,
+          "min_percent": -16.441796405982245,
+          "max_percent": -7.243472966581765,
+          "values_percent": [
+            -15.355231335230279,
+            -14.322830752286276,
+            -7.243472966581765,
+            -14.75876026939298,
+            -16.441796405982245
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -7.91125198098257,
+          "min_percent": -9.55313933756521,
+          "max_percent": -5.693574958813841,
+          "values_percent": [
+            -8.076852475065778,
+            -9.55313933756521,
+            -7.8991492268521535,
+            -5.693574958813841,
+            -7.91125198098257
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -64.34036504498297,
+          "min_percent": -78.94938680999297,
+          "max_percent": 235.1571470533259,
+          "values_percent": [
+            -68.48257701364022,
+            235.1571470533259,
+            -9.28274413588822,
+            -64.34036504498297,
+            -78.94938680999297
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -20.32534137777815,
+          "min_percent": -38.39261138804382,
+          "max_percent": 98.80381728138481,
+          "values_percent": [
+            -20.32534137777815,
+            98.80381728138481,
+            -17.647608179817244,
+            -38.39261138804382,
+            -33.686645404074646
+          ]
+        }
+      },
+      "tokio-supervisor_vs_borrowed-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 4.255642526027814,
+          "min_percent": -0.9844372059355733,
+          "max_percent": 6.28127164960357,
+          "values_percent": [
+            6.220276288971083,
+            4.255642526027814,
+            0.9838674672646874,
+            -0.9844372059355733,
+            6.28127164960357
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -2.816912888436074,
+          "min_percent": -28.549731829404536,
+          "max_percent": 13.91632310423292,
+          "values_percent": [
+            13.91632310423292,
+            8.472723630520274,
+            -28.549731829404536,
+            -8.49805651732537,
+            -2.816912888436074
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 2.619589912185538,
+          "min_percent": -11.482561101074163,
+          "max_percent": 9.25901634490991,
+          "values_percent": [
+            9.25901634490991,
+            3.1545162827883333,
+            -7.8627329330197,
+            -11.482561101074163,
+            2.619589912185538
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 2.487734088867377,
+          "min_percent": -1.4326055513465108,
+          "max_percent": 5.2104489109881635,
+          "values_percent": [
+            5.2104489109881635,
+            1.3522079019649302,
+            2.487734088867377,
+            -1.4326055513465108,
+            3.476031056343043
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -19.630211010321307,
+          "min_percent": -45.6327042100322,
+          "max_percent": 266.667779563049,
+          "values_percent": [
+            18.899172874488123,
+            266.667779563049,
+            -35.07345729567951,
+            -45.6327042100322,
+            -19.630211010321307
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 11.7994741736543,
+          "min_percent": -28.810984607402023,
+          "max_percent": 108.78485298452883,
+          "values_percent": [
+            35.234159762336525,
+            108.78485298452883,
+            -7.099191623770896,
+            -28.810984607402023,
+            11.7994741736543
+          ]
+        }
+      },
+      "tokio-supervisor_vs_tokio-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": 5.295974135940273,
+          "min_percent": 0.3511081852095588,
+          "max_percent": 7.716644802839734,
+          "values_percent": [
+            3.6537753222836145,
+            0.3511081852095588,
+            7.716644802839734,
+            5.295974135940273,
+            6.543714792808086
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -6.376543429527093,
+          "min_percent": -25.199891781648653,
+          "max_percent": -3.036661635559701,
+          "values_percent": [
+            -6.376543429527093,
+            -7.6850379693354505,
+            -25.199891781648653,
+            -3.036661635559701,
+            -4.3143470497361776
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -2.608179309275449,
+          "min_percent": -9.522515216288706,
+          "max_percent": 0.5655886010486721,
+          "values_percent": [
+            -2.608179309275449,
+            -9.522515216288706,
+            0.5655886010486721,
+            -1.7176699094559433,
+            -4.259991867635904
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": 3.5940954146758797,
+          "min_percent": -0.05555941384818297,
+          "max_percent": 5.822333214413122,
+          "values_percent": [
+            4.740988635571353,
+            -0.05555941384818297,
+            5.822333214413122,
+            2.112022832679261,
+            3.5940954146758797
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": -46.798579475965674,
+          "min_percent": -81.7705025161338,
+          "max_percent": -34.16675222043324,
+          "values_percent": [
+            -81.7705025161338,
+            -56.62287932041485,
+            -45.550056389224146,
+            -34.16675222043324,
+            -46.798579475965674
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": -24.452298975759323,
+          "min_percent": -49.625890046136725,
+          "max_percent": -12.82501699138352,
+          "values_percent": [
+            -49.625890046136725,
+            -12.82501699138352,
+            -27.32489716464377,
+            -20.73695262294922,
+            -24.452298975759323
+          ]
+        }
+      },
+      "tokio-tasks_vs_owned-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -16.40972714958395,
+          "min_percent": -22.711278105803068,
+          "max_percent": -13.42536888100817,
+          "values_percent": [
+            -13.551550659109724,
+            -13.42536888100817,
+            -16.40972714958395,
+            -16.846956410420532,
+            -22.711278105803068
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 0.05238366120867699,
+          "min_percent": -25.287873200886178,
+          "max_percent": 41.874774865214405,
+          "values_percent": [
+            16.57824750298442,
+            -1.495332561815721,
+            41.874774865214405,
+            0.05238366120867699,
+            -25.287873200886178
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -14.826107000707422,
+          "min_percent": -29.046104944601037,
+          "max_percent": -10.461704432796303,
+          "values_percent": [
+            -10.461704432796303,
+            -14.371458039341189,
+            -14.826107000707422,
+            -22.988181966065092,
+            -29.046104944601037
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -15.770178496303854,
+          "min_percent": -20.751624752755017,
+          "max_percent": -14.773601657295066,
+          "values_percent": [
+            -14.943960149439594,
+            -14.773601657295066,
+            -15.770178496303854,
+            -16.413192580664393,
+            -20.751624752755017
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 56.98417114968621,
+          "min_percent": -67.56265484371113,
+          "max_percent": 493.10559087176233,
+          "values_percent": [
+            493.10559087176233,
+            56.98417114968621,
+            96.7265164953097,
+            -9.512782575004032,
+            -67.56265484371113
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 14.144907406649555,
+          "min_percent": -25.852201325614143,
+          "max_percent": 110.01736877211665,
+          "values_percent": [
+            110.01736877211665,
+            14.144907406649555,
+            19.318060724590367,
+            -14.489715436223683,
+            -25.852201325614143
+          ]
+        }
+      },
+      "tokio-tasks_vs_owned-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": -7.3064573671066775,
+          "min_percent": -10.497962566475582,
+          "max_percent": -0.5817758708457577,
+          "values_percent": [
+            -10.401953666424657,
+            -0.5817758708457577,
+            -6.5748684305385385,
+            -7.3064573671066775,
+            -10.497962566475582
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 5.838267601213509,
+          "min_percent": -16.080898783840837,
+          "max_percent": 24.46962279106635,
+          "values_percent": [
+            5.838267601213509,
+            15.443658627372958,
+            24.46962279106635,
+            -16.080898783840837,
+            -2.062382350282743
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -9.654526762219195,
+          "min_percent": -24.034450510982587,
+          "max_percent": 9.071513175521462,
+          "values_percent": [
+            -9.654526762219195,
+            9.071513175521462,
+            -5.083520615641834,
+            -24.034450510982587,
+            -15.87521990042875
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -5.399932500843729,
+          "min_percent": -10.39545198975449,
+          "max_percent": 0.5586982331168278,
+          "values_percent": [
+            -10.39545198975449,
+            0.5586982331168278,
+            -3.2580934631048497,
+            -5.399932500843729,
+            -8.935645171764396
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 67.71876762916995,
+          "min_percent": -88.0074065020704,
+          "max_percent": 556.0548690624645,
+          "values_percent": [
+            338.4879294559822,
+            556.0548690624645,
+            67.71876762916995,
+            -88.0074065020704,
+            11.43758902312808
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 35.15936661552277,
+          "min_percent": -63.67500729323585,
+          "max_percent": 109.88549864239529,
+          "values_percent": [
+            107.18330464572348,
+            109.88549864239529,
+            35.15936661552277,
+            -63.67500729323585,
+            16.971564683893735
+          ]
+        }
+      },
+      "tokio-tasks_vs_borrowed-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -11.52317017532426,
+          "min_percent": -14.7826658775564,
+          "max_percent": -8.197300544131158,
+          "values_percent": [
+            -11.52317017532426,
+            -9.911037891268537,
+            -14.7826658775564,
+            -8.197300544131158,
+            -14.286659170580062
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": -10.110839792675852,
+          "min_percent": -13.409336003697437,
+          "max_percent": 23.243717394315254,
+          "values_percent": [
+            -13.409336003697437,
+            10.598154668459237,
+            23.243717394315254,
+            -11.245393984498364,
+            -10.110839792675852
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": -12.723839046999597,
+          "min_percent": -13.269008119692248,
+          "max_percent": -5.305536009840283,
+          "values_percent": [
+            -13.08842152816313,
+            -5.305536009840283,
+            -7.765142805069825,
+            -13.269008119692248,
+            -12.723839046999597
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -11.106180665610143,
+          "min_percent": -12.966527976153518,
+          "max_percent": -7.6441515650741305,
+          "values_percent": [
+            -12.23765526525118,
+            -9.502859656841178,
+            -12.966527976153518,
+            -7.6441515650741305,
+            -11.106180665610143
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 66.60670305296419,
+          "min_percent": -60.432234736106,
+          "max_percent": 672.6588159897461,
+          "values_percent": [
+            72.89243992739736,
+            672.6588159897461,
+            66.60670305296419,
+            -45.83339549885458,
+            -60.432234736106
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 13.315824274442667,
+          "min_percent": -22.27476655181755,
+          "max_percent": 128.0514551539801,
+          "values_percent": [
+            58.16588857886404,
+            128.0514551539801,
+            13.315824274442667,
+            -22.27476655181755,
+            -12.223199783872097
+          ]
+        }
+      },
+      "tokio-tasks_vs_borrowed-tasks": {
+        "wire_rtt.p50_us": {
+          "median_percent": -0.24632437841582977,
+          "min_percent": -6.250452144975771,
+          "max_percent": 3.8908731666539964,
+          "values_percent": [
+            2.476032309202081,
+            3.8908731666539964,
+            -6.250452144975771,
+            -5.964531306550846,
+            -0.24632437841582977
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 1.564951604686704,
+          "min_percent": -5.632432807994725,
+          "max_percent": 21.67498111809727,
+          "values_percent": [
+            21.67498111809727,
+            17.502863289364235,
+            -4.478389306573261,
+            -5.632432807994725,
+            1.564951604686704
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 7.185691660178439,
+          "min_percent": -9.9355511643061,
+          "max_percent": 14.011255429327862,
+          "values_percent": [
+            12.185002364696107,
+            14.011255429327862,
+            -8.380920005852266,
+            -9.9355511643061,
+            7.185691660178439
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -0.11396823135551015,
+          "min_percent": -3.4713134513396193,
+          "max_percent": 1.4085498978801292,
+          "values_percent": [
+            0.448210659009729,
+            1.4085498978801292,
+            -3.1511298458986925,
+            -3.4713134513396193,
+            -0.11396823135551015
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 51.06699820800979,
+          "min_percent": -17.416658567402088,
+          "max_percent": 745.3022557018551,
+          "values_percent": [
+            552.2350546399782,
+            745.3022557018551,
+            19.240789611159983,
+            -17.416658567402088,
+            51.06699820800979
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 47.98527639879031,
+          "min_percent": -10.186375936374215,
+          "max_percent": 168.45965097188812,
+          "values_percent": [
+            168.45965097188812,
+            139.50088176546274,
+            27.83030880148012,
+            -10.186375936374215,
+            47.98527639879031
+          ]
+        }
+      },
+      "tokio-tasks_vs_tokio-supervisor": {
+        "wire_rtt.p50_us": {
+          "median_percent": -5.029607427443528,
+          "min_percent": -7.16383695107099,
+          "max_percent": -0.3498797288432054,
+          "values_percent": [
+            -3.5249804562575537,
+            -0.3498797288432054,
+            -7.16383695107099,
+            -5.029607427443528,
+            -6.141812124284785
+          ]
+        },
+        "wire_rtt.p99_us": {
+          "median_percent": 6.810839572802241,
+          "min_percent": 3.131762671110083,
+          "max_percent": 33.689646154102974,
+          "values_percent": [
+            6.810839572802241,
+            8.324802177552426,
+            33.689646154102974,
+            3.131762671110083,
+            4.508875590762518
+          ]
+        },
+        "wire_rtt.mean_us": {
+          "median_percent": 2.6780270568695252,
+          "min_percent": -0.5624076872780104,
+          "max_percent": 10.524734677420057,
+          "values_percent": [
+            2.6780270568695252,
+            10.524734677420057,
+            -0.5624076872780104,
+            1.7476894451663005,
+            4.449541994759709
+          ]
+        },
+        "scheduled_latency.p50_us": {
+          "median_percent": -3.4694018035382412,
+          "min_percent": -5.5019890769334445,
+          "max_percent": 0.05559029949273597,
+          "values_percent": [
+            -4.526392864274776,
+            0.05559029949273597,
+            -5.5019890769334445,
+            -2.0683390398993695,
+            -3.4694018035382412
+          ]
+        },
+        "scheduled_latency.p99_us": {
+          "median_percent": 87.96490585213586,
+          "min_percent": 51.8989315776061,
+          "max_percent": 448.5614734498515,
+          "values_percent": [
+            448.5614734498515,
+            130.53627911053036,
+            83.6549193050213,
+            51.8989315776061,
+            87.96490585213586
+          ]
+        },
+        "scheduled_latency.mean_us": {
+          "median_percent": 32.366701625921635,
+          "min_percent": 14.711808994692754,
+          "max_percent": 98.51467369168043,
+          "values_percent": [
+            98.51467369168043,
+            14.711808994692754,
+            37.59870450620166,
+            26.16219450194044,
+            32.366701625921635
+          ]
+        }
+      }
+    }
+  }
+]

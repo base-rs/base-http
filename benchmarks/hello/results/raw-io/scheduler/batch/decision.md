@@ -1,0 +1,1 @@
+Five interleaved five-second samples per variant: user CPU/request 0.383311 before, 0.382724 batched (-0.15%); throughput +0.66%, accompanied by system-time variation. No meaningful gain; reverted to avoid extra routing state and retained registrations. Zero errors.

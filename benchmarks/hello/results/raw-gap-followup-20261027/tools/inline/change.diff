@@ -1,0 +1,38 @@
+--- before/readiness_driver.rs
++++ inline/readiness_driver.rs
+@@ -158,6 +158,7 @@
+             changed: Notification::new(),
+         }
+     }
++    #[inline]
+     pub(crate) fn snapshot(&self) -> usize {
+         self.tick.load(Ordering::Acquire)
+     }
+@@ -210,6 +211,7 @@
+         #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+         let _ = (observed, count, capacity);
+     }
++    #[inline]
+     pub(crate) fn clear(&self, observed: usize) {
+         // A WouldBlock must not erase an edge delivered during the syscall.
+         let _ = self.tick.compare_exchange(
+--- before/readiness_selector.rs
++++ inline/readiness_selector.rs
+@@ -42,6 +42,7 @@
+         Self::with_options(SelectorOptions::default())
+     }
+ 
++    #[inline]
+     pub(crate) fn check_open(&self) -> io::Result<()> {
+         if self.closed.is_cancelled() {
+             Err(io::Error::new(
+--- before/native_socket.rs
++++ inline/native_socket.rs
+@@ -53,6 +53,7 @@
+             .expect("cannot close a socket with outstanding operations; await them first");
+         move || inner.into_inner().and_then(crate::socket_io::close)
+     }
++    #[inline]
+     pub(crate) fn get_ref(&self) -> &socket2::Socket {
+         self.inner.get_ref()
+     }

@@ -1,0 +1,15 @@
+{
+  "status": "rejected",
+  "reason": "Median user CPU +2.12%, throughput -0.47%; no benefit to justify extra nonempty-trailer allocation. Smaller value/copy totals alone are insufficient.",
+  "before_layout": {
+    "incoming_body": 176,
+    "request": 416
+  },
+  "candidate_layout": {
+    "incoming_body": 72,
+    "request": 312
+  },
+  "copy_bytes_before": 2143,
+  "copy_bytes_candidate": 1623,
+  "tests": "All45codec and28server/doc tests pass; empty trailer once-only regressions retained"
+}

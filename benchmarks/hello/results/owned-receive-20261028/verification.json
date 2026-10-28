@@ -1,0 +1,250 @@
+{
+  "samples": 60,
+  "all_expected_samples_present": true,
+  "all_wrk_outputs_pass": true,
+  "preflight_http_checks_pass": true,
+  "teardown_peer_errors": {
+    "comparison/tokio/tokio-task-raw-c16-r1.server.stderr": {
+      "complete_lines": 28,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c16-r1.server.stderr": {
+      "complete_lines": 26,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c16-r1.server.stderr": {
+      "complete_lines": 26,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c16-r1.server.stderr": {
+      "complete_lines": 25,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c64-r1.server.stderr": {
+      "complete_lines": 63,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c64-r1.server.stderr": {
+      "complete_lines": 60,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c64-r1.server.stderr": {
+      "complete_lines": 62,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c64-r1.server.stderr": {
+      "complete_lines": 125,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c1-r1.server.stderr": {
+      "complete_lines": 2,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c1-r1.server.stderr": {
+      "complete_lines": 2,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c1-r1.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c1-r1.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c1-r2.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c1-r2.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c1-r2.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c1-r2.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c64-r2.server.stderr": {
+      "complete_lines": 72,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c64-r2.server.stderr": {
+      "complete_lines": 60,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c64-r2.server.stderr": {
+      "complete_lines": 119,
+      "partial_final_line": "connection: Connection reset by peer (os error "
+    },
+    "comparison/owned/base-iouring-owned-raw-c64-r2.server.stderr": {
+      "complete_lines": 61,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c16-r2.server.stderr": {
+      "complete_lines": 29,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c16-r2.server.stderr": {
+      "complete_lines": 27,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c16-r2.server.stderr": {
+      "complete_lines": 26,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c16-r2.server.stderr": {
+      "complete_lines": 24,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c64-r3.server.stderr": {
+      "complete_lines": 123,
+      "partial_final_line": "connection: "
+    },
+    "comparison/borrowed/base-iouring-raw-c64-r3.server.stderr": {
+      "complete_lines": 63,
+      "partial_final_line": "connection: "
+    },
+    "comparison/owned/base-iouring-owned-raw-c64-r3.server.stderr": {
+      "complete_lines": 62,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c64-r3.server.stderr": {
+      "complete_lines": 61,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c16-r3.server.stderr": {
+      "complete_lines": 27,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c16-r3.server.stderr": {
+      "complete_lines": 27,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c16-r3.server.stderr": {
+      "complete_lines": 26,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c16-r3.server.stderr": {
+      "complete_lines": 26,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c1-r3.server.stderr": {
+      "complete_lines": 2,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c1-r3.server.stderr": {
+      "complete_lines": 2,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c1-r3.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c1-r3.server.stderr": {
+      "complete_lines": 0,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c16-r4.server.stderr": {
+      "complete_lines": 27,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c16-r4.server.stderr": {
+      "complete_lines": 25,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c16-r4.server.stderr": {
+      "complete_lines": 28,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c16-r4.server.stderr": {
+      "complete_lines": 25,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c1-r4.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c1-r4.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c1-r4.server.stderr": {
+      "complete_lines": 0,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c1-r4.server.stderr": {
+      "complete_lines": 0,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c64-r4.server.stderr": {
+      "complete_lines": 53,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c64-r4.server.stderr": {
+      "complete_lines": 114,
+      "partial_final_line": "connection: Connection reset by peer (os error 104"
+    },
+    "comparison/frozen/base-iouring-raw-c64-r4.server.stderr": {
+      "complete_lines": 76,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c64-r4.server.stderr": {
+      "complete_lines": 48,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c1-r5.server.stderr": {
+      "complete_lines": 0,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c1-r5.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c1-r5.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c1-r5.server.stderr": {
+      "complete_lines": 1,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c64-r5.server.stderr": {
+      "complete_lines": 50,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c64-r5.server.stderr": {
+      "complete_lines": 118,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c64-r5.server.stderr": {
+      "complete_lines": 62,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c64-r5.server.stderr": {
+      "complete_lines": 64,
+      "partial_final_line": null
+    },
+    "comparison/owned/base-iouring-owned-raw-c16-r5.server.stderr": {
+      "complete_lines": 26,
+      "partial_final_line": null
+    },
+    "comparison/borrowed/base-iouring-raw-c16-r5.server.stderr": {
+      "complete_lines": 25,
+      "partial_final_line": null
+    },
+    "comparison/tokio/tokio-task-raw-c16-r5.server.stderr": {
+      "complete_lines": 27,
+      "partial_final_line": null
+    },
+    "comparison/frozen/base-iouring-raw-c16-r5.server.stderr": {
+      "complete_lines": 25,
+      "partial_final_line": null
+    }
+  },
+  "total_complete_teardown_peer_errors": 2061,
+  "partial_final_teardown_lines": 4
+}

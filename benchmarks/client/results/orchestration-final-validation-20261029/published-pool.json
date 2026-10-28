@@ -1,0 +1,16 @@
+{
+  "command": [
+    "rustup",
+    "run",
+    "1.87.0",
+    "cargo",
+    "test",
+    "--manifest-path",
+    "../base-http-client/Cargo.toml",
+    "--locked",
+    "--offline",
+    "--features",
+    "rustls"
+  ],
+  "exit_code": 0
+}

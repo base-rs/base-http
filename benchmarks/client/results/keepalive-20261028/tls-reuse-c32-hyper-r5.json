@@ -1,0 +1,49 @@
+{
+  "client_cpu_seconds": 4.990164,
+  "client_cpu_us_per_request": 8.858064390153848,
+  "concurrency": 32,
+  "elapsed_seconds": 5.000391375,
+  "fresh": false,
+  "implementation": "hyper",
+  "latency_us": {
+    "max": 651.775,
+    "mean": 283.9474174176835,
+    "p50": 253.439,
+    "p90": 366.847,
+    "p99": 423.167
+  },
+  "requests": 563347,
+  "requests_per_second": 112660.58149298363,
+  "tls": true,
+  "warmup_requests": 112509,
+  "client_command": [
+    "/private/tmp/base-http-validation-target/release/base-http-client-benchmark",
+    "client",
+    "--implementation",
+    "hyper",
+    "--address",
+    "127.0.0.1:52316",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-ngflozgy",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "5.0",
+    "--warmup",
+    "1.0",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-validation-target/release/base-http-client-benchmark",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-ngflozgy",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 675856
+  },
+  "server_cpu_seconds_including_warmup": 7.147042000000056
+}

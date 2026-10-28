@@ -1,0 +1,105 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 1307821,
+    "allocations_per_response": 14.000717260279838,
+    "deallocations": 1307820,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 5
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 11
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 15
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 29
+      },
+      {
+        "allocations_per_response": 3.000010705377311,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 80
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 112
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 128
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 176
+      }
+    ],
+    "reallocations": 0,
+    "reallocations_per_response": 0.0,
+    "requested_bytes": 94045264,
+    "requested_bytes_per_response": 1006.7900354347989,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.9983719999999999,
+  "client_cpu_us_per_request": 10.68794895676098,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000468792,
+  "fresh": false,
+  "implementation": "base-open",
+  "latency_us": {
+    "max": 567.807,
+    "mean": 342.50052948796116,
+    "p50": 359.167,
+    "p90": 393.215,
+    "p99": 431.359
+  },
+  "requests": 93411,
+  "requests_per_second": 93367.23018942504,
+  "tls": true,
+  "warmup_requests": 29371,
+  "client_command": [
+    "/private/tmp/base-http-orchestration-final-allocation-20261029",
+    "client",
+    "--implementation",
+    "base-open",
+    "--address",
+    "127.0.0.1:56425",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qei6ixto",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-orchestration-final-allocation-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qei6ixto",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 122782
+  },
+  "server_cpu_seconds_including_warmup": 1.3221909999999983
+}

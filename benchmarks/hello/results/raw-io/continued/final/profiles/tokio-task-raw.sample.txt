@@ -1,0 +1,225 @@
+Analysis of sampling server (pid 73915) every 1 millisecond
+Process:         server [73915]
+Path:            /Users/USER/*/server
+Load Address:    0x104a70000
+Identifier:      server
+Version:         0
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  python3.13 [73823]
+Target Type:     live task
+
+Date/Time:       2026-10-27 10:50:49.990 +1300
+Launch Time:     2026-10-27 10:50:46.845 +1300
+OS Version:      macOS 27.0.1 (26A434)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         2976K
+Physical footprint (peak):  2976K
+Idle exit:                  untracked
+----
+
+Call graph:
+    5878 Thread_50255560   DispatchQueue_1: com.apple.main-thread  (serial)
+      5878 start  (in dyld) + 6688  [0x1842f7e80]
+        5878 main  (in server) + 52  [0x104ad5764]
+          5878 _RNvNtCs1coMeGJvsuS_3std2rt19lang_start_internal  (in server) + 936  [0x104b65730]
+            5878 _RNCINvNtCs1coMeGJvsuS_3std2rt10lang_startINtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtBI_5error5ErrorNtNtBI_6marker4SendNtB2b_4SyncEL_EEE0Csf5EpC2VHjLc_25base_http_hello_benchmark  (in server) + 16  [0x104ac4120]
+              5878 _RINvNtNtCs1coMeGJvsuS_3std3sys9backtrace28___rust_begin_short_backtraceFEINtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB1e_5error5ErrorNtNtB1e_6marker4SendNtB2I_4SyncEL_EEB19_ECsf5EpC2VHjLc_25base_http_hello_benchmark  (in server) + 12  [0x104ad3a10]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166
+                5878 _RNvCsf5EpC2VHjLc_25base_http_hello_benchmark4main  (in server) + 1088  [0x104ad40d8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/src/main.rs:216
+                  5878 _RINvMNtNtCsl9Iiy7dOWKO_5tokio7runtime7runtimeNtB3_7Runtime8block_onNCNvCsf5EpC2VHjLc_25base_http_hello_benchmark4mains0_0EB17_  (in server) + 120  [0x104abfe78]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:348
+                    5878 _RINvNtNtNtCsl9Iiy7dOWKO_5tokio7runtime7context7runtime13enter_runtimeNCINvMNtNtB6_9scheduler14current_threadNtB1b_13CurrentThread8block_onNCNvCsf5EpC2VHjLc_25base_http_hello_benchmark4mains0_0E0INtNtCs9nEiEE0E2Vj_4core6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB3b_5error5ErrorNtNtB3b_6marker4SendNtB4F_4SyncEL_EEEB2g_  (in server) + 456  [0x104aba334]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65
+                      5878 _RINvMs7_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime9scheduler14current_threadNtB6_9CoreGuard8block_onNCNvCsf5EpC2VHjLc_25base_http_hello_benchmark4mains0_0EB1w_  (in server) + 124  [0x104ad7ff8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819
+                        5709 _RINvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime7context6scopedINtB3_6ScopedNtNtB7_9scheduler7ContextE3setNCINvMs7_NtB15_14current_threadNtB1G_9CoreGuard5enterNCINvB1C_8block_onNCNvCsf5EpC2VHjLc_25base_http_hello_benchmark4mains0_0E0INtNtCs9nEiEE0E2Vj_4core6option6OptionINtNtB3F_6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB3F_5error5ErrorNtNtB3F_6marker4SendNtB5w_4SyncEL_EEEE0TIB4B_NtB1G_4CoreEB3A_EEB2K_  (in server) + 204  [0x104ab79b4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+                        + 5709 _RNvMs1_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime9scheduler14current_threadNtB5_7Context8run_task  (in server) + 180  [0x104b04ec8]
+                        +   5708 _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime4task7harnessINtB5_7HarnessNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw12tokio_server0INtNtCs3vUkWdPtNor_5alloc4sync3ArcNtNtNtB9_9scheduler14current_thread6HandleEE4pollB1a_  (in server) + 88  [0x104acffa8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/task/harness.rs:155
+                        +   ! 5708 _RNvMs4_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime4task4coreINtB5_4CoreNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw12tokio_server0INtNtCs3vUkWdPtNor_5alloc4sync3ArcNtNtNtB9_9scheduler14current_thread6HandleEE4pollB14_  (in server) + 1276  [0x104abaad0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/task/core.rs:369
+                        +   !   5707 _RNvXs_NtNtCsa8LNBO7KKdE_12futures_util6future6selectINtB4_6SelectINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNvMNtNtNtCsl9Iiy7dOWKO_5tokio3net3tcp8listenerNtB1D_11TcpListener6accept0EIB12_QNCNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw12tokio_server00EENtNtNtB16_6future6future6Future4pollB30_  (in server) + 148  [0x104ac2714]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+                        +   !   : 5707 _RNvYINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw12tokio_server00ENtNtNtCsa8LNBO7KKdE_12futures_util6future6future9FutureExt10poll_unpinBH_  (in server) + 68  [0x104aa6aa8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/future/mod.rs:556
+                        +   !   :   4335 _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0ENtNtB7_6stream9StreamExt15poll_next_unpinB1p_  (in server) + 580  [0x104a988bc]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+                        +   !   :   | 4323 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE10poll_writeB9_  (in server) + 172  [0x104afdd70]
+                        +   !   :   | + 4321 _RNvXs2_NtNtNtCseOEp8P7OI9w_3mio3net3tcp6streamRNtB5_9TcpStreamNtNtNtCs9nEiEE0E2Vj_4core2io5write5Write5write  (in server) + 28  [0x104b111a8]
+                        +   !   :   | + ! 4314 _RNvXs2_NtNtCs1coMeGJvsuS_3std3net3tcpRNtB5_9TcpStreamNtNtNtCs9nEiEE0E2Vj_4core2io5write5Write5write  (in server) + 40  [0x104b6d490]
+                        +   !   :   | + ! : 4314 __sendto  (in libsystem_kernel.dylib) + 8,4  [0x18468d39c,0x18468d398]
+                        +   !   :   | + ! 7 _RNvXs2_NtNtCs1coMeGJvsuS_3std3net3tcpRNtB5_9TcpStreamNtNtNtCs9nEiEE0E2Vj_4core2io5write5Write5write  (in server) + 40  [0x104b6d490]
+                        +   !   :   | + 2 _RNvXs2_NtNtNtCseOEp8P7OI9w_3mio3net3tcp6streamRNtB5_9TcpStreamNtNtNtCs9nEiEE0E2Vj_4core2io5write5Write5write  (in server) + 28  [0x104b111a8]
+                        +   !   :   | 6 _RNvXs1_NtNtNtCsl9Iiy7dOWKO_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write  (in server) + 0  [0x104afbf1c]
+                        +   !   :   | 4 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE10poll_writeB9_  (in server) + 68  [0x104afdd08]
+                        +   !   :   | + 3 _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12registrationNtB5_12Registration10poll_ready  (in server) + 0,16,...  [0x104afca6c,0x104afca7c,...]
+                        +   !   :   | + 1 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo14poll_readiness  (in server) + 104  [0x104b0d32c]
+                        +   !   :   | 2 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE10poll_writeB9_  (in server) + 420  [0x104afde68]
+                        +   !   :   1363 _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0ENtNtB7_6stream9StreamExt15poll_next_unpinB1p_  (in server) + 548  [0x104a9889c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+                        +   !   :   | 1338 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE9poll_readB9_  (in server) + 192  [0x104afdff8]
+                        +   !   :   | + 1331 _RNvXs0_NtNtNtCseOEp8P7OI9w_3mio3net3tcp6streamRNtB5_9TcpStreamNtNtNtCs3vUkWdPtNor_5alloc2io4read4Read4read  (in server) + 28  [0x104b11134]
+                        +   !   :   | + ! 1331 _RNvXs1_NtNtCs1coMeGJvsuS_3std3net3tcpRNtB5_9TcpStreamNtNtNtCs3vUkWdPtNor_5alloc2io4read4Read4read  (in server) + 28  [0x104b6cf1c]
+                        +   !   :   | + !   1330 __recvfrom  (in libsystem_kernel.dylib) + 8,4  [0x18468d3c8,0x18468d3c4]
+                        +   !   :   | + !   1 DYLD-STUB$$recv  (in server) + 0  [0x104b92fa8]
+                        +   !   :   | + 7 _RNvXs0_NtNtNtCseOEp8P7OI9w_3mio3net3tcp6streamRNtB5_9TcpStreamNtNtNtCs3vUkWdPtNor_5alloc2io4read4Read4read  (in server) + 28  [0x104b11134]
+                        +   !   :   | 14 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE9poll_readB9_  (in server) + 84  [0x104afdf8c]
+                        +   !   :   | + 8 _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12registrationNtB5_12Registration10poll_ready  (in server) + 112  [0x104afcadc]
+                        +   !   :   | + ! 3 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo14poll_readiness  (in server) + 140  [0x104b0d350]
+                        +   !   :   | + ! : 2 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo14poll_readiness  (in server) + 140  [0x104b0d350]
+                        +   !   :   | + ! : | 2 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in server) + 0  [0x104b58440]
+                        +   !   :   | + ! : 1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 136  [0x1846c8560]
+                        +   !   :   | + ! 3 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo14poll_readiness  (in server) + 0,344  [0x104b0d2c4,0x104b0d41c]
+                        +   !   :   | + ! 2 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 20,104  [0x1846c8a30,0x1846c8a84]
+                        +   !   :   | + 2 _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12registrationNtB5_12Registration10poll_ready  (in server) + 48  [0x104afca9c]
+                        +   !   :   | + ! 2 _tlv_get_addr  (in libdyld.dylib) + 0  [0x1842a6e48]
+                        +   !   :   | + 2 _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12registrationNtB5_12Registration10poll_ready  (in server) + 0,52  [0x104afca6c,0x104afcaa0]
+                        +   !   :   | + 2 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo14poll_readiness  (in server) + 104,108  [0x104b0d32c,0x104b0d330]
+                        +   !   :   | 9 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE9poll_readB9_  (in server) + 192,84,...  [0x104afdff8,0x104afdf8c,...]
+                        +   !   :   | 1 _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12registrationNtB5_12Registration10poll_ready  (in server) + 344  [0x104afcbc4]
+                        +   !   :   | 1 _RNvXs0_NtNtNtCsl9Iiy7dOWKO_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io10async_read9AsyncRead9poll_read  (in server) + 0  [0x104afb3d4]
+                        +   !   :   5 _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0ENtNtB7_6stream9StreamExt15poll_next_unpinB1p_  (in server) + 548,248,...  [0x104a9889c,0x104a98770,...]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+                        +   !   :   2 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE10poll_writeB9_  (in server) + 552  [0x104afdeec]
+                        +   !   :   1 _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE9poll_readB9_  (in server) + 604  [0x104afe194]
+                        +   !   :   1 _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0ENtNtB7_6stream9StreamExt15poll_next_unpinB1p_  (in server) + 976  [0x104a98a48]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+                        +   !   :     1 _RINvNtCs9nEiEE0E2Vj_4core3ptr9drop_glueINtNvXs5_NtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unorderedINtBK_16FuturesUnorderedpENtNtCsd6sc0bp2aqi_12futures_core6stream6Stream9poll_next4BombNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0EEB3b_  (in server) + 140  [0x104a74010]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+                        +   !   1 _RNvXs_NtNtCsa8LNBO7KKdE_12futures_util6future6selectINtB4_6SelectINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNvMNtNtNtCsl9Iiy7dOWKO_5tokio3net3tcp8listenerNtB1D_11TcpListener6accept0EIB12_QNCNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw12tokio_server00EENtNtNtB16_6future6future6Future4pollB30_  (in server) + 52  [0x104ac26b4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:113
+                        +   !     1 _RNvYINtNtCs9nEiEE0E2Vj_4core3pin3PinQNCNvMNtNtNtCsl9Iiy7dOWKO_5tokio3net3tcp8listenerNtBE_11TcpListener6accept0ENtNtNtCsa8LNBO7KKdE_12futures_util6future6future9FutureExt10poll_unpinCsf5EpC2VHjLc_25base_http_hello_benchmark  (in server) + 748  [0x104aa6e10]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/future/mod.rs:556
+                        +   !       1 _RNvXs5_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB5_9ReadinessNtNtNtCs9nEiEE0E2Vj_4core6future6future6Future4poll  (in server) + 0  [0x104b0e500]
+                        +   1 _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime4task7harnessINtB5_7HarnessNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw12tokio_server0INtNtCs3vUkWdPtNor_5alloc4sync3ArcNtNtNtB9_9scheduler14current_thread6HandleEE4pollB1a_  (in server) + 116  [0x104acffc4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/task/harness.rs:155
+                        +     1 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime4task5stateNtB2_5State18transition_to_idle  (in server) + 0  [0x104aff870]
+                        147 _RINvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime7context6scopedINtB3_6ScopedNtNtB7_9scheduler7ContextE3setNCINvMs7_NtB15_14current_threadNtB1G_9CoreGuard5enterNCINvB1C_8block_onNCNvCsf5EpC2VHjLc_25base_http_hello_benchmark4mains0_0E0INtNtCs9nEiEE0E2Vj_4core6option6OptionINtNtB3F_6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB3F_5error5ErrorNtNtB3F_6marker4SendNtB5w_4SyncEL_EEEE0TIB4B_NtB1G_4CoreEB3A_EEB2K_  (in server) + 324  [0x104ab7a2c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+                        + 147 _RNvMs1_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime9scheduler14current_threadNtB5_7Context4park  (in server) + 736  [0x104b04c60]
+                        +   147 _RNvMs1_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime9scheduler14current_threadNtB5_7Context13park_internal  (in server) + 324  [0x104b047c0]
+                        +     145 _RNvMNtNtCsl9Iiy7dOWKO_5tokio7runtime4timeNtB2_6Driver13park_internal  (in server) + 556  [0x104afe72c]
+                        +     ! 127 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io6driverNtB2_6Driver4turn  (in server) + 176  [0x104b0a17c]
+                        +     ! : 127 _RNvMNtCseOEp8P7OI9w_3mio4pollNtB2_4Poll4poll  (in server) + 108  [0x104b10cec]
+                        +     ! :   127 kevent  (in libsystem_kernel.dylib) + 8  [0x18468efcc]
+                        +     ! 15 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io6driverNtB2_6Driver4turn  (in server) + 528  [0x104b0a2dc]
+                        +     ! : 8 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo4wake  (in server) + 96,48,...  [0x104b0d54c,0x104b0d51c,...]
+                        +     ! : 3 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo4wake  (in server) + 632  [0x104b0d764]
+                        +     ! : | 2 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 104  [0x1846c8a84]
+                        +     ! : | 1 DYLD-STUB$$pthread_mutex_unlock  (in server) + 4  [0x104b92f40]
+                        +     ! : 2 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo4wake  (in server) + 672  [0x104b0d78c]
+                        +     ! : | 2 _RINvNtNtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4task9waker_ref12wake_arc_rawINtB4_4TaskNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0EEB1M_  (in server) + 32  [0x104adcf88]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:258
+                        +     ! : |   2 _RNvXs0_NtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered4taskINtB5_4TaskNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0ENtB5_7ArcWake11wake_by_refB1p_  (in server) + 140  [0x104ad0cd8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:125
+                        +     ! : |     1 _RNvMNtNtNtCsd6sc0bp2aqi_12futures_core4task10___internal12atomic_wakerNtB2_11AtomicWaker4wake  (in server) + 36  [0x104b3f2dc]
+                        +     ! : |     1 _RNvNtNtNtCsl9Iiy7dOWKO_5tokio7runtime4task5waker11wake_by_val  (in server) + 0  [0x104afeb6c]
+                        +     ! : 1 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo4wake  (in server) + 56  [0x104b0d524]
+                        +     ! : | 1 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in server) + 12  [0x104b5844c]
+                        +     ! : |   1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 20  [0x1846c84ec]
+                        +     ! : 1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 124  [0x1846c8a98]
+                        +     ! 2 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io6driverNtB2_6Driver4turn  (in server) + 444,452  [0x104b0a288,0x104b0a290]
+                        +     ! 1 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo4wake  (in server) + 764  [0x104b0d7e8]
+                        +     2 _RNvMNtNtCsl9Iiy7dOWKO_5tokio7runtime4timeNtB2_6Driver13park_internal  (in server) + 120  [0x104afe578]
+                        +       1 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime4time5wheelNtB2_5Wheel15next_expiration  (in server) + 256  [0x104b01cd0]
+                        +       : 1 _RNvMNtNtNtNtCsl9Iiy7dOWKO_5tokio7runtime4time5wheel5levelNtB2_5Level15next_expiration  (in server) + 104  [0x104afca64]
+                        +       1 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime4time5wheelNtB2_5Wheel15next_expiration  (in server) + 256  [0x104b01cd0]
+                        21 _RINvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime7context6scopedINtB3_6ScopedNtNtB7_9scheduler7ContextE3setNCINvMs7_NtB15_14current_threadNtB1G_9CoreGuard5enterNCINvB1C_8block_onNCNvCsf5EpC2VHjLc_25base_http_hello_benchmark4mains0_0E0INtNtCs9nEiEE0E2Vj_4core6option6OptionINtNtB3F_6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB3F_5error5ErrorNtNtB3F_6marker4SendNtB5w_4SyncEL_EEEE0TIB4B_NtB1G_4CoreEB3A_EEB2K_  (in server) + 304  [0x104ab7a18]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+                        + 21 _RNvMs1_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime9scheduler14current_threadNtB5_7Context10park_yield  (in server) + 112  [0x104b04548]
+                        +   21 _RNvMs1_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime9scheduler14current_threadNtB5_7Context13park_internal  (in server) + 268  [0x104b04788]
+                        +     21 _RNvMNtNtCsl9Iiy7dOWKO_5tokio7runtime4timeNtB2_6Driver13park_internal  (in server) + 556  [0x104afe72c]
+                        +       19 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io6driverNtB2_6Driver4turn  (in server) + 176  [0x104b0a17c]
+                        +       ! 19 _RNvMNtCseOEp8P7OI9w_3mio4pollNtB2_4Poll4poll  (in server) + 108  [0x104b10cec]
+                        +       !   19 kevent  (in libsystem_kernel.dylib) + 8  [0x18468efcc]
+                        +       2 _RNvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io6driverNtB2_6Driver4turn  (in server) + 528  [0x104b0a2dc]
+                        +         2 _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo4wake  (in server) + 56  [0x104b0d524]
+                        +           1 _RNvMNtNtNtNtNtCs1coMeGJvsuS_3std3sys3pal4unix4sync5mutexNtB2_5Mutex4lock  (in server) + 12  [0x104b5844c]
+                        +           : 1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 20  [0x1846c84ec]
+                        +           1 pthread_mutex_lock  (in libsystem_pthread.dylib) + 136  [0x1846c8560]
+                        1 _RINvMNtNtNtCsl9Iiy7dOWKO_5tokio7runtime7context6scopedINtB3_6ScopedNtNtB7_9scheduler7ContextE3setNCINvMs7_NtB15_14current_threadNtB1G_9CoreGuard5enterNCINvB1C_8block_onNCNvCsf5EpC2VHjLc_25base_http_hello_benchmark4mains0_0E0INtNtCs9nEiEE0E2Vj_4core6option6OptionINtNtB3F_6result6ResultuINtNtCs3vUkWdPtNor_5alloc5boxed3BoxDNtNtB3F_5error5ErrorNtNtB3F_6marker4SendNtB5w_4SyncEL_EEEE0TIB4B_NtB1G_4CoreEB3A_EEB2K_  (in server) + 204  [0x104ab79b4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+
+Total number in stack (recursive counted multiple, when >=5):
+
+Sort by top of stack, same collapsed (when >= 5):
+        __sendto  (in libsystem_kernel.dylib)        4314
+        __recvfrom  (in libsystem_kernel.dylib)        1330
+        kevent  (in libsystem_kernel.dylib)        146
+        _RNvMs4_NtNtCsl9Iiy7dOWKO_5tokio2io12poll_eventedINtB5_11PollEventedNtNtNtNtCseOEp8P7OI9w_3mio3net3tcp6stream9TcpStreamE9poll_readB9_  (in server)        10
+        _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo4wake  (in server)        9
+        _RNvXs0_NtNtNtCseOEp8P7OI9w_3mio3net3tcp6streamRNtB5_9TcpStreamNtNtNtCs3vUkWdPtNor_5alloc2io4read4Read4read  (in server)        7
+        _RNvXs2_NtNtCs1coMeGJvsuS_3std3net3tcpRNtB5_9TcpStreamNtNtNtCs9nEiEE0E2Vj_4core2io5write5Write5write  (in server)        7
+        _RNvMs0_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12registrationNtB5_12Registration10poll_ready  (in server)        6
+        _RNvMs_NtNtNtCsl9Iiy7dOWKO_5tokio7runtime2io12scheduled_ioNtB4_11ScheduledIo14poll_readiness  (in server)        6
+        _RNvXs1_NtNtNtCsl9Iiy7dOWKO_5tokio3net3tcp6streamNtB5_9TcpStreamNtNtNtBb_2io11async_write10AsyncWrite10poll_write  (in server)        6
+        _RNvYINtNtNtCsa8LNBO7KKdE_12futures_util6stream17futures_unordered16FuturesUnorderedNCNvNtCsf5EpC2VHjLc_25base_http_hello_benchmark3raw16tokio_connection0ENtNtB7_6stream9StreamExt15poll_next_unpinB1p_  (in server)        5
+        pthread_mutex_unlock  (in libsystem_pthread.dylib)        5
+
+Binary Images:
+       0x104a70000 -        0x104bfb93f +server (0) <0F3AF92D-BB1E-34F5-8A23-01DC2EF6BBEC> /Users/*/server
+       0x184244000 -        0x1842935f7  libobjc.A.dylib (973.1) <C0680DF6-9900-3C29-A071-95A031686EF8> /usr/lib/libobjc.A.dylib
+       0x184294000 -        0x18429e23f  libsharedcache.dylib (0) <BBF95357-BEBF-3D89-8900-2BBB14A667C5> /usr/lib/libsharedcache.dylib
+       0x18429f000 -        0x1842c5d3b  libdyld.dylib (27062) <62863BCA-DD60-3D32-A9DB-89099BA6F3D7> /usr/lib/system/libdyld.dylib
+       0x1842c6000 -        0x1843856e3  dyld (1.0.0 - 27062) <D341DDCB-7969-3A9C-8E03-0CF4751398A9> /usr/lib/dyld
+       0x184386000 -        0x18438901f  libsystem_blocks.dylib (98.1) <6F304731-D95D-3501-B4AD-F2934F7F2446> /usr/lib/system/libsystem_blocks.dylib
+       0x18438a000 -        0x1843df0df  libxpc.dylib (3298.1.1) <0791121F-B5FC-3F84-BF04-115E86D2D882> /usr/lib/system/libxpc.dylib
+       0x1843e0000 -        0x1843ffc13  libsystem_trace.dylib (1966.1.1) <B48A8E3E-A12A-3342-8321-428B555E965E> /usr/lib/system/libsystem_trace.dylib
+       0x184400000 -        0x1844b4f27  libcorecrypto.dylib (2109.0.22) <807AA6C9-5D8A-3CA5-B4CE-FACE5296EF6A> /usr/lib/system/libcorecrypto.dylib
+       0x1844b5000 -        0x18450ac5f  libsystem_malloc.dylib (886.0.8) <2339CB57-FE5A-3154-A206-A76059C749EB> /usr/lib/system/libsystem_malloc.dylib
+       0x18450b000 -        0x18455119f  libdispatch.dylib (1605.0.2) <022BF08F-0B3A-3225-9E65-16D1553CE90D> /usr/lib/system/libdispatch.dylib
+       0x184552000 -        0x184554d2b  libsystem_featureflags.dylib (108) <20C1CAB2-1F13-3426-8146-9CAE9FF2A33D> /usr/lib/system/libsystem_featureflags.dylib
+       0x184555000 -        0x1845d7ca3  libsystem_c.dylib (1786.0.3) <FBA7B23E-AA60-3A90-9AA4-A7A2E0AD63EE> /usr/lib/system/libsystem_c.dylib
+       0x1845d8000 -        0x18466d033  libc++.1.dylib (2200.27) <1E9BA4AA-B5DA-3CF3-80AC-4B880049573F> /usr/lib/libc++.1.dylib
+       0x18466e000 -        0x184687eff  libc++abi.dylib (2200.27) <A21743EE-6E1C-3E74-97EA-7AF793DE4BDF> /usr/lib/libc++abi.dylib
+       0x184688000 -        0x1846c69ab  libsystem_kernel.dylib (13432.1.9) <F63BF418-8F75-34A4-AAF1-8CAF2B9B6A05> /usr/lib/system/libsystem_kernel.dylib
+       0x1846c7000 -        0x1846d391b  libsystem_pthread.dylib (553.0.1) <5A1828C3-CBC2-3B85-BD07-C8ED10021A41> /usr/lib/system/libsystem_pthread.dylib
+       0x1846d4000 -        0x1846dd4f3  libsystem_platform.dylib (402.0.1.0.1) <080E4444-A0FB-3913-9756-4E470015F32F> /usr/lib/system/libsystem_platform.dylib
+       0x1846de000 -        0x18470c903  libsystem_info.dylib (603) <BC387AEB-1CEF-3513-92D7-D7F913596711> /usr/lib/system/libsystem_info.dylib
+       0x188836000 -        0x18883fb13  libsystem_darwin.dylib (1786.0.3) <4E66C888-993C-3E6A-A8DA-A949C01C5B67> /usr/lib/system/libsystem_darwin.dylib
+       0x188c90000 -        0x188ca1b8b  libsystem_notify.dylib (368) <58FD36D8-37A7-311C-80F2-8E64DD8710CF> /usr/lib/system/libsystem_notify.dylib
+       0x18aded000 -        0x18ae07d93  libsystem_networkextension.dylib (2340.1.2) <22E1D190-486F-324F-ABA4-F36AB841BFE9> /usr/lib/system/libsystem_networkextension.dylib
+       0x18ae95000 -        0x18aeac247  libsystem_asl.dylib (409) <B4D449B7-A821-3A9A-8019-E917B291F10A> /usr/lib/system/libsystem_asl.dylib
+       0x18be40000 -        0x18be40f2f  libobjcMsgSend.dylib (973.1) <41179EDE-DC97-3BBE-8848-6400D12C1436> /usr/lib/objc/libobjcMsgSend.dylib
+       0x18cf8c000 -        0x18cf93edf  libsystem_symptoms.dylib (2394.0.4) <60EE7884-9F4E-3184-A6AC-FA40A7A0297D> /usr/lib/system/libsystem_symptoms.dylib
+       0x191324000 -        0x19135eaeb  libsystem_containermanager.dylib (833.0.8.0.1) <08A57205-555D-3792-8931-9D5B585AF326> /usr/lib/system/libsystem_containermanager.dylib
+       0x192977000 -        0x19297b317  libsystem_configuration.dylib (1446) <F3EB66A7-7A24-3AE5-B6E8-9A37BB00F119> /usr/lib/system/libsystem_configuration.dylib
+       0x19297c000 -        0x192982e03  libsystem_sandbox.dylib (3051.0.52) <1E892B56-092E-3832-BDE3-DCE356D7A4FA> /usr/lib/system/libsystem_sandbox.dylib
+       0x193e40000 -        0x193e40f2f  libobjcMsgSend1.dylib (973.1) <B40D9B2A-E1EE-37ED-8004-711A1F263DE1> /usr/lib/objc/libobjcMsgSend1.dylib
+       0x194560000 -        0x194562f93  libquarantine.dylib (217.0.4) <7FD4AE22-86EF-382B-83F5-ADF9336C1160> /usr/lib/system/libquarantine.dylib
+       0x194c72000 -        0x194c781e7  libsystem_coreservices.dylib (203) <57248E07-11A5-3857-918E-4A3A63B69FE8> /usr/lib/system/libsystem_coreservices.dylib
+       0x19523a000 -        0x195277b27  libsystem_m.dylib (3326.0.1) <A3FB340F-3ED5-30F4-8B64-9D5860F64D35> /usr/lib/system/libsystem_m.dylib
+       0x195278000 -        0x195278b47  libcharset.1.dylib (121) <3C9B584E-740A-3664-A1B0-52E561EA4B0B> /usr/lib/libcharset.1.dylib
+       0x195279000 -        0x19527c4f7  libmacho.dylib (27062) <50DEADEC-3E99-3519-AFC3-4A3FEB3F14C3> /usr/lib/system/libmacho.dylib
+       0x195296000 -        0x1952a2707  libcommonCrypto.dylib (600041) <41C99F45-C5E6-39DB-B1F2-A1BEA9D242A4> /usr/lib/system/libcommonCrypto.dylib
+       0x1952a3000 -        0x1952acc87  libunwind.dylib (2200.5) <3070AB81-B082-39E8-8A00-EF88DDE9AC47> /usr/lib/system/libunwind.dylib
+       0x1952b4000 -        0x1952be7eb  libcopyfile.dylib (260.0.3) <72D95AF9-BF5E-3A84-81A6-BCC5BDB99857> /usr/lib/system/libcopyfile.dylib
+       0x1952bf000 -        0x1952c28bf  libcompiler_rt.dylib (103.4) <DFB5CE7F-A36E-36AA-BECE-1392D3D43607> /usr/lib/system/libcompiler_rt.dylib
+       0x1952c3000 -        0x1952c8077  libsystem_collections.dylib (1786.0.3) <1E8022D4-5A37-3A7A-8936-603E6FA88358> /usr/lib/system/libsystem_collections.dylib
+       0x1952c9000 -        0x1952cbf1f  libsystem_secinit.dylib (182) <DE037464-4C5D-3E96-A33F-2A4557CC6A20> /usr/lib/system/libsystem_secinit.dylib
+       0x1952cc000 -        0x1952ce97f  libremovefile.dylib (96) <E6E6DFCF-6B2C-3F30-A59D-816CAB1190CE> /usr/lib/system/libremovefile.dylib
+       0x1952cf000 -        0x1952cfe27  libkeymgr.dylib (31) <5EC997EF-3ADA-360B-9FCD-5F940C83FA4E> /usr/lib/system/libkeymgr.dylib
+       0x1952d0000 -        0x1952d8af7  libsystem_dnssd.dylib (3111.0.5.0.1) <DE22096F-1E5B-3D6E-8164-771582DD6391> /usr/lib/system/libsystem_dnssd.dylib
+       0x1952d9000 -        0x1952ddf1b  libcache.dylib (95) <80BAE197-E285-3F6E-A1EE-B77FE37D7E5D> /usr/lib/system/libcache.dylib
+       0x1952de000 -        0x1952df8f3  libSystem.B.dylib (1359) <4FDC9AA6-B344-37FE-B8C6-A4C94A038F57> /usr/lib/libSystem.B.dylib
+       0x195318000 -        0x19531f0a3  libiconv.2.dylib (121) <C343D6F7-6932-30E8-8E8F-F756946D8413> /usr/lib/libiconv.2.dylib
+       0x19be40000 -        0x19be40f2f  libobjcMsgSend2.dylib (973.1) <BD27A84B-C9AE-3282-BBEA-3B6119837B5A> /usr/lib/objc/libobjcMsgSend2.dylib
+       0x1a3e40000 -        0x1a3e40f2f  libobjcMsgSend3.dylib (973.1) <C0860D68-DDFC-3BD7-8B06-DB0645CBBED4> /usr/lib/objc/libobjcMsgSend3.dylib
+       0x1abe40000 -        0x1abe40f2f  libobjcMsgSend4.dylib (973.1) <A6153BF5-622B-3B01-81B6-F64A365EF613> /usr/lib/objc/libobjcMsgSend4.dylib
+       0x1b3e40000 -        0x1b3e40f2f  libobjcMsgSend5.dylib (973.1) <3913A71C-B29A-3AEA-820B-BEC40AC1861A> /usr/lib/objc/libobjcMsgSend5.dylib
+       0x1bbe40000 -        0x1bbe40f2f  libobjcMsgSend6.dylib (973.1) <9BC523A3-E167-3F6C-8CAE-0F3EBA671791> /usr/lib/objc/libobjcMsgSend6.dylib
+       0x1c3e40000 -        0x1c3e40f2f  libobjcMsgSend7.dylib (973.1) <248B7BCE-5B4C-34C7-A340-43D5228628C5> /usr/lib/objc/libobjcMsgSend7.dylib
+       0x1cbe40000 -        0x1cbe40f2f  libobjcMsgSend8.dylib (973.1) <3E041BAD-A8E8-3069-B741-78CD1A45B176> /usr/lib/objc/libobjcMsgSend8.dylib
+       0x1d3e40000 -        0x1d3e40f2f  libobjcMsgSend9.dylib (973.1) <34A67969-21A0-39D6-BB81-8FDA5A2409DB> /usr/lib/objc/libobjcMsgSend9.dylib
+       0x1dbe40000 -        0x1dbe40f2f  libobjcMsgSend10.dylib (973.1) <678186C0-8EAD-3B35-8CBB-00285B41E4A0> /usr/lib/objc/libobjcMsgSend10.dylib
+       0x1e3e40000 -        0x1e3e40f2f  libobjcMsgSend11.dylib (973.1) <E05CB08C-E956-36FA-8967-AE8E346A8D2C> /usr/lib/objc/libobjcMsgSend11.dylib
+       0x20be40000 -        0x20be40f2f  libobjcMsgSend12.dylib (973.1) <10AB03AA-FF1F-3FDC-9DFB-BFC40042C501> /usr/lib/objc/libobjcMsgSend12.dylib
+       0x213e40000 -        0x213e40f2f  libobjcMsgSend13.dylib (973.1) <ABF53427-FA6F-3D0D-8F9D-7AD795CA5C92> /usr/lib/objc/libobjcMsgSend13.dylib
+       0x21be40000 -        0x21be40f2f  libobjcMsgSend14.dylib (973.1) <9A844C46-A6DA-34D4-8EBF-2AD775C30684> /usr/lib/objc/libobjcMsgSend14.dylib
+       0x223e40000 -        0x223e40f2f  libobjcMsgSend15.dylib (973.1) <7C995666-2B2D-3284-AA0A-EBF7C922838E> /usr/lib/objc/libobjcMsgSend15.dylib
+       0x22be40000 -        0x22be40f2f  libobjcMsgSend16.dylib (973.1) <B6C0E14B-53AE-3E22-9ED5-1729C49F46F2> /usr/lib/objc/libobjcMsgSend16.dylib
+       0x233e40000 -        0x233e40f2f  libobjcMsgSend17.dylib (973.1) <07B4CF85-251B-301B-832B-20B315A59E19> /usr/lib/objc/libobjcMsgSend17.dylib
+       0x23be40000 -        0x23be40f2f  libobjcMsgSend18.dylib (973.1) <43E575B7-04DB-3999-A633-1A3B638BA6E3> /usr/lib/objc/libobjcMsgSend18.dylib
+       0x243e40000 -        0x243e40f2f  libobjcMsgSend19.dylib (973.1) <736F4D85-76F7-3B28-8D87-C07E8F7A0EF4> /usr/lib/objc/libobjcMsgSend19.dylib
+       0x24be40000 -        0x24be40f2f  libobjcMsgSend20.dylib (973.1) <74E67C8B-6BCA-3184-A18E-A97F370052C6> /usr/lib/objc/libobjcMsgSend20.dylib
+       0x253e40000 -        0x253e40f2f  libobjcMsgSend21.dylib (973.1) <CC0D732F-98E7-3888-9E15-70984DA2FB04> /usr/lib/objc/libobjcMsgSend21.dylib
+       0x25be40000 -        0x25be40f2f  libobjcMsgSend22.dylib (973.1) <85A60286-5DE3-32BA-B18C-2A498B065C88> /usr/lib/objc/libobjcMsgSend22.dylib
+       0x263e40000 -        0x263e40f2f  libobjcMsgSend23.dylib (973.1) <5452A0D2-6B19-39BE-ADDD-80B7BCDE3A98> /usr/lib/objc/libobjcMsgSend23.dylib
+       0x26be40000 -        0x26be40f2f  libobjcMsgSend24.dylib (973.1) <94BBF2D6-722B-350D-8557-4D25A8E8D53A> /usr/lib/objc/libobjcMsgSend24.dylib
+       0x273e40000 -        0x273e40f2f  libobjcMsgSend25.dylib (973.1) <35481387-5A8E-3AE4-86A6-94CEB3CC8726> /usr/lib/objc/libobjcMsgSend25.dylib
+       0x28be40000 -        0x28be40f2f  libobjcMsgSend26.dylib (973.1) <9E0C8664-E7F4-39D1-AAFC-BD92B255E4E8> /usr/lib/objc/libobjcMsgSend26.dylib
+       0x293e40000 -        0x293e40f2f  libobjcMsgSend27.dylib (973.1) <FD424935-55A9-3650-955A-EED3441A1D19> /usr/lib/objc/libobjcMsgSend27.dylib
+       0x29be40000 -        0x29be40f2f  libobjcMsgSend28.dylib (973.1) <09BA7B97-7DF7-3C7F-932A-B6847662FC49> /usr/lib/objc/libobjcMsgSend28.dylib
+       0x2a3e40000 -        0x2a3e40f2f  libobjcMsgSend29.dylib (973.1) <36D5BA3F-2139-30B0-8558-556764BE9813> /usr/lib/objc/libobjcMsgSend29.dylib
+       0x2abe40000 -        0x2abe40f2f  libobjcMsgSend30.dylib (973.1) <9F05564A-9D12-372C-98FC-E9F0E6BE4F04> /usr/lib/objc/libobjcMsgSend30.dylib
+       0x2b0b5a000 -        0x2b0b60fe5  libRosetta.dylib (385) <E359944B-D230-33F9-A04E-0C3B17C3326E> /usr/lib/libRosetta.dylib
+       0x2b1549000 -        0x2b154c75b  libsystem_darwindirectory.dylib (129.0.1) <61264923-2AA5-3658-B8C4-550C71E9D4B3> /usr/lib/system/libsystem_darwindirectory.dylib
+       0x2b154d000 -        0x2b1557d9b  libsystem_eligibility.dylib (446.1.3) <EDDE8E9C-A2CF-3931-BBB3-321CB852EB30> /usr/lib/system/libsystem_eligibility.dylib
+       0x2b1558000 -        0x2b156142b  libsystem_sanitizers.dylib (32) <7138ED99-7AA0-34EA-B35B-20EF6ADB1EED> /usr/lib/system/libsystem_sanitizers.dylib
+       0x2b1562000 -        0x2b1562a13  libsystem_trial.dylib (511) <6AE48824-EC44-3A8C-B501-BE57DBE892E7> /usr/lib/system/libsystem_trial.dylib
+       0x2b3e40000 -        0x2b3e40f2f  libobjcMsgSend31.dylib (973.1) <0985E20F-78C3-3466-A2B2-DBB95F7104A3> /usr/lib/objc/libobjcMsgSend31.dylib
+       0x2bbe40000 -        0x2bbe40f2f  libobjcMsgSend32.dylib (973.1) <0D309D58-D576-3E5D-AD4B-6D55AB491702> /usr/lib/objc/libobjcMsgSend32.dylib
+       0x2c3e40000 -        0x2c3e40f2f  libobjcMsgSend33.dylib (973.1) <346E0484-48FA-369B-8A64-93B5F5341CFE> /usr/lib/objc/libobjcMsgSend33.dylib
+       0x2cbe40000 -        0x2cbe40f2f  libobjcMsgSend34.dylib (973.1) <6A31F809-BCBE-3E01-A367-E91FDACCE324> /usr/lib/objc/libobjcMsgSend34.dylib

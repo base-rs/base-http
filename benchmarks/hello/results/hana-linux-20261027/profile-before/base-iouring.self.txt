@@ -1,0 +1,637 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 3K of event 'cpu/cycles/P'
+# Event count (approx.): 30833368220
+#
+# Overhead  Command          Shared Object      Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+# ........  ...............  .................  .......................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+     7.57%  base-native-tas  [kernel.kallsyms]  [k] syscall_return_via_sysret
+            |          
+             --7.47%--syscall_return_via_sysret
+                       |          
+                        --7.37%--0x7fe7910718f2
+                                  |          
+                                  |--5.01%--recv
+                                  |          |          
+                                  |           --3.30%--base_scheduler_iouring::retained_socket::recv (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0} (inlined)
+                                  |                     base_scheduler_iouring::io_uring_selector::syscall::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0}> (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0} (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                  |                     <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+                                  |          
+                                   --2.36%--send
+                                             |          
+                                              --1.42%--base_scheduler_iouring::retained_socket::send (inlined)
+                                                        <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                                                        <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                                        <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     6.87%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSRETQ_unsafe_stack
+            |          
+             --6.51%--entry_SYSRETQ_unsafe_stack
+                       |          
+                        --6.41%--0x7fe7910718f2
+                                  |          
+                                  |--3.53%--recv
+                                  |          |          
+                                  |           --2.16%--base_scheduler_iouring::retained_socket::recv (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0} (inlined)
+                                  |                     base_scheduler_iouring::io_uring_selector::syscall::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0}> (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0} (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                  |                     <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+                                  |          
+                                   --2.85%--send
+                                             |          
+                                              --1.81%--base_scheduler_iouring::retained_socket::send (inlined)
+                                                        <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                                                        <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                                        <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     4.22%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64_after_hwframe
+            |          
+             --4.02%--entry_SYSCALL_64_after_hwframe
+                       |          
+                        --3.94%--0x7fe7910718f2
+                                  |          
+                                  |--2.52%--recv
+                                  |          |          
+                                  |           --1.48%--base_scheduler_iouring::retained_socket::recv (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0} (inlined)
+                                  |                     base_scheduler_iouring::io_uring_selector::syscall::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0}> (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0} (inlined)
+                                  |                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                  |                     <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+                                  |          
+                                   --1.38%--send
+                                             |          
+                                              --0.91%--base_scheduler_iouring::retained_socket::send (inlined)
+                                                        <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                                                        <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                                        <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     2.72%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64
+            |          
+             --2.37%--entry_SYSCALL_64
+                       |          
+                        --2.34%--0x7fe7910718f2
+                                  |          
+                                  |--0.74%--recv
+                                  |          
+                                   --0.74%--send
+
+     2.72%  base-native-tas  baseline           [.] base_http_server::exchanges::<base_scheduler_iouring::io_uring_socket_stream_reader::IoUringSocketStreamReader, base_scheduler_iouring::io_uring_socket_stream_writer::IoUringSocketStreamWriter<base_scheduler_iouring::io_uring_buffer::IoUringBuffer>, base_http_hello_benchmark::Hello>::{closure#0}
+     1.91%  base-native-tas  [kernel.kallsyms]  [k] tcp_ack
+            |          
+             --1.83%--tcp_ack
+                       tcp_rcv_established
+                       tcp_v4_do_rcv
+                       tcp_v4_rcv
+                       ip_protocol_deliver_rcu
+                       ip_local_deliver_finish
+                       __netif_receive_skb_one_core
+                       process_backlog
+                       __napi_poll
+                       net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       send
+                       |          
+                        --1.22%--base_scheduler_iouring::retained_socket::send (inlined)
+                                  <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                                  <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                  <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     1.78%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock_irqsave
+            |
+            ---_raw_spin_lock_irqsave
+               |          
+                --0.87%--ep_poll_callback
+                          __wake_up_common
+                          __wake_up_sync_key
+                          sock_def_readable
+                          tcp_rcv_established
+                          tcp_v4_do_rcv
+                          tcp_v4_rcv
+                          ip_protocol_deliver_rcu
+                          ip_local_deliver_finish
+                          __netif_receive_skb_one_core
+                          process_backlog
+                          __napi_poll
+                          net_rx_action
+                          handle_softirqs
+                          do_softirq.part.0
+                          __local_bh_enable_ip
+                          __dev_queue_xmit
+                          ip_finish_output2
+                          ip_output
+                          __ip_queue_xmit
+                          __tcp_transmit_skb
+                          tcp_write_xmit
+                          __tcp_push_pending_frames
+                          tcp_sendmsg_locked
+                          tcp_sendmsg
+                          __sys_sendto
+                          __x64_sys_sendto
+                          do_syscall_64
+                          entry_SYSCALL_64_after_hwframe
+                          0x7fe7910718f2
+                          send
+                          |          
+                           --0.69%--base_scheduler_iouring::retained_socket::send (inlined)
+                                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                                     <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                     <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     1.42%  base-native-tas  [kernel.kallsyms]  [k] fdget
+            |          
+             --1.37%--fdget
+                       |          
+                        --1.07%--__sys_recvfrom
+                                  __x64_sys_recvfrom
+                                  do_syscall_64
+                                  entry_SYSCALL_64_after_hwframe
+                                  0x7fe7910718f2
+                                  recv
+                                  |          
+                                   --0.69%--base_scheduler_iouring::retained_socket::recv (inlined)
+                                             <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0} (inlined)
+                                             base_scheduler_iouring::io_uring_selector::syscall::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0}> (inlined)
+                                             <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0} (inlined)
+                                             <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                             <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     1.22%  base-native-tas  baseline           [.] base_http1::wire::authority
+     1.12%  base-native-tas  [kernel.kallsyms]  [k] tcp_sendmsg_locked
+            |
+            ---tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               send
+               |          
+                --0.74%--base_scheduler_iouring::retained_socket::send (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                          <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     1.08%  base-native-tas  [kernel.kallsyms]  [k] skb_release_data
+            |          
+             --1.06%--skb_release_data
+                       |          
+                       |--0.53%--__kfree_skb
+                       |          tcp_ack
+                       |          tcp_rcv_established
+                       |          tcp_v4_do_rcv
+                       |          tcp_v4_rcv
+                       |          ip_protocol_deliver_rcu
+                       |          ip_local_deliver_finish
+                       |          __netif_receive_skb_one_core
+                       |          process_backlog
+                       |          __napi_poll
+                       |          net_rx_action
+                       |          handle_softirqs
+                       |          do_softirq.part.0
+                       |          __local_bh_enable_ip
+                       |          __dev_queue_xmit
+                       |          ip_finish_output2
+                       |          ip_output
+                       |          __ip_queue_xmit
+                       |          __tcp_transmit_skb
+                       |          tcp_write_xmit
+                       |          __tcp_push_pending_frames
+                       |          tcp_sendmsg_locked
+                       |          tcp_sendmsg
+                       |          __sys_sendto
+                       |          __x64_sys_sendto
+                       |          do_syscall_64
+                       |          entry_SYSCALL_64_after_hwframe
+                       |          0x7fe7910718f2
+                       |          send
+                       |          
+                        --0.52%--napi_consume_skb
+                                  skb_defer_free_flush
+                                  net_rx_action
+                                  handle_softirqs
+                                  do_softirq.part.0
+                                  __local_bh_enable_ip
+                                  __dev_queue_xmit
+                                  ip_finish_output2
+                                  ip_output
+                                  __ip_queue_xmit
+                                  __tcp_transmit_skb
+                                  tcp_write_xmit
+                                  __tcp_push_pending_frames
+                                  tcp_sendmsg_locked
+                                  tcp_sendmsg
+                                  __sys_sendto
+                                  __x64_sys_sendto
+                                  do_syscall_64
+                                  entry_SYSCALL_64_after_hwframe
+                                  0x7fe7910718f2
+                                  send
+
+     1.04%  base-native-tas  [kernel.kallsyms]  [k] __tcp_transmit_skb
+            |          
+             --0.99%--__tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       send
+                       |          
+                        --0.74%--base_scheduler_iouring::retained_socket::send (inlined)
+                                  <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                                  <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                  <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     1.02%  base-native-tas  [kernel.kallsyms]  [k] __inet_lookup_established
+            |
+            ---__inet_lookup_established
+               tcp_v4_rcv
+               ip_protocol_deliver_rcu
+               ip_local_deliver_finish
+               __netif_receive_skb_one_core
+               process_backlog
+               __napi_poll
+               net_rx_action
+               handle_softirqs
+               do_softirq.part.0
+               __local_bh_enable_ip
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               send
+               |          
+                --0.76%--base_scheduler_iouring::retained_socket::send (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                          <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     1.01%  base-native-tas  [kernel.kallsyms]  [k] tcp_v4_rcv
+            |          
+             --0.94%--tcp_v4_rcv
+                       ip_protocol_deliver_rcu
+                       ip_local_deliver_finish
+                       __netif_receive_skb_one_core
+                       process_backlog
+                       __napi_poll
+                       net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       send
+                       |          
+                        --0.66%--base_scheduler_iouring::retained_socket::send (inlined)
+                                  <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0} (inlined)
+                                  <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                                  <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     0.94%  base-native-tas  [kernel.kallsyms]  [k] skb_attempt_defer_free
+            |
+            ---skb_attempt_defer_free
+               tcp_recvmsg_locked
+               tcp_recvmsg
+               sock_recvmsg
+               __sys_recvfrom
+               __x64_sys_recvfrom
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               recv
+               |          
+                --0.69%--base_scheduler_iouring::retained_socket::recv (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0} (inlined)
+                          base_scheduler_iouring::io_uring_selector::syscall::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0}> (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0} (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                          <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     0.91%  base-native-tas  [kernel.kallsyms]  [k] skb_defer_free_flush
+            |
+            ---skb_defer_free_flush
+               net_rx_action
+               handle_softirqs
+               do_softirq.part.0
+               __local_bh_enable_ip
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               send
+
+     0.87%  base-native-tas  baseline           [.] core::str::converts::from_utf8
+            |          
+             --0.54%--core::str::converts::from_utf8
+
+     0.81%  base-native-tas  [kernel.kallsyms]  [k] ip_finish_output2
+            |
+            ---ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               send
+
+     0.79%  base-native-tas  [kernel.kallsyms]  [k] net_rx_action
+            |          
+             --0.74%--net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       send
+
+     0.79%  base-native-tas  [kernel.kallsyms]  [k] tcp_rcv_established
+            |          
+             --0.71%--tcp_rcv_established
+                       tcp_v4_do_rcv
+                       tcp_v4_rcv
+                       ip_protocol_deliver_rcu
+                       ip_local_deliver_finish
+                       __netif_receive_skb_one_core
+                       process_backlog
+                       __napi_poll
+                       net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       send
+
+     0.79%  base-native-tas  [kernel.kallsyms]  [k] do_syscall_64
+            |
+            ---do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               |          
+                --0.76%--0x7fe7910718f2
+
+     0.76%  base-native-tas  [kernel.kallsyms]  [k] tcp_recvmsg_locked
+            |
+            ---tcp_recvmsg_locked
+               tcp_recvmsg
+               sock_recvmsg
+               __sys_recvfrom
+               __x64_sys_recvfrom
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               recv
+               |          
+                --0.56%--base_scheduler_iouring::retained_socket::recv (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0} (inlined)
+                          base_scheduler_iouring::io_uring_selector::syscall::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}::{closure#0}> (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0} (inlined)
+                          <base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io::<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0} (inlined)
+                          <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+
+     0.74%  base-native-tas  baseline           [.] <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin
+     0.72%  base-native-tas  [kernel.kallsyms]  [k] memset_orig
+            |
+            ---memset_orig
+               kmem_cache_alloc_node_noprof
+
+     0.71%  base-native-tas  baseline           [.] <base_http::fields::Fields>::add::<&str, &[u8]>
+     0.71%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock
+            |          
+             --0.66%--_raw_spin_lock
+
+     0.69%  base-native-tas  [kernel.kallsyms]  [k] __sys_recvfrom
+            |          
+             --0.66%--__sys_recvfrom
+                       __x64_sys_recvfrom
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       recv
+
+     0.69%  base-native-tas  [kernel.kallsyms]  [k] kmem_cache_alloc_node_noprof
+            |          
+             --0.66%--kmem_cache_alloc_node_noprof
+
+     0.68%  base-native-tas  [kernel.kallsyms]  [k] __dev_queue_xmit
+            |
+            ---__dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               send
+
+     0.66%  base-native-tas  [kernel.kallsyms]  [k] ep_poll_callback
+            |          
+             --0.64%--ep_poll_callback
+                       __wake_up_common
+                       __wake_up_sync_key
+                       sock_def_readable
+                       tcp_rcv_established
+                       tcp_v4_do_rcv
+                       tcp_v4_rcv
+                       ip_protocol_deliver_rcu
+                       ip_local_deliver_finish
+                       __netif_receive_skb_one_core
+                       process_backlog
+                       __napi_poll
+                       net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       send
+
+     0.64%  base-native-tas  [kernel.kallsyms]  [k] __ip_queue_xmit
+            |          
+             --0.56%--__ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fe7910718f2
+                       send
+
+     0.64%  base-native-tas  baseline           [.] <httparse::Request>::parse_with_config_and_uninit_headers
+     0.63%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_unlock
+            |          
+             --0.58%--__rcu_read_unlock
+
+     0.61%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_socket_stream_reader::IoUringSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}
+     0.61%  base-native-tas  [kernel.kallsyms]  [k] task_work_run
+            |          
+             --0.58%--task_work_run
+                       |          
+                        --0.56%--get_signal
+                                  arch_do_signal_or_restart
+                                  exit_to_user_mode_loop
+                                  do_syscall_64
+                                  entry_SYSCALL_64_after_hwframe
+                                  0x7fe7910718f2
+
+     0.61%  base-native-tas  baseline           [.] base_http1::wire::strict_lines
+     0.60%  base-native-tas  [kernel.kallsyms]  [k] loopback_xmit
+            |
+            ---loopback_xmit
+               dev_hard_start_xmit
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               send
+
+     0.58%  base-native-tas  [kernel.kallsyms]  [k] __sys_sendto
+            |
+            ---__sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fe7910718f2
+               send
+
+     0.56%  base-native-tas  baseline           [.] httparse::parse_headers_iter_uninit
+     0.56%  base-native-tas  baseline           [.] <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref
+     0.53%  base-native-tas  baseline           [.] <base_http::fields::Fields>::add::<&str, &str>
+     0.52%  base-native-tas  baseline           [.] base_http1::output::plan
+     0.51%  base-native-tas  baseline           [.] <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+     0.51%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_lock
+            |
+            ---__rcu_read_lock
+
+     0.51%  base-native-tas  baseline           [.] base_http1::wire::request
+
+
+#
+# (Tip: To not accumulate CPU time of children symbols add --no-children)
+#

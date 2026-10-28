@@ -1,0 +1,722 @@
+[
+  {
+    "backend": "base",
+    "kind": "readiness",
+    "width": 1,
+    "iterations": 2000000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 71.392858,
+    "min": 70.365722,
+    "max": 75.73007,
+    "values": [
+      71.392858,
+      73.9247545,
+      70.365722,
+      70.4697215,
+      72.268032,
+      70.8345255,
+      75.73007
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "readiness",
+    "width": 1,
+    "iterations": 2000000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 70.4954685,
+    "min": 69.8023635,
+    "max": 71.4641685,
+    "values": [
+      71.4641685,
+      71.2393545,
+      69.8023635,
+      69.859734,
+      70.016764,
+      71.295523,
+      70.4954685
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "readiness",
+    "width": 64,
+    "iterations": 31250,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 70.063243,
+    "min": 69.815225,
+    "max": 72.642919,
+    "values": [
+      71.4248635,
+      69.922845,
+      70.0958885,
+      69.815225,
+      72.642919,
+      69.9358345,
+      70.063243
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "readiness",
+    "width": 64,
+    "iterations": 31250,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 71.047733,
+    "min": 69.7906455,
+    "max": 72.7432905,
+    "values": [
+      71.4685385,
+      70.254335,
+      70.4705755,
+      72.3512385,
+      71.047733,
+      69.7906455,
+      72.7432905
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness",
+    "width": 1,
+    "iterations": 2000000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 60.5546525,
+    "min": 60.403857,
+    "max": 61.912205,
+    "values": [
+      61.912205,
+      60.814895,
+      60.5546525,
+      61.1059405,
+      60.5052015,
+      60.403857,
+      60.529339
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "readiness",
+    "width": 64,
+    "iterations": 31250,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 58.3441245,
+    "min": 58.0862845,
+    "max": 60.450325,
+    "values": [
+      59.528878,
+      59.8408505,
+      58.32438,
+      58.0862845,
+      58.118951,
+      58.3441245,
+      60.450325
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 43.902317,
+    "min": 42.89231,
+    "max": 46.049881,
+    "values": [
+      44.155521,
+      43.902317,
+      43.299815,
+      46.049881,
+      43.563905,
+      42.89231,
+      44.864289
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 43.208701,
+    "min": 43.077687,
+    "max": 44.280693,
+    "values": [
+      44.280693,
+      43.855074,
+      43.077687,
+      43.15327,
+      43.208701,
+      43.733944,
+      43.16337
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 26.110677,
+    "min": 26.034771,
+    "max": 26.534664,
+    "values": [
+      26.502544,
+      26.534664,
+      26.110677,
+      26.367336,
+      26.034771,
+      26.099095,
+      26.100133
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 26.29857,
+    "min": 26.127683,
+    "max": 26.982998,
+    "values": [
+      26.480738,
+      26.365563,
+      26.170612,
+      26.29857,
+      26.127683,
+      26.261158,
+      26.982998
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 36.371491,
+    "min": 35.938865,
+    "max": 37.586238,
+    "values": [
+      37.12413,
+      35.938865,
+      36.001143,
+      36.11507,
+      36.371491,
+      37.586238,
+      37.421727
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 21.686873,
+    "min": 21.393611,
+    "max": 22.319062,
+    "values": [
+      22.319062,
+      21.852669,
+      21.393611,
+      21.686873,
+      21.670045,
+      21.879729,
+      21.500841
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch-waiting",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 54.787365,
+    "min": 54.176482,
+    "max": 59.422258,
+    "values": [
+      59.422258,
+      54.176482,
+      54.787365,
+      54.254948,
+      57.896188,
+      54.677668,
+      56.147229
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch-waiting",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 54.74778,
+    "min": 54.43974,
+    "max": 56.447783,
+    "values": [
+      56.025727,
+      54.835403,
+      56.447783,
+      54.53643,
+      54.74778,
+      54.560569,
+      54.43974
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch-waiting",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 37.66236,
+    "min": 37.039184,
+    "max": 38.056597,
+    "values": [
+      37.882285,
+      38.041843,
+      37.136605,
+      37.113797,
+      37.039184,
+      37.66236,
+      38.056597
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "dispatch-waiting",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 37.413334,
+    "min": 36.913408,
+    "max": 38.531797,
+    "values": [
+      37.782074,
+      37.536429,
+      36.913408,
+      37.046103,
+      37.413334,
+      36.975255,
+      38.531797
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch-waiting",
+    "width": 1,
+    "iterations": 1000000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 46.15486,
+    "min": 45.92421,
+    "max": 46.902809,
+    "values": [
+      46.902809,
+      46.027297,
+      46.15486,
+      46.373817,
+      45.92421,
+      46.015357,
+      46.44138
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "dispatch-waiting",
+    "width": 64,
+    "iterations": 15625,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 31.204805,
+    "min": 30.743709,
+    "max": 31.660077,
+    "values": [
+      31.660077,
+      30.976243,
+      31.368117,
+      31.204805,
+      30.743709,
+      31.013903,
+      31.211354
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events-driver",
+    "width": 1,
+    "iterations": 10000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 674.469,
+    "min": 666.1387,
+    "max": 689.1793,
+    "values": [
+      689.1793,
+      666.1387,
+      686.8379,
+      671.4434,
+      667.6645,
+      683.7755,
+      674.469
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events-driver",
+    "width": 1,
+    "iterations": 10000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 673.8032,
+    "min": 667.1858,
+    "max": 696.1603,
+    "values": [
+      690.0698,
+      670.5308,
+      696.1603,
+      673.8032,
+      681.9163,
+      667.1858,
+      667.4989
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events-driver",
+    "width": 64,
+    "iterations": 10000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 120.99255625,
+    "min": 120.6300234375,
+    "max": 123.2447890625,
+    "values": [
+      123.2447890625,
+      123.1999125,
+      120.7292890625,
+      120.6300234375,
+      121.265753125,
+      120.9013765625,
+      120.99255625
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "events-driver",
+    "width": 64,
+    "iterations": 10000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 121.77628125,
+    "min": 120.56755625,
+    "max": 124.582809375,
+    "values": [
+      124.582809375,
+      123.2899828125,
+      121.3051140625,
+      120.56755625,
+      120.9340984375,
+      121.77628125,
+      123.4324015625
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "events-driver",
+    "width": 1,
+    "iterations": 10000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 654.1549,
+    "min": 647.3202,
+    "max": 684.1496,
+    "values": [
+      684.1496,
+      659.0505,
+      665.6363,
+      654.1549,
+      647.3202,
+      649.9802,
+      650.8531
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "events-driver",
+    "width": 64,
+    "iterations": 10000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 113.09618125,
+    "min": 112.5128375,
+    "max": 115.3510375,
+    "values": [
+      115.3510375,
+      112.7687484375,
+      112.5128375,
+      113.09618125,
+      114.2168234375,
+      113.684609375,
+      112.5740671875
+    ]
+  },
+  {
+    "backend": "std",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "std",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 614.7634111328125,
+    "min": 608.0855029296876,
+    "max": 629.1378115234374,
+    "values": [
+      617.8092275390625,
+      614.7634111328125,
+      608.0855029296876,
+      612.6348740234375,
+      608.874759765625,
+      614.8367236328126,
+      629.1378115234374
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 659.3579287109375,
+    "min": 656.930615234375,
+    "max": 682.45771484375,
+    "values": [
+      678.832140625,
+      658.7939033203126,
+      658.2667587890625,
+      660.768177734375,
+      656.930615234375,
+      659.3579287109375,
+      682.45771484375
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 661.0728935546875,
+    "min": 657.5228056640625,
+    "max": 685.2046474609375,
+    "values": [
+      674.4393212890625,
+      658.1007626953125,
+      657.5228056640625,
+      663.6488291015625,
+      659.1788876953125,
+      661.0728935546875,
+      685.2046474609375
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "ready-read",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 626.925595703125,
+    "min": 620.216787109375,
+    "max": 636.4061298828125,
+    "values": [
+      630.056474609375,
+      636.4061298828125,
+      620.216787109375,
+      620.5914033203125,
+      628.393283203125,
+      623.426021484375,
+      626.925595703125
+    ]
+  },
+  {
+    "backend": "std",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "std",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 2249.099537109375,
+    "min": 2233.5364052734376,
+    "max": 2304.3390595703127,
+    "values": [
+      2294.656595703125,
+      2304.3390595703127,
+      2235.84575,
+      2249.099537109375,
+      2262.318146484375,
+      2233.5364052734376,
+      2244.03058984375
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 2276.6304404296875,
+    "min": 2250.206216796875,
+    "max": 2308.0922890625,
+    "values": [
+      2301.636279296875,
+      2304.38187109375,
+      2254.9139599609375,
+      2250.206216796875,
+      2276.6304404296875,
+      2257.5201875,
+      2308.0922890625
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 2267.5146162109377,
+    "min": 2242.3012705078127,
+    "max": 2336.6216435546876,
+    "values": [
+      2336.6216435546876,
+      2315.129908203125,
+      2259.7146865234376,
+      2242.3012705078127,
+      2252.810419921875,
+      2267.5146162109377,
+      2323.1941005859376
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "ready-write",
+    "width": 1,
+    "iterations": 2000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 2305.7435947265626,
+    "min": 2263.3555224609377,
+    "max": 2350.3156318359374,
+    "values": [
+      2350.3156318359374,
+      2311.6840966796876,
+      2347.0968623046874,
+      2278.70840234375,
+      2263.3555224609377,
+      2274.544107421875,
+      2305.7435947265626
+    ]
+  },
+  {
+    "backend": "std",
+    "kind": "ready-short-read",
+    "width": 1,
+    "iterations": 100000,
+    "variant": "std",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 2128.4217,
+    "min": 2107.07887,
+    "max": 2190.32061,
+    "values": [
+      2156.33145,
+      2190.32061,
+      2107.07887,
+      2115.60297,
+      2150.35891,
+      2128.4217,
+      2122.01947
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-short-read",
+    "width": 1,
+    "iterations": 100000,
+    "variant": "before",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 2295.53752,
+    "min": 2254.63794,
+    "max": 2333.18316,
+    "values": [
+      2295.53752,
+      2282.71379,
+      2333.18316,
+      2322.19138,
+      2290.48992,
+      2254.63794,
+      2298.60394
+    ]
+  },
+  {
+    "backend": "base",
+    "kind": "ready-short-read",
+    "width": 1,
+    "iterations": 100000,
+    "variant": "inline",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-reader-inline",
+    "median_ns_per_operation": 2244.07435,
+    "min": 2211.02182,
+    "max": 2302.8017,
+    "values": [
+      2302.8017,
+      2211.02182,
+      2241.12713,
+      2244.07435,
+      2233.7467,
+      2260.3587,
+      2300.62596
+    ]
+  },
+  {
+    "backend": "tokio",
+    "kind": "ready-short-read",
+    "width": 1,
+    "iterations": 100000,
+    "variant": "tokio",
+    "binary": "/tmp/base-http-layers-20261027/binaries/probe-baseline",
+    "median_ns_per_operation": 2258.66719,
+    "min": 2213.34584,
+    "max": 2318.05629,
+    "values": [
+      2318.05629,
+      2293.00949,
+      2213.34584,
+      2258.66719,
+      2277.00562,
+      2258.64907,
+      2254.35043
+    ]
+  }
+]

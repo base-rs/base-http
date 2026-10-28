@@ -1,0 +1,113 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 1765807,
+    "allocations_per_response": 17.000654683393186,
+    "deallocations": 1765806,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 1
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 9
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 24
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 32
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 40
+      },
+      {
+        "allocations_per_response": 2.000009627696959,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 140
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 232
+      },
+      {
+        "allocations_per_response": 1.9997015413942831,
+        "bytes": 288
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 624
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 2488
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 8192
+      }
+    ],
+    "reallocations": 103870,
+    "reallocations_per_response": 1.000028883090876,
+    "requested_bytes": 1327478954,
+    "requested_bytes_per_response": 12780.565088045289,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.998113,
+  "client_cpu_us_per_request": 9.609529494449633,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000416542,
+  "fresh": false,
+  "implementation": "hyper",
+  "latency_us": {
+    "max": 690.687,
+    "mean": 308.01804553900547,
+    "p50": 289.791,
+    "p90": 365.055,
+    "p99": 465.919
+  },
+  "requests": 103867,
+  "requests_per_second": 103823.75304625861,
+  "tls": true,
+  "warmup_requests": 29235,
+  "client_command": [
+    "/private/tmp/base-http-orchestration-final-allocation-20261029",
+    "client",
+    "--implementation",
+    "hyper",
+    "--address",
+    "127.0.0.1:56354",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qei6ixto",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-orchestration-final-allocation-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qei6ixto",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 133102
+  },
+  "server_cpu_seconds_including_warmup": 1.5884379999999998
+}

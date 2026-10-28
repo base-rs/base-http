@@ -1,0 +1,83 @@
+--- before/readiness_driver.rs
++++ direct/readiness_driver.rs
+@@ -3,8 +3,6 @@
+ 
+ use crate::{Interest, SelectorDriver, SelectorWorker};
+ use base_scheduler::Cancellation;
+-mod notification;
+-use notification::Notification;
+ use polling::{Event, PollMode};
+ #[cfg(target_os = "macos")]
+ mod kqueue;
+@@ -99,8 +97,8 @@
+         };
+         // Closure wakes waits but cannot free pointers in a collected batch.
+         for registration in registrations {
+-            registration.readable.changed.notify();
+-            registration.writable.changed.notify();
++            registration.readable.wake();
++            registration.writable.wake();
+         }
+         let _ = self.poller.notify();
+     }
+@@ -147,7 +145,7 @@
+     tick: AtomicUsize,
+     #[cfg(target_os = "macos")]
+     available: AtomicUsize,
+-    changed: Notification,
++    waker: Mutex<Option<Waker>>,
+ }
+ impl Direction {
+     fn new() -> Self {
+@@ -155,7 +153,7 @@
+             tick: AtomicUsize::new(0),
+             #[cfg(target_os = "macos")]
+             available: AtomicUsize::new(0),
+-            changed: Notification::new(),
++            waker: Mutex::new(None),
+         }
+     }
+     pub(crate) fn snapshot(&self) -> usize {
+@@ -166,7 +164,7 @@
+         // can at most cause a spurious retry, never erase this notification.
+         self.tick.fetch_add(8, Ordering::AcqRel);
+         self.tick.fetch_or(1, Ordering::Release);
+-        self.changed.notify();
++        self.wake();
+     }
+     #[cfg(target_os = "macos")]
+     fn publish_readable(&self, available: usize, read_closed: bool) {
+@@ -219,8 +217,11 @@
+             Ordering::Acquire,
+         );
+     }
++    fn wake(&self) {
++        let waker = self.waker.lock().unwrap().take();
++        if let Some(waker) = waker { waker.wake(); }
++    }
+     pub(crate) async fn wait(&self, group: &DriverGroup) -> io::Result<()> {
+-        let mut listener = self.changed.listen();
+         poll_fn(|cx| {
+             if group.closed.is_cancelled() {
+                 return Poll::Ready(Err(closed()));
+@@ -228,15 +229,16 @@
+             if self.snapshot() & 1 != 0 {
+                 return Poll::Ready(Ok(()));
+             }
+-            let result = listener.poll(cx);
+-            // Registration is lazy. A publication or closure between the
+-            // initial check and registration must not leave this wait asleep.
++            // Diagnostic only: one waiter per direction; no abandonment guard.
++            let waker = cx.waker().clone();
++            let previous = self.waker.lock().unwrap().replace(waker);
++            drop(previous);
+             if group.closed.is_cancelled() {
+                 Poll::Ready(Err(closed()))
+             } else if self.snapshot() & 1 != 0 {
+                 Poll::Ready(Ok(()))
+             } else {
+-                result
++                Poll::Pending
+             }
+         })
+         .await

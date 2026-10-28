@@ -1,0 +1,60 @@
+{
+  "mode": "counts",
+  "variant": "tokio",
+  "backend": "tokio-connections-raw",
+  "connections": 1,
+  "rate": 50000,
+  "repetition": 1,
+  "responses": 250000,
+  "achieved_rate": 50000.0,
+  "drain_ms": 0.0,
+  "server_cpu": {
+    "user_seconds": 0.51,
+    "system_seconds": 1.3
+  },
+  "perf_returncode": -2,
+  "counts": {
+    "recv_poll_arm": {
+      "value": 0.0,
+      "unit": "",
+      "event": "io_uring:io_uring_poll_arm",
+      "raw": [
+        "0",
+        "",
+        "io_uring:io_uring_poll_arm",
+        "2123419841",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_calls": {
+      "value": 250002.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg",
+      "raw": [
+        "250002",
+        "",
+        "base_http_lifecycle:tcp_recvmsg",
+        "2123419841",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_eagain": {
+      "value": 1.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg_return32__return",
+      "raw": [
+        "1",
+        "",
+        "base_http_lifecycle:tcp_recvmsg_return32__return",
+        "2123419841",
+        "100.00",
+        "",
+        ""
+      ]
+    }
+  }
+}

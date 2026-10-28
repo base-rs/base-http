@@ -1,0 +1,46 @@
+{
+  "mode": "counts",
+  "variant": "owned",
+  "backend": "base-iouring-owned-connections-raw",
+  "connections": 64,
+  "rate": 240000,
+  "repetition": 1,
+  "responses": 1200000,
+  "achieved_rate": 233409.75,
+  "drain_ms": 221.72540199999997,
+  "server_cpu": {
+    "user_seconds": 0.76,
+    "system_seconds": 3.02
+  },
+  "perf_returncode": -2,
+  "counts": {
+    "tcp_recv_calls": {
+      "value": 1333405.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg",
+      "raw": [
+        "1333405",
+        "",
+        "base_http_lifecycle:tcp_recvmsg",
+        "5159825768",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_eagain": {
+      "value": 133341.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg_return32__return",
+      "raw": [
+        "133341",
+        "",
+        "base_http_lifecycle:tcp_recvmsg_return32__return",
+        "5159825768",
+        "100.00",
+        "",
+        ""
+      ]
+    }
+  }
+}

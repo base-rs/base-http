@@ -1,0 +1,186 @@
+[
+  {
+    "tls": false,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "base-connection",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 103080.65798365723,
+      "min": 103080.65798365723,
+      "max": 103080.65798365723
+    },
+    "client_cpu_us_per_request": {
+      "median": 9.648611959546596,
+      "min": 9.648611959546596,
+      "max": 9.648611959546596
+    },
+    "p50_us_median": 327.423,
+    "p99_us_median": 389.119,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 1.0727330640605786
+  },
+  {
+    "tls": false,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "base-open",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 86541.51779465095,
+      "min": 86541.51779465095,
+      "max": 86541.51779465095
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.50054860653939,
+      "min": 11.50054860653939,
+      "max": 11.50054860653939
+    },
+    "p50_us_median": 381.695,
+    "p99_us_median": 451.839,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 0.900614619350097
+  },
+  {
+    "tls": false,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "before-open",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 87154.0489103669,
+      "min": 87154.0489103669,
+      "max": 87154.0489103669
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.408759375215029,
+      "min": 11.408759375215029,
+      "max": 11.408759375215029
+    },
+    "p50_us_median": 384.767,
+    "p99_us_median": 451.839,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 0.9069890681889722
+  },
+  {
+    "tls": false,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "hyper",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 96091.62002844366,
+      "min": 96091.62002844366,
+      "max": 96091.62002844366
+    },
+    "client_cpu_us_per_request": {
+      "median": 10.345239333485885,
+      "min": 10.345239333485885,
+      "max": 10.345239333485885
+    },
+    "p50_us_median": 347.135,
+    "p99_us_median": 534.527,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 1.0
+  },
+  {
+    "tls": true,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "base-connection",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 95108.86701925228,
+      "min": 95108.86701925228,
+      "max": 95108.86701925228
+    },
+    "client_cpu_us_per_request": {
+      "median": 10.45249429889551,
+      "min": 10.45249429889551,
+      "max": 10.45249429889551
+    },
+    "p50_us_median": 352.255,
+    "p99_us_median": 420.607,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 1.081565689682936
+  },
+  {
+    "tls": true,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "base-open",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 84438.04400226106,
+      "min": 84438.04400226106,
+      "max": 84438.04400226106
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.776216574533315,
+      "min": 11.776216574533315,
+      "max": 11.776216574533315
+    },
+    "p50_us_median": 401.919,
+    "p99_us_median": 481.023,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 0.9602184755107763
+  },
+  {
+    "tls": true,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "before-open",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 83576.57101649833,
+      "min": 83576.57101649833,
+      "max": 83576.57101649833
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.901912244824741,
+      "min": 11.901912244824741,
+      "max": 11.901912244824741
+    },
+    "p50_us_median": 407.551,
+    "p99_us_median": 482.303,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 0.9504219165442913
+  },
+  {
+    "tls": true,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "hyper",
+    "runs": 1,
+    "requests_per_second": {
+      "median": 87936.28341440242,
+      "min": 87936.28341440242,
+      "max": 87936.28341440242
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.295620355008069,
+      "min": 11.295620355008069,
+      "max": 11.295620355008069
+    },
+    "p50_us_median": 368.127,
+    "p99_us_median": 570.367,
+    "accepted_connections": [
+      32
+    ],
+    "throughput_vs_hyper": 1.0
+  }
+]

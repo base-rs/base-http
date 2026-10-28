@@ -1,0 +1,55 @@
+   Compiling base-http1 v0.0.0 (/Users/samuel/Developer/base-rs/base-http1)
+   Compiling base-http-server v0.0.0 (/Users/samuel/Developer/base-rs/base-http-server)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.99s
+     Running unittests src/lib.rs (/Users/samuel/Developer/base-rs/base-http-server/target/debug/deps/base_http_server-97c60eb79af78f95)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/end_to_end.rs (/Users/samuel/Developer/base-rs/base-http-server/target/debug/deps/end_to_end-2a90d0f3b43191e7)
+
+running 22 tests
+test fixed_bodies_and_pipelining_preserve_boundaries ... ok
+test head_and_bodyless_statuses_do_not_emit_representation_bytes ... ok
+test cancellation_of_pending_output_retires_lanes_and_wakes_producer ... ok
+test http10_unknown_body_is_close_delimited ... ok
+test imperative_producer_streams_unknown_length_chunks_without_driver_tasks ... ok
+test cancellation_abandons_a_pending_request_read_and_joins_backend_retirement ... ok
+test fragmented_chunked_upload_delivers_trailers_in_message_fields ... ok
+test early_final_response_does_not_wait_for_an_unread_upload ... ok
+test interim_continue_is_flushed_before_upload_and_hints_precede_final ... ok
+test cancellation_interrupts_a_handler_that_ignores_its_signal ... ok
+test connect_accepts_non_200_success_and_keeps_managed_duplex_body ... ok
+test limits_are_enforced_before_handler_admission ... ok
+test partial_chunk_delimiter_does_not_hold_back_an_echo_response ... ok
+test pull_echo_streams_before_upload_completion_and_forwards_trailers ... ok
+test upgrade_keeps_managed_duplex_body_and_buffered_input ... ok
+test listener_isolates_bad_peers_and_counts_completed_requests_before_cancellation ... ok
+test listener_bounds_connections_and_joins_them_on_shutdown ... ok
+test rejected_connect_and_upgrade_remain_ordinary_http_exchanges ... ok
+test truncated_and_invalid_chunked_bodies_fail_without_a_successful_response ... ok
+test ambiguous_or_invalid_heads_are_rejected_without_admitting_a_handler ... ok
+test listener_accepts_new_peers_while_previous_connections_retire ... ok
+test large_payload_crosses_many_transport_reads_and_writes_without_changing_bytes ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/proxy.rs (/Users/samuel/Developer/base-rs/base-http-server/target/debug/deps/proxy-4c910e91d961827b)
+
+running 5 tests
+test cancellation_with_both_proxy_directions_pending_joins_all_lanes ... ok
+test truncated_upstream_response_cancels_pending_upload_and_joins_all_lanes ... ok
+test native_proxy_streams_both_directions_with_interims_trailers_and_connection_reuse ... ok
+test complete_early_response_does_not_stop_upload_or_prevent_reuse ... ok
+test downstream_response_backpressure_does_not_stop_independent_upload_progress ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+   Doc-tests base_http_server
+
+running 1 test
+test src/lib.rs - (line 12) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

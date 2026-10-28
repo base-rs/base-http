@@ -1,0 +1,82 @@
+cancellable-native
+base-native  c= 64 r=1:     119870 req/s, p99 0.709 ms, CPU 100%
+pinned-native
+base-native  c= 64 r=1:     115024 req/s, p99 0.718 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=1:     117314 req/s, p99 0.718 ms, CPU 100%
+before-native
+base-native  c= 64 r=1:     117123 req/s, p99 0.728 ms, CPU 100%
+pinned-native
+base-native  c= 64 r=2:     117619 req/s, p99 0.724 ms, CPU 100%
+before-native
+base-native  c= 64 r=2:     115694 req/s, p99 0.730 ms, CPU 100%
+cancellable-native
+base-native  c= 64 r=2:     125601 req/s, p99 0.705 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=2:     129053 req/s, p99 0.695 ms, CPU 99%
+hyper-tokio
+hyper-tokio  c= 64 r=3:     127937 req/s, p99 0.696 ms, CPU 100%
+pinned-native
+base-native  c= 64 r=3:     128826 req/s, p99 0.699 ms, CPU 100%
+cancellable-native
+base-native  c= 64 r=3:     127269 req/s, p99 0.706 ms, CPU 100%
+before-native
+base-native  c= 64 r=3:     125090 req/s, p99 0.710 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=4:     129981 req/s, p99 0.697 ms, CPU 100%
+before-native
+base-native  c= 64 r=4:     126521 req/s, p99 0.707 ms, CPU 100%
+cancellable-native
+base-native  c= 64 r=4:     124488 req/s, p99 0.705 ms, CPU 100%
+pinned-native
+base-native  c= 64 r=4:     123285 req/s, p99 0.710 ms, CPU 100%
+before-native
+base-native  c= 64 r=5:     127700 req/s, p99 0.709 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=5:     128558 req/s, p99 0.699 ms, CPU 100%
+cancellable-native
+base-native  c= 64 r=5:     127462 req/s, p99 0.708 ms, CPU 100%
+pinned-native
+base-native  c= 64 r=5:     128038 req/s, p99 0.705 ms, CPU 100%
+{
+  "before-native": {
+    "median_requests_per_second": 125090.14,
+    "min_requests_per_second": 115693.67,
+    "max_requests_per_second": 127699.5,
+    "median_p99_ms": 0.71,
+    "median_cpu_percent": 99.54974556731906,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.9494457603421332,
+    "median_system_cpu_us_per_request": 7.011445061271486
+  },
+  "cancellable-native": {
+    "median_requests_per_second": 125600.87,
+    "min_requests_per_second": 119870.17,
+    "max_requests_per_second": 127462.25,
+    "median_p99_ms": 0.706,
+    "median_cpu_percent": 99.53917392104682,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.8974104288579247,
+    "median_system_cpu_us_per_request": 7.037051307127549
+  },
+  "pinned-native": {
+    "median_requests_per_second": 123284.51,
+    "min_requests_per_second": 115023.72,
+    "max_requests_per_second": 128826.19,
+    "median_p99_ms": 0.71,
+    "median_cpu_percent": 99.54821261244545,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.8552760393197482,
+    "median_system_cpu_us_per_request": 7.221973372386055
+  },
+  "hyper-tokio": {
+    "median_requests_per_second": 128557.62,
+    "min_requests_per_second": 117313.95,
+    "max_requests_per_second": 129981.23,
+    "median_p99_ms": 0.6970000000000001,
+    "median_cpu_percent": 99.54118492694943,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.697500562786558,
+    "median_system_cpu_us_per_request": 7.041635015799024
+  }
+}

@@ -1,0 +1,9 @@
+   Compiling base-http1 v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/sources/base-http1)
+   Compiling base-http-server v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/sources/base-http-server)
+   Compiling base-http-hello-benchmark v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/sources/base-http/benchmarks/hello)
+    Finished `release` profile [optimized + debuginfo] target(s) in 3.49s
+     Running `/tmp/base-http-hana-epoll-uring-7nxlaica/target/release/oob_http_probe`
+oob=false header_deadline=false: elapsed=69.157µs, reply="HTTP/1.1 200 OK\r\ncontent-length: 13\r\n\r\nHello, world!"
+oob=true header_deadline=false: elapsed=401.717165ms, result=Err(Elapsed(()))
+oob=true header_deadline=true: elapsed=81.392129ms, result=Ok(Err(Os { code: 104, kind: ConnectionReset, message: "Connection reset by peer" }))
+server result: Ok(Err(hyper::Error(HeaderTimeout)))

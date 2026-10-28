@@ -1,0 +1,45 @@
+{
+  "note": "Separate diagnostic builds, 1 s warmup + 4 s at 240k/s; last cumulative snapshot at a multiple of 4096 turns; snapshots are partial run prefixes, not complete run totals. Instrumented latency/throughput is excluded from benchmark comparisons.",
+  "samples": {
+    "before-owned": {
+      "turns": 65536,
+      "nonblocking_submits": 32452,
+      "submits_with_immediate_cqes": 32444,
+      "immediate_cqes": 552848,
+      "payload_batches": 64625,
+      "deferred_payload_batches": 908,
+      "deferred_monitor_batches": 0,
+      "blocking_entries": 32183
+    },
+    "before-borrowed": {
+      "turns": 57344,
+      "nonblocking_submits": 1,
+      "submits_with_immediate_cqes": 0,
+      "immediate_cqes": 0,
+      "payload_batches": 0,
+      "deferred_payload_batches": 0,
+      "deferred_monitor_batches": 1,
+      "blocking_entries": 57341
+    },
+    "after-owned": {
+      "turns": 69632,
+      "nonblocking_submits": 6,
+      "submits_with_immediate_cqes": 4,
+      "immediate_cqes": 234,
+      "payload_batches": 68115,
+      "deferred_payload_batches": 1518,
+      "deferred_monitor_batches": 0,
+      "blocking_entries": 68111
+    },
+    "after-borrowed": {
+      "turns": 69632,
+      "nonblocking_submits": 1,
+      "submits_with_immediate_cqes": 0,
+      "immediate_cqes": 0,
+      "payload_batches": 0,
+      "deferred_payload_batches": 0,
+      "deferred_monitor_batches": 1,
+      "blocking_entries": 69629
+    }
+  }
+}

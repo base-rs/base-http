@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/tmp/base-http-receive-lifecycle-20261028/profile.py", line 97, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/tmp/base-http-receive-lifecycle-20261028/profile.py", line 96, in main
+    row=run(a.mode,*job);journal.write(json.dumps(row)+'\n');journal.flush()
+  File "/tmp/base-http-receive-lifecycle-20261028/profile.py", line 60, in run
+    control(ctl,ack,'enable',perf,out/'perf.stderr')
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/base-http-receive-lifecycle-20261028/profile.py", line 30, in control
+    data=os.read(ack,4096);assert data==b'ack\n',(command,data);return
+                                  ^^^^^^^^^^^^^^
+AssertionError: ('enable', b'ack\n\x00')

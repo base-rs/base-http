@@ -1,0 +1,49 @@
+{
+  "diagnostic_only": true,
+  "limitations": "Counts exported libc memcpy/memmove calls, not inlined loads/stores or kernel copies. Copy implementations may delegate internally; results are comparative diagnostic counts, not timings.",
+  "library_sha256": "4e5e9452266d3d7833cd9fab82b285f47e20ac98ecbc74ca4dbe717e5a24701b",
+  "results": [
+    {
+      "variant": "base-native-raw",
+      "requests": 10000,
+      "binary_sha256": "11be1af5b5f1d7eb7f715823f01d30e6ab58efdc34496c9ef7abd5666ab2cb2b",
+      "memcpy_calls": 0,
+      "memcpy_bytes": 0,
+      "memmove_calls": 0,
+      "memmove_bytes": 0,
+      "exported_copy_calls_per_request": 0.0,
+      "exported_copy_bytes_per_request": 0.0,
+      "copy_sizes": [],
+      "large_copy_sites": [],
+      "server_stderr": ""
+    },
+    {
+      "variant": "base-tokio-raw",
+      "requests": 10000,
+      "binary_sha256": "11be1af5b5f1d7eb7f715823f01d30e6ab58efdc34496c9ef7abd5666ab2cb2b",
+      "memcpy_calls": 0,
+      "memcpy_bytes": 0,
+      "memmove_calls": 0,
+      "memmove_bytes": 0,
+      "exported_copy_calls_per_request": 0.0,
+      "exported_copy_bytes_per_request": 0.0,
+      "copy_sizes": [],
+      "large_copy_sites": [],
+      "server_stderr": ""
+    },
+    {
+      "variant": "tokio-raw",
+      "requests": 10000,
+      "binary_sha256": "11be1af5b5f1d7eb7f715823f01d30e6ab58efdc34496c9ef7abd5666ab2cb2b",
+      "memcpy_calls": 0,
+      "memcpy_bytes": 0,
+      "memmove_calls": 0,
+      "memmove_bytes": 0,
+      "exported_copy_calls_per_request": 0.0,
+      "exported_copy_bytes_per_request": 0.0,
+      "copy_sizes": [],
+      "large_copy_sites": [],
+      "server_stderr": ""
+    }
+  ]
+}

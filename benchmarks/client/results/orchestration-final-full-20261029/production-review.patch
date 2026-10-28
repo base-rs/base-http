@@ -1,0 +1,666 @@
+--- a/base-http-client/src/driver.rs
++++ b/base-http-client/src/driver.rs
+@@ -13,6 +13,7 @@
+ use event_listener::Event;
+ use futures_channel::oneshot;
+ use futures_util::stream::{FuturesUnordered, StreamExt};
++use pin_project_lite::pin_project;
+ use std::{
+     collections::VecDeque,
+     future::{Future, poll_fn},
+@@ -120,8 +121,16 @@
+ }
+ impl Drop for Pending<'_> {
+     fn drop(&mut self) {
+-        lock(&self.0.state).pending -= 1;
+-        self.0.changed.notify(usize::MAX);
++        let drained = {
++            let mut state = lock(&self.0.state);
++            state.pending -= 1;
++            state.closed && state.pending == 0
++        };
++        // Completion only changes the supervisor's work when a closing client
++        // has drained. Submission and deferred cleanup notify independently.
++        if drained {
++            self.0.changed.notify(usize::MAX);
++        }
+     }
+ }
+ 
+@@ -354,20 +363,51 @@
+     }
+ }
+ 
+-pub(crate) async fn checked<T>(
++pin_project! {
++    struct Checked<'a, F, C> {
++        #[pin]
++        work: F,
++        #[pin]
++        cancelled: C,
++        cancellation: &'a Cancellation,
++    }
++}
++impl<T, F, C> Future for Checked<'_, F, C>
++where
++    F: Future<Output = Result<T, Error>>,
++    C: Future<Output = ()>,
++{
++    type Output = Result<T, Error>;
++    fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
++        let this = self.project();
++        if this.cancellation.is_cancelled() {
++            return Poll::Ready(Err(Error::Cancelled));
++        }
++        match this.work.poll(cx) {
++            ready @ Poll::Ready(_) => ready,
++            Poll::Pending => {
++                // Subscribe only when work actually waits. Polling cancelled
++                // after Pending also closes the race with the initial check.
++                if this.cancelled.poll(cx).is_ready() {
++                    Poll::Ready(Err(Error::Cancelled))
++                } else {
++                    Poll::Pending
++                }
++            }
++        }
++    }
++}
++pub(crate) fn checked<T>(
+     work: impl Future<Output = Result<T, Error>>,
+     cancellation: &Cancellation,
+-) -> Result<T, Error> {
+-    let mut work = pin!(work);
+-    let mut cancelled = pin!(cancellation.cancelled());
+-    poll_fn(|cx| {
+-        if cancelled.as_mut().poll(cx).is_ready() {
+-            Poll::Ready(Err(Error::Cancelled))
+-        } else {
+-            work.as_mut().poll(cx)
+-        }
+-    })
+-    .await
++) -> impl Future<Output = Result<T, Error>> {
++    // Store the nested future where it will be polled. An async wrapper with
++    // pin!(work) needs another large state slot and moves work on first poll.
++    Checked {
++        work,
++        cancelled: cancellation.cancelled(),
++        cancellation,
++    }
+ }
+ // Propagate lifetime cancellation without dropping owned construction/cleanup.
+ pub(crate) async fn linked<T>(
+@@ -397,3 +437,110 @@
+         }
+     }
+ }
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use std::{
++        sync::atomic::Ordering,
++        task::{Context, Wake, Waker},
++    };
++
++    #[derive(Default)]
++    struct Wakes(AtomicUsize);
++    impl Wake for Wakes {
++        fn wake(self: Arc<Self>) {
++            self.0.fetch_add(1, Ordering::Relaxed);
++        }
++    }
++
++    #[test]
++    fn checked_prioritizes_existing_cancellation_and_wakes_blocked_work() {
++        use futures_lite::future::{block_on, poll_once};
++        use std::cell::Cell;
++        let cancel = Cancellation::new();
++        cancel.cancel();
++        let polled = Cell::new(false);
++        let work = std::future::poll_fn(|_| {
++            polled.set(true);
++            Poll::Ready(Ok::<_, Error>(()))
++        });
++        assert!(matches!(
++            block_on(checked(work, &cancel)),
++            Err(Error::Cancelled)
++        ));
++        assert!(!polled.get());
++
++        let cancel = Cancellation::new();
++        let wakes = Arc::new(Wakes::default());
++        let waker = Waker::from(wakes.clone());
++        let mut cx = Context::from_waker(&waker);
++        let mut work = pin!(checked(
++            std::future::pending::<Result<(), Error>>(),
++            &cancel
++        ));
++        assert!(work.as_mut().poll(&mut cx).is_pending());
++        cancel.cancel();
++        assert!(wakes.0.load(Ordering::Relaxed) > 0);
++        assert!(matches!(
++            work.as_mut().poll(&mut cx),
++            Poll::Ready(Err(Error::Cancelled))
++        ));
++
++        // Cancellation occurring during a Pending poll must be noticed in
++        // that poll, even before a listener has ever been registered.
++        let cancel = Cancellation::new();
++        let pending = std::future::poll_fn(|_| {
++            cancel.cancel();
++            Poll::Pending::<Result<(), Error>>
++        });
++        let mut work = pin!(checked(pending, &cancel));
++        assert!(matches!(
++            block_on(poll_once(work.as_mut())),
++            Some(Err(Error::Cancelled))
++        ));
++    }
++
++    #[test]
++    fn pending_completion_wakes_supervisor_only_when_closed_and_drained() {
++        let queue = Arc::new(Queue {
++            state: Mutex::new(State {
++                requests: VecDeque::new(),
++                work: VecDeque::new(),
++                pending: 0,
++                closed: false,
++                abandoned: false,
++            }),
++            changed: Event::new(),
++            handles: AtomicUsize::new(1),
++            limit: 2,
++        });
++        let wakes = Arc::new(Wakes::default());
++        let waker = Waker::from(wakes.clone());
++        let mut cx = Context::from_waker(&waker);
++        let mut changed = pin!(queue.changed.listen());
++        assert!(changed.as_mut().poll(&mut cx).is_pending());
++
++        let first = Pending::new(queue.clone()).unwrap();
++        let second = Pending::new(queue.clone()).unwrap();
++        assert!(matches!(Pending::new(queue.clone()), Err(Error::Busy)));
++        drop(first);
++        assert_eq!(wakes.0.load(Ordering::Relaxed), 0);
++        // Admission is a synchronous check; completion restores it without
++        // requiring any supervisor work.
++        let third = Pending::new(queue.clone()).unwrap();
++        queue.begin_close();
++        assert!(changed.as_mut().poll(&mut cx).is_ready());
++        let mut changed = pin!(queue.changed.listen());
++        assert!(changed.as_mut().poll(&mut cx).is_pending());
++        wakes.0.store(0, Ordering::Relaxed);
++        assert!(matches!(Pending::new(queue.clone()), Err(Error::Closed)));
++        drop(second);
++        assert_eq!(wakes.0.load(Ordering::Relaxed), 0);
++        assert!(changed.as_mut().poll(&mut cx).is_pending());
++        drop(third);
++        assert_eq!(wakes.0.load(Ordering::Relaxed), 1);
++        assert!(changed.as_mut().poll(&mut cx).is_ready());
++        assert_eq!(lock(&queue.state).pending, 0);
++    }
++}
+--- a/base-http-client/src/lib.rs
++++ b/base-http-client/src/lib.rs
+@@ -11,6 +11,7 @@
+ mod error;
+ mod outgoing;
+ mod reuse;
++mod sink;
+ mod writable;
+ pub use writable::{PendingResponse, RequestBodyWriter, StreamingResponseBody, WritableRequest};
+ 
+--- a/base-http-client/src/reuse.rs
++++ b/base-http-client/src/reuse.rs
+@@ -30,11 +30,13 @@
+             })
+         });
+         // Select storage before constructing the large operation state.
++        // Generated replacement also lets Rust 1.87 initialize only live
++        // captures, avoiding a copy of the future's inactive union storage.
+         entry
+             .as_mut()
+             .project()
+             .work
+-            .set(Slot::Occupied { work: make() });
++            .project_replace(Slot::Occupied { work: make() });
+         entry
+     }
+ }
+--- a/base-http-client/src/sink.rs
++++ b/base-http-client/src/sink.rs
+@@ -0,0 +1,206 @@
++// Released under the MIT License.
++// Copyright, 2026, by Samuel Williams.
++
++//! Sequential writes with an owned codec, preserving pinned in-flight state.
++//!
++//! Equivalent to sink::unfold at this boundary, with pinned replacement on
++//! every transition. Pin::set emitted copies of inactive future storage on
++//! Rust 1.87, including when a completed write restored its small codec owner.
++
++use futures_util::Sink;
++use pin_project_lite::pin_project;
++use std::{
++    future::Future,
++    pin::Pin,
++    task::{Context, Poll},
++};
++
++pin_project! {
++    #[project = StateProjection]
++    #[project_replace = StateReplacement]
++    enum State<T, F> {
++        Idle { owner: T },
++        Writing { #[pin] future: F },
++        Empty,
++    }
++}
++
++pin_project! {
++    pub(crate) struct OwnedSink<T, M, F> {
++        make: M,
++        #[pin]
++        state: State<T, F>,
++    }
++}
++
++pub(crate) fn owned_sink<T, M, F, I, E>(owner: T, make: M) -> OwnedSink<T, M, F>
++where
++    M: FnMut(T, I) -> F,
++    F: Future<Output = Result<T, E>>,
++{
++    OwnedSink {
++        make,
++        state: State::Idle { owner },
++    }
++}
++
++impl<T, M, F, I, E> Sink<I> for OwnedSink<T, M, F>
++where
++    M: FnMut(T, I) -> F,
++    F: Future<Output = Result<T, E>>,
++{
++    type Error = E;
++
++    fn start_send(self: Pin<&mut Self>, item: I) -> Result<(), E> {
++        let mut this = self.project();
++        let StateReplacement::Idle { owner } = this.state.as_mut().project_replace(State::Empty)
++        else {
++            panic!("write started before previous write completed");
++        };
++        let future = (this.make)(owner, item);
++        this.state.project_replace(State::Writing { future });
++        Ok(())
++    }
++
++    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), E>> {
++        let mut state = self.project().state;
++        let StateProjection::Writing { future } = state.as_mut().project() else {
++            return Poll::Ready(Ok(()));
++        };
++        match future.poll(cx) {
++            Poll::Pending => Poll::Pending,
++            Poll::Ready(result) => Poll::Ready(match result {
++                Ok(owner) => {
++                    state.project_replace(State::Idle { owner });
++                    Ok(())
++                }
++                Err(error) => {
++                    state.project_replace(State::Empty);
++                    Err(error)
++                }
++            }),
++        }
++    }
++
++    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), E>> {
++        self.poll_flush(cx)
++    }
++
++    fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), E>> {
++        self.poll_flush(cx)
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use futures_lite::future::block_on;
++    use futures_util::{SinkExt, task::noop_waker};
++    use std::{
++        cell::{Cell, RefCell},
++        marker::PhantomPinned,
++        pin::pin,
++        sync::{
++            Arc,
++            atomic::{AtomicUsize, Ordering},
++        },
++    };
++
++    struct Owner(Arc<AtomicUsize>);
++    impl Drop for Owner {
++        fn drop(&mut self) {
++            self.0.fetch_add(1, Ordering::SeqCst);
++        }
++    }
++    struct Write {
++        owner: RefCell<Option<Owner>>,
++        address: Cell<usize>,
++        pending: Cell<bool>,
++        fail: bool,
++        drops: Arc<AtomicUsize>,
++        _pinned: PhantomPinned,
++    }
++    impl Write {
++        fn new(owner: Owner, fail: bool, drops: Arc<AtomicUsize>) -> Self {
++            Self {
++                owner: RefCell::new(Some(owner)),
++                address: Cell::new(0),
++                pending: Cell::new(true),
++                fail,
++                drops,
++                _pinned: PhantomPinned,
++            }
++        }
++    }
++    impl Future for Write {
++        type Output = Result<Owner, ()>;
++        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
++            let this = self.as_ref().get_ref();
++            let address = this as *const Self as usize;
++            let previous = this.address.replace(address);
++            assert!(previous == 0 || previous == address);
++            if this.pending.replace(false) {
++                cx.waker().wake_by_ref();
++                Poll::Pending
++            } else if this.fail {
++                Poll::Ready(Err(()))
++            } else {
++                Poll::Ready(Ok(this.owner.borrow_mut().take().unwrap()))
++            }
++        }
++    }
++    impl Drop for Write {
++        fn drop(&mut self) {
++            let address = self.address.get();
++            assert!(address == 0 || address == self as *const Self as usize);
++            self.drops.fetch_add(1, Ordering::SeqCst);
++        }
++    }
++
++    #[test]
++    fn successive_writes_keep_the_owner_and_drop_pinned_futures_in_place() {
++        let owners = Arc::new(AtomicUsize::new(0));
++        let writes = Arc::new(AtomicUsize::new(0));
++        {
++            let sink = owned_sink(Owner(owners.clone()), |owner, ()| {
++                Write::new(owner, false, writes.clone())
++            });
++            let mut sink = pin!(sink);
++            block_on(async {
++                for _ in 0..3 {
++                    sink.send(()).await.unwrap();
++                }
++                sink.close().await.unwrap();
++            });
++            assert_eq!(owners.load(Ordering::SeqCst), 0);
++            assert_eq!(writes.load(Ordering::SeqCst), 3);
++        }
++        assert_eq!(owners.load(Ordering::SeqCst), 1);
++    }
++
++    #[test]
++    fn error_and_pending_drop_release_each_owner_once() {
++        for finish in [false, true] {
++            let owners = Arc::new(AtomicUsize::new(0));
++            let writes = Arc::new(AtomicUsize::new(0));
++            {
++                let sink = owned_sink(Owner(owners.clone()), |owner, ()| {
++                    Write::new(owner, true, writes.clone())
++                });
++                let mut sink = pin!(sink);
++                let waker = noop_waker();
++                let mut cx = Context::from_waker(&waker);
++                assert!(sink.as_mut().poll_ready(&mut cx).is_ready());
++                sink.as_mut().start_send(()).unwrap();
++                assert!(sink.as_mut().poll_flush(&mut cx).is_pending());
++                if finish {
++                    assert_eq!(sink.as_mut().poll_flush(&mut cx), Poll::Ready(Err(())));
++                    assert_eq!(writes.load(Ordering::SeqCst), 1);
++                    assert_eq!(owners.load(Ordering::SeqCst), 1);
++                }
++            }
++            assert_eq!(writes.load(Ordering::SeqCst), 1);
++            assert_eq!(owners.load(Ordering::SeqCst), 1);
++        }
++    }
++}
+--- a/base-http-client/src/writable.rs
++++ b/base-http-client/src/writable.rs
+@@ -8,6 +8,7 @@
+     driver::{CancelOnDrop, Pending, checked, lock},
+     outgoing::{Interim, Observer},
+     reuse::{Cache, Recycle, Reused},
++    sink::owned_sink,
+ };
+ use base_endpoint::stream::{ReadableStream, WritableStream};
+ use base_http::{
+@@ -16,7 +17,7 @@
+ };
+ use base_http1::{RequestWriter, ResponseReader};
+ use base_scheduler::Cancellation;
+-use futures_util::{Sink, SinkExt, Stream, StreamExt, sink::unfold, task::AtomicWaker};
++use futures_util::{Sink, SinkExt, Stream, StreamExt, task::AtomicWaker};
+ use std::{
+     convert::Infallible,
+     future::Future,
+@@ -658,7 +659,7 @@
+         let local = exchange.cancellation.clone();
+         let writing_lifetime = lifetime.clone();
+         let writing = writing_cache.take(|| {
+-            unfold(
++            owned_sink(
+                 output,
+                 move |mut owner, (frame, cancellation): (BodyFrame<Vec<u8>>, Cancellation)| {
+                     let lifetime = writing_lifetime.clone();
+--- a/base-pool/src/core.rs
++++ b/base-pool/src/core.rs
+@@ -48,6 +48,9 @@
+ pub(crate) struct Accounting {
+     pub counts: Mutex<Counts>,
+     pub changed: Event,
++    // Cleanup only advances when retirement work arrives or shutdown can
++    // finish. Admission/use changes must not wake an idle cleanup owner.
++    pub retirement_changed: Event,
+ }
+ impl Accounting {
+     pub fn notify(&self) {
+@@ -107,6 +110,7 @@
+         let accounting = Arc::new(Accounting {
+             counts: Mutex::new(Counts::default()),
+             changed: Event::new(),
++            retirement_changed: Event::new(),
+         });
+         let retirements = Arc::new(RetirementQueue::new(accounting.clone()));
+         Ok(Arc::new(Self {
+@@ -166,8 +170,6 @@
+                 }
+                 if waiter.ticket.is_none() && state.waiters.is_empty() {
+                     if let Some(acquired) = self.take(&mut state) {
+-                        drop(state);
+-                        self.accounting.notify();
+                         return Ok(acquired);
+                     }
+                 }
+@@ -206,6 +208,7 @@
+             lock(&self.accounting.counts).building -= 1;
+         }
+         self.accounting.notify();
++        self.accounting.retirement_changed.notify(usize::MAX);
+     }
+ 
+     // Failed commits transfer their resource into explicit cleanup ownership.
+@@ -289,6 +292,7 @@
+             self.retirements.push(id, slot.into_resource());
+         }
+         self.accounting.notify();
++        self.accounting.retirement_changed.notify(usize::MAX);
+     }
+     pub fn prune(&self, retain: usize) -> usize {
+         let retired = {
+@@ -350,7 +354,7 @@
+     ) -> Result<Option<Retirement<S::Resource>>, Error> {
+         loop {
+             cancel.check()?;
+-            event_listener::listener!(self.accounting.changed => listener);
++            event_listener::listener!(self.accounting.retirement_changed => listener);
+             if let Some(item) = self.retirements.pop() {
+                 return Ok(Some(item));
+             }
+--- a/base-pool/src/multiplex.rs
++++ b/base-pool/src/multiplex.rs
+@@ -314,26 +314,31 @@
+             let mut state = self.core.lock();
+             let closed = state.closed;
+             let slot = state.slots.get_mut(&self.id).unwrap();
+-            assert!(slot.uses.remove(&self.use_id) == Some(Stage::Reserved));
++            let stage = slot.uses.get_mut(&self.use_id).unwrap();
++            assert!(*stage == Stage::Reserved);
+             slot.reserved -= 1;
+             let accepted = !closed
+                 && !slot.draining
+                 && slot.active < slot.admission.max_concurrent
+                 && slot.admission.opening_credit != Some(0);
+             if accepted {
+-                slot.uses.insert(self.use_id, Stage::Active);
++                // Activation changes the existing obligation in place.
++                *stage = Stage::Active;
+                 slot.active += 1;
+                 if let Some(credit) = &mut slot.admission.opening_credit {
+                     *credit -= 1;
+                 }
++            } else {
++                slot.uses.remove(&self.use_id);
+             }
+             (accepted, self.core.remove_if_drained(&mut state, self.id))
+         };
+         self.pending = false;
+-        self.core.enqueue(self.id, retired);
+         if !accepted {
++            self.core.enqueue(self.id, retired);
+             return Err(Error::AdmissionChanged);
+         }
++        debug_assert!(retired.is_none());
+         Ok(MultiplexUse {
+             core: self.core.clone(),
+             id: self.id,
+--- a/base-pool/src/retirement.rs
++++ b/base-pool/src/retirement.rs
+@@ -25,6 +25,7 @@
+     pub fn push(&self, id: ResourceId, resource: R) {
+         lock(&self.items).push_back((id, resource));
+         self.accounting.notify();
++        self.accounting.retirement_changed.notify(usize::MAX);
+     }
+     pub fn pop(self: &Arc<Self>) -> Option<Retirement<R>> {
+         let item = lock(&self.items).pop_front();
+@@ -53,6 +54,7 @@
+         drop(self.item.take().unwrap());
+         lock(&self.queue.accounting.counts).retiring -= 1;
+         self.queue.accounting.notify();
++        self.queue.accounting.retirement_changed.notify(usize::MAX);
+     }
+ }
+ impl<R> Deref for Retirement<R> {
+--- a/base-pool/tests/pools.rs
++++ b/base-pool/tests/pools.rs
+@@ -14,7 +14,86 @@
+         Arc, Barrier, Mutex,
+         atomic::{AtomicUsize, Ordering},
+     },
++    task::{Context, Wake, Waker},
+ };
++
++#[derive(Default)]
++struct Wakes(AtomicUsize);
++impl Wake for Wakes {
++    fn wake(self: Arc<Self>) {
++        self.0.fetch_add(1, Ordering::SeqCst);
++    }
++}
++
++#[test]
++fn retirement_waiter_ignores_normal_admission_but_wakes_for_cleanup_and_requeue() {
++    let pool = MultiplexPool::new(options(1)).unwrap();
++    let resource = multi_build(&pool)
++        .commit(1, Admission::concurrent(1))
++        .unwrap();
++    let never = Cancellation::never();
++    let wakes = Arc::new(Wakes::default());
++    let waker = Waker::from(wakes.clone());
++    let mut cx = Context::from_waker(&waker);
++    let mut retirement = pin!(pool.next_retirement(&never));
++    assert!(retirement.as_mut().poll(&mut cx).is_pending());
++    for _ in 0..3 {
++        drop(reserve(&pool));
++        reserve(&pool).activate().unwrap().complete();
++        resource.update(Admission::concurrent(1));
++    }
++    assert_eq!(wakes.0.load(Ordering::SeqCst), 0);
++    resource.retire();
++    assert_eq!(wakes.0.load(Ordering::SeqCst), 1);
++    let std::task::Poll::Ready(Ok(Some(retired))) = retirement.as_mut().poll(&mut cx) else {
++        panic!("retirement was not delivered");
++    };
++    let mut retirement = pin!(pool.next_retirement(&never));
++    assert!(retirement.as_mut().poll(&mut cx).is_pending());
++    wakes.0.store(0, Ordering::SeqCst);
++    drop(retired);
++    assert_eq!(wakes.0.load(Ordering::SeqCst), 1);
++    let std::task::Poll::Ready(Ok(Some(retired))) = retirement.as_mut().poll(&mut cx) else {
++        panic!("unfinished cleanup was not requeued");
++    };
++    pool.begin_close();
++    let mut retirement = pin!(pool.next_retirement(&never));
++    assert!(retirement.as_mut().poll(&mut cx).is_pending());
++    wakes.0.store(0, Ordering::SeqCst);
++    retired.complete();
++    assert_eq!(wakes.0.load(Ordering::SeqCst), 1);
++    assert!(matches!(
++        retirement.as_mut().poll(&mut cx),
++        std::task::Poll::Ready(Ok(None))
++    ));
++    assert_eq!(pool.stats().total(), 0);
++}
++
++#[test]
++fn retirement_waiter_wakes_for_empty_shutdown_and_last_aborted_constructor() {
++    for constructing in [false, true] {
++        let pool = SingleplexPool::<usize>::new(options(1)).unwrap();
++        let build = constructing.then(|| single_build(&pool));
++        let never = Cancellation::never();
++        let wakes = Arc::new(Wakes::default());
++        let waker = Waker::from(wakes.clone());
++        let mut cx = Context::from_waker(&waker);
++        let mut retirement = pin!(pool.next_retirement(&never));
++        assert!(retirement.as_mut().poll(&mut cx).is_pending());
++        pool.begin_close();
++        assert_eq!(wakes.0.load(Ordering::SeqCst), 1);
++        if constructing {
++            assert!(retirement.as_mut().poll(&mut cx).is_pending());
++            wakes.0.store(0, Ordering::SeqCst);
++            drop(build);
++            assert_eq!(wakes.0.load(Ordering::SeqCst), 1);
++        }
++        assert!(matches!(
++            retirement.as_mut().poll(&mut cx),
++            std::task::Poll::Ready(Ok(None))
++        ));
++    }
++}
+ 
+ fn options(max: usize) -> Options {
+     Options {

@@ -1,0 +1,15 @@
+   Compiling base-http1 v0.0.0 (/Users/samuel/Developer/base-rs/base-http1)
+warning: method `socket_send_poll` is never used
+   --> /Users/samuel/Developer/base-rs/base-scheduler/crates/selector/src/socket_operations.rs:274:25
+    |
+273 | impl ReadinessSelector {
+    | ---------------------- method in this implementation
+274 |     pub(crate) async fn socket_send_poll(
+    |                         ^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `base-scheduler-selector` (lib) generated 1 warning
+   Compiling base-http-server v0.0.0 (/Users/samuel/Developer/base-rs/base-http-server)
+   Compiling base-http-hello-benchmark v0.0.0 (/Users/samuel/Developer/base-rs/base-http/benchmarks/hello)
+    Finished `release` profile [optimized + debuginfo] target(s) in 2.15s

@@ -1,0 +1,252 @@
+diff --git a/context/design.md b/context/design.md
+index 216f47d..771a526 100644
+--- a/context/design.md
++++ b/context/design.md
+@@ -178,7 +178,7 @@ The initial `base-scheduler-iouring` selector ports Socketry's owned request and
+ 
+ Owned scalar socket writes first attempt `NativeSocket::try_send` after checking cancellation and selector closure. Successful attempts and terminal errors return the original buffer immediately, without a ring request or capacity permit. `WouldBlock` and `Interrupted` fall through to the completion path; scalar reads submit directly to the ring. Capacity bounds queued and in-flight ring requests, rather than completed synchronous attempts. Socket requests submit `Recv`, `Send`, `RecvMsg`, and `SendMsg`. A nonblocking `EAGAIN` completion retires the attempt before a readiness wait; retries retain the operation's original ring. Message requests derive pointers only after being boxed and retain the header, address, iovec array, and whole sequence until original completion. Prepared vectors are used directly, including inline vector arrays whose containing request stays immobile. Ordinary sequences build request-owned vectors. Kernel-accessible message storage uses `UnsafeCell` so shared cancellation bookkeeping cannot freeze writable output. Borrowed `_poll` operations call synchronous `NativeSocket::try_recv`, `try_send`, `try_recvmsg`, and `try_sendmsg` with enforced nonblocking flags. Ready operations bypass routing, admission, and request allocation. After `WouldBlock`, they submit a one-shot `PollAdd` readiness request on the current worker's ring and retry after completion; `socket_wait` uses the same ring wait. The first wait selects the ring, which remains fixed across spurious readiness and task migration. Readiness requests retain only the socket and never borrow payloads or vectors. Cancellation awaits readiness retirement before returning; dropping requests cancellation, while a forgotten future may leave its readiness request pending until an event or shutdown. Ordinary socket destruction is safe during retirement; exclusive close requires completion or draining first. Socket lifecycle operations still use the shared readiness fallback. Nonblocking owned-transfer retries wait on their original ring after the preceding attempt retires.
+ 
+-`IoUringSelector::new` returns a selector and a separate `IoUringDriver`, starting no ring thread. The driver exposes bounded `turn(timeout)` processing and a waker for caller-owned event loops; `run` is a convenience loop for a dedicated thread. Processing that wakes a caller prevents a subsequent blocking wait in the same turn, including wakes caused by command rejection, cancellation, or dropping retained owners. External submissions and wakeups signal a nonblocking eventfd watched by one outstanding ring poll. Idle turns publish submissions and wait in one io\_uring entry; productive turns skip empty submissions unless CQ overflow or deferred task work requires kernel progress. A fresh driver entering a thread-bound `IoUringWorker` attempts to replace its unused ring with one configured for cooperative task running and the taskrun flag, avoiding forced userspace interruptions for completions while retaining explicit progress checks. If that optional setup fails, the original validated ring remains in use. Movable drivers and drivers that have already processed a turn retain their original ring: cooperative task work remains associated with the submitting thread and cannot safely follow a moving driver. Timed waits require extended wait arguments, which ring setup probes explicitly. The eventfd poll retains only a descriptor and no userspace destination buffer, including across timeouts and teardown. A notification CQE drains the counter before rearming, so the same readable counter cannot repeatedly complete new polls; notification errors are propagated only after publishing the whole CQ snapshot. Idle preparation consumes the local wake permit without speculatively reading the eventfd. Its armed poll is either submitted already or published by the wait entry, preserving remote notifications before and during that entry. Cancellation and payload SQ entries precede notification rearming so a repeatedly signalled eventfd cannot monopolize a one-entry queue. If no slot remains to arm the interrupt, the driver submits the queued work and returns before parking. Futures may move between polling threads while one driver exclusively owns the ring. Dropping an operation requests cancellation without reclaiming in-flight storage. Orderly closure keeps driving until original requests retire. Dropping or failing a driver with unknown kernel access is exceptional: queued requests return errors, in-flight storage is deliberately leaked, and polling its waiting future panics because its buffer cannot safely be returned. Native executor composition and caller-owned event-loop tests exercise the same selector implementation.
++`IoUringSelector::new` returns a selector and a separate `IoUringDriver`, starting no ring thread. The driver exposes bounded `turn(timeout)` processing and a waker for caller-owned event loops; `run` is a convenience loop for a dedicated thread. Processing that wakes a caller prevents a subsequent blocking wait in the same turn, including wakes caused by command rejection, cancellation, or dropping retained owners. External submissions and wakeups signal a nonblocking eventfd watched by one outstanding ring poll. Idle turns publish submissions and wait in one io\_uring entry; productive turns skip empty submissions unless CQ overflow or deferred task work requires kernel progress. A fresh driver entering a thread-bound `IoUringWorker` attempts to replace its unused ring with one configured for a single issuer, deferred task work and the taskrun flag. This batches completion task work at explicit kernel entries. Nonblocking turns check the taskrun flag; the io_uring submitter requests `GETEVENTS` when that flag is set, so busy workers publish completions without requiring a blocking wait. The io_uring dependency minimum includes this submitter behavior; older submitters omit `GETEVENTS` for taskrun-only entries. If deferred setup is unavailable, the worker tries cooperative task running with the taskrun flag, then retains the original validated ring if both optional setups fail. Movable drivers and drivers that have already processed a turn retain their original ring: issuer-bound task work cannot safely follow a moving driver. Timed waits require extended wait arguments, which ring setup probes explicitly. The eventfd poll retains only a descriptor and no userspace destination buffer, including across timeouts and teardown. A notification CQE drains the counter before rearming, so the same readable counter cannot repeatedly complete new polls; notification errors are propagated only after publishing the whole CQ snapshot. Idle preparation consumes the local wake permit without speculatively reading the eventfd. Its armed poll is either submitted already or published by the wait entry, preserving remote notifications before and during that entry. Cancellation and payload SQ entries precede notification rearming so a repeatedly signalled eventfd cannot monopolize a one-entry queue. If no slot remains to arm the interrupt, the driver submits the queued work and returns before parking. Futures may move between polling threads while one driver exclusively owns the ring. Dropping an operation requests cancellation without reclaiming in-flight storage. Orderly closure keeps driving until original requests retire. Dropping or failing a driver with unknown kernel access is exceptional: queued requests return errors, in-flight storage is deliberately leaked, and polling its waiting future panics because its buffer cannot safely be returned. Native executor composition and caller-owned event-loop tests exercise the same selector implementation.
+ 
+ A nonblocking driver turn may stage one readiness-only batch when the SQ was initially empty and no processing could have woken a task. The next idle turn submits and waits together; the next nonblocking turn submits existing SQ entries even if the worker stays busy. CQ overflow and deferred task work always force kernel progress. A full command batch returns before waiting because remaining local commands have no interrupt. Owned request preparation conservatively returns to the executor when user buffer accessors can wake arbitrary tasks. Bound scalar stream reads capture their stable buffer pointer and length while polling the operation, before publishing the owned request, so later SQE preparation is callback-free. Their idle driver turn can prepare, submit, and wait together. Other request types retain their existing callback classification. After a blocking wait, the driver publishes the available CQ snapshot before returning, without polling application futures inline.
+ 
+diff --git a/crates/iouring/Cargo.toml b/crates/iouring/Cargo.toml
+index 202322d..858893e 100644
+--- a/crates/iouring/Cargo.toml
++++ b/crates/iouring/Cargo.toml
+@@ -11,7 +11,7 @@ readme = "readme.md"
+ [target.'cfg(target_os = "linux")'.dependencies]
+ base-scheduler = { path = "../..", version = "0.1.2" }
+ base-scheduler-selector = { path = "../selector", version = "0.1.2" }
+-io-uring = { version = "0.7.11", features = ["io_safety"] }
++io-uring = { version = "0.7.15", features = ["io_safety"] }
+ libc = "0.2"
+ async-io = "2.6.0"
+ socket2 = { version = "0.6.3", features = ["all"] }
+diff --git a/crates/iouring/readme.md b/crates/iouring/readme.md
+index 9ccbfbf..20320b6 100644
+--- a/crates/iouring/readme.md
++++ b/crates/iouring/readme.md
+@@ -31,6 +31,8 @@ scheduler.block_on(scheduler.shutdown());
+ 
+ `IoUringSelector::new` returns the selector and an `IoUringDriver`. It starts no ring thread. An application can call `driver.turn(timeout)` from its event loop or move the driver into a dedicated thread and call `run`. Operation futures use ordinary wakers and can be polled on any executor. Idle turns wait directly on the ring; cross-thread wakeups signal an eventfd watched by a single outstanding `PollAdd`. The poll retains only the descriptor, with no userspace destination buffer to keep alive. Setup requires `IORING_FEAT_EXT_ARG` for timed turns, available since Linux 5.11.
+ 
++A fresh driver entering a thread-bound worker prefers single-issuer deferred task running, with the taskrun flag preserving completion progress during nonblocking turns. If unavailable, it tries cooperative task running before keeping the original ring. Movable and already-driven rings keep their existing configuration. This changes completion processing without changing buffer ownership or cancellation semantics.
++
+ A separately driven selector composes with `NativeScheduler::with_selector`. The driver must remain active throughout operation and asynchronous shutdown. Dropping a pending operation requests cancellation while the driver retains its buffer and file until original completion. Cancellation completion alone never releases original request storage.
+ 
+ ## Owned I/O
+diff --git a/crates/iouring/src/io_uring_selector.rs b/crates/iouring/src/io_uring_selector.rs
+index 60d2822..0e3442a 100644
+--- a/crates/iouring/src/io_uring_selector.rs
++++ b/crates/iouring/src/io_uring_selector.rs
+@@ -785,14 +785,24 @@ impl Reactor {
+     }
+ 
+     pub(crate) fn bind_worker(&mut self) {
+-        // Cooperative task work belongs to its submitting thread. Enable it only for a never-driven ring after its owner becomes thread-bound; a movable driver must keep the default interrupt behavior.
++        // Deferred task work belongs to one issuer. Enable it only for a never-driven ring after its owner becomes thread-bound; a movable driver must keep the default interrupt behavior. TASKRUN_FLAG also makes busy nonblocking turns enter GETEVENTS to publish completions.
+         if !self.started {
+-            if let Ok(ring) = syscall("cooperative-ring", || {
++            let upgraded = syscall("deferred-ring", || {
+                 IoUring::builder()
+-                    .setup_coop_taskrun()
++                    .setup_single_issuer()
++                    .setup_defer_taskrun()
+                     .setup_taskrun_flag()
+                     .build(self.ring.params().sq_entries())
+-            }) {
++            })
++            .or_else(|_| {
++                syscall("cooperative-ring", || {
++                    IoUring::builder()
++                        .setup_coop_taskrun()
++                        .setup_taskrun_flag()
++                        .build(self.ring.params().sq_entries())
++                })
++            });
++            if let Ok(ring) = upgraded {
+                 // Setup already validated this kernel's operations and completion features. No request or notification has reached the old ring, and queued commands remain on the controller. Failure to obtain this optional replacement leaves the original valid ring intact.
+                 self.ring = ring;
+             }
+diff --git a/crates/iouring/src/io_uring_selector/monitor/tests.rs b/crates/iouring/src/io_uring_selector/monitor/tests.rs
+index 758f414..1e51d2b 100644
+--- a/crates/iouring/src/io_uring_selector/monitor/tests.rs
++++ b/crates/iouring/src/io_uring_selector/monitor/tests.rs
+@@ -60,6 +60,67 @@ fn until(driver: &mut impl SelectorWorker, mut condition: impl FnMut() -> bool)
+     }
+ }
+ 
++#[test]
++fn worker_owned_receives_complete_cancel_and_abandon_with_only_nonblocking_turns() {
++    let (selector, driver) = IoUringSelector::new(options()).unwrap();
++    let mut worker = driver.enter();
++    let wake = worker.waker();
++    let mut context = Context::from_waker(&wake);
++    let (socket, peer) = sockets(&selector);
++    let mut reader = selector.socket_stream_reader(&socket).unwrap();
++    let never = Cancellation::never();
++    {
++        let mut read = Box::pin(reader.read_owned(vec![7; 16], &never));
++        assert!(read.as_mut().poll(&mut context).is_pending());
++        worker.turn(Some(Duration::ZERO)).unwrap();
++        worker.turn(Some(Duration::ZERO)).unwrap();
++        assert!(read.as_mut().poll(&mut context).is_pending());
++        let peer = std::thread::spawn(move || {
++            let mut peer = peer;
++            peer.write_all(b"x").unwrap();
++            peer
++        })
++        .join()
++        .unwrap();
++        let (result, buffer) = drive(&mut worker, &mut context, read.as_mut());
++        assert_eq!(result.unwrap(), 1);
++        assert_eq!(buffer[0], b'x');
++        drop(peer);
++    }
++    // Use another connection so EOF on the first cannot satisfy the cancellation probe.
++    drive(&mut worker, &mut context, Box::pin(reader.close()).as_mut()).unwrap();
++    drop(reader);
++    block_on(selector.socket_close(socket)).unwrap();
++    let (socket, _peer) = sockets(&selector);
++    let mut reader = selector.socket_stream_reader(&socket).unwrap();
++    {
++        let token = Cancellation::new();
++        let mut read = Box::pin(reader.read_owned(vec![7; 16], &token));
++        assert!(read.as_mut().poll(&mut context).is_pending());
++        worker.turn(Some(Duration::ZERO)).unwrap();
++        worker.turn(Some(Duration::ZERO)).unwrap();
++        token.cancel();
++        let (result, buffer) = drive(&mut worker, &mut context, read.as_mut());
++        assert!(matches!(result, Err(OperationError::Cancelled(_))));
++        assert_eq!(buffer, [7; 16]);
++    }
++    {
++        let mut read = Box::pin(reader.read_owned(vec![7; 16], &never));
++        assert!(read.as_mut().poll(&mut context).is_pending());
++        worker.turn(Some(Duration::ZERO)).unwrap();
++        worker.turn(Some(Duration::ZERO)).unwrap();
++        // Abandonment must not strand the buffer owner or the bound reader's close.
++    }
++    drive(&mut worker, &mut context, Box::pin(reader.close()).as_mut()).unwrap();
++    drop(reader);
++    block_on(selector.socket_close(socket)).unwrap();
++    drive(
++        &mut worker,
++        &mut context,
++        Box::pin(selector.shutdown()).as_mut(),
++    );
++}
++
+ #[test]
+ fn repeated_notifications_retain_one_registration_without_allocations() {
+     let (selector, driver) = IoUringSelector::new(options()).unwrap();
+diff --git a/crates/iouring/src/io_uring_selector/tests.rs b/crates/iouring/src/io_uring_selector/tests.rs
+index bfd19d3..8c7c227 100644
+--- a/crates/iouring/src/io_uring_selector/tests.rs
++++ b/crates/iouring/src/io_uring_selector/tests.rs
+@@ -2243,7 +2243,7 @@ fn movable_driver_never_upgrades_and_completes_inflight_io_after_thread_migratio
+     let _failures = Failures::new([]);
+     BEFORE_SYSCALL.with(|hook| {
+         *hook.borrow_mut() = Some((
+-            "cooperative-ring",
++            "deferred-ring",
+             Box::new(|| {
+                 panic!("a movable driver must preserve cross-thread ring progress");
+             }),
+@@ -2291,7 +2291,7 @@ fn fresh_bound_worker_attempts_optional_upgrade_without_losing_queued_io() {
+     BEFORE_SYSCALL.with(|hook| {
+         let attempted = Arc::clone(&attempted);
+         *hook.borrow_mut() = Some((
+-            "cooperative-ring",
++            "deferred-ring",
+             Box::new(move || {
+                 attempted.store(true, Ordering::SeqCst);
+             }),
+@@ -2306,6 +2306,42 @@ fn fresh_bound_worker_attempts_optional_upgrade_without_losing_queued_io() {
+     drive_bound_worker(&mut worker, selector.shutdown());
+ }
+ 
++#[test]
++fn unsupported_deferred_worker_setup_preserves_cooperative_upgrade() {
++    let (selector, mut driver) = pair(1);
++    let (_directory, file) = file(&selector);
++    let never = Cancellation::never();
++    let mut reading = Box::pin(selector.file_read_at(&file, vec![0; 3], 1, &never));
++    assert!(block_on(poll_once(&mut reading)).is_none());
++    let _failures = Failures::new([("deferred-ring", io::Error::from_raw_os_error(libc::EINVAL))]);
++    let attempted = Arc::new(AtomicBool::new(false));
++    BEFORE_SYSCALL.with(|hook| {
++        let attempted = Arc::clone(&attempted);
++        *hook.borrow_mut() = Some((
++            "cooperative-ring",
++            Box::new(move || {
++                attempted.store(true, Ordering::SeqCst);
++            }),
++        ));
++    });
++    driver.reactor.as_mut().unwrap().bind_worker();
++    assert!(attempted.load(Ordering::SeqCst));
++    assert!(
++        !driver
++            .reactor
++            .as_ref()
++            .unwrap()
++            .ring
++            .params()
++            .is_setup_single_issuer()
++    );
++    let (result, buffer) = drive(&mut driver, reading);
++    assert_eq!(result.unwrap(), 3);
++    assert_eq!(buffer, b"bcd");
++    block_on(selector.file_close(file)).unwrap();
++    drain(&selector, &mut driver);
++}
++
+ #[test]
+ fn optional_worker_upgrade_failures_preserve_the_valid_ring_and_queued_io() {
+     use base_scheduler_selector::SelectorDriver;
+@@ -2315,7 +2351,10 @@ fn optional_worker_upgrade_failures_preserve_the_valid_ring_and_queued_io() {
+         let never = Cancellation::never();
+         let mut reading = Box::pin(selector.file_read(&file, vec![0; 6], &never));
+         assert!(block_on(poll_once(&mut reading)).is_none());
+-        let _failures = Failures::new([("cooperative-ring", io::Error::from_raw_os_error(code))]);
++        let _failures = Failures::new([
++            ("deferred-ring", io::Error::from_raw_os_error(code)),
++            ("cooperative-ring", io::Error::from_raw_os_error(code)),
++        ]);
+         let mut worker = driver.enter();
+         FAILURES.with(|failures| assert!(failures.borrow().is_empty()));
+         let (result, buffer) = drive_bound_worker(&mut worker, reading);
+@@ -2340,7 +2379,7 @@ fn binding_an_already_driven_ring_preserves_inflight_io_without_upgrade() {
+     let _failures = Failures::new([]);
+     BEFORE_SYSCALL.with(|hook| {
+         *hook.borrow_mut() = Some((
+-            "cooperative-ring",
++            "deferred-ring",
+             Box::new(|| {
+                 panic!("an already-driven ring must retain its accepted work");
+             }),
+@@ -2365,7 +2404,7 @@ fn a_retired_driver_can_enter_a_worker_without_recreating_its_ring() {
+     let _failures = Failures::new([]);
+     BEFORE_SYSCALL.with(|hook| {
+         *hook.borrow_mut() = Some((
+-            "cooperative-ring",
++            "deferred-ring",
+             Box::new(|| {
+                 panic!("a retired driver must not create another ring");
+             }),
+diff --git a/releases.md b/releases.md
+index a10483e..9fc3d57 100644
+--- a/releases.md
++++ b/releases.md
+@@ -2,6 +2,8 @@
+ 
+ ## Unreleased
+ 
++- Batch io\_uring completion task work on fresh thread-bound workers with deferred task running. Preserve cooperative and original-ring fallbacks, nonblocking completion progress, cancellation and movable drivers.
++
+ - Avoid an extra `WouldBlock` receive after short borrowed scalar stream reads on io\_uring when OOB support is disabled. Preserve EOF notifications, racing readiness, cancellation and registration retirement; opt-in OOB and message receives keep conservative retries.
+ 
+ - Add compile-time `SocketStreamReader::with_oob_support` selection, disabled by default. Native Linux epoll avoids an extra receive after ordinary short scalar reads and rejects reported urgent data; opt-in support preserves ordinary-byte progress across urgent marks. Other receive paths retain conservative behavior.

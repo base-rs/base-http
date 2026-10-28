@@ -1,0 +1,36 @@
+{
+  "utc": "2026-10-27T10:44:00.544044+00:00",
+  "command": [
+    "sudo",
+    "-n",
+    "perf",
+    "record",
+    "-o",
+    "/tmp/base-http-ring-overhead-20261027/profile-mini-epoll/perf.data",
+    "-F",
+    "999",
+    "-g",
+    "--call-graph",
+    "dwarf,8192",
+    "--",
+    "taskset",
+    "-c",
+    "0",
+    "/tmp/base-http-ring-overhead-20261027/probe/target/release/base-http-ring-probe",
+    "server",
+    "epoll",
+    "1",
+    "64"
+  ],
+  "arguments": {
+    "server": "probe/target/release/base-http-ring-probe",
+    "client": "/tmp/base-http-uring-readiness-20261027/binaries/before",
+    "backend": "epoll",
+    "output": "profile-mini-epoll",
+    "kind": "record",
+    "library": null,
+    "connections": 64,
+    "bytes": 64,
+    "seconds": 6.0
+  }
+}

@@ -1,0 +1,15 @@
+[package]
+name = "base-scheduler-conformance"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/base-rs/base-scheduler"
+description = "Reusable capability conformance tests for base-scheduler"
+readme = "readme.md"
+
+[dependencies]
+base-scheduler = { path = "../..", version = "0.1.0" }
+futures-lite = "2.6.1"
+futures-channel = "0.3.31"
+libc = "0.2"

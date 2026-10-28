@@ -1,0 +1,60 @@
+{
+  "instrumented_rates_excluded": true,
+  "server_pid": 284719,
+  "ring_creation": [
+    {
+      "comm": "candidate",
+      "tid": 284719,
+      "ring": "0xffff8e6e27f35800",
+      "flags": 0
+    },
+    {
+      "comm": "base-native-tas",
+      "tid": 284720,
+      "ring": "0xffff8e6190a41000",
+      "flags": 12800
+    }
+  ],
+  "ring_events": {
+    "io_uring:io_uring_create": 2,
+    "io_uring:io_uring_submit_req": 135,
+    "io_uring:io_uring_complete": 229053,
+    "io_uring:io_uring_local_work_run": 11725
+  },
+  "submissions": {
+    "POLL_ADD": 71,
+    "ASYNC_CANCEL": 64
+  },
+  "completions": {
+    "('POLL_ADD', 'positive')": 228924,
+    "('ASYNC_CANCEL', '0')": 64,
+    "('POLL_ADD', '-125')": 65
+  },
+  "ring_payload_bytes": {},
+  "creator_thread_syscalls": {
+    "syscalls:sys_enter_io_uring_enter": 11722
+  },
+  "local_work": {
+    "batches": 11725,
+    "tasks": 228984
+  },
+  "complete_server_writes": 228888,
+  "receive_syscalls_per_response": 1.0004150501555347,
+  "receive_eagain_per_response": 0.00013106847016881618,
+  "send_syscalls_per_response": 1.0,
+  "submissions_per_response": {
+    "POLL_ADD": 0.00031019537939953163,
+    "ASYNC_CANCEL": 0.0002796127363601412
+  },
+  "completions_per_response": {
+    "('POLL_ADD', 'positive')": 1.0001572821642026,
+    "('ASYNC_CANCEL', '0')": 0.0002796127363601412,
+    "('POLL_ADD', '-125')": 0.0002839816853657684
+  },
+  "ring_events_per_response": {
+    "io_uring:io_uring_create": 8.737898011254413e-06,
+    "io_uring:io_uring_submit_req": 0.0005898081157596728,
+    "io_uring:io_uring_complete": 1.0007208765859286,
+    "io_uring:io_uring_local_work_run": 0.05122592709097899
+  }
+}

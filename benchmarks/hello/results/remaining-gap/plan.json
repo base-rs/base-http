@@ -1,0 +1,12 @@
+{
+  "utc": "2026-10-26T11:36:16.582788+00:00",
+  "baseline": "http-hot-path/response/server",
+  "candidate": "Move pending trailer Fields from IncomingBody into exclusively borrowed RequestReader. Reset at new-body boundary and drop; finish takes after completion.",
+  "motivation": "Fresh Base profile has124 exclusive memmove samples/9046 application-thread samples; many caller frames are server request/handler/future movement. No claimed fraction of on-CPU gap.",
+  "applicable_design": [
+    "design/implementation.md",
+    "design/duplex.md"
+  ],
+  "other_design_scope": "Proposal/roadmap/components/source-review remain architectural references; this changes private HTTP1 storage only, with no new transport/API/package requirement.",
+  "history_limit": "HTTP projects have no Git baseline. Explicit before-sources and saved binary define this task baseline."
+}

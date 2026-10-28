@@ -1,0 +1,16 @@
+tokio c=64 b=4096 r=1: 204120 echoes/s, p99=378.62 us, server CPU=71.0%, client CPU=208.9%
+iouring-before c=64 b=4096 r=1: 174570 echoes/s, p99=422.65 us, server CPU=73.7%, client CPU=172.8%
+native-poll c=64 b=4096 r=1: 206998 echoes/s, p99=369.66 us, server CPU=70.1%, client CPU=208.3%
+iouring-poll c=64 b=4096 r=1: 201705 echoes/s, p99=366.08 us, server CPU=70.8%, client CPU=198.8%
+iouring-poll c=64 b=64 r=1: 235870 echoes/s, p99=315.90 us, server CPU=70.7%, client CPU=214.5%
+native-poll c=64 b=64 r=1: 243222 echoes/s, p99=311.55 us, server CPU=71.1%, client CPU=223.3%
+iouring-before c=64 b=64 r=1: 199728 echoes/s, p99=375.30 us, server CPU=74.2%, client CPU=182.3%
+tokio c=64 b=64 r=1: 243065 echoes/s, p99=359.42 us, server CPU=70.8%, client CPU=223.2%
+native-poll c=1 b=64 r=1: 77600 echoes/s, p99=18.51 us, server CPU=45.3%, client CPU=50.6%
+iouring-poll c=1 b=64 r=1: 77650 echoes/s, p99=18.22 us, server CPU=46.3%, client CPU=49.9%
+tokio c=1 b=64 r=1: 79262 echoes/s, p99=15.38 us, server CPU=45.3%, client CPU=51.2%
+iouring-before c=1 b=64 r=1: 80202 echoes/s, p99=14.91 us, server CPU=52.0%, client CPU=51.5%
+native-poll c=1 b=4096 r=1: 69112 echoes/s, p99=17.41 us, server CPU=43.2%, client CPU=50.6%
+iouring-before c=1 b=4096 r=1: 70480 echoes/s, p99=16.36 us, server CPU=50.6%, client CPU=50.5%
+iouring-poll c=1 b=4096 r=1: 67810 echoes/s, p99=17.58 us, server CPU=45.7%, client CPU=49.8%
+tokio c=1 b=4096 r=1: 68392 echoes/s, p99=17.36 us, server CPU=45.0%, client CPU=50.1%

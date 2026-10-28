@@ -1,0 +1,214 @@
+{
+  "method": "LLVM source region JSON, merging identical filename/span regions across function instantiations by maximum execution count. Raw tool summary is retained separately. This is an audit, not a passed Bake complete-region-coverage gate.",
+  "platforms": {
+    "linux": {
+      "crates/iouring/src/io_uring_selector/monitor.rs": {
+        "llvm_file_summary": {
+          "count": 679,
+          "covered": 675,
+          "notcovered": 4,
+          "percent": 99.41089837997055
+        },
+        "merged_regions": 679,
+        "merged_regions_covered": 679,
+        "uncovered_spans": []
+      },
+      "crates/iouring/src/io_uring_socket_stream_reader.rs": {
+        "llvm_file_summary": {
+          "count": 296,
+          "covered": 272,
+          "notcovered": 24,
+          "percent": 91.8918918918919
+        },
+        "merged_regions": 296,
+        "merged_regions_covered": 295,
+        "uncovered_spans": [
+          [
+            141,
+            23,
+            141,
+            24
+          ]
+        ]
+      },
+      "crates/selector/src/linux_tcp.rs": {
+        "llvm_file_summary": {
+          "count": 63,
+          "covered": 59,
+          "notcovered": 4,
+          "percent": 93.65079365079364
+        },
+        "merged_regions": 63,
+        "merged_regions_covered": 59,
+        "uncovered_spans": [
+          [
+            64,
+            13,
+            64,
+            14
+          ],
+          [
+            66,
+            13,
+            66,
+            69
+          ],
+          [
+            66,
+            32,
+            66,
+            49
+          ],
+          [
+            68,
+            5,
+            68,
+            6
+          ]
+        ]
+      },
+      "crates/selector/src/native_socket.rs": {
+        "llvm_file_summary": {
+          "count": 90,
+          "covered": 86,
+          "notcovered": 4,
+          "percent": 95.55555555555556
+        },
+        "merged_regions": 90,
+        "merged_regions_covered": 88,
+        "uncovered_spans": [
+          [
+            76,
+            66,
+            76,
+            67
+          ],
+          [
+            77,
+            66,
+            77,
+            67
+          ]
+        ]
+      },
+      "crates/selector/src/readiness_socket_stream_reader.rs": {
+        "llvm_file_summary": {
+          "count": 345,
+          "covered": 338,
+          "notcovered": 7,
+          "percent": 97.97101449275364
+        },
+        "merged_regions": 345,
+        "merged_regions_covered": 342,
+        "uncovered_spans": [
+          [
+            29,
+            5,
+            29,
+            34
+          ],
+          [
+            30,
+            9,
+            33,
+            10
+          ],
+          [
+            34,
+            5,
+            34,
+            6
+          ]
+        ]
+      }
+    },
+    "macos": {
+      "crates/selector/src/native_socket.rs": {
+        "llvm_file_summary": {
+          "count": 90,
+          "covered": 86,
+          "notcovered": 4,
+          "percent": 95.55555555555556
+        },
+        "merged_regions": 90,
+        "merged_regions_covered": 88,
+        "uncovered_spans": [
+          [
+            76,
+            66,
+            76,
+            67
+          ],
+          [
+            77,
+            66,
+            77,
+            67
+          ]
+        ]
+      },
+      "crates/selector/src/readiness_socket_stream_reader.rs": {
+        "llvm_file_summary": {
+          "count": 332,
+          "covered": 321,
+          "notcovered": 11,
+          "percent": 96.6867469879518
+        },
+        "merged_regions": 332,
+        "merged_regions_covered": 324,
+        "uncovered_spans": [
+          [
+            38,
+            5,
+            38,
+            53
+          ],
+          [
+            39,
+            9,
+            39,
+            32
+          ],
+          [
+            40,
+            5,
+            40,
+            6
+          ],
+          [
+            151,
+            40,
+            153,
+            30
+          ],
+          [
+            152,
+            33,
+            152,
+            42
+          ],
+          [
+            124,
+            51,
+            124,
+            56
+          ],
+          [
+            124,
+            57,
+            124,
+            61
+          ],
+          [
+            204,
+            62,
+            204,
+            63
+          ]
+        ]
+      }
+    }
+  },
+  "complete_region_coverage_gate_passed": false,
+  "scope": "Linux Selector, Native and io_uring suites; macOS Selector suite. Other platforms/configurations not audited."
+}

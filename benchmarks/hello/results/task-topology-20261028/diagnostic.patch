@@ -1,0 +1,356 @@
+--- a/scheduler/crates/iouring/src/io_uring_selector.rs
++++ b/scheduler/crates/iouring/src/io_uring_selector.rs
+@@ -845,6 +845,7 @@
+         // The CQ iterator snapshots the available batch. Finish publishing every completion in that batch before returning to the executor; application futures are polled only from its ready queue.
+         let mut notification_result = None;
+         let (submitter, _, mut completions) = self.ring.split();
++        crate::diagnostic::collection_begin(completions.len());
+         for completion in &mut completions {
+             completed = true;
+             let identifier = completion.user_data();
+@@ -902,6 +903,7 @@
+         }
+ 
+         drop(completions);
++        crate::diagnostic::collection_end();
+         if let Some(result) = notification_result {
+             if result < 0 {
+                 return Err(io::Error::from_raw_os_error(-result));
+--- a/scheduler/crates/iouring/src/io_uring_selector/socket_read.rs
++++ b/scheduler/crates/iouring/src/io_uring_selector/socket_read.rs
+@@ -16,6 +16,7 @@
+                 slot: Mutex::new(Slot {
+                     result: None,
+                     collecting: false,
++                    diagnostic_published: None,
+                 }),
+                 ready: AtomicBool::new(false),
+                 waker: atomic_waker::AtomicWaker::new(),
+@@ -33,6 +34,7 @@
+ struct Slot {
+     result: Option<Completion>,
+     collecting: bool,
++    diagnostic_published: Option<crate::diagnostic::Publication>,
+ }
+ struct Shared {
+     slot: Mutex<Slot>,
+@@ -44,6 +46,7 @@
+         let abandoned = {
+             let mut slot = self.slot.lock().unwrap();
+             let abandoned = if slot.collecting {
++                slot.diagnostic_published=if matches!(&result,Completion::Request(Ok(count),_) if *count>0) {crate::diagnostic::publication()} else {None};
+                 slot.result = Some(result);
+                 None
+             } else {
+@@ -231,11 +234,12 @@
+         })
+         .await;
+         completion.cancel.armed = false;
+-        let result = {
++        let (result,published) = {
+             let mut slot = self.shared.slot.lock().unwrap();
+             slot.collecting = false;
+-            slot.result.take().unwrap()
+-        };
++            (slot.result.take().unwrap(),slot.diagnostic_published.take())
++        };
++        crate::diagnostic::consumed(published);
+         completion.shared = None;
+         drop(completion);
+         match result {
+--- a/scheduler/crates/iouring/src/io_uring_worker.rs
++++ b/scheduler/crates/iouring/src/io_uring_worker.rs
+@@ -68,7 +68,9 @@
+         self.driver.group.close();
+     }
+     fn turn(&mut self, timeout: Option<Duration>) -> io::Result<bool> {
+-        self.driver.turn(timeout)
++        let result=self.driver.turn(timeout);
++        crate::diagnostic::driver_return();
++        result
+     }
+ }
+ impl Drop for IoUringWorker {
+--- a/scheduler/crates/iouring/src/lib.rs
++++ b/scheduler/crates/iouring/src/lib.rs
+@@ -5,6 +5,7 @@
+ #![deny(unsafe_op_in_unsafe_fn)]
+ #![cfg(target_os = "linux")]
+ 
++pub mod diagnostic;
+ mod fallback;
+ mod io_uring_driver;
+ mod io_uring_options;
+--- a/http/base-http/benchmarks/hello/src/raw.rs
++++ b/http/base-http/benchmarks/hello/src/raw.rs
+@@ -65,7 +65,9 @@
+                 if count == 0 {
+                     return Ok(());
+                 }
++                base_scheduler_iouring::diagnostic::read_ready();
+                 check_write(writer.write(RESPONSE, cancellation).await?)?;
++                base_scheduler_iouring::diagnostic::response_written();
+             }
+         }
+         .await;
+@@ -129,11 +131,11 @@
+         scheduler
+             .socket_set_option(&socket, TcpNoDelay, true, &cancellation)
+             .await?;
+-        connections.push(base_connection::<_, OWNED_RECEIVE>(
++        connections.push(base_scheduler_iouring::diagnostic::connection(base_connection::<_, OWNED_RECEIVE>(
+             scheduler,
+             socket,
+             &cancellation,
+-        ));
++        )));
+     }
+ }
+ 
+@@ -155,7 +157,7 @@
+     let shared = scheduler.clone();
+     scheduler.spawn(async move {
+         let cancellation = Cancellation::never();
+-        base_connection::<_, OWNED_RECEIVE>(shared.as_ref(), socket, &cancellation).await
++        base_scheduler_iouring::diagnostic::task(base_scheduler_iouring::diagnostic::connection(base_connection::<_, OWNED_RECEIVE>(shared.as_ref(), socket, &cancellation))).await
+     })
+ }
+ 
+--- a/http/base-http/benchmarks/hello/src/main.rs
++++ b/http/base-http/benchmarks/hello/src/main.rs
+@@ -221,7 +221,7 @@
+                 })?
+             } else {
+                 scheduler.spawn(async move {
+-                    if owned_receive { raw::base_server::<_, true>(shared.as_ref()).await }
++                    if owned_receive { base_scheduler_iouring::diagnostic::task(raw::base_server::<_, true>(shared.as_ref())).await }
+                     else if raw { raw::base_server::<_, false>(shared.as_ref()).await }
+                     else { base_server(shared.as_ref()).await }
+                 })?
+--- /dev/null
++++ b/scheduler/crates/iouring/src/diagnostic.rs
+@@ -0,0 +1,224 @@
++//! Temporary, single-worker probes. Never linked into capacity/latency binaries.
++use std::{
++    cell::RefCell,
++    collections::HashMap,
++    future::{Future, poll_fn},
++    pin::pin,
++    task::Poll,
++    time::Instant,
++};
++
++#[derive(Clone, Copy)]
++pub struct Publication {
++    at: Instant,
++    collection: u64,
++    batch_len: usize,
++}
++struct Pending {
++    publication: Publication,
++    stages: [Instant; 5], // CQ end, driver return, task poll, inner poll, consumption.
++    ready: Option<Instant>,
++    inner_index: u64,
++}
++struct State {
++    random: u64,
++    collection: u64,
++    batch_len: usize,
++    ends: [Option<(u64, Instant)>; 256],
++    driver_return: Option<Instant>,
++    task_start: Option<Instant>,
++    inner_start: Option<Instant>,
++    inner_index: u64,
++    pending: HashMap<u64, Pending>,
++    next_connection: u64,
++    connection: Option<u64>,
++    rows: Vec<[u64; 10]>,
++}
++impl Default for State {
++    fn default() -> Self {
++        Self {
++            random: 0x4d595df4d0f33173,
++            collection: 0,
++            batch_len: 0,
++            ends: [None; 256],
++            driver_return: None,
++            task_start: None,
++            inner_start: None,
++            inner_index: 0,
++            pending: HashMap::new(),
++            next_connection: 0,
++            connection: None,
++            rows: Vec::new(),
++        }
++    }
++}
++thread_local! { static STATE: RefCell<State> = RefCell::new(State::default()); }
++
++pub fn collection_begin(len: usize) {
++    STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        s.collection += 1;
++        s.batch_len = len;
++    });
++}
++pub fn collection_end() {
++    let now = Instant::now();
++    STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        let id = s.collection;
++        s.ends[id as usize % 256] = Some((id, now));
++    });
++}
++pub fn driver_return() {
++    let now = Instant::now();
++    STATE.with(|state| state.borrow_mut().driver_return = Some(now));
++}
++pub fn publication() -> Option<Publication> {
++    STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        s.random = s
++            .random
++            .wrapping_mul(6364136223846793005)
++            .wrapping_add(1442695040888963407);
++        if s.random >> 57 != 0 {
++            return None;
++        }
++        Some(Publication {
++            at: Instant::now(),
++            collection: s.collection,
++            batch_len: s.batch_len,
++        })
++    })
++}
++pub fn consumed(publication: Option<Publication>) {
++    let Some(publication) = publication else {
++        return;
++    };
++    let now = Instant::now();
++    STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        let (id, cq_end) = s.ends[publication.collection as usize % 256].unwrap();
++        assert_eq!(id, publication.collection, "sample outlived CQ history");
++        let stages = [
++            cq_end,
++            s.driver_return.unwrap(),
++            s.task_start.unwrap(),
++            s.inner_start.unwrap(),
++            now,
++        ];
++        let mut previous = publication.at;
++        for stage in stages {
++            assert!(stage >= previous, "probe stage order");
++            previous = stage;
++        }
++        let identifier = s.connection.unwrap();
++        let inner_index = s.inner_index;
++        assert!(
++            s.pending
++                .insert(
++                    identifier,
++                    Pending {
++                        publication,
++                        stages,
++                        ready: None,
++                        inner_index,
++                    }
++                )
++                .is_none(),
++            "sample was not paired with its response"
++        );
++    });
++}
++pub fn read_ready() {
++    STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        let identifier = s.connection.unwrap();
++        if let Some(pending) = s.pending.get_mut(&identifier) {
++            pending.ready = Some(Instant::now());
++        }
++    });
++}
++pub fn response_written() {
++    STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        let identifier = s.connection.unwrap();
++        let Some(pending) = s.pending.remove(&identifier) else {
++            return;
++        };
++        let now = Instant::now();
++        let times = [
++            pending.publication.at,
++            pending.stages[0],
++            pending.stages[1],
++            pending.stages[2],
++            pending.stages[3],
++            pending.stages[4],
++            pending.ready.unwrap(),
++            now,
++        ];
++        let mut row = [0; 10];
++        for i in 0..7 {
++            row[i] = times[i + 1]
++                .duration_since(times[i])
++                .as_nanos()
++                .try_into()
++                .unwrap();
++        }
++        row[7] = now
++            .duration_since(pending.publication.at)
++            .as_nanos()
++            .try_into()
++            .unwrap();
++        row[8] = pending.inner_index;
++        row[9] = pending.publication.batch_len as u64;
++        assert_eq!(row[..7].iter().sum::<u64>(), row[7]);
++        s.rows.push(row);
++        if s.rows.len() == 2048 {
++            eprintln!("TRACE {:?}", s.rows);
++            s.rows.clear();
++        }
++    });
++}
++pub fn flush() {
++    STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        if !s.rows.is_empty() {
++            eprintln!("TRACE {:?}", s.rows);
++            s.rows.clear();
++        }
++    });
++}
++pub async fn task<F: Future>(future: F) -> F::Output {
++    let mut future = pin!(future);
++    poll_fn(|cx| {
++        STATE.with(|state| {
++            let mut s = state.borrow_mut();
++            s.task_start = Some(Instant::now());
++            s.inner_index = 0;
++        });
++        future.as_mut().poll(cx)
++    })
++    .await
++}
++pub async fn connection<F: Future>(future: F) -> F::Output {
++    let identifier = STATE.with(|state| {
++        let mut s = state.borrow_mut();
++        s.next_connection += 1;
++        s.next_connection
++    });
++    let mut future = pin!(future);
++    poll_fn(|cx| {
++        STATE.with(|state| {
++            let mut s = state.borrow_mut();
++            s.connection = Some(identifier);
++            s.inner_start = Some(Instant::now());
++            s.inner_index += 1;
++        });
++        let result = future.as_mut().poll(cx);
++        if matches!(result, Poll::Ready(_)) {
++            flush();
++        }
++        result
++    })
++    .await
++}

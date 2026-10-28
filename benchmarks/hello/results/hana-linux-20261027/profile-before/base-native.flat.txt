@@ -1,0 +1,53 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 3K of event 'cpu/cycles/P'
+# Event count (approx.): 30510959948
+#
+# Overhead  Command          Shared Object      Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+# ........  ...............  .................  ........................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+     7.05%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSRETQ_unsafe_stack
+     6.67%  base-native-tas  [kernel.kallsyms]  [k] syscall_return_via_sysret
+     4.03%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64_after_hwframe
+     2.88%  base-native-tas  baseline           [.] base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}
+     2.65%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64
+     2.24%  base-native-tas  [kernel.kallsyms]  [k] tcp_ack
+     1.69%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock_irqsave
+     1.61%  base-native-tas  [kernel.kallsyms]  [k] fdget
+     1.36%  base-native-tas  [kernel.kallsyms]  [k] tcp_sendmsg_locked
+     1.34%  base-native-tas  [kernel.kallsyms]  [k] skb_defer_free_flush
+     1.23%  base-native-tas  [kernel.kallsyms]  [k] __tcp_transmit_skb
+     1.08%  base-native-tas  [kernel.kallsyms]  [k] ip_finish_output2
+     0.98%  base-native-tas  baseline           [.] core::str::converts::from_utf8
+     0.97%  base-native-tas  [kernel.kallsyms]  [k] tcp_v4_rcv
+     0.90%  base-native-tas  [kernel.kallsyms]  [k] do_syscall_64
+     0.90%  base-native-tas  [kernel.kallsyms]  [k] skb_release_data
+     0.88%  base-native-tas  [kernel.kallsyms]  [k] __inet_lookup_established
+     0.87%  base-native-tas  [kernel.kallsyms]  [k] memset_orig
+     0.85%  base-native-tas  baseline           [.] <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin
+     0.81%  base-native-tas  baseline           [.] base_http1::wire::authority
+     0.80%  base-native-tas  baseline           [.] base_http1::wire::strict_lines
+     0.80%  base-native-tas  [kernel.kallsyms]  [k] __ip_queue_xmit
+     0.80%  base-native-tas  [kernel.kallsyms]  [k] kmem_cache_alloc_node_noprof
+     0.75%  base-native-tas  [kernel.kallsyms]  [k] __dev_queue_xmit
+     0.69%  base-native-tas  [kernel.kallsyms]  [k] tcp_rcv_established
+     0.69%  base-native-tas  baseline           [.] <base_scheduler_selector::readiness_driver::notification::Notification>::notify
+     0.67%  base-native-tas  [kernel.kallsyms]  [k] ep_poll_callback
+     0.64%  base-native-tas  [kernel.kallsyms]  [k] skb_attempt_defer_free
+     0.57%  base-native-tas  baseline           [.] base_http1::wire::request
+     0.56%  base-native-tas  [kernel.kallsyms]  [k] __sys_sendto
+     0.54%  base-native-tas  [kernel.kallsyms]  [k] ktime_get_with_offset
+     0.54%  base-native-tas  baseline           [.] httparse::parse_headers_iter_uninit
+     0.54%  base-native-tas  baseline           [.] <base_scheduler_selector::readiness_driver::notification::Listener>::poll
+     0.52%  base-native-tas  baseline           [.] base_http::syntax::is_token
+     0.52%  base-native-tas  baseline           [.] <base_http::fields::Fields>::add::<&str, &[u8]>
+     0.51%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_lock
+     0.51%  base-native-tas  [kernel.kallsyms]  [k] ktime_get
+
+
+#
+# (Tip: To analyze cache line scalability issues use perf c2c record ... ; perf c2c report)
+#

@@ -1,0 +1,434 @@
+[
+  {
+    "connections": 1,
+    "bytes": 64,
+    "medians": {
+      "native-poll": {
+        "requests_per_second": 79000.0,
+        "rtt_p50_us": 12.415,
+        "rtt_p99_us": 15.503,
+        "server_process_cpu_percent": 43.97607164318759,
+        "client_process_cpu_percent": 52.64938894990377
+      },
+      "tokio": {
+        "requests_per_second": 79410.0,
+        "rtt_p50_us": 12.399,
+        "rtt_p99_us": 15.071,
+        "server_process_cpu_percent": 44.5781324135805,
+        "client_process_cpu_percent": 52.38471037987579
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": 77980.0,
+        "rtt_p50_us": 12.623,
+        "rtt_p99_us": 15.847,
+        "server_process_cpu_percent": 52.027782192760554,
+        "client_process_cpu_percent": 51.56536324128064
+      },
+      "iouring-poll": {
+        "requests_per_second": 75220.0,
+        "rtt_p50_us": 12.423,
+        "rtt_p99_us": 31.631,
+        "server_process_cpu_percent": 50.655888868826175,
+        "client_process_cpu_percent": 52.754682976165164
+      }
+    },
+    "paired_vs_tokio": {
+      "native-poll": {
+        "requests_per_second": {
+          "median_percent": -0.5163077698022933,
+          "min_percent": -0.5163077698022933,
+          "max_percent": -0.5163077698022933,
+          "values_percent": [
+            -0.5163077698022933
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": 2.8664322208214577,
+          "min_percent": 2.8664322208214577,
+          "max_percent": 2.8664322208214577,
+          "values_percent": [
+            2.8664322208214577
+          ]
+        }
+      },
+      "tokio": {
+        "requests_per_second": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        }
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": {
+          "median_percent": -1.8007807580909252,
+          "min_percent": -1.8007807580909252,
+          "max_percent": -1.8007807580909252,
+          "values_percent": [
+            -1.8007807580909252
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": 5.148961581845923,
+          "min_percent": 5.148961581845923,
+          "max_percent": 5.148961581845923,
+          "values_percent": [
+            5.148961581845923
+          ]
+        }
+      },
+      "iouring-poll": {
+        "requests_per_second": {
+          "median_percent": -5.276413549930736,
+          "min_percent": -5.276413549930736,
+          "max_percent": -5.276413549930736,
+          "values_percent": [
+            -5.276413549930736
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": 109.87990179815542,
+          "min_percent": 109.87990179815542,
+          "max_percent": 109.87990179815542,
+          "values_percent": [
+            109.87990179815542
+          ]
+        }
+      }
+    }
+  },
+  {
+    "connections": 1,
+    "bytes": 4096,
+    "medians": {
+      "native-poll": {
+        "requests_per_second": 71250.0,
+        "rtt_p50_us": 13.519,
+        "rtt_p99_us": 17.295,
+        "server_process_cpu_percent": 40.84184679247159,
+        "client_process_cpu_percent": 54.07946309620135
+      },
+      "tokio": {
+        "requests_per_second": 68870.0,
+        "rtt_p50_us": 13.895,
+        "rtt_p99_us": 19.855,
+        "server_process_cpu_percent": 43.86462925683652,
+        "client_process_cpu_percent": 51.5014753244004
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": 69320.0,
+        "rtt_p50_us": 13.919,
+        "rtt_p99_us": 18.175,
+        "server_process_cpu_percent": 49.85207166535568,
+        "client_process_cpu_percent": 49.46221824542812
+      },
+      "iouring-poll": {
+        "requests_per_second": 69110.0,
+        "rtt_p50_us": 14.047,
+        "rtt_p99_us": 17.727,
+        "server_process_cpu_percent": 50.038171473612486,
+        "client_process_cpu_percent": 50.2000225637223
+      }
+    },
+    "paired_vs_tokio": {
+      "native-poll": {
+        "requests_per_second": {
+          "median_percent": 3.455786263975602,
+          "min_percent": 3.455786263975602,
+          "max_percent": 3.455786263975602,
+          "values_percent": [
+            3.455786263975602
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -12.893477713422307,
+          "min_percent": -12.893477713422307,
+          "max_percent": -12.893477713422307,
+          "values_percent": [
+            -12.893477713422307
+          ]
+        }
+      },
+      "tokio": {
+        "requests_per_second": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        }
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": {
+          "median_percent": 0.6534049658777352,
+          "min_percent": 0.6534049658777352,
+          "max_percent": 0.6534049658777352,
+          "values_percent": [
+            0.6534049658777352
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -8.461344749433387,
+          "min_percent": -8.461344749433387,
+          "max_percent": -8.461344749433387,
+          "values_percent": [
+            -8.461344749433387
+          ]
+        }
+      },
+      "iouring-poll": {
+        "requests_per_second": {
+          "median_percent": 0.34848264846811805,
+          "min_percent": 0.34848264846811805,
+          "max_percent": 0.34848264846811805,
+          "values_percent": [
+            0.34848264846811805
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -10.717703349282292,
+          "min_percent": -10.717703349282292,
+          "max_percent": -10.717703349282292,
+          "values_percent": [
+            -10.717703349282292
+          ]
+        }
+      }
+    }
+  },
+  {
+    "connections": 64,
+    "bytes": 64,
+    "medians": {
+      "native-poll": {
+        "requests_per_second": 241150.0,
+        "rtt_p50_us": 259.711,
+        "rtt_p99_us": 311.039,
+        "server_process_cpu_percent": 67.30624451437447,
+        "client_process_cpu_percent": 213.09590396604952
+      },
+      "tokio": {
+        "requests_per_second": 245760.0,
+        "rtt_p50_us": 253.951,
+        "rtt_p99_us": 444.671,
+        "server_process_cpu_percent": 64.52965276049711,
+        "client_process_cpu_percent": 212.74454647581157
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": 205030.0,
+        "rtt_p50_us": 309.759,
+        "rtt_p99_us": 357.887,
+        "server_process_cpu_percent": 69.31590039513615,
+        "client_process_cpu_percent": 181.33206358264266
+      },
+      "iouring-poll": {
+        "requests_per_second": 198690.0,
+        "rtt_p50_us": 314.879,
+        "rtt_p99_us": 361.983,
+        "server_process_cpu_percent": 70.92762300952784,
+        "client_process_cpu_percent": 178.6278497167158
+      }
+    },
+    "paired_vs_tokio": {
+      "native-poll": {
+        "requests_per_second": {
+          "median_percent": -1.875813802083337,
+          "min_percent": -1.875813802083337,
+          "max_percent": -1.875813802083337,
+          "values_percent": [
+            -1.875813802083337
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -30.05188105363291,
+          "min_percent": -30.05188105363291,
+          "max_percent": -30.05188105363291,
+          "values_percent": [
+            -30.05188105363291
+          ]
+        }
+      },
+      "tokio": {
+        "requests_per_second": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        }
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": {
+          "median_percent": -16.573079427083336,
+          "min_percent": -16.573079427083336,
+          "max_percent": -16.573079427083336,
+          "values_percent": [
+            -16.573079427083336
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -19.51645148885356,
+          "min_percent": -19.51645148885356,
+          "max_percent": -19.51645148885356,
+          "values_percent": [
+            -19.51645148885356
+          ]
+        }
+      },
+      "iouring-poll": {
+        "requests_per_second": {
+          "median_percent": -19.15283203125,
+          "min_percent": -19.15283203125,
+          "max_percent": -19.15283203125,
+          "values_percent": [
+            -19.15283203125
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -18.59532103510235,
+          "min_percent": -18.59532103510235,
+          "max_percent": -18.59532103510235,
+          "values_percent": [
+            -18.59532103510235
+          ]
+        }
+      }
+    }
+  },
+  {
+    "connections": 64,
+    "bytes": 4096,
+    "medians": {
+      "native-poll": {
+        "requests_per_second": 207040.0,
+        "rtt_p50_us": 302.591,
+        "rtt_p99_us": 356.351,
+        "server_process_cpu_percent": 67.15793393260374,
+        "client_process_cpu_percent": 204.397705446103
+      },
+      "tokio": {
+        "requests_per_second": 210020.0,
+        "rtt_p50_us": 297.471,
+        "rtt_p99_us": 496.383,
+        "server_process_cpu_percent": 67.45564278493993,
+        "client_process_cpu_percent": 210.64045526707955
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": 179610.0,
+        "rtt_p50_us": 353.023,
+        "rtt_p99_us": 415.231,
+        "server_process_cpu_percent": 69.68502220318369,
+        "client_process_cpu_percent": 176.11825053700173
+      },
+      "iouring-poll": {
+        "requests_per_second": 177550.0,
+        "rtt_p50_us": 352.255,
+        "rtt_p99_us": 419.583,
+        "server_process_cpu_percent": 68.14187014198241,
+        "client_process_cpu_percent": 168.63834104024858
+      }
+    },
+    "paired_vs_tokio": {
+      "native-poll": {
+        "requests_per_second": {
+          "median_percent": -1.418912484525281,
+          "min_percent": -1.418912484525281,
+          "max_percent": -1.418912484525281,
+          "values_percent": [
+            -1.418912484525281
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -28.21047457306153,
+          "min_percent": -28.21047457306153,
+          "max_percent": -28.21047457306153,
+          "values_percent": [
+            -28.21047457306153
+          ]
+        }
+      },
+      "tokio": {
+        "requests_per_second": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": 0.0,
+          "min_percent": 0.0,
+          "max_percent": 0.0,
+          "values_percent": [
+            0.0
+          ]
+        }
+      },
+      "tokio-adapter-poll": {
+        "requests_per_second": {
+          "median_percent": -14.479573373964383,
+          "min_percent": -14.479573373964383,
+          "max_percent": -14.479573373964383,
+          "values_percent": [
+            -14.479573373964383
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -16.348666251664532,
+          "min_percent": -16.348666251664532,
+          "max_percent": -16.348666251664532,
+          "values_percent": [
+            -16.348666251664532
+          ]
+        }
+      },
+      "iouring-poll": {
+        "requests_per_second": {
+          "median_percent": -15.460432339777164,
+          "min_percent": -15.460432339777164,
+          "max_percent": -15.460432339777164,
+          "values_percent": [
+            -15.460432339777164
+          ]
+        },
+        "rtt_p99_us": {
+          "median_percent": -15.471923897474316,
+          "min_percent": -15.471923897474316,
+          "max_percent": -15.471923897474316,
+          "values_percent": [
+            -15.471923897474316
+          ]
+        }
+      }
+    }
+  }
+]

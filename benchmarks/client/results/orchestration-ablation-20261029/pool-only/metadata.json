@@ -1,0 +1,16 @@
+{
+  "binary": "/tmp/base-http-orchestration-pool-only-20261029",
+  "sha256": "69d6361279bc3fbca4d3a8bcc188c3fa6a5c0ecf77ce33876057e77526923433",
+  "build_command": [
+    "rustup",
+    "run",
+    "1.87.0",
+    "cargo",
+    "build",
+    "--release",
+    "--manifest-path",
+    "benchmarks/client/Cargo.toml",
+    "--config",
+    "patch.crates-io.base-pool.path=\"/Users/samuel/Developer/base-rs/base-pool\""
+  ]
+}

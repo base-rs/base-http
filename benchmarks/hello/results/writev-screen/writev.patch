@@ -1,0 +1,291 @@
+--- base-http1/src/input.rs
++++ base-http1/src/input.rs
+@@ -62,6 +62,7 @@
+ pub struct RequestReader<R> {
+     reader: R,
+     buffer: Vec<u8>,
++    scratch: Vec<u8>,
+     start: usize,
+     pub(crate) options: Options,
+     pub(crate) poisoned: bool,
+@@ -74,6 +75,7 @@
+         Ok(Self {
+             reader,
+             buffer: Vec::new(),
++            scratch: vec![0; options.read_size],
+             start: 0,
+             options,
+             poisoned: false,
+@@ -98,9 +100,8 @@
+             self.buffer.drain(..self.start);
+             self.start = 0;
+         }
+-        let mut chunk = vec![0; self.options.read_size];
+-        let n = self.reader.read_into(&mut chunk, cancellation).await?;
+-        self.buffer.extend_from_slice(&chunk[..n]);
++        let n = self.reader.read_into(&mut self.scratch, cancellation).await?;
++        self.buffer.extend_from_slice(&self.scratch[..n]);
+         Ok(n != 0)
+     }
+ 
+@@ -156,8 +157,15 @@
+             self.poisoned = false;
+             return Ok(None);
+         };
+-        let mut headers = vec![httparse::EMPTY_HEADER; self.options.max_fields];
+-        let mut parsed = httparse::Request::new(&mut headers);
++        let mut local = [httparse::EMPTY_HEADER; 100];
++        let mut overflow;
++        let headers = if self.options.max_fields <= local.len() {
++            &mut local[..self.options.max_fields]
++        } else {
++            overflow = vec![httparse::EMPTY_HEADER; self.options.max_fields];
++            &mut overflow
++        };
++        let mut parsed = httparse::Request::new(headers);
+         match parsed.parse(&bytes) {
+             Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
+             Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
+--- base-http1/src/output.rs
++++ base-http1/src/output.rs
+@@ -29,6 +29,7 @@
+ /// poisons admission. The owner must still await `close` to retire the backend.
+ pub struct ResponseWriter<W> {
+     writer: W,
++    pending: Vec<u8>,
+     usable: bool,
+     continue_sent: bool,
+ }
+@@ -37,6 +38,7 @@
+     pub fn new(writer: W) -> Self {
+         Self {
+             writer,
++            pending: Vec::new(),
+             usable: true,
+             continue_sent: false,
+         }
+@@ -68,11 +70,21 @@
+         let bytes = head_bytes(&head)?;
+         self.usable = false;
+         self.write_all(&bytes, cancellation).await?;
+-        self.writer.flush(cancellation).await?;
++        self.flush(cancellation).await?;
+         Ok(())
+     }
+ 
+     pub(crate) async fn write_all(
++        &mut self,
++        bytes: &[u8],
++        cancellation: &Cancellation,
++    ) -> Result<(), Error> {
++        cancellation.check()?;
++        self.pending.extend_from_slice(bytes);
++        Ok(())
++    }
++
++    async fn send_all(
+         &mut self,
+         mut bytes: &[u8],
+         cancellation: &Cancellation,
+@@ -118,7 +130,7 @@
+             return Err(Error::Invalid("response output is not reusable"));
+         }
+         let plan = plan(exchange, &response.head, response.body.length())?;
+-        let bytes = head_bytes(&plan.head)?;
++        encode_head(&plan.head, &mut self.pending)?;
+         if plan.tunnel
+             && response.head.status == Status::SWITCHING_PROTOCOLS
+             && !self.continue_sent
+@@ -129,9 +141,10 @@
+                 .await?;
+         }
+         self.usable = false;
+-        self.write_all(&bytes, cancellation).await?;
+-        // Commit the handshake before the first potentially blocking input read.
+-        self.writer.flush(cancellation).await?;
++        // DIAGNOSTIC ONLY: this benchmark's body cannot block.
++        // Do not apply this policy to generic streaming or upgrade bodies.
++        assert!(!plan.tunnel && matches!(plan.framing, Framing::Fixed(13))
++            && response.head.status == Status::OK && response.body.is_ready());
+         if plan.tunnel {
+             exchange.switch();
+         }
+@@ -161,6 +174,10 @@
+     }
+ 
+     pub(crate) async fn flush(&mut self, cancellation: &Cancellation) -> Result<(), Error> {
++        let mut pending = std::mem::take(&mut self.pending);
++        self.send_all(&pending, cancellation).await?;
++        pending.clear();
++        self.pending = pending;
+         Ok(self.writer.flush(cancellation).await?)
+     }
+ 
+@@ -176,7 +193,7 @@
+             let mut total = 0u64;
+             loop {
+                 if !body.is_ready() {
+-                    self.writer.flush(cancellation).await?;
++                    self.flush(cancellation).await?;
+                 }
+                 let chunk = wait(body.read(cancellation), cancellation)
+                     .await?
+@@ -230,7 +247,7 @@
+                 return Err(Error::Invalid("trailers require chunked framing"));
+             }
+         }
+-        self.writer.flush(cancellation).await?;
++        self.flush(cancellation).await?;
+         Ok(())
+     }
+ 
+@@ -274,7 +291,7 @@
+         let bytes = head_bytes(&response)?;
+         self.output.usable = false;
+         self.output.write_all(&bytes, cancellation).await?;
+-        self.output.writer.flush(cancellation).await?;
++        self.output.flush(cancellation).await?;
+         if response.status == Status::CONTINUE {
+             self.output.continue_sent = true;
+         }
+@@ -301,14 +318,15 @@
+     if !response.status.is_final() {
+         return Err(Error::Invalid("final response required"));
+     }
+-    let mut head = response.clone();
+-    let has_trailers = head.fields.has_trailers();
+-    validate_trailers(&head.fields)?;
+-    // Wire-generated fields belong to the initial section even when the
+-    // semantic message already contains a trailer boundary.
+-    head.fields = base_http::Fields::try_from_pairs(
+-        head.fields.headers().iter().map(|f| (f.name(), f.value())),
+-    )?;
++    let has_trailers = response.fields.has_trailers();
++    validate_trailers(&response.fields)?;
++    let mut head = ResponseHead {
++        status: response.status, version: response.version,
++        protocol: response.protocol.clone(),
++        fields: base_http::Fields::try_from_pairs(
++            response.fields.headers().iter().map(|f| (f.name(), f.value())),
++        )?,
++    };
+     let version = exchange.head.version.unwrap_or(Version::Http11);
+     if head.version.is_some_and(|v| v != version) {
+         return Err(Error::Invalid("response version differs from request"));
+@@ -480,3 +498,19 @@
+     bytes.extend_from_slice(b"\r\n");
+     Ok(bytes)
+ }
++
++
++fn encode_head(head: &ResponseHead, bytes: &mut Vec<u8>) -> Result<(), Error> {
++    use std::io::Write;
++    assert!(bytes.is_empty());
++    let version = match head.version {
++        Some(Version::Http10) => "HTTP/1.0",
++        Some(Version::Http11) => "HTTP/1.1",
++        _ => return Err(Error::Invalid("unsupported response version")),
++    };
++    write!(bytes, "{version} {} {}\r\n", head.status.as_u16(),
++        head.status.description().unwrap_or(""))?;
++    wire::append_fields(bytes, head.fields.headers());
++    bytes.extend_from_slice(b"\r\n");
++    Ok(())
++}
+--- hello/src/main.rs
++++ hello/src/main.rs
+@@ -178,6 +178,19 @@
+             scheduler.block_on(scheduler.shutdown());
+             result
+         }
++        Some(mode @ ("base-root" | "base-reactor")) => {
++            let scheduler = NativeScheduler::with_options(NativeOptions {
++                workers: 1, threads: 1, capacity: MAX_CONNECTIONS,
++                ..Default::default()
++            })?;
++            let result = if mode == "base-reactor" {
++                async_io::block_on(base_server(&scheduler))
++            } else {
++                futures_lite::future::block_on(base_server(&scheduler))
++            };
++            futures_lite::future::block_on(scheduler.shutdown());
++            result
++        }
+         Some("base-direct") => {
+             let scheduler = DirectScheduler::new(DirectOptions {
+                 threads: 1,
+--- base-scheduler-selector/src/native_socket.rs
++++ base-scheduler-selector/src/native_socket.rs
+@@ -59,9 +59,15 @@
+         if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
+             return result;
+         }
+-        match interest {
+-            Interest::Readable => self.inner.read_with(|socket| operation(socket)).await,
+-            Interest::Writable => self.inner.write_with(|socket| operation(socket)).await,
++        loop {
++            match interest {
++                Interest::Readable => self.inner.readable().await?,
++                Interest::Writable => self.inner.writable().await?,
++            }
++            let result = operation(self.get_ref());
++            if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                return result;
++            }
+         }
+     }
+     pub fn local_addr(&self) -> io::Result<SocketAddr> {
+--- base-scheduler-selector/src/socket_io.rs
++++ base-scheduler-selector/src/socket_io.rs
+@@ -422,6 +422,13 @@
+ ) -> io::Result<usize> {
+     #[cfg(windows)]
+     poll_nonblocking(socket)?;
++    #[cfg(target_os = "macos")]
++    if !flags.dont_route {
++        let vectors = [IoSlice::new(bytes)];
++        // SAFETY: The registered socket is nonblocking, the stream writer
++        // configured SO_NOSIGPIPE, and the borrowed vector lives through this call.
++        return result_count(unsafe { libc::writev(socket.as_raw_fd(), vectors.as_ptr().cast(), 1) });
++    }
+     socket.send_with_flags(bytes, POLL_FLAGS | send_flags(flags))
+ }
+ 
+--- base-scheduler-selector/src/readiness_socket_stream_writer.rs
++++ base-scheduler-selector/src/readiness_socket_stream_writer.rs
+@@ -36,6 +36,8 @@
+                 "stream writers require a stream socket",
+             ));
+         }
++        #[cfg(target_os = "macos")]
++        socket.get_ref().set_nosigpipe(true)?;
+         Ok(Self {
+             scheduler,
+             socket: socket.retain(),
+--- base-scheduler-tokio/src/socket_io.rs
++++ base-scheduler-tokio/src/socket_io.rs
+@@ -418,6 +418,13 @@
+ ) -> io::Result<usize> {
+     #[cfg(windows)]
+     poll_nonblocking(socket)?;
++    #[cfg(target_os = "macos")]
++    if !flags.dont_route {
++        let vectors = [IoSlice::new(bytes)];
++        // SAFETY: The registered socket is nonblocking, the stream writer
++        // configured SO_NOSIGPIPE, and the borrowed vector lives through this call.
++        return result_count(unsafe { libc::writev(socket.as_raw_fd(), vectors.as_ptr().cast(), 1) });
++    }
+     socket.send_with_flags(bytes, POLL_FLAGS | send_flags(flags))
+ }
+ 
+--- base-scheduler-tokio/src/tokio_stream_writer.rs
++++ base-scheduler-tokio/src/tokio_stream_writer.rs
+@@ -35,6 +35,8 @@
+                 "ordered writers require a stream socket",
+             ));
+         }
++        #[cfg(target_os = "macos")]
++        socket.get_ref().set_nosigpipe(true)?;
+         Ok(TokioStreamWriter {
+             scheduler: self,
+             socket: socket.retain(),

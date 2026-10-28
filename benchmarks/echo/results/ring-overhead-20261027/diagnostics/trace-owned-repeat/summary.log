@@ -1,0 +1,81 @@
+{
+  "ring_creation": [
+    {
+      "comm": "after-final",
+      "tid": 223754,
+      "ring": "0xffff8e6e27f31800",
+      "flags": 0
+    },
+    {
+      "comm": "base-native-tas",
+      "tid": 223756,
+      "ring": "0xffff8e6e028fa000",
+      "flags": 768
+    }
+  ],
+  "ring_events": {
+    "io_uring:io_uring_create": 2,
+    "io_uring:io_uring_submit_req": 104225,
+    "io_uring:io_uring_task_add": 1727,
+    "io_uring:io_uring_complete": 104225,
+    "io_uring:io_uring_poll_arm": 1675
+  },
+  "creator_thread_syscalls": {
+    "syscalls:sys_enter_epoll_ctl": 205,
+    "syscalls:sys_enter_io_uring_enter": 3312
+  },
+  "creator_thread_task_work": {
+    "batches": 874,
+    "tasks": 1750
+  },
+  "ring_local_work": {},
+  "submissions": [
+    {
+      "opcode": "POLL_ADD",
+      "category": "notifier",
+      "count": 52
+    },
+    {
+      "opcode": "RECV",
+      "category": "operation",
+      "count": 104173
+    }
+  ],
+  "completions": [
+    {
+      "category": "notifier",
+      "result": 1,
+      "flags": 0,
+      "more": false,
+      "count": 52
+    },
+    {
+      "category": "operation",
+      "result": 0,
+      "flags": 4,
+      "more": false,
+      "count": 64
+    },
+    {
+      "category": "operation",
+      "result": 64,
+      "flags": 0,
+      "more": false,
+      "count": 104109
+    }
+  ],
+  "instrumented_throughput_excluded": true,
+  "scalar_ring_payload_bytes": {
+    "RECV": 6662976
+  },
+  "echoes_including_warmup_and_boundaries": 104109,
+  "receive_calls_per_echo": 0.0,
+  "send_calls_per_echo": 1.0,
+  "ring_events_per_echo": {
+    "io_uring:io_uring_create": 1.9210635007540173e-05,
+    "io_uring:io_uring_submit_req": 1.0011142168304372,
+    "io_uring:io_uring_task_add": 0.01658838332901094,
+    "io_uring:io_uring_complete": 1.0011142168304372,
+    "io_uring:io_uring_poll_arm": 0.016088906818814894
+  }
+}

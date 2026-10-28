@@ -1,0 +1,70 @@
+--- before/benchmarks/echo/src/lib.rs
++++ after/benchmarks/echo/src/lib.rs
+@@ -7,7 +7,7 @@
+ use std::{error::Error, time::Duration};
+ type Result<T> = std::result::Result<T, Box<dyn Error + Send + Sync>>;
+ 
+-const USAGE: &str = "Usage: base-scheduler-echo-benchmark server BACKEND WORKERS CONNECTIONS\n       base-scheduler-echo-benchmark client ADDRESS WORKERS CONNECTIONS BYTES WARMUP_SECONDS MEASURE_SECONDS\nBackends: tokio, tokio-adapter, tokio-adapter-poll, tokio-adapter-monitor, iouring, iouring-poll, iouring-multishot, iouring-monitor (io_uring requires Linux). Server binds 127.0.0.1:0 and prints its address.";
++const USAGE: &str = "Usage: base-scheduler-echo-benchmark server BACKEND WORKERS CONNECTIONS\n       base-scheduler-echo-benchmark client ADDRESS WORKERS CONNECTIONS BYTES WARMUP_SECONDS MEASURE_SECONDS\nBackends: native-poll (Linux), tokio, tokio-adapter, tokio-adapter-poll, tokio-adapter-monitor, iouring, iouring-poll, iouring-multishot, iouring-monitor (io_uring requires Linux). Server binds 127.0.0.1:0 and prints its address.";
+ 
+ fn positive(value: &str) -> Result<usize> {
+     let value = value.parse::<usize>()?;
+--- before/benchmarks/echo/src/server.rs
++++ after/benchmarks/echo/src/server.rs
+@@ -111,7 +111,7 @@
+             .await
+             .expect("stream read");
+         if count == 0 {
+-            return;
++            break;
+         }
+         let mut sent = 0;
+         while sent < count {
+@@ -123,6 +123,8 @@
+             sent += written;
+         }
+     }
++    reader.close().await.expect("retire stream reader");
++    writer.close().await.expect("retire stream writer");
+ }
+ 
+ #[cfg(target_os = "linux")]
+@@ -251,6 +253,26 @@
+                 backend == "tokio-adapter-monitor",
+             ));
+             runtime.block_on(scheduler.shutdown());
++        }
++        #[cfg(target_os = "linux")]
++        "native-poll" => {
++            use base_scheduler_native::{NativeOptions, NativeScheduler};
++            let scheduler = Arc::new(
++                NativeScheduler::with_options(NativeOptions {
++                    workers,
++                    ..Default::default()
++                })
++                .expect("Native epoll setup"),
++            );
++            ready(&listener);
++            scheduler.block_on(scheduler_server(
++                Arc::clone(&scheduler),
++                listener,
++                connections,
++                true,
++                false,
++            ));
++            scheduler.block_on(scheduler.shutdown());
+         }
+         #[cfg(target_os = "linux")]
+         "iouring" | "iouring-poll" | "iouring-multishot" | "iouring-monitor" => {
+--- before/benchmarks/echo/tests/smoke.rs
++++ after/benchmarks/echo/tests/smoke.rs
+@@ -171,3 +171,9 @@
+ fn native_iouring_monitor() {
+     smoke("iouring-monitor");
+ }
++
++#[cfg(target_os = "linux")]
++#[test]
++fn native_epoll_poll() {
++    smoke("native-poll");
++}

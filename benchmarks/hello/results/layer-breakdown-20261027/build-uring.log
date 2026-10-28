@@ -1,0 +1,318 @@
+     Locking 3 packages to highest Rust 1.99.1 compatible versions
+      Adding atomic-waker v1.1.2
+      Adding base-scheduler-iouring v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/iouring)
+      Adding io-uring v0.7.15
+   Compiling base-scheduler-selector v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/selector)
+   Compiling base-scheduler-native v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/native)
+   Compiling base-scheduler-iouring v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/iouring)
+   Compiling base-http-layer-probe v0.0.0 (/tmp/base-http-layers-20261027/probe)
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:351:22
+    |
+351 |     let mut reader = selector.socket_stream_reader(&socket).unwrap();
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                      |
+    |                      the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                      ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:351:22
+    |
+351 |     let mut reader = selector.socket_stream_reader(&socket).unwrap();
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                      |
+    |                      the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                      ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:352:22
+    |
+352 |     let mut writer = selector.socket_stream_writer(&socket).unwrap();
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                      |
+    |                      the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                      ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:352:22
+    |
+352 |     let mut writer = selector.socket_stream_writer(&socket).unwrap();
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                      |
+    |                      the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                      ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:356:32
+    |
+356 |         let mut reading = pin!(reader.read_into(&mut byte, &never));
+    |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                                |
+    |                                the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                                ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:357:17
+    |
+357 |         assert!(reading.as_mut().poll(&mut cx).is_pending());
+    |                 ^^^^^^^^^^^^^^^^
+    |                 |
+    |                 the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                 ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:357:17
+    |
+357 |         assert!(reading.as_mut().poll(&mut cx).is_pending());
+    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                 |
+    |                 the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                 ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:360:26
+    |
+360 |         assert!(matches!(reading.as_mut().poll(&mut cx), Poll::Ready(Ok(1))));
+    |                          ^^^^^^^^^^^^^^^^
+    |                          |
+    |                          the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                          ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:360:26
+    |
+360 |         assert!(matches!(reading.as_mut().poll(&mut cx), Poll::Ready(Ok(1))));
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                          |
+    |                          the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                          ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:370:39
+    |
+370 |                 let mut future = pin!(writer.write(&[7], &never));
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                                       |
+    |                                       the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                                       ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:371:23
+    |
+371 |                 match future.as_mut().poll(&mut cx) {
+    |                       ^^^^^^^^^^^^^^^
+    |                       |
+    |                       the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                       ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:371:23
+    |
+371 |                 match future.as_mut().poll(&mut cx) {
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                       |
+    |                       the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                       ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:376:39
+    |
+376 |                 let mut future = pin!(reader.read_into(&mut byte, &never));
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                                       |
+    |                                       the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                                       ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:377:23
+    |
+377 |                 match future.as_mut().poll(&mut cx) {
+    |                       ^^^^^^^^^^^^^^^
+    |                       |
+    |                       the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                       ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:377:23
+    |
+377 |                 match future.as_mut().poll(&mut cx) {
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                       |
+    |                       the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                       ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:392:5
+    |
+392 |     drive(reader.close(), worker).unwrap();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |     ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:392:11
+    |
+392 |     drive(reader.close(), worker).unwrap();
+    |           ^^^^^^^^^^^^^^
+    |           |
+    |           the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |           ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:393:5
+    |
+393 |     drive(writer.close(), worker).unwrap();
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |     |
+    |     the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |     ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:393:11
+    |
+393 |     drive(writer.close(), worker).unwrap();
+    |           ^^^^^^^^^^^^^^
+    |           |
+    |           the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |           ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:356:27
+    |
+356 |         let mut reading = pin!(reader.read_into(&mut byte, &never));
+    |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                           |
+    |                           the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                           ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:370:34
+    |
+370 |                 let mut future = pin!(writer.write(&[7], &never));
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                                  |
+    |                                  the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                                  ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+error[E0310]: the associated type `<S as SocketOperation>::Socket` may not live long enough
+   --> src/main.rs:376:34
+    |
+376 |                 let mut future = pin!(reader.read_into(&mut byte, &never));
+    |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |                                  |
+    |                                  the associated type `<S as SocketOperation>::Socket` must be valid for the static lifetime...
+    |                                  ...so that the type `<S as SocketOperation>::Socket` will meet its required lifetime bounds
+    |
+help: consider adding an explicit lifetime bound
+    |
+345 | ) -> u64 where <S as SocketOperation>::Socket: 'static {
+    |          +++++++++++++++++++++++++++++++++++++++++++++
+
+For more information about this error, try `rustc --explain E0310`.
+error: could not compile `base-http-layer-probe` (bin "base-http-layer-probe") due to 25 previous errors

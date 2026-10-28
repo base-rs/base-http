@@ -1,0 +1,439 @@
+[
+  {
+    "backend": "base-native",
+    "thread": "Thread_48829859: base-native-task",
+    "thread_samples": 5343,
+    "categories": {
+      "send syscalls": {
+        "samples": 3541,
+        "percent": 66.27362904735168
+      },
+      "receive syscalls": {
+        "samples": 915,
+        "percent": 17.12521055586749
+      },
+      "remaining user-space code": {
+        "samples": 480,
+        "percent": 8.983717012914093
+      },
+      "allocation/deallocation": {
+        "samples": 192,
+        "percent": 3.5934868051656377
+      },
+      "waiting/readiness syscalls": {
+        "samples": 181,
+        "percent": 3.387609956953023
+      },
+      "cancellation/event/mutex work": {
+        "samples": 34,
+        "percent": 0.6363466217480817
+      }
+    },
+    "top_exclusive_symbols": [
+      [
+        "__sendto",
+        3541
+      ],
+      [
+        "__recvfrom",
+        913
+      ],
+      [
+        "kevent",
+        181
+      ],
+      [
+        "base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}",
+        58
+      ],
+      [
+        "_platform_memmove",
+        56
+      ],
+      [
+        "_platform_memset",
+        53
+      ],
+      [
+        "_xzm_malloc_tc",
+        38
+      ],
+      [
+        "_xzm_free_tc",
+        37
+      ],
+      [
+        "alloc::vec::from_elem::<httparse::Header>",
+        25
+      ],
+      [
+        "<base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::write_all::{closure#0}",
+        23
+      ],
+      [
+        "_malloc_zone_malloc",
+        18
+      ],
+      [
+        "DYLD-STUB$$free",
+        16
+      ],
+      [
+        "<base_http::request::RequestHead as core::clone::Clone>::clone",
+        14
+      ],
+      [
+        "mach_absolute_time",
+        14
+      ],
+      [
+        "_free",
+        13
+      ],
+      [
+        "<core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, <base_scheduler_selector::native_socket::NativeSocket>::io<usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<&[u8], usize, <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll",
+        12
+      ],
+      [
+        "<alloc::raw_vec::RawVecInner>::finish_grow",
+        11
+      ],
+      [
+        "xzm_malloc_zone_malloc_type_realloc",
+        11
+      ],
+      [
+        "__rustc::__rdl_alloc",
+        11
+      ],
+      [
+        "base_http::syntax::is_token",
+        11
+      ],
+      [
+        "<core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>",
+        9
+      ],
+      [
+        "<alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>",
+        8
+      ],
+      [
+        "_xzm_xzone_malloc_small_freelist",
+        8
+      ],
+      [
+        "base_http1::output::plan",
+        7
+      ],
+      [
+        "_xzm_free_outlined",
+        7
+      ]
+    ],
+    "all_thread_counts": [
+      {
+        "name": "Thread_48829857   DispatchQueue_1: com.apple.main-thread  (serial)",
+        "samples": 5343
+      },
+      {
+        "name": "Thread_48829859: base-native-task",
+        "samples": 5343
+      },
+      {
+        "name": "Thread_48829860: async-io",
+        "samples": 5343
+      },
+      {
+        "name": "Thread_48829862: base-native-0",
+        "samples": 5343
+      }
+    ]
+  },
+  {
+    "backend": "base-tokio",
+    "thread": "Thread_48830264   DispatchQueue_1: com.apple.main-thread  (serial)",
+    "thread_samples": 5899,
+    "categories": {
+      "send syscalls": {
+        "samples": 4186,
+        "percent": 70.96117986099338
+      },
+      "receive syscalls": {
+        "samples": 682,
+        "percent": 11.56128157314799
+      },
+      "remaining user-space code": {
+        "samples": 663,
+        "percent": 11.239193083573488
+      },
+      "allocation/deallocation": {
+        "samples": 267,
+        "percent": 4.526190879810137
+      },
+      "cancellation/event/mutex work": {
+        "samples": 51,
+        "percent": 0.8645533141210375
+      },
+      "waiting/readiness syscalls": {
+        "samples": 50,
+        "percent": 0.8476012883539583
+      }
+    },
+    "top_exclusive_symbols": [
+      [
+        "__sendto",
+        4186
+      ],
+      [
+        "__recvfrom",
+        678
+      ],
+      [
+        "_platform_memmove",
+        116
+      ],
+      [
+        "base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}",
+        75
+      ],
+      [
+        "_platform_memset",
+        68
+      ],
+      [
+        "_xzm_free_tc",
+        60
+      ],
+      [
+        "_xzm_malloc_tc",
+        53
+      ],
+      [
+        "kevent",
+        50
+      ],
+      [
+        "_free",
+        28
+      ],
+      [
+        "alloc::vec::from_elem::<httparse::Header>",
+        26
+      ],
+      [
+        "base_http::syntax::is_token",
+        25
+      ],
+      [
+        "_malloc_zone_malloc",
+        23
+      ],
+      [
+        "???",
+        21
+      ],
+      [
+        "__rustc::__rdl_alloc",
+        21
+      ],
+      [
+        "<base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::write_all::{closure#0}",
+        20
+      ],
+      [
+        "DYLD-STUB$$free",
+        20
+      ],
+      [
+        "<core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll",
+        15
+      ],
+      [
+        "base_http1::wire::authority",
+        15
+      ],
+      [
+        "base_http1::output::plan",
+        12
+      ],
+      [
+        "base_http1::wire::strict_lines",
+        12
+      ],
+      [
+        "<core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll",
+        11
+      ],
+      [
+        "DYLD-STUB$$memcpy",
+        11
+      ],
+      [
+        "_xzm_free",
+        10
+      ],
+      [
+        "<base_http::fields::Fields>::append",
+        10
+      ],
+      [
+        "mach_absolute_time",
+        10
+      ]
+    ],
+    "all_thread_counts": [
+      {
+        "name": "Thread_48830264   DispatchQueue_1: com.apple.main-thread  (serial)",
+        "samples": 5899
+      },
+      {
+        "name": "Thread_48830265: base-tokio-0",
+        "samples": 5899
+      }
+    ]
+  },
+  {
+    "backend": "hyper-tokio",
+    "thread": "Thread_48830705   DispatchQueue_1: com.apple.main-thread  (serial)",
+    "thread_samples": 6007,
+    "categories": {
+      "send syscalls": {
+        "samples": 4320,
+        "percent": 71.9160978857999
+      },
+      "receive syscalls": {
+        "samples": 1115,
+        "percent": 18.561678042284
+      },
+      "remaining user-space code": {
+        "samples": 412,
+        "percent": 6.858664890960546
+      },
+      "waiting/readiness syscalls": {
+        "samples": 105,
+        "percent": 1.7479607125020808
+      },
+      "allocation/deallocation": {
+        "samples": 30,
+        "percent": 0.499417346429166
+      },
+      "cancellation/event/mutex work": {
+        "samples": 24,
+        "percent": 0.39953387714333277
+      },
+      "unattributed thread samples": {
+        "samples": 1,
+        "percent": 0.0166472448809722
+      }
+    },
+    "top_exclusive_symbols": [
+      [
+        "writev",
+        4320
+      ],
+      [
+        "__recvfrom",
+        1112
+      ],
+      [
+        "kevent",
+        105
+      ],
+      [
+        "<hyper::proto::h1::role::Server as hyper::proto::h1::Http1Transaction>::parse",
+        40
+      ],
+      [
+        "mach_absolute_time",
+        37
+      ],
+      [
+        "<hyper::proto::h1::io::Buffered<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>, hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>>::poll_flush",
+        28
+      ],
+      [
+        "<hyper::proto::h1::role::Server as hyper::proto::h1::Http1Transaction>::encode",
+        20
+      ],
+      [
+        "hyper::headers::te_is_trailers",
+        15
+      ],
+      [
+        "<tokio::runtime::io::registration::Registration>::poll_io::<usize, <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_write_vectored::{closure#0}>",
+        13
+      ],
+      [
+        "<hyper::proto::h1::io::ReadStrategy>::record",
+        12
+      ],
+      [
+        "pthread_mutex_unlock",
+        12
+      ],
+      [
+        "http::header::map::hash_elem_using::<http::header::name::HeaderName>",
+        11
+      ],
+      [
+        "<hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<hyper::service::util::ServiceFn<base_http_hello_benchmark::hyper_server::{closure#0}::{closure#0}, hyper::body::incoming::Incoming>, hyper::body::incoming::Incoming>, http_body_util::full::Full<bytes::bytes::Bytes>, hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>, hyper::proto::h1::role::Server>>::poll_write",
+        11
+      ],
+      [
+        "<alloc::collections::vec_deque::iter::Iter<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>> as core::iter::traits::iterator::Iterator>::fold::<usize, core::iter::adapters::map::map_fold<&hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>, usize, usize, <hyper::common::buf::BufList<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>> as bytes::buf::buf_impl::Buf>::remaining::{closure#0}, <usize as core::iter::traits::accum::Sum>::sum<core::iter::adapters::map::Map<alloc::collections::vec_deque::iter::Iter<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>, <hyper::common::buf::BufList<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>> as bytes::buf::buf_impl::Buf>::remaining::{closure#0}>>::{closure#0}>::{closure#0}>",
+        9
+      ],
+      [
+        "_xzm_free_tc",
+        8
+      ],
+      [
+        "<tokio::runtime::io::scheduled_io::ScheduledIo>::wake",
+        8
+      ],
+      [
+        "<hyper::proto::h1::conn::Conn<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>, bytes::bytes::Bytes, hyper::proto::h1::role::Server>>::write_head",
+        7
+      ],
+      [
+        "_xzm_xzone_malloc_tiny",
+        7
+      ],
+      [
+        "pthread_mutex_lock",
+        7
+      ],
+      [
+        "<hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<hyper::service::util::ServiceFn<base_http_hello_benchmark::hyper_server::{closure#0}::{closure#0}, hyper::body::incoming::Incoming>, hyper::body::incoming::Incoming>, http_body_util::full::Full<bytes::bytes::Bytes>, hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>, hyper::proto::h1::role::Server>>::poll_catch",
+        6
+      ],
+      [
+        "<tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness",
+        6
+      ],
+      [
+        "_tlv_get_addr",
+        6
+      ],
+      [
+        "<hyper::proto::h1::conn::Conn<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>, bytes::bytes::Bytes, hyper::proto::h1::role::Server>>::poll_read_head",
+        6
+      ],
+      [
+        "<hyper::proto::h1::io::Buffered<hyper_util::rt::tokio::TokioIo<tokio::net::tcp::stream::TcpStream>, hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>>::parse::<hyper::proto::h1::role::Server>",
+        6
+      ],
+      [
+        "<tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_read",
+        6
+      ]
+    ],
+    "all_thread_counts": [
+      {
+        "name": "Thread_48830705   DispatchQueue_1: com.apple.main-thread  (serial)",
+        "samples": 6007
+      }
+    ]
+  }
+]

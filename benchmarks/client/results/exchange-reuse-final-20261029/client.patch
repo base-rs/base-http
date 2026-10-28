@@ -1,0 +1,839 @@
+--- before/base-http-client/Cargo.toml
++++ after/base-http-client/Cargo.toml
+@@ -16,6 +16,8 @@
+ base-scheduler = "0.2.0"
+ event-listener = "5.4.2"
+ async-stream = "0.3.6"
++pin-project-lite = "0.2.17"
++crossbeam-utils = "0.8.23"
+ futures-channel = "0.3.31"
+ futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await", "sink"] }
+ rustls = { version = "0.23.46", default-features = false, features = ["std", "ring", "tls12"], optional = true }
+--- before/base-http-client/Cargo.lock
++++ after/base-http-client/Cargo.lock
+@@ -114,10 +114,12 @@
+  "base-pool",
+  "base-scheduler",
+  "base-scheduler-direct",
++ "crossbeam-utils",
+  "event-listener",
+  "futures-channel",
+  "futures-lite",
+  "futures-util",
++ "pin-project-lite",
+  "rcgen",
+  "rustls",
+ ]
+@@ -209,6 +211,12 @@
+ version = "1.0.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "4e7648175b45a9a48536d676f68d918270699102aa8dab5496df06904c914600"
++
++[[package]]
++name = "crossbeam-utils"
++version = "0.8.23"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "a31eee39dddec8330830986fcd7625edb5a24ec90ea038215273bbc3adb08ac6"
+ 
+ [[package]]
+ name = "data-encoding"
+--- before/base-http-client/src/lib.rs
++++ after/base-http-client/src/lib.rs
+@@ -10,6 +10,7 @@
+ mod driver;
+ mod error;
+ mod outgoing;
++mod reuse;
+ mod writable;
+ pub use writable::{PendingResponse, RequestBodyWriter, StreamingResponseBody, WritableRequest};
+ 
+--- before/base-http-client/src/writable.rs
++++ after/base-http-client/src/writable.rs
+@@ -7,6 +7,7 @@
+     Client, Error,
+     driver::{CancelOnDrop, Pending, checked, lock},
+     outgoing::{Interim, Observer},
++    reuse::{Cache, Recycle, Reused},
+ };
+ use base_endpoint::stream::{ReadableStream, WritableStream};
+ use base_http::{
+@@ -27,10 +28,37 @@
+     task::{Context, Poll},
+ };
+ 
+-type PushSink<'scope> =
+-    Pin<Box<dyn Sink<(BodyFrame<Vec<u8>>, Cancellation), Error = Error> + Send + 'scope>>;
+-type ResponseStream<'scope> =
+-    Pin<Box<dyn Stream<Item = Result<ResponseEvent, Error>> + Send + 'scope>>;
++trait Push: Sink<(BodyFrame<Vec<u8>>, Cancellation), Error = Error> + Recycle {}
++impl<T: Sink<(BodyFrame<Vec<u8>>, Cancellation), Error = Error> + Recycle> Push for T {}
++trait Receive: Stream<Item = Result<ResponseEvent, Error>> + Recycle {}
++impl<T: Stream<Item = Result<ResponseEvent, Error>> + Recycle> Receive for T {}
++pub(crate) trait OpeningOperation<'scope>:
++    Future<Output = Result<WritableRequest<'scope>, Error>> + Recycle
++{
++}
++impl<'scope, T: Future<Output = Result<WritableRequest<'scope>, Error>> + Recycle>
++    OpeningOperation<'scope> for T
++{
++}
++type PushSink<'scope> = Reused<dyn Push + Send + 'scope>;
++type ResponseStream<'scope> = Reused<dyn Receive + Send + 'scope>;
++pub(crate) type Opening<'scope> = Reused<dyn OpeningOperation<'scope> + Send + 'scope>;
++pub(crate) type OpenFactory<'scope, R, W> = Box<
++    dyn Fn(
++            Return<'scope, ResponseReader<R>>,
++            Return<'scope, RequestWriter<W>>,
++            RequestMetadata,
++            Box<dyn Observer + 'scope>,
++            Cancellation,
++        ) -> Opening<'scope>
++        + Send
++        + Sync
++        + 'scope,
++>;
++
++pub(crate) fn failed_open<'scope>(error: Error) -> Opening<'scope> {
++    Reused::new(Cache::new().take(|| std::future::ready(Err(error))))
++}
+ 
+ impl<'scope> Client<'scope> {
+     /// Acquire a connection and send metadata for an imperative upload.
+@@ -330,8 +358,7 @@
+                 .stream
+                 .as_mut()
+                 .expect("response already polled")
+-                .as_mut()
+-                .poll_next(cx)
++                .poll_next_unpin(cx)
+             {
+                 Poll::Pending => return Poll::Pending,
+                 Poll::Ready(event) => event
+@@ -341,7 +368,12 @@
+         };
+         match event {
+             Ok(ResponseEvent::Metadata(metadata, length, trailers, empty)) => {
+-                let stream = self.stream.take();
++                let mut stream = self.stream.take();
++                if empty {
++                    // The decoder has already returned its input direction.
++                    // Release storage even if this empty body is retained.
++                    stream.take();
++                }
+                 Poll::Ready(Ok(Response::from_parts(
+                     metadata,
+                     StreamingResponseBody {
+@@ -608,114 +640,128 @@
+     }
+ }
+ 
+-/// Open directly on the admitted connection's retained state. Guards recover
+-/// both directions on cancellation/drop; normal I/O never submits driver work.
+-pub(crate) async fn open<'scope, R, W>(
+-    mut input: Return<'scope, ResponseReader<R>>,
+-    mut output: Return<'scope, RequestWriter<W>>,
+-    metadata: RequestMetadata,
+-    observer: Box<dyn Observer + 'scope>,
+-    lifetime: Cancellation,
+-) -> Result<WritableRequest<'scope>, Error>
++/// Each connection retains only empty adapter allocations. The factory hides
++/// their concrete future types without changing caller-driven HTTP/1 progress.
++pub(crate) fn factory<'scope, R, W>() -> OpenFactory<'scope, R, W>
+ where
+     R: ReadableStream + 'scope,
+     W: WritableStream + 'scope,
+ {
+-    let exchange = output.completion.clone();
+-    let local = exchange.cancellation.clone();
+-    checked(
+-        async {
+-            output
+-                .value
+-                .as_mut()
+-                .unwrap()
+-                .begin_request(&metadata, &local)
+-                .await
+-                .map_err(Error::from)
+-        },
+-        &lifetime,
+-    )
+-    .await?;
+-    let writing_lifetime = lifetime.clone();
+-    let writing = unfold(
+-        output,
+-        move |mut owner, (frame, cancellation): (BodyFrame<Vec<u8>>, Cancellation)| {
+-            let lifetime = writing_lifetime.clone();
+-            async move {
+-                let end = frame.is_end();
+-                checked(
+-                    checked(
+-                        async {
+-                            owner
+-                                .value
+-                                .as_mut()
+-                                .ok_or(Error::Closed)?
+-                                .write_frame(frame, &owner.completion.cancellation)
+-                                .await
+-                                .map_err(Error::from)
+-                        },
+-                        &cancellation,
+-                    ),
+-                    &lifetime,
+-                )
+-                .await?;
+-                if end {
+-                    owner.complete();
+-                }
+-                Ok(owner)
+-            }
+-        },
+-    );
+-    let receive_cancel = local.clone();
+-    let receiving = async_stream::try_stream! {
+-        let mut observer = observer;
+-        let mut interim = InterimResponses::new(Interim(observer.as_mut()));
+-        // Socket reads and interim callbacks already observe receive_cancel.
+-        // Keep only the separate caller-lifetime check around that operation.
+-        let response = checked(
+-            async {
+-                input.value.as_mut().unwrap()
+-                    .read_response(&metadata, &mut interim, &receive_cancel)
+-                    .await.map_err(Error::from)
+-            },
+-            &lifetime,
+-        ).await?;
+-        let (metadata, mut body) = response.into_parts();
+-        let length = body.length();
+-        let trailers = body.may_have_trailers();
+-        if body.is_empty() {
+-            drop(body);
+-            input.complete();
+-            yield ResponseEvent::Metadata(metadata, length, trailers, true);
+-        } else {
+-            yield ResponseEvent::Metadata(metadata, length, trailers, false);
+-            loop {
+-                let frame = checked(
+-                    async { body.read(&receive_cancel).await.map_err(Error::from) },
++    let writing_cache = Cache::new();
++    let receiving_cache = Cache::new();
++    let adapters = move |mut input: Return<'scope, ResponseReader<R>>,
++                         output: Return<'scope, RequestWriter<W>>,
++                         metadata: RequestMetadata,
++                         observer: Box<dyn Observer + 'scope>,
++                         lifetime: Cancellation| {
++        let exchange = output.completion.clone();
++        let local = exchange.cancellation.clone();
++        let writing_lifetime = lifetime.clone();
++        let writing = writing_cache.take(|| {
++            unfold(
++                output,
++                move |mut owner, (frame, cancellation): (BodyFrame<Vec<u8>>, Cancellation)| {
++                    let lifetime = writing_lifetime.clone();
++                    async move {
++                        let end = frame.is_end();
++                        checked(
++                            checked(
++                                async {
++                                    owner
++                                        .value
++                                        .as_mut()
++                                        .ok_or(Error::Closed)?
++                                        .write_frame(frame, &owner.completion.cancellation)
++                                        .await
++                                        .map_err(Error::from)
++                                },
++                                &cancellation,
++                            ),
++                            &lifetime,
++                        )
++                        .await?;
++                        if end {
++                            owner.complete();
++                        }
++                        Ok(owner)
++                    }
++                },
++            )
++        });
++        let receive_cancel = local.clone();
++        let receiving = receiving_cache.take(|| {
++            async_stream::try_stream! {
++                let mut observer = observer;
++                let mut interim = InterimResponses::new(Interim(observer.as_mut()));
++                // Socket reads and interim callbacks already observe receive_cancel.
++                // Keep only the separate caller-lifetime check around that operation.
++                let response = checked(
++                    async {
++                        input.value.as_mut().unwrap()
++                            .read_response(&metadata, &mut interim, &receive_cancel)
++                            .await.map_err(Error::from)
++                    },
+                     &lifetime,
+                 ).await?;
+-                if frame.is_end() {
++                let (metadata, mut body) = response.into_parts();
++                let length = body.length();
++                let trailers = body.may_have_trailers();
++                if body.is_empty() {
+                     drop(body);
+                     input.complete();
+-                    yield ResponseEvent::Frame(frame);
+-                    break;
++                    yield ResponseEvent::Metadata(metadata, length, trailers, true);
++                } else {
++                    yield ResponseEvent::Metadata(metadata, length, trailers, false);
++                    loop {
++                        let frame = checked(
++                            async { body.read(&receive_cancel).await.map_err(Error::from) },
++                            &lifetime,
++                        ).await?;
++                        if frame.is_end() {
++                            drop(body);
++                            input.complete();
++                            yield ResponseEvent::Frame(frame);
++                            break;
++                        }
++                        yield ResponseEvent::Frame(frame);
++                    }
+                 }
+-                yield ResponseEvent::Frame(frame);
+-            }
++            }
++        });
++        let response = PendingResponse {
++            stream: Some(Reused::new(receiving)),
++            cancellation: local.clone(),
++        };
++        WritableRequest {
++            output: RequestBodyWriter {
++                sink: Some(Reused::new(writing)),
++                exchange,
++                ended: false,
++                completion: None,
++            },
++            response,
+         }
+     };
+-    let response = PendingResponse {
+-        stream: Some(Box::pin(receiving)),
+-        cancellation: local.clone(),
+-    };
+-    let request = WritableRequest {
+-        output: RequestBodyWriter {
+-            sink: Some(Box::pin(writing)),
+-            exchange,
+-            ended: false,
+-            completion: None,
+-        },
+-        response,
+-    };
+-    Ok(request)
+-}
++    let adapters = Arc::new(adapters);
++    let opening_cache = Cache::new();
++    Box::new(move |input, mut output, metadata, observer, lifetime| {
++        let adapters = adapters.clone();
++        Reused::new(opening_cache.take(|| async move {
++            let local = output.completion.cancellation.clone();
++            checked(
++                async {
++                    output
++                        .value
++                        .as_mut()
++                        .unwrap()
++                        .begin_request(&metadata, &local)
++                        .await
++                        .map_err(Error::from)
++                },
++                &lifetime,
++            )
++            .await?;
++            Ok(adapters(input, output, metadata, observer, lifetime))
++        }))
++    })
++}
+--- before/base-http-client/src/connection.rs
++++ after/base-http-client/src/connection.rs
+@@ -4,9 +4,11 @@
+ use crate::{
+     Endpoint, Error, Options, ResponseBody,
+     body::Consumption,
+-    driver::{Assigned, Operation, Queue, Work, checked, linked, lock},
++    driver::{Assigned, Operation, Queue, checked, linked, lock},
+     outgoing::Interim,
+-    writable::{COMPLETE, ExchangeCompletion, FINALIZE, Open, Return, ReturnTo},
++    writable::{
++        COMPLETE, ExchangeCompletion, FINALIZE, Open, OpenFactory, Opening, Return, ReturnTo,
++    },
+ };
+ use base_endpoint::{
+     AddressEndpoint, ConnectEndpoint,
+@@ -66,17 +68,14 @@
+         drop(slot);
+         self.inner.changed.notify(usize::MAX);
+     }
+-    pub(crate) fn open(
+-        &self,
+-        opening: Open<'scope>,
+-    ) -> Work<'scope, Result<crate::WritableRequest<'scope>, Error>> {
++    pub(crate) fn open(&self, opening: Open<'scope>) -> Opening<'scope> {
+         let direct = lock(&self.inner.direct).clone();
+         match direct {
+             Some(direct) => direct.open(opening),
+-            None => Box::pin(async move {
++            None => {
+                 opening.active.complete();
+-                Err(Error::Closed)
+-            }),
++                crate::writable::failed_open(Error::Closed)
++            }
+         }
+     }
+     async fn next(&self, lifetime: &Cancellation) -> Option<Assigned<'scope>> {
+@@ -244,10 +243,7 @@
+ // A connection retains its typed HTTP buffers and transport directions. Only
+ // an admitted exchange may take them; short locks protect transfer, never I/O.
+ trait DirectConnection<'scope>: Send + Sync {
+-    fn open(
+-        self: Arc<Self>,
+-        opening: Open<'scope>,
+-    ) -> Work<'scope, Result<crate::WritableRequest<'scope>, Error>>;
++    fn open(self: Arc<Self>, opening: Open<'scope>) -> Opening<'scope>;
+ }
+ struct Codecs<R, W> {
+     input: Option<ResponseReader<R>>,
+@@ -259,6 +255,7 @@
+     closing: AtomicBool,
+     registration: MultiplexResource<Connection<'scope>>,
+     queue: Weak<Queue<'scope>>,
++    open: OpenFactory<'scope, R, W>,
+ }
+ impl<R: ReadableStream, W: WritableStream> Http1Connection<'_, R, W> {
+     fn take(&self) -> Result<(ResponseReader<R>, RequestWriter<W>), Error> {
+@@ -303,16 +300,13 @@
+ impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope> DirectConnection<'scope>
+     for Http1Connection<'scope, R, W>
+ {
+-    fn open(
+-        self: Arc<Self>,
+-        opening: Open<'scope>,
+-    ) -> Work<'scope, Result<crate::WritableRequest<'scope>, Error>> {
++    fn open(self: Arc<Self>, opening: Open<'scope>) -> Opening<'scope> {
+         let (input, output) = match self.take() {
+             Ok(codecs) => codecs,
+             Err(error) => {
+                 self.registration.retire();
+                 opening.active.complete();
+-                return Box::pin(async move { Err(error) });
++                return crate::writable::failed_open(error);
+             }
+         };
+         let completion = ExchangeCompletion::new(
+@@ -324,14 +318,14 @@
+         // Construct guards before the future: even dropping an unpolled open
+         // returns both directions and acknowledges their retirement obligation.
+         let input = Return::new(input, completion.clone(), self.clone(), false);
+-        let output = Return::new(output, completion, self, true);
+-        Box::pin(crate::writable::open(
++        let output = Return::new(output, completion, self.clone(), true);
++        (self.open)(
+             input,
+             output,
+             opening.metadata,
+             opening.interim,
+             opening.lifetime,
+-        ))
++        )
+     }
+ }
+ impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope>
+@@ -440,6 +434,7 @@
+         closing: AtomicBool::new(false),
+         registration,
+         queue,
++        open: crate::writable::factory(),
+     });
+     *lock(&owner.connection.inner.direct) = Some(state.clone());
+     if !state.registration.update(Admission::concurrent(1)) {
+--- before/base-http-client/src/reuse.rs
++++ after/base-http-client/src/reuse.rs
+@@ -0,0 +1,305 @@
++// Released under the MIT License.
++// Copyright, 2026, by Samuel Williams.
++
++//! Reuse storage for pinned operations, never their live state.
++
++use crossbeam_utils::atomic::AtomicCell;
++use futures_util::{Sink, Stream};
++use pin_project_lite::pin_project;
++use std::{
++    future::Future,
++    pin::Pin,
++    sync::{Arc, Weak},
++    task::{Context, Poll},
++};
++
++pub(crate) struct Cache<F> {
++    idle: AtomicCell<Option<Pin<Box<Entry<F>>>>>,
++}
++impl<F> Cache<F> {
++    pub(crate) fn new() -> Arc<Self> {
++        Arc::new(Self {
++            idle: AtomicCell::new(None),
++        })
++    }
++    pub(crate) fn take(self: &Arc<Self>, make: impl FnOnce() -> F) -> Pin<Box<Entry<F>>> {
++        let mut entry = self.idle.take().unwrap_or_else(|| {
++            Box::pin(Entry {
++                work: Slot::Empty,
++                cache: Arc::downgrade(self),
++            })
++        });
++        // Select storage before constructing the large operation state.
++        entry
++            .as_mut()
++            .project()
++            .work
++            .set(Slot::Occupied { work: make() });
++        entry
++    }
++}
++
++pin_project! {
++    pub(crate) struct Entry<F> {
++        #[pin]
++        work: Slot<F>,
++        cache: Weak<Cache<F>>,
++    }
++}
++
++// Generated pinned replacement drops the occupied field in place without
++// moving it out. On Rust 1.87 this also avoids the large inactive-payload copy
++// emitted when clearing a pinned Option with Pin::set(None).
++pin_project! {
++    #[project = SlotProjection]
++    #[project_replace = SlotReplacement]
++    #[repr(u8)]
++    enum Slot<F> {
++        Empty,
++        Occupied { #[pin] work: F },
++    }
++}
++impl<F> Entry<F> {
++    fn work(self: Pin<&mut Self>) -> Pin<&mut F> {
++        match self.project().work.project() {
++            SlotProjection::Occupied { work } => work,
++            SlotProjection::Empty => unreachable!("idle operation polled"),
++        }
++    }
++}
++
++pub(crate) trait Recycle {
++    fn recycle(self: Pin<Box<Self>>);
++}
++impl<F> Recycle for Entry<F> {
++    fn recycle(mut self: Pin<Box<Self>>) {
++        // Drop captures (including connection owners) in place before storing
++        // the allocation. An idle entry must never retain an exchange or form
++        // a connection -> cache -> operation -> connection ownership cycle.
++        self.as_mut().project().work.project_replace(Slot::Empty);
++        if let Some(cache) = self.cache.upgrade() {
++            // Keep at most one empty allocation; overlapping returns may
++            // replace an earlier one. Drop displaced storage outside the cell.
++            drop(cache.idle.swap(Some(self)));
++        }
++    }
++}
++impl<F: Future> Future for Entry<F> {
++    type Output = F::Output;
++    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
++        self.work().poll(cx)
++    }
++}
++impl<F: Stream> Stream for Entry<F> {
++    type Item = F::Item;
++    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
++        self.work().poll_next(cx)
++    }
++}
++impl<F: Sink<T>, T> Sink<T> for Entry<F> {
++    type Error = F::Error;
++    fn poll_ready(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
++        self.work().poll_ready(cx)
++    }
++    fn start_send(self: Pin<&mut Self>, item: T) -> Result<(), Self::Error> {
++        self.work().start_send(item)
++    }
++    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
++        self.work().poll_flush(cx)
++    }
++    fn poll_close(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
++        self.work().poll_close(cx)
++    }
++}
++
++/// Owning handle whose drop clears the operation and returns its allocation.
++/// The operation itself remains pinned until it has been dropped in place.
++pub(crate) struct Reused<T: Recycle + ?Sized>(Option<Pin<Box<T>>>);
++impl<T: Recycle + ?Sized> Reused<T> {
++    pub(crate) fn new(work: Pin<Box<T>>) -> Self {
++        Self(Some(work))
++    }
++}
++impl<T: Recycle + ?Sized> Drop for Reused<T> {
++    fn drop(&mut self) {
++        self.0.take().unwrap().recycle();
++    }
++}
++impl<T: Future + Recycle + ?Sized> Future for Reused<T> {
++    type Output = T::Output;
++    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
++        self.0.as_mut().unwrap().as_mut().poll(cx)
++    }
++}
++impl<T: Stream + Recycle + ?Sized> Stream for Reused<T> {
++    type Item = T::Item;
++    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
++        self.0.as_mut().unwrap().as_mut().poll_next(cx)
++    }
++}
++impl<T: Sink<I> + Recycle + ?Sized, I> Sink<I> for Reused<T> {
++    type Error = T::Error;
++    fn poll_ready(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
++        self.0.as_mut().unwrap().as_mut().poll_ready(cx)
++    }
++    fn start_send(mut self: Pin<&mut Self>, item: I) -> Result<(), Self::Error> {
++        self.0.as_mut().unwrap().as_mut().start_send(item)
++    }
++    fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
++        self.0.as_mut().unwrap().as_mut().poll_flush(cx)
++    }
++    fn poll_close(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
++        self.0.as_mut().unwrap().as_mut().poll_close(cx)
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use futures_util::task::noop_waker;
++    use std::{
++        marker::PhantomPinned,
++        sync::atomic::{AtomicUsize, Ordering},
++    };
++
++    struct PinnedOperation {
++        address: Arc<AtomicUsize>,
++        drops: Arc<AtomicUsize>,
++        _capture: Arc<()>,
++        _pinned: PhantomPinned,
++    }
++    impl Future for PinnedOperation {
++        type Output = ();
++        fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<()> {
++            let this = self.as_ref().get_ref();
++            let address = this as *const Self as usize;
++            let previous = this.address.swap(address, Ordering::SeqCst);
++            assert!(previous == 0 || previous == address);
++            Poll::Ready(())
++        }
++    }
++    impl Drop for PinnedOperation {
++        fn drop(&mut self) {
++            let address = self.address.load(Ordering::SeqCst);
++            if address != 0 {
++                assert_eq!(address, self as *const Self as usize);
++            }
++            self.drops.fetch_add(1, Ordering::SeqCst);
++        }
++    }
++
++    #[test]
++    fn pinned_state_is_dropped_in_place_before_storage_is_reused() {
++        let cache = Cache::new();
++        let capture = Arc::new(());
++        let drops = Arc::new(AtomicUsize::new(0));
++        let mut previous = 0;
++        for iteration in 0..3 {
++            let address = Arc::new(AtomicUsize::new(0));
++            let mut operation = Reused::new(cache.take(|| PinnedOperation {
++                address: address.clone(),
++                drops: drops.clone(),
++                _capture: capture.clone(),
++                _pinned: PhantomPinned,
++            }));
++            assert!(
++                Pin::new(&mut operation)
++                    .poll(&mut Context::from_waker(&noop_waker()))
++                    .is_ready()
++            );
++            let current = address.load(Ordering::SeqCst);
++            if previous != 0 {
++                assert_eq!(current, previous);
++            }
++            previous = current;
++            drop(operation);
++            assert_eq!(drops.load(Ordering::SeqCst), iteration + 1);
++            assert_eq!(
++                Arc::strong_count(&capture),
++                1,
++                "idle storage retains no captures"
++            );
++        }
++        let weak = Arc::downgrade(&cache);
++        drop(cache);
++        assert!(
++            weak.upgrade().is_none(),
++            "idle entries do not keep their cache alive"
++        );
++    }
++
++    #[test]
++    fn retained_operations_never_share_storage_and_surplus_is_discarded() {
++        let cache = Cache::new();
++        let mut first = Reused::new(cache.take(|| std::future::ready(())));
++        assert!(
++            Pin::new(&mut first)
++                .poll(&mut Context::from_waker(&noop_waker()))
++                .is_ready()
++        );
++        let first_address = first.0.as_ref().unwrap().as_ref().get_ref() as *const _;
++        let second = Reused::new(cache.take(|| std::future::ready(())));
++        let second_address = second.0.as_ref().unwrap().as_ref().get_ref() as *const _;
++        assert_ne!(first_address, second_address);
++        drop(second);
++        drop(first);
++        let third = Reused::new(cache.take(|| std::future::ready(())));
++        assert_eq!(
++            first_address,
++            third.0.as_ref().unwrap().as_ref().get_ref() as *const _
++        );
++        // An outstanding entry can also outlive the connection/cache.
++        let weak = Arc::downgrade(&cache);
++        drop(cache);
++        assert!(weak.upgrade().is_none());
++        drop(third);
++    }
++
++    #[test]
++    fn dropping_unpolled_operation_clears_its_owners() {
++        let cache = Cache::new();
++        let capture = Arc::new(());
++        let drops = Arc::new(AtomicUsize::new(0));
++        let operation = Reused::new(cache.take(|| PinnedOperation {
++            address: Arc::new(AtomicUsize::new(0)),
++            drops: drops.clone(),
++            _capture: capture.clone(),
++            _pinned: PhantomPinned,
++        }));
++        drop(operation);
++        assert_eq!(drops.load(Ordering::SeqCst), 1);
++        assert_eq!(Arc::strong_count(&capture), 1);
++    }
++
++    #[test]
++    fn storage_can_be_taken_and_returned_from_different_threads() {
++        let cache = Cache::new();
++        let capture = Arc::new(());
++        let drops = Arc::new(AtomicUsize::new(0));
++        std::thread::scope(|scope| {
++            for _ in 0..4 {
++                let cache = &cache;
++                let capture = &capture;
++                let drops = &drops;
++                scope.spawn(move || {
++                    for _ in 0..100 {
++                        let mut operation = Reused::new(cache.take(|| PinnedOperation {
++                            address: Arc::new(AtomicUsize::new(0)),
++                            drops: drops.clone(),
++                            _capture: capture.clone(),
++                            _pinned: PhantomPinned,
++                        }));
++                        assert!(
++                            Pin::new(&mut operation)
++                                .poll(&mut Context::from_waker(&noop_waker()))
++                                .is_ready()
++                        );
++                        std::thread::yield_now();
++                    }
++                });
++            }
++        });
++        assert_eq!(drops.load(Ordering::SeqCst), 400);
++        assert_eq!(Arc::strong_count(&capture), 1);
++    }
++}
+--- before/base-http-client/tests/writable.rs
++++ after/base-http-client/tests/writable.rs
+@@ -487,6 +487,57 @@
+         );
+         assert_eq!(client.pool_stats().uses, 0);
+         client.begin_close();
++    });
++    peer.join().unwrap();
++}
++
++#[test]
++fn completed_adapters_release_observers_while_old_handles_remain_alive() {
++    use std::sync::Arc;
++    let (address, peer) = peer(|listener| {
++        let mut stream = accept(&listener);
++        for index in 0..6 {
++            assert!(head(&mut stream).starts_with("GET / HTTP/1.1\r\n"));
++            let response: &[u8] = if index % 2 == 0 {
++                b"HTTP/1.1 204 No Content\r\n\r\n"
++            } else {
++                b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n2\r\nok\r\n0\r\nx-done: yes\r\n\r\n"
++            };
++            stream.get_mut().write_all(response).unwrap();
++        }
++    });
++    run(address, async |client| {
++        let cancel = Cancellation::never();
++        let mut old_handles = Vec::new();
++        for index in 0..6 {
++            let capture = Arc::new(());
++            let weak = Arc::downgrade(&capture);
++            let observer = move |_: base_http::ResponseMetadata| {
++                drop(capture.clone());
++                std::future::ready(Ok::<_, std::convert::Infallible>(()))
++            };
++            let mut metadata = RequestMetadata::new(Method::GET);
++            metadata.path = Some("/".into());
++            metadata.content_length = Some(0);
++            let (mut output, pending) = client
++                .open_request_with_interim(metadata, observer, &cancel)
++                .await
++                .unwrap()
++                .split();
++            output.write_frame(BodyFrame::End, &cancel).await.unwrap();
++            let mut response = pending.await.unwrap();
++            let expected: &[u8] = if index % 2 == 0 { b"" } else { b"ok" };
++            assert_eq!(payload(&mut response.body).await, expected);
++            assert!(
++                weak.upgrade().is_none(),
++                "cached storage retains no observer"
++            );
++            assert_eq!(client.pool_stats().uses, 0);
++            old_handles.push((output, response));
++        }
++        // Idle caches must not keep completed uses alive during shutdown.
++        client.begin_close();
++        drop(old_handles);
+     });
+     peer.join().unwrap();
+ }
+--- before/base-http/benchmarks/client/Cargo.lock
++++ after/base-http/benchmarks/client/Cargo.lock
+@@ -145,9 +145,11 @@
+  "base-http1",
+  "base-pool",
+  "base-scheduler",
++ "crossbeam-utils",
+  "event-listener",
+  "futures-channel",
+  "futures-util",
++ "pin-project-lite",
+  "rustls",
+ ]
+ 

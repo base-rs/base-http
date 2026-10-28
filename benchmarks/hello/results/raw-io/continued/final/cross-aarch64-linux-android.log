@@ -1,0 +1,53 @@
+   Compiling libc v0.2.191
+    Checking pin-project-lite v0.2.17
+    Checking parking v2.2.1
+    Checking fastrand v2.5.0
+    Checking cfg-if v1.0.5
+    Checking linux-raw-sys v0.12.1
+    Checking bitflags v2.13.2
+    Checking futures-core v0.3.34
+    Checking futures-io v0.3.34
+   Compiling crossbeam-utils v0.8.23
+   Compiling rustix v1.1.5
+   Compiling signal-hook v0.4.5
+   Compiling async-io v2.6.0
+    Checking slab v0.4.12
+   Compiling getrandom v0.4.3
+    Checking once_cell v1.21.4
+   Compiling crossbeam-epoch v0.9.21
+    Checking allocation-counter v0.8.1
+    Checking futures-channel v0.3.34
+    Checking event-listener v5.4.2
+   Compiling crossbeam-deque v0.8.8
+    Checking async-task v4.7.1
+    Checking base-scheduler-timers v0.1.0 (/Users/samuel/Developer/base-rs/base-scheduler/crates/timers)
+    Checking futures-lite v2.6.1
+    Checking concurrent-queue v2.5.0
+    Checking crossbeam-queue v0.3.14
+    Checking errno v0.3.14
+    Checking socket2 v0.6.5
+    Checking base-scheduler v0.1.0 (/Users/samuel/Developer/base-rs/base-scheduler)
+    Checking signal-hook-registry v1.4.8
+    Checking base-scheduler-conformance v0.1.0 (/Users/samuel/Developer/base-rs/base-scheduler/crates/conformance)
+    Checking polling v3.11.0
+    Checking tempfile v3.27.0
+    Checking base-scheduler-selector v0.1.0 (/Users/samuel/Developer/base-rs/base-scheduler/crates/selector)
+error[E0425]: cannot find value `name` in this scope
+   --> crates/selector/src/process_wait/tests.rs:135:14
+    |
+135 |             (name, Err(io::ErrorKind::PermissionDenied.into())),
+    |              ^^^^ not found in this scope
+
+warning: unused import: `os::fd::IntoRawFd`
+  --> crates/selector/src/process_wait/tests.rs:35:34
+   |
+35 |             use std::{io::Write, os::fd::IntoRawFd, os::unix::net::UnixStream};
+   |                                  ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+    Checking base-scheduler-native v0.1.0 (/Users/samuel/Developer/base-rs/base-scheduler/crates/native)
+For more information about this error, try `rustc --explain E0425`.
+warning: `base-scheduler-selector` (lib test) generated 1 warning
+error: could not compile `base-scheduler-selector` (lib test) due to 1 previous error; 1 warning emitted
+warning: build failed, waiting for other jobs to finish...

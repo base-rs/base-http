@@ -1,0 +1,24 @@
+[package]
+name = "base-http"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/base-rs/base-http"
+description = "Runtime-independent HTTP semantics and bodies for Base"
+readme = "readme.md"
+include = ["src/**", "tests/**", "design/**", "Cargo.toml", "readme.md", "license.md"]
+
+[dependencies]
+base-scheduler = "0.1.0"
+event-listener = "5.4.2"
+
+[dev-dependencies]
+base-scheduler-direct = "0.1.0"
+futures-lite = "2.6.1"
+tempfile = "3"
+
+# Exercise the local scheduler implementation throughout development.
+[patch.crates-io]
+base-scheduler = { path = "../base-scheduler" }
+base-scheduler-direct = { path = "../base-scheduler/crates/direct" }

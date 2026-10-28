@@ -1,0 +1,14 @@
+Added new event:
+  base_http_lifecycle:tcp_recvmsg (on tcp_recvmsg)
+
+You can now use it in all perf tools, such as:
+
+	perf record -e base_http_lifecycle:tcp_recvmsg -aR sleep 1
+
+Added new event:
+  base_http_lifecycle:tcp_recvmsg_return32__return (on tcp_recvmsg%return with result=$retval:s32)
+
+You can now use it in all perf tools, such as:
+
+	perf record -e base_http_lifecycle:tcp_recvmsg_return32__return -aR sleep 1
+

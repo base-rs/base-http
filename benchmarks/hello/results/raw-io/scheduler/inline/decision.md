@@ -1,0 +1,1 @@
+Rejected after five interleaved five-second samples: ordinary inline hints on scalar bound read/write wrappers and cancellable changed median user CPU from0.335986 to0.335215 us/request (-0.23%), with throughput from131786 to130576 req/s (-0.92%) and substantial system-time variation. No supported gain. Restored reviewed sources.

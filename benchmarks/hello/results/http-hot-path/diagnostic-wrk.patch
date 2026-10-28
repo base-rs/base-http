@@ -1,0 +1,53 @@
+--- /tmp/base-http-wrk.LLBCBU/src/wrk.h	2026-10-26 19:58:16
++++ /var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-wrk-latency-ocoa4u4p/src/wrk.h	2026-10-27 00:21:17
+@@ -54,6 +54,7 @@
+     SSL *ssl;
+     bool delayed;
+     uint64_t start;
++    uint64_t monotonic_start;
+     char *request;
+     size_t length;
+     size_t written;
+--- /tmp/base-http-wrk.LLBCBU/src/wrk.c	2026-10-26 19:58:16
++++ /var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-wrk-latency-ocoa4u4p/src/wrk.c	2026-10-27 00:21:17
+@@ -1,3 +1,4 @@
++#include <time.h>
+ // Copyright (C) 2012 - Will Glozer.  All rights reserved.
+ 
+ #include "wrk.h"
+@@ -319,12 +320,19 @@
+     connection *c = parser->data;
+     buffer_append(&c->body, at, len);
+     return 0;
++}
++
++static uint64_t monotonic_us(void) {
++    struct timespec now;
++    clock_gettime(CLOCK_MONOTONIC, &now);
++    return (uint64_t)now.tv_sec * 1000000 + now.tv_nsec / 1000;
+ }
+ 
+ static int response_complete(http_parser *parser) {
+     connection *c = parser->data;
+     thread *thread = c->thread;
+     uint64_t now = time_us();
++    uint64_t monotonic_now = monotonic_us();
+     int status = parser->status_code;
+ 
+     thread->complete++;
+@@ -343,6 +351,7 @@
+     if (--c->pending == 0) {
+         if (!stats_record(statistics.latency, now - c->start)) {
+             thread->errors.timeout++;
++            fprintf(stderr, "WRK_LATENCY_OUTLIER fd=%d wall_start=%" PRIu64 " wall_now=%" PRIu64 " wall_elapsed=%" PRId64 " monotonic_elapsed=%" PRIu64 " limit=%" PRIu64 "\n", c->fd, c->start, now, (int64_t)now - (int64_t)c->start, monotonic_now - c->monotonic_start, statistics.latency->limit);
+         }
+         c->delayed = cfg.delay;
+         aeCreateFileEvent(thread->loop, c->fd, AE_WRITABLE, socket_writeable, c);
+@@ -397,6 +406,7 @@
+             script_request(thread->L, &c->request, &c->length);
+         }
+         c->start   = time_us();
++        c->monotonic_start = monotonic_us();
+         c->pending = cfg.pipeline;
+     }
+ 

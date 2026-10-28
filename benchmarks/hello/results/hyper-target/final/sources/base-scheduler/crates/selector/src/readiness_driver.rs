@@ -1,0 +1,437 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
+use crate::{Interest, SelectorDriver, SelectorWorker};
+use base_scheduler::Cancellation;
+use event_listener::Event as Notification;
+use polling::{Event, PollMode};
+#[cfg(target_os = "macos")]
+mod kqueue;
+#[cfg(target_os = "macos")]
+use kqueue::{Events, Poller};
+#[cfg(not(target_os = "macos"))]
+use polling::{Events, Poller};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    io,
+    marker::PhantomData,
+    rc::Rc,
+    sync::{
+        Arc, Mutex, Weak,
+        atomic::{AtomicUsize, Ordering},
+    },
+    task::{Wake, Waker},
+    time::Duration,
+};
+
+type Native = async_io::Async<socket2::Socket>;
+
+pub(crate) struct DriverGroup {
+    closed: Cancellation,
+    controllers: Vec<Arc<Controller>>,
+    next: AtomicUsize,
+}
+impl DriverGroup {
+    pub(crate) fn close(&self) {
+        self.closed.cancel();
+        for controller in &self.controllers {
+            controller.close();
+        }
+    }
+    fn route(self: &Arc<Self>) -> Arc<Controller> {
+        let local = ROUTES.with(|routes| {
+            routes
+                .borrow()
+                .iter()
+                .rev()
+                .find(|(group, _)| group.ptr_eq(&Arc::downgrade(self)))
+                .map(|(_, controller)| Arc::clone(controller))
+        });
+        local.unwrap_or_else(|| {
+            Arc::clone(
+                &self.controllers
+                    [self.next.fetch_add(1, Ordering::Relaxed) % self.controllers.len()],
+            )
+        })
+    }
+}
+
+struct Table {
+    closed: bool,
+    next: usize,
+    registrations: HashMap<usize, Weak<Registration>>,
+}
+struct Controller {
+    poller: Poller,
+    table: Mutex<Table>,
+}
+impl Controller {
+    fn close(&self) {
+        let registrations = {
+            let mut table = self.table.lock().unwrap();
+            table.closed = true;
+            table
+                .registrations
+                .drain()
+                .filter_map(|(_, value)| value.upgrade())
+                .collect::<Vec<_>>()
+        };
+        // Never invoke task wakers under the routing/table lock.
+        for registration in registrations {
+            registration.readable.changed.notify(usize::MAX);
+            registration.writable.changed.notify(usize::MAX);
+        }
+        let _ = self.poller.notify();
+    }
+}
+impl Wake for Controller {
+    fn wake(self: Arc<Self>) {
+        self.wake_by_ref();
+    }
+    fn wake_by_ref(self: &Arc<Self>) {
+        let _ = self.poller.notify();
+    }
+}
+
+pub(crate) struct Direction {
+    // Low bit is advisory readiness; upper bits identify the notification.
+    tick: AtomicUsize,
+    changed: Notification,
+}
+impl Direction {
+    fn new() -> Self {
+        let changed = Notification::new();
+        changed.notify(0);
+        Self {
+            tick: AtomicUsize::new(0),
+            changed,
+        }
+    }
+    pub(crate) fn snapshot(&self) -> usize {
+        self.tick.load(Ordering::Acquire)
+    }
+    fn publish(&self) {
+        // Increment the generation before publishing readiness. A racing clear
+        // can at most cause a spurious retry, never erase this notification.
+        self.tick.fetch_add(2, Ordering::AcqRel);
+        self.tick.fetch_or(1, Ordering::Release);
+        self.changed.notify(usize::MAX);
+    }
+    pub(crate) fn clear(&self, observed: usize) {
+        // A WouldBlock must not erase an edge delivered during the syscall.
+        let _ = self.tick.compare_exchange(
+            observed,
+            observed & !1,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+        );
+    }
+    pub(crate) async fn wait(&self, group: &DriverGroup) -> io::Result<()> {
+        event_listener::listener!(self.changed => listener);
+        if group.closed.is_cancelled() {
+            return Err(closed());
+        }
+        if self.snapshot() & 1 == 0 {
+            listener.await;
+        }
+        if group.closed.is_cancelled() {
+            return Err(closed());
+        }
+        Ok(())
+    }
+}
+fn closed() -> io::Error {
+    io::Error::new(io::ErrorKind::BrokenPipe, "readiness driver is closed")
+}
+
+pub(crate) struct Registration {
+    owner: Arc<Controller>,
+    key: usize,
+    readable: Direction,
+    writable: Direction,
+}
+impl Registration {
+    pub(crate) fn direction(&self, interest: Interest) -> &Direction {
+        match interest {
+            Interest::Readable => &self.readable,
+            Interest::Writable => &self.writable,
+        }
+    }
+}
+
+// Kept exclusively by NativeSocket aliases, before their native owner in drop
+// order. Event delivery retains only Registration and never the native socket.
+// This lets cross-thread exclusive close deregister synchronously, even while
+// the driver is publishing a previously collected notification.
+pub(crate) struct SocketRegistrations {
+    socket: Weak<Native>,
+    entries: Mutex<Vec<(Weak<DriverGroup>, Arc<Registration>)>>,
+}
+impl std::fmt::Debug for SocketRegistrations {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SocketRegistrations")
+            .finish_non_exhaustive()
+    }
+}
+impl SocketRegistrations {
+    pub(crate) fn new(socket: &Arc<Native>) -> Self {
+        Self {
+            socket: Arc::downgrade(socket),
+            entries: Mutex::new(Vec::new()),
+        }
+    }
+    pub(crate) fn existing(&self, group: &Arc<DriverGroup>) -> Option<Arc<Registration>> {
+        self.entries
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|(owner, _)| owner.as_ptr() == Arc::as_ptr(group))
+            .map(|(_, registration)| Arc::clone(registration))
+    }
+
+    pub(crate) fn get(
+        &self,
+        group: &Arc<DriverGroup>,
+        socket: &socket2::Socket,
+    ) -> io::Result<Arc<Registration>> {
+        let mut entries = self.entries.lock().unwrap();
+        // Retired groups need no further notifications. Do not accumulate one
+        // poller for every scheduler that has used this compatible socket.
+        entries.retain(|(owner, registration)| {
+            let live = owner
+                .upgrade()
+                .is_some_and(|owner| !owner.closed.is_cancelled());
+            if !live {
+                deregister(registration, socket);
+            }
+            live
+        });
+        if let Some((_, registration)) = entries
+            .iter()
+            .find(|(owner, _)| owner.ptr_eq(&Arc::downgrade(group)))
+        {
+            return Ok(Arc::clone(registration));
+        }
+        let owner = group.route();
+        let mut table = owner.table.lock().unwrap();
+        if table.closed {
+            return Err(closed());
+        }
+        let key = table.next;
+        // Never reuse an event key: a collected batch can outlive deregistration.
+        table.next = key
+            .checked_add(1)
+            .filter(|next| *next != usize::MAX)
+            .ok_or_else(|| io::Error::other("readiness event keys exhausted"))?;
+        // SAFETY: NativeSocket retains this source through SocketRegistrations
+        // destruction, which deletes every registration before its native owner.
+        unsafe {
+            owner
+                .poller
+                .add_with_mode(socket, Event::all(key), PollMode::Edge)?;
+        }
+        let registration = Arc::new(Registration {
+            owner: Arc::clone(&owner),
+            key,
+            readable: Direction::new(),
+            writable: Direction::new(),
+        });
+        table
+            .registrations
+            .insert(key, Arc::downgrade(&registration));
+        drop(table);
+        entries.push((Arc::downgrade(group), Arc::clone(&registration)));
+        Ok(registration)
+    }
+}
+fn deregister(registration: &Registration, socket: &socket2::Socket) {
+    // Remove the key before deletion; a queued event can only reach its old
+    // record and cannot become a notification for a recycled descriptor.
+    registration
+        .owner
+        .table
+        .lock()
+        .unwrap()
+        .registrations
+        .remove(&registration.key);
+    let _ = registration.owner.poller.delete(socket);
+}
+impl Drop for SocketRegistrations {
+    fn drop(&mut self) {
+        let socket = self
+            .socket
+            .upgrade()
+            .expect("native owner outlives registrations");
+        for (_, registration) in self.entries.get_mut().unwrap().drain(..) {
+            deregister(&registration, socket.get_ref());
+        }
+    }
+}
+
+struct DriverState {
+    group: Arc<DriverGroup>,
+    controller: Arc<Controller>,
+    events: Events,
+}
+
+/// A movable readiness driver for one executor worker.
+///
+/// Construct with `ReadinessSelector::with_workers`, then enter and drive it.
+/// Dropping any driver closes the group's readiness admission and wakes waits.
+/// On platforms without edge polling, this is an already-retired driver and
+/// socket operations retain the standalone selector's independent progress.
+pub struct ReadinessDriver {
+    inner: Option<DriverState>,
+}
+
+pub(crate) fn create(
+    workers: usize,
+    closed: Cancellation,
+) -> io::Result<(Option<Arc<DriverGroup>>, Vec<ReadinessDriver>)> {
+    create_with(workers, closed, || {
+        let poller = Poller::new()?;
+        Ok(poller.supports_edge().then_some(poller))
+    })
+}
+fn create_with(
+    workers: usize,
+    closed: Cancellation,
+    mut factory: impl FnMut() -> io::Result<Option<Poller>>,
+) -> io::Result<(Option<Arc<DriverGroup>>, Vec<ReadinessDriver>)> {
+    let mut controllers = Vec::with_capacity(workers);
+    for _ in 0..workers {
+        let Some(poller) = factory()? else {
+            return Ok((
+                None,
+                (0..workers)
+                    .map(|_| ReadinessDriver { inner: None })
+                    .collect(),
+            ));
+        };
+        controllers.push(Arc::new(Controller {
+            poller,
+            table: Mutex::new(Table {
+                closed: false,
+                next: 0,
+                registrations: HashMap::new(),
+            }),
+        }));
+    }
+    let group = Arc::new(DriverGroup {
+        closed,
+        controllers,
+        next: AtomicUsize::new(0),
+    });
+    let drivers = group
+        .controllers
+        .iter()
+        .map(|controller| ReadinessDriver {
+            inner: Some(DriverState {
+                group: Arc::clone(&group),
+                controller: Arc::clone(controller),
+                events: Events::new(),
+            }),
+        })
+        .collect();
+    Ok((Some(group), drivers))
+}
+
+thread_local! {
+    static ROUTES: RefCell<Vec<(Weak<DriverGroup>, Arc<Controller>)>> = const { RefCell::new(Vec::new()) };
+}
+
+/// A thread-bound readiness worker, entered through `SelectorDriver`.
+///
+/// Drop restores nested routing. Neither operations nor task futures retain
+/// thread-local borrows. Driver turns publish a bounded event batch without
+/// polling application futures.
+pub struct ReadinessWorker {
+    driver: ReadinessDriver,
+    thread: PhantomData<Rc<()>>,
+}
+impl SelectorDriver for ReadinessDriver {
+    type Worker = ReadinessWorker;
+    fn enter(self) -> Self::Worker {
+        if let Some(inner) = &self.inner {
+            ROUTES.with(|routes| {
+                routes
+                    .borrow_mut()
+                    .push((Arc::downgrade(&inner.group), Arc::clone(&inner.controller)))
+            });
+        }
+        ReadinessWorker {
+            driver: self,
+            thread: PhantomData,
+        }
+    }
+}
+impl SelectorWorker for ReadinessWorker {
+    fn waker(&self) -> Waker {
+        match &self.driver.inner {
+            Some(inner) => Waker::from(Arc::clone(&inner.controller)),
+            None => Waker::noop().clone(),
+        }
+    }
+    fn close(&mut self) {
+        if let Some(inner) = &self.driver.inner {
+            inner.group.close();
+        }
+    }
+    fn turn(&mut self, timeout: Option<Duration>) -> io::Result<bool> {
+        let Some(inner) = &mut self.driver.inner else {
+            return Ok(true);
+        };
+        if inner.group.closed.is_cancelled() {
+            return Ok(true);
+        }
+        inner.events.clear();
+        if let Err(error) = inner.controller.poller.wait(&mut inner.events, timeout) {
+            if error.kind() == io::ErrorKind::Interrupted {
+                return Ok(false);
+            }
+            inner.group.close();
+            return Err(error);
+        }
+        for event in inner.events.iter() {
+            let registration = inner
+                .controller
+                .table
+                .lock()
+                .unwrap()
+                .registrations
+                .get(&event.key)
+                .and_then(Weak::upgrade);
+            if let Some(registration) = registration {
+                if event.readable {
+                    registration.readable.publish();
+                }
+                if event.writable {
+                    registration.writable.publish();
+                }
+            }
+        }
+        Ok(inner.group.closed.is_cancelled())
+    }
+}
+impl Drop for ReadinessWorker {
+    fn drop(&mut self) {
+        if let Some(inner) = &self.driver.inner {
+            ROUTES.with(|routes| {
+                routes
+                    .borrow_mut()
+                    .retain(|(_, owner)| !Arc::ptr_eq(owner, &inner.controller))
+            });
+        }
+    }
+}
+impl Drop for ReadinessDriver {
+    fn drop(&mut self) {
+        if let Some(inner) = &self.inner {
+            inner.group.close();
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests;

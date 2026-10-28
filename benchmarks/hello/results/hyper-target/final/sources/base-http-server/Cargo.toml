@@ -1,0 +1,23 @@
+[package]
+name = "base-http-server"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+description = "Supervised native HTTP servers for Base scheduler capabilities"
+readme = "readme.md"
+
+[dependencies]
+base-http = { version = "0.0.0", path = "../base-http" }
+base-http1 = { version = "0.0.0", path = "../base-http1" }
+base-scheduler = "0.1.0"
+futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await"] }
+
+[dev-dependencies]
+base-scheduler-direct = "0.1.0"
+futures-lite = "2.6.1"
+
+# Exercise the local scheduler implementation throughout development.
+[patch.crates-io]
+base-scheduler = { path = "../base-scheduler" }
+base-scheduler-direct = { path = "../base-scheduler/crates/direct" }

@@ -1,0 +1,205 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 2K of event 'cpu-clock'
+# Event count (approx.): 2838515470
+#
+# Overhead  Command          Shared Object      Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+# ........  ...............  .................  ....................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    10.95%  base-native-tas  [kernel.kallsyms]  [k] do_syscall_64
+     5.12%  base-native-tas  libc.so.6          [.] syscall
+     3.82%  base-native-tas  libc.so.6          [.] 0x00000000000a08f2
+     3.67%  base-native-tas  [kernel.kallsyms]  [k] finish_task_switch.isra.0
+     2.58%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_unlock_irqrestore
+     2.01%  base-native-tas  [kernel.kallsyms]  [k] tcp_sendmsg_locked
+     1.87%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_socket_stream_reader::IoUringSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_owned::<alloc::vec::Vec<u8>>::{closure#0}
+     1.77%  base-native-tas  [kernel.kallsyms]  [k] __tcp_transmit_skb
+     1.66%  base-native-tas  [kernel.kallsyms]  [k] tcp_ack
+     1.45%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::Reactor>::turn
+     1.38%  base-native-tas  [kernel.kallsyms]  [k] io_cqring_wait
+     1.31%  base-native-tas  [kernel.kallsyms]  [k] hook_socket_sendmsg
+     1.27%  base-native-tas  [kernel.kallsyms]  [k] __sys_sendto
+     1.20%  base-native-tas  baseline           [.] base_scheduler_native::worker::run_loop
+     1.06%  base-native-tas  [kernel.kallsyms]  [k] fdget
+     0.99%  base-native-tas  [kernel.kallsyms]  [k] kmem_cache_alloc_node_noprof
+     0.95%  base-native-tas  [kernel.kallsyms]  [k] tcp_recvmsg_locked
+     0.92%  base-native-tas  [kernel.kallsyms]  [k] do_softirq.part.0
+     0.88%  base-native-tas  [kernel.kallsyms]  [k] skb_defer_free_flush
+     0.88%  base-native-tas  [kernel.kallsyms]  [k] tcp_rcv_established
+     0.85%  base-native-tas  [kernel.kallsyms]  [k] io_recv
+     0.85%  base-native-tas  [kernel.kallsyms]  [k] lock_sock_nested
+     0.78%  base-native-tas  [kernel.kallsyms]  [k] __netif_receive_skb_core.constprop.0
+     0.74%  base-native-tas  [kernel.kallsyms]  [k] __inet_lookup_established
+     0.74%  base-native-tas  [kernel.kallsyms]  [k] handle_softirqs
+     0.67%  base-native-tas  [kernel.kallsyms]  [k] prandom_u32_state
+     0.67%  base-native-tas  [kernel.kallsyms]  [k] skb_release_data
+     0.64%  base-native-tas  [kernel.kallsyms]  [k] __ip_local_out
+     0.64%  base-native-tas  [kernel.kallsyms]  [k] __ip_queue_xmit
+     0.64%  base-native-tas  [kernel.kallsyms]  [k] fput
+     0.64%  base-native-tas  [kernel.kallsyms]  [k] tcp_rcv_space_adjust
+     0.60%  base-native-tas  [kernel.kallsyms]  [k] ip_finish_output2
+     0.60%  base-native-tas  [kernel.kallsyms]  [k] ip_rcv_finish_core
+     0.60%  base-native-tas  [kernel.kallsyms]  [k] rep_movs_alternative
+     0.60%  base-native-tas  [kernel.kallsyms]  [k] tcp_rearm_rto
+     0.57%  base-native-tas  [kernel.kallsyms]  [k] __dev_queue_xmit
+     0.57%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_lock
+     0.57%  base-native-tas  [kernel.kallsyms]  [k] ktime_get
+     0.57%  base-native-tas  [kernel.kallsyms]  [k] loopback_xmit
+     0.57%  base-native-tas  [kernel.kallsyms]  [k] tcp_current_mss
+     0.57%  base-native-tas  [kernel.kallsyms]  [k] x64_sys_call
+     0.53%  base-native-tas  [kernel.kallsyms]  [k] __check_object_size
+     0.53%  base-native-tas  [kernel.kallsyms]  [k] memset_orig
+     0.53%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::Reactor>::collect_completions
+     0.49%  base-native-tas  [kernel.kallsyms]  [k] __x64_sys_sendto
+     0.49%  base-native-tas  [kernel.kallsyms]  [k] tcp_v4_rcv
+     0.49%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::IoUringSelector>::check_monitor
+     0.49%  base-native-tas  baseline           [.] <base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::raw::spawn_base_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, true>::{closure#0}> as core::future::future::Future>::poll
+     0.49%  base-native-tas  baseline           [.] <std::sync::mpmc::list::Channel<base_scheduler_iouring::io_uring_selector::Command>>::try_recv
+     0.46%  base-native-tas  [kernel.kallsyms]  [k] __mod_memcg_state
+     0.46%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_unlock
+     0.46%  base-native-tas  [kernel.kallsyms]  [k] cubictcp_acked
+     0.46%  base-native-tas  [kernel.kallsyms]  [k] tcp_poll
+     0.46%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_socket_stream_writer::IoUringSocketStreamWriter<base_scheduler_iouring::io_uring_buffer::IoUringBuffer> as base_scheduler::socket_stream_writer::SocketStreamWriter>::write::{closure#0}
+     0.42%  base-native-tas  [kernel.kallsyms]  [k] __virt_addr_valid
+     0.42%  base-native-tas  [kernel.kallsyms]  [k] security_socket_sendmsg
+     0.42%  base-native-tas  [kernel.kallsyms]  [k] sock_rfree
+     0.39%  base-native-tas  [kernel.kallsyms]  [k] __local_bh_enable_ip
+     0.39%  base-native-tas  [kernel.kallsyms]  [k] enqueue_to_backlog
+     0.39%  base-native-tas  [kernel.kallsyms]  [k] io_submit_sqes
+     0.39%  base-native-tas  [kernel.kallsyms]  [k] ktime_get_with_offset
+     0.39%  base-native-tas  [kernel.kallsyms]  [k] mutex_lock
+     0.39%  base-native-tas  [kernel.kallsyms]  [k] tcp_wfree
+     0.39%  base-native-tas  baseline           [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::raw::spawn_base_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, true>::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::raw::spawn_base_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, true>::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::run
+     0.39%  base-native-tas  libc.so.6          [.] send
+     0.35%  base-native-tas  [kernel.kallsyms]  [k] cubictcp_cwnd_event_tx_start
+     0.35%  base-native-tas  [kernel.kallsyms]  [k] tcp_event_new_data_sent
+     0.35%  base-native-tas  [kernel.kallsyms]  [k] tcp_schedule_loss_probe
+     0.35%  base-native-tas  [kernel.kallsyms]  [k] tcp_skb_entail
+     0.35%  base-native-tas  [kernel.kallsyms]  [k] tcp_update_pacing_rate
+     0.35%  base-native-tas  baseline           [.] <atomic_waker::AtomicWaker>::register
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] __do_sys_io_uring_enter
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] ip_finish_output
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] ipv4_dst_check
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] sock_poll
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] tcp_ack_update_rtt
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] tcp_sendmsg
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] tcp_write_xmit
+     0.32%  base-native-tas  [kernel.kallsyms]  [k] validate_xmit_xfrm
+     0.32%  base-native-tas  [nf_tables]        [k] 0x000000000001e764
+     0.32%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::Capacity>::try_acquire
+     0.32%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::IoUringSelector>::route_ref
+     0.32%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_worker::IoUringWorker as base_scheduler_selector::selector_worker::SelectorWorker>::turn
+     0.28%  base-native-tas  [kernel.kallsyms]  [k] __io_submit_flush_completions
+     0.28%  base-native-tas  [kernel.kallsyms]  [k] __mod_timer
+     0.28%  base-native-tas  [kernel.kallsyms]  [k] _find_first_bit
+     0.28%  base-native-tas  [kernel.kallsyms]  [k] raw_local_deliver
+     0.28%  base-native-tas  [kernel.kallsyms]  [k] sk_filter_trim_cap
+     0.28%  base-native-tas  [kernel.kallsyms]  [k] skb_attempt_defer_free
+     0.28%  base-native-tas  [kernel.kallsyms]  [k] tcp_recvmsg
+     0.28%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::socket_read::ReadRequest<base_scheduler_iouring::operation_state::OperationGuard<alloc::vec::Vec<u8>>> as base_scheduler_iouring::io_uring_selector::PendingRequest>::finish
+     0.28%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::socket_read::ReadRequest<base_scheduler_iouring::operation_state::OperationGuard<alloc::vec::Vec<u8>>> as base_scheduler_iouring::io_uring_selector::PendingRequest>::retire_completion
+     0.28%  base-native-tas  baseline           [.] <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::IoUringSelector>::monitor_io<usize, <base_scheduler_iouring::io_uring_selector::IoUringSelector>::socket_monitor_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+     0.28%  base-native-tas  baseline           [.] <hashbrown::map::HashMap<u64, alloc::boxed::Box<dyn base_scheduler_iouring::io_uring_selector::PendingRequest>, std::hash::random::RandomState>>::remove::<u64>
+     0.28%  base-native-tas  baseline           [.] <std::thread::local::LocalKey<core::cell::RefCell<alloc::vec::Vec<alloc::rc::Rc<base_scheduler_iouring::io_uring_worker::LocalRoute>>>>>::with::<base_scheduler_iouring::io_uring_worker::pop::{closure#0}, core::option::Option<base_scheduler_iouring::io_uring_selector::Command>>
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] __tcp_select_window
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] fget
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] io_recvmsg_prep
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] ip_rcv
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] nf_hook_slow
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] security_socket_recvmsg
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] skb_page_frag_refill
+     0.25%  base-native-tas  [kernel.kallsyms]  [k] try_charge_memcg
+     0.25%  base-native-tas  [nf_tables]        [k] 0x00000000000001e6
+     0.25%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::Permit as core::ops::drop::Drop>::drop
+     0.25%  base-native-tas  baseline           [.] <crossbeam_deque::deque::Worker<async_task::runnable::Runnable<base_scheduler_native::task_service::TaskState>>>::pop
+     0.25%  base-native-tas  baseline           [.] <io_uring::submit::Submitter>::submit_and_wait
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] __io_run_local_work
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] _copy_to_iter
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] dev_hard_start_xmit
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] io_issue_sqe
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] ip_local_deliver_finish
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] ipv4_mtu
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] rb_insert_color
+     0.21%  base-native-tas  [kernel.kallsyms]  [k] tcp_newly_delivered
+     0.21%  base-native-tas  baseline           [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::raw::spawn_base_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, false>::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::raw::spawn_base_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, false>::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::wake
+     0.21%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::socket_read::Shared>::publish
+     0.21%  base-native-tas  baseline           [.] <base_scheduler_iouring::operation_state::Retirement as core::ops::drop::Drop>::drop
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] io_netmsg_recycle
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] ip_protocol_deliver_rcu
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] ip_rcv_core
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] ip_skb_dst_mtu
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] kfree
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] sock_def_readable
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] tcp_rate_check_app_limited
+     0.18%  base-native-tas  [kernel.kallsyms]  [k] tcp_stream_alloc_skb
+     0.18%  base-native-tas  [nf_tables]        [k] 0x00000000000000b6
+     0.18%  base-native-tas  [nf_tables]        [k] 0x0000000000000599
+     0.18%  base-native-tas  [nft_compat]       [k] 0x0000000000001350
+     0.18%  base-native-tas  [nft_compat]       [k] 0x0000000000001354
+     0.18%  base-native-tas  [nft_compat]       [k] 0x00000000000013ab
+     0.18%  base-native-tas  baseline           [.] <atomic_waker::AtomicWaker>::wake
+     0.18%  base-native-tas  baseline           [.] <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}
+     0.18%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_worker::ROUTES::{K#0}::{closure#0} as core::ops::function::FnOnce<(core::option::Option<&mut core::option::Option<core::cell::RefCell<alloc::vec::Vec<alloc::rc::Rc<base_scheduler_iouring::io_uring_worker::LocalRoute>>>>>,)>>::call_once
+     0.18%  base-native-tas  baseline           [.] <base_scheduler_native::worker::CURRENT_WORKER::{K#0}::{closure#0} as core::ops::function::FnOnce<(core::option::Option<&mut core::option::Option<core::cell::RefCell<core::option::Option<base_scheduler_native::worker::LocalWorker>>>>,)>>::call_once
+     0.18%  base-native-tas  baseline           [.] <core::future::poll_fn::PollFn<<base_scheduler_iouring::io_uring_selector::socket_read::State>::attempt<base_scheduler_iouring::operation_state::OperationGuard<alloc::vec::Vec<u8>>>::{closure#0}::{closure#3}> as core::future::future::Future>::poll
+     0.18%  base-native-tas  baseline           [.] <hashbrown::map::HashMap<u64, alloc::boxed::Box<dyn base_scheduler_iouring::io_uring_selector::PendingRequest>, std::hash::random::RandomState>>::rustc_entry
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] __copy_skb_header
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] __schedule
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] __skb_datagram_iter
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] __tcp_cleanup_rbuf
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] __tcp_push_pending_frames
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] _copy_from_iter
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock_bh
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_unlock_irq
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] clear_highpages_kasan_tagged
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] import_ubuf
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] inet_sendmsg
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] io_arm_apoll
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] io_run_task_work
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] ip_output
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] net_rx_action
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] process_backlog
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] sk_forced_mem_schedule
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] skb_clone_tx_timestamp
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] sock_recvmsg
+     0.14%  base-native-tas  [kernel.kallsyms]  [k] tcp_event_data_recv
+     0.14%  base-native-tas  [nf_tables]        [k] 0x00000000000002a7
+     0.14%  base-native-tas  baseline           [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::raw::spawn_base_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, false>::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::raw::spawn_base_connection<base_scheduler_native::native_scheduler::NativeScheduler<base_scheduler_iouring::io_uring_selector::IoUringSelector>, false>::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::drop_waker
+     0.14%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::socket_read::ReadRequest<base_scheduler_iouring::operation_state::OperationGuard<alloc::vec::Vec<u8>>> as base_scheduler_iouring::io_uring_selector::PendingRequest>::entry
+     0.14%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::socket_read::ReadRequest<base_scheduler_iouring::operation_state::OperationGuard<alloc::vec::Vec<u8>>> as base_scheduler_iouring::io_uring_selector::PendingRequest>::identifier
+     0.14%  base-native-tas  baseline           [.] <base_scheduler_iouring::operation_state::OperationState>::complete::<alloc::vec::Vec<u8>>
+     0.14%  base-native-tas  baseline           [.] base_scheduler_native::worker::search
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] __alloc_skb
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_unlock_bh
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] cubictcp_cong_avoid
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] eth_type_trans
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] inet_recvmsg
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] io_run_local_work
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] ip_send_check
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] kfree_skbmem
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] mem_cgroup_sk_charge
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] mutex_unlock
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] napi_consume_skb
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] rb_next
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] schedule
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] security_sock_rcv_skb
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] sk_free
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] skb_release_head_state
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] sock_from_file
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] tcp_tso_segs
+     0.11%  base-native-tas  [kernel.kallsyms]  [k] tcp_update_skb_after_send
+     0.11%  base-native-tas  [nf_tables]        [k] 0x000000000000018c
+     0.11%  base-native-tas  [nf_tables]        [k] 0x000000000001e76d
+     0.11%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::Controller>::next_identifier
+     0.11%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::Reactor>::turn::{closure#2}
+     0.11%  base-native-tas  baseline           [.] <base_scheduler_iouring::io_uring_selector::socket_read::ReadRequest<base_scheduler_iouring::operation_state::OperationGuard<alloc::vec::Vec<u8>>> as core::any::Any>::type_id
+     0.11%  base-native-tas  baseline           [.] <std::thread::local::LocalKey<core::cell::RefCell<alloc::vec::Vec<alloc::rc::Rc<base_scheduler_iouring::io_uring_worker::LocalRoute>>>>>::with::<base_scheduler_iouring::io_uring_worker::enqueue::{closure#0}, core::result::Result<(), base_scheduler_iouring::io_uring_selector::Command>>
+
+
+#
+# (Tip: Sample related events with: perf record -e '{cycles,instructions}:S')
+#

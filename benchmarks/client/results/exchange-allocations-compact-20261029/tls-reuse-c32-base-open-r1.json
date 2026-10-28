@@ -1,0 +1,117 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 1297524,
+    "allocations_per_response": 17.000877871097078,
+    "deallocations": 1297523,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 5
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 11
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 15
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 29
+      },
+      {
+        "allocations_per_response": 3.000013102553688,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 80
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 112
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 128
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 176
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 2568
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 2776
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6312
+      }
+    ],
+    "reallocations": 0,
+    "reallocations_per_response": 0.0,
+    "requested_bytes": 967826616,
+    "requested_bytes_per_response": 12681.000196538305,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.9988520000000001,
+  "client_cpu_us_per_request": 13.087511956080242,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000502584,
+  "fresh": false,
+  "implementation": "base-open",
+  "latency_us": {
+    "max": 584.703,
+    "mean": 419.1669413136613,
+    "p50": 426.751,
+    "p90": 446.207,
+    "p99": 494.591
+  },
+  "requests": 76321,
+  "requests_per_second": 76282.66155482514,
+  "tls": true,
+  "warmup_requests": 22697,
+  "client_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "client",
+    "--implementation",
+    "base-open",
+    "--address",
+    "127.0.0.1:64531",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 99018
+  },
+  "server_cpu_seconds_including_warmup": 1.219581999999999
+}

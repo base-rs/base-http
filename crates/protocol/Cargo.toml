@@ -1,0 +1,13 @@
+[package]
+name = "base-http-protocol"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.87"
+license = "MIT"
+repository = "https://github.com/base-rs/base-http"
+description = "HTTP protocol selection and client/server codec construction"
+readme = "readme.md"
+
+[dependencies]
+base-http1 = { version = "0.0.0", path = "../http1" }
+base-endpoint = { version = "0.0.0", path = "../../../base-endpoint" }

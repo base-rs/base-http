@@ -1,0 +1,11 @@
+--- a/crates/iouring/src/io_uring_selector/socket_read.rs
++++ b/crates/iouring/src/io_uring_selector/socket_read.rs
+@@ -110,6 +110,8 @@
+             self.pointer,
+             self.length,
+         )
++        // Experimental IORING_RECVSEND_POLL_FIRST; not yet a portable policy.
++        .ioprio(1)
+         .build()
+         .user_data(self.identifier)
+     }

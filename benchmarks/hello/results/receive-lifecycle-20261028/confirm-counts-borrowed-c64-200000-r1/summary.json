@@ -1,0 +1,46 @@
+{
+  "mode": "counts",
+  "variant": "borrowed",
+  "backend": "base-iouring-connections-raw",
+  "connections": 64,
+  "rate": 200000,
+  "repetition": 1,
+  "responses": 1000000,
+  "achieved_rate": 152620.5,
+  "drain_ms": 1597.9862549999998,
+  "server_cpu": {
+    "user_seconds": 0.96,
+    "system_seconds": 3.76
+  },
+  "perf_returncode": -2,
+  "counts": {
+    "tcp_recv_calls": {
+      "value": 1000128.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg",
+      "raw": [
+        "1000128",
+        "",
+        "base_http_lifecycle:tcp_recvmsg",
+        "6323007971",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_eagain": {
+      "value": 64.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg_return32__return",
+      "raw": [
+        "64",
+        "",
+        "base_http_lifecycle:tcp_recvmsg_return32__return",
+        "6323007971",
+        "100.00",
+        "",
+        ""
+      ]
+    }
+  }
+}

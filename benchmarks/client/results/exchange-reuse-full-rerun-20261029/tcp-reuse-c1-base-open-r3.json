@@ -1,0 +1,47 @@
+{
+  "client_cpu_seconds": 1.09096,
+  "client_cpu_us_per_request": 16.936690781507124,
+  "concurrency": 1,
+  "elapsed_seconds": 2.000015542,
+  "fresh": false,
+  "implementation": "base-open",
+  "latency_us": {
+    "max": 186.495,
+    "mean": 30.963864998292273,
+    "p50": 30.543,
+    "p90": 33.919,
+    "p99": 43.775
+  },
+  "requests": 64414,
+  "requests_per_second": 32206.74972134792,
+  "tls": false,
+  "warmup_requests": 16078,
+  "client_command": [
+    "/private/tmp/base-http-exchange-reuse-final-20261029",
+    "client",
+    "--implementation",
+    "base-open",
+    "--address",
+    "127.0.0.1:64526",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-dz41jcj5",
+    "--concurrency",
+    "1",
+    "--seconds",
+    "2.0",
+    "--warmup",
+    "0.5"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-reuse-final-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-dz41jcj5"
+  ],
+  "server": {
+    "connections": 1,
+    "failures": 0,
+    "requests": 80492
+  },
+  "server_cpu_seconds_including_warmup": 1.204308000000026
+}

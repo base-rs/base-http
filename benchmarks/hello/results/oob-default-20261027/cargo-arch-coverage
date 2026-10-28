@@ -1,0 +1,8 @@
+#!/bin/bash
+set -eu
+if [ "${1-}" = llvm-cov ]; then
+    shift
+    printf '%s\n' 'Reusing completed instrumented tests; exclude only Arch prebuilt Rust standard-library source paths from the report.' >&2
+    exec /usr/bin/cargo llvm-cov --no-run --ignore-filename-regex '^/usr/src/debug/rust/' "$@"
+fi
+exec /usr/bin/cargo "$@"

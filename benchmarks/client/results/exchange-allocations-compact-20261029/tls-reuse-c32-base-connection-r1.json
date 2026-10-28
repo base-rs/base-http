@@ -1,0 +1,89 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 737552,
+    "allocations_per_response": 8.000347109230937,
+    "deallocations": 737552,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 11
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 15
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 29
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 128
+      }
+    ],
+    "reallocations": 0,
+    "reallocations_per_response": 0.0,
+    "requested_bytes": 46443018,
+    "requested_bytes_per_response": 503.7750081353726,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.998869,
+  "client_cpu_us_per_request": 10.834895324872546,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000485167,
+  "fresh": false,
+  "implementation": "base-connection",
+  "latency_us": {
+    "max": 616.959,
+    "mean": 346.96365540731114,
+    "p50": 349.439,
+    "p90": 371.199,
+    "p99": 401.919
+  },
+  "requests": 92190,
+  "requests_per_second": 92145.294144076,
+  "tls": true,
+  "warmup_requests": 27422,
+  "client_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "client",
+    "--implementation",
+    "base-connection",
+    "--address",
+    "127.0.0.1:64494",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 119612
+  },
+  "server_cpu_seconds_including_warmup": 1.4527599999999996
+}

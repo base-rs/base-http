@@ -1,0 +1,80 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 10K of event 'cycles:u'
+# Event count (approx.): 43205548499
+#
+# Overhead  Command      Shared Object     Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+# ........  ...........  ................  ................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    11.53%  codec-probe  codec-probe       [.] <hyper::proto::h1::io::Buffered<codec_probe::HyperIo, hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>>::poll_flush
+    10.02%  codec-probe  codec-probe       [.] <hyper::proto::h1::role::Server as hyper::proto::h1::Http1Transaction>::parse
+     7.32%  codec-probe  codec-probe       [.] <hyper::proto::h1::role::Server as hyper::proto::h1::Http1Transaction>::encode
+     6.26%  codec-probe  codec-probe       [.] <hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<hyper::service::util::ServiceFn<codec_probe::run_hyper::{closure#0}, hyper::body::incoming::Incoming>, hyper::body::incoming::Incoming>, http_body_util::full::Full<bytes::bytes::Bytes>, codec_probe::HyperIo, hyper::proto::h1::role::Server>>::poll_write
+     4.49%  codec-probe  libc.so.6         [.] 0x0000000000176391
+            |
+            ---0x7f154f97c391
+
+     3.91%  codec-probe  codec-probe       [.] bytes::bytes_mut::shared_v_drop
+     3.18%  codec-probe  codec-probe       [.] <httparse::Request>::parse_with_config_and_uninit_headers
+     2.54%  codec-probe  codec-probe       [.] httparse::parse_headers_iter_uninit
+     2.36%  codec-probe  codec-probe       [.] <http::header::map::HeaderMap>::insert::<http::header::name::HeaderName>
+     2.25%  codec-probe  codec-probe       [.] bytes::bytes_mut::shared_v_clone
+     2.12%  codec-probe  codec-probe       [.] <allocation_counter::allocator::CountingAllocator as core::alloc::global::GlobalAlloc>::alloc
+     2.05%  codec-probe  codec-probe       [.] <alloc::collections::vec_deque::iter::Iter<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>> as core::iter::traits::iterator::Iterator>::fold::<usize, core::iter::adapters::map::map_fold<&hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>, usize, usize, <hyper::common::buf::BufList<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>> as bytes::buf::buf_impl::Buf>::remaining::{closure#0}, <usize as core::iter::traits::accum::Sum>::sum<core::iter::adapters::map::Map<alloc::collections::vec_deque::iter::Iter<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>, <hyper::common::buf::BufList<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>> as bytes::buf::buf_impl::Buf>::remaining::{closure#0}>>::{closure#0}>::{closure#0}>
+     1.72%  codec-probe  codec-probe       [.] httparse::simd::avx2::match_header_value_vectored
+     1.68%  codec-probe  libc.so.6         [.] 0x000000000017646e
+            |
+            ---0x7f154f97c46e
+
+     1.57%  codec-probe  codec-probe       [.] <bytes::bytes_mut::BytesMut>::split_to
+     1.49%  codec-probe  codec-probe       [.] <hyper::proto::h1::dispatch::Dispatcher<hyper::proto::h1::dispatch::Server<hyper::service::util::ServiceFn<codec_probe::run_hyper::{closure#0}, hyper::body::incoming::Incoming>, hyper::body::incoming::Incoming>, http_body_util::full::Full<bytes::bytes::Bytes>, codec_probe::HyperIo, hyper::proto::h1::role::Server>>::poll_catch
+     1.44%  codec-probe  codec-probe       [.] <hyper::proto::h1::io::WriteBuf<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>>::buffer::<bytes::bytes::Bytes>
+     1.42%  codec-probe  codec-probe       [.] <hyper::proto::h1::io::Buffered<codec_probe::HyperIo, hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>>::parse::<hyper::proto::h1::role::Server>
+     1.31%  codec-probe  codec-probe       [.] <hyper::proto::h1::conn::Conn<codec_probe::HyperIo, bytes::bytes::Bytes, hyper::proto::h1::role::Server>>::write_head
+     1.31%  codec-probe  libc.so.6         [.] malloc
+            |
+            ---malloc
+
+     1.23%  codec-probe  codec-probe       [.] <hyper::proto::h1::io::WriteBuf<hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>>::can_buffer
+     1.23%  codec-probe  codec-probe       [.] <hyper::proto::h1::dispatch::Server<hyper::service::util::ServiceFn<codec_probe::run_hyper::{closure#0}, hyper::body::incoming::Incoming>, hyper::body::incoming::Incoming> as hyper::proto::h1::dispatch::Dispatch>::recv_msg
+     1.19%  codec-probe  codec-probe       [.] <hyper::proto::h1::io::Buffered<codec_probe::HyperIo, hyper::proto::h1::encode::EncodedBuf<bytes::bytes::Bytes>>>::poll_read_from_io
+     1.06%  codec-probe  libc.so.6         [.] 0x0000000000176469
+            |
+            ---0x7f154f97c469
+
+     1.05%  codec-probe  codec-probe       [.] <hyper::proto::h1::conn::Conn<codec_probe::HyperIo, bytes::bytes::Bytes, hyper::proto::h1::role::Server>>::poll_read_head
+     0.96%  codec-probe  codec-probe       [.] httparse::simd::avx2::match_uri_vectored
+     0.92%  codec-probe  codec-probe       [.] <http::header::map::HeaderMap>::get_all::<http::header::name::HeaderName>
+     0.87%  codec-probe  codec-probe       [.] <allocation_counter::allocator::CountingAllocator as core::alloc::global::GlobalAlloc>::dealloc
+     0.75%  codec-probe  codec-probe       [.] <http::uri::Uri>::from_shared
+     0.72%  codec-probe  codec-probe       [.] hyper::headers::te_is_trailers
+     0.71%  codec-probe  codec-probe       [.] <http::header::map::HeaderMap>::try_reserve_one
+     0.69%  codec-probe  codec-probe       [.] <bytes::bytes_mut::BytesMut>::reserve_inner
+     0.61%  codec-probe  codec-probe       [.] core::ptr::drop_glue::<[http::header::map::Bucket<http::header::value::HeaderValue>]>
+     0.61%  codec-probe  libc.so.6         [.] cfree
+            |
+            ---cfree
+
+     0.59%  codec-probe  codec-probe       [.] <http::header::name::HeaderName>::from_bytes
+     0.56%  codec-probe  codec-probe       [.] <u64 as itoa::Unsigned>::fmt
+     0.56%  codec-probe  libc.so.6         [.] 0x0000000000176474
+            |
+            ---0x7f154f97c474
+
+     0.56%  codec-probe  codec-probe       [.] <hyper::proto::h1::conn::Conn<codec_probe::HyperIo, bytes::bytes::Bytes, hyper::proto::h1::role::Server>>::write_body_and_end
+     0.56%  codec-probe  codec-probe       [.] <hyper::service::util::ServiceFn<codec_probe::run_hyper::{closure#0}, hyper::body::incoming::Incoming> as hyper::service::http::HttpService<hyper::body::incoming::Incoming>>::call
+     0.55%  codec-probe  codec-probe       [.] <http::header::map::Drain<http::header::value::HeaderValue> as core::ops::drop::Drop>::drop
+     0.52%  codec-probe  codec-probe       [.] core::str::converts::from_utf8
+     0.52%  codec-probe  codec-probe       [.] <hyper::proto::h1::encode::Encoder>::encode_and_end::<bytes::bytes::Bytes>
+     0.52%  codec-probe  libc.so.6         [.] 0x00000000001764b4
+            |
+            ---0x7f154f97c4b4
+
+
+
+#
+# (Tip: List events using substring match: perf list <keyword>)
+#

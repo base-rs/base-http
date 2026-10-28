@@ -1,0 +1,33 @@
+{
+  "http_tests_including_docs": 119,
+  "http_msrv": "Rust 1.85.1 passed",
+  "scheduler_region_coverage": "28796/28796 measured source regions; 3 invariant-only unreachable exclusions",
+  "clippy": "HTTP, benchmark and scheduler workspace, all targets; scheduler all features; warnings denied passed",
+  "formatting": "HTTP, benchmark and scheduler workspace passed",
+  "scheduler_msrv": "Rust 1.85.1 Native/Selector all targets/features check passed",
+  "final_source_and_binary_hashes_match_confirmation": true,
+  "timed_cohorts": {
+    "first": {
+      "samples": 25,
+      "requests": 24459974,
+      "errors": 0
+    },
+    "compact": {
+      "samples": 25,
+      "requests": 23440498,
+      "errors": 0
+    },
+    "confirmation": {
+      "samples": 15,
+      "requests": 14992231,
+      "errors": 0
+    }
+  },
+  "unmeasured": [
+    "Linux/io_uring",
+    "TLS",
+    "connection churn",
+    "multi-worker scaling",
+    "streaming throughput"
+  ]
+}

@@ -1,0 +1,1660 @@
+﻿2026-10-27T22:29:10.5448263Z Current runner version: '2.338.0'
+2026-10-27T22:29:10.5482696Z ##[group]Runner Image Provisioner
+2026-10-27T22:29:10.5484293Z Hosted Compute Agent
+2026-10-27T22:29:10.5485385Z Version: 20261021.618
+2026-10-27T22:29:10.5486746Z Commit: 21505ad2541d5be6135ed84fc33697146cf75b8e
+2026-10-27T22:29:10.5488208Z Build Date: 2026-10-21T00:45:21Z
+2026-10-27T22:29:10.5489572Z Worker ID: {aed9c42c-d141-4d10-8cbf-3adbed1556ac}
+2026-10-27T22:29:10.5491044Z Region: eastus2
+2026-10-27T22:29:10.5492333Z Cloud: Azure
+2026-10-27T22:29:10.5493310Z ##[endgroup]
+2026-10-27T22:29:10.5495987Z ##[group]Operating System
+2026-10-27T22:29:10.5497223Z Ubuntu
+2026-10-27T22:29:10.5498303Z 24.04.5
+2026-10-27T22:29:10.5499255Z LTS
+2026-10-27T22:29:10.5500232Z ##[endgroup]
+2026-10-27T22:29:10.5501489Z ##[group]Runner Image
+2026-10-27T22:29:10.5503058Z Image: ubuntu-24.04
+2026-10-27T22:29:10.5504138Z Version: 20261025.353.1
+2026-10-27T22:29:10.5506263Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261025.353/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-27T22:29:10.5509244Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261025.353
+2026-10-27T22:29:10.5511087Z ##[endgroup]
+2026-10-27T22:29:10.5513672Z ##[group]GITHUB_TOKEN Permissions
+2026-10-27T22:29:10.5516666Z Contents: read
+2026-10-27T22:29:10.5517770Z Metadata: read
+2026-10-27T22:29:10.5518653Z ##[endgroup]
+2026-10-27T22:29:10.5522238Z Secret source: Actions
+2026-10-27T22:29:10.5523818Z Cache mode: write
+2026-10-27T22:29:10.5525077Z Prepare workflow directory
+2026-10-27T22:29:10.5997607Z Prepare all required actions
+2026-10-27T22:29:10.6068187Z Getting action download info
+2026-10-27T22:29:10.8128425Z Download action repository 'actions/checkout@v7' (SHA:3d3c42e5aac5ba805825da76410c181273ba90b1)
+2026-10-27T22:29:10.9209790Z Download action repository 'dtolnay/rust-toolchain@1.85.0' (SHA:cfcaf53ba4c621917ec7f78a66bff7a8848ddad4)
+2026-10-27T22:29:11.1638229Z Complete job name: msrv
+2026-10-27T22:29:11.2632644Z ##[group]Run actions/checkout@v7
+2026-10-27T22:29:11.2633674Z with:
+2026-10-27T22:29:11.2634144Z   repository: base-rs/base-scheduler
+2026-10-27T22:29:11.2638434Z   token: ***
+2026-10-27T22:29:11.2638937Z   ssh-strict: true
+2026-10-27T22:29:11.2639444Z   ssh-user: git
+2026-10-27T22:29:11.2639936Z   persist-credentials: true
+2026-10-27T22:29:11.2640444Z   clean: true
+2026-10-27T22:29:11.2640902Z   sparse-checkout-cone-mode: true
+2026-10-27T22:29:11.2641478Z   fetch-depth: 1
+2026-10-27T22:29:11.2642230Z   fetch-tags: false
+2026-10-27T22:29:11.2642700Z   show-progress: true
+2026-10-27T22:29:11.2643159Z   lfs: false
+2026-10-27T22:29:11.2643589Z   submodules: false
+2026-10-27T22:29:11.2644060Z   set-safe-directory: true
+2026-10-27T22:29:11.2644589Z   allow-unsafe-pr-checkout: false
+2026-10-27T22:29:11.2645459Z ##[endgroup]
+2026-10-27T22:29:11.5267431Z Syncing repository: base-rs/base-scheduler
+2026-10-27T22:29:11.5269399Z ##[group]Getting Git version info
+2026-10-27T22:29:11.5270341Z Working directory is '/home/runner/work/base-scheduler/base-scheduler'
+2026-10-27T22:29:11.5271538Z [command]/usr/bin/git version
+2026-10-27T22:29:11.5364066Z git version 2.56.0
+2026-10-27T22:29:11.5391026Z ##[endgroup]
+2026-10-27T22:29:11.5413742Z Temporarily overriding HOME='/home/runner/work/_temp/3fad2748-acff-4c32-b958-0b7ac303caca' before making global git config changes
+2026-10-27T22:29:11.5417034Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T22:29:11.5425134Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/base-scheduler/base-scheduler
+2026-10-27T22:29:11.5509909Z Deleting the contents of '/home/runner/work/base-scheduler/base-scheduler'
+2026-10-27T22:29:11.5520378Z ##[group]Determining repository object format
+2026-10-27T22:29:11.5523323Z ##[endgroup]
+2026-10-27T22:29:11.5527780Z ##[group]Initializing the repository
+2026-10-27T22:29:11.5534447Z [command]/usr/bin/git init /home/runner/work/base-scheduler/base-scheduler
+2026-10-27T22:29:11.5658018Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-27T22:29:11.5660641Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-27T22:29:11.5664633Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-27T22:29:11.5666554Z hint: call:
+2026-10-27T22:29:11.5667552Z hint:
+2026-10-27T22:29:11.5668919Z hint: 	git config --global init.defaultBranch <name>
+2026-10-27T22:29:11.5670200Z hint:
+2026-10-27T22:29:11.5672085Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-27T22:29:11.5674111Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-27T22:29:11.5675878Z hint:
+2026-10-27T22:29:11.5676899Z hint: 	git branch -m <name>
+2026-10-27T22:29:11.5677950Z hint:
+2026-10-27T22:29:11.5679263Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-27T22:29:11.5682225Z Initialized empty Git repository in /home/runner/work/base-scheduler/base-scheduler/.git/
+2026-10-27T22:29:11.5699152Z [command]/usr/bin/git remote add origin https://github.com/base-rs/base-scheduler
+2026-10-27T22:29:11.5816300Z ##[endgroup]
+2026-10-27T22:29:11.5820035Z ##[group]Disabling automatic garbage collection
+2026-10-27T22:29:11.5822345Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-27T22:29:11.5883999Z ##[endgroup]
+2026-10-27T22:29:11.5931202Z ##[group]Setting up auth
+2026-10-27T22:29:11.5932972Z Removing SSH command configuration
+2026-10-27T22:29:11.5934657Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T22:29:11.5939046Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-27T22:29:11.6410368Z Removing HTTP extra header
+2026-10-27T22:29:11.6416869Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T22:29:11.6480281Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-27T22:29:11.6724513Z Removing includeIf entries pointing to credentials config files
+2026-10-27T22:29:11.6729306Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T22:29:11.6775060Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-27T22:29:11.7019396Z [command]/usr/bin/git config --file /home/runner/work/_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-27T22:29:11.7068830Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git.path /home/runner/work/_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:29:11.7115364Z [command]/usr/bin/git config --local includeIf.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git/worktrees/*.path /home/runner/work/_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:29:11.7161327Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git.path /github/runner_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:29:11.7206794Z [command]/usr/bin/git config --local includeIf.gitdir:/github/workspace/.git/worktrees/*.path /github/runner_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:29:11.7248085Z ##[endgroup]
+2026-10-27T22:29:11.7249136Z ##[group]Fetching the repository
+2026-10-27T22:29:11.7256875Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +c3a81506dd4fb2fec6e2eef9210a28c3d21761bf:refs/remotes/pull/65/merge
+2026-10-27T22:29:12.7393215Z From https://github.com/base-rs/base-scheduler
+2026-10-27T22:29:12.7396234Z  * [new ref]         c3a81506dd4fb2fec6e2eef9210a28c3d21761bf -> pull/65/merge
+2026-10-27T22:29:12.7400043Z ##[endgroup]
+2026-10-27T22:29:12.7401197Z ##[group]Determining the checkout info
+2026-10-27T22:29:12.7403350Z ##[endgroup]
+2026-10-27T22:29:12.7404682Z [command]/usr/bin/git sparse-checkout disable
+2026-10-27T22:29:12.7470685Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-10-27T22:29:12.7514845Z ##[group]Checking out the ref
+2026-10-27T22:29:12.7518485Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/65/merge
+2026-10-27T22:29:12.9914624Z Note: switching to 'refs/remotes/pull/65/merge'.
+2026-10-27T22:29:12.9915231Z 
+2026-10-27T22:29:12.9915703Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-10-27T22:29:12.9916650Z changes and commit them, and you can discard any commits you make in this
+2026-10-27T22:29:12.9917745Z state without impacting any branches by switching back to a branch.
+2026-10-27T22:29:12.9918368Z 
+2026-10-27T22:29:12.9918825Z If you want to create a new branch to retain commits you create, you may
+2026-10-27T22:29:12.9919815Z do so (now or later) by using -c with the switch command. Example:
+2026-10-27T22:29:12.9920350Z 
+2026-10-27T22:29:12.9920595Z   git switch -c <new-branch-name>
+2026-10-27T22:29:12.9920956Z 
+2026-10-27T22:29:12.9921207Z Or undo this operation with:
+2026-10-27T22:29:12.9921621Z 
+2026-10-27T22:29:12.9922126Z   git switch -
+2026-10-27T22:29:12.9922451Z 
+2026-10-27T22:29:12.9922933Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-10-27T22:29:12.9923651Z 
+2026-10-27T22:29:12.9924308Z HEAD is now at c3a8150 Merge 83f563c4f58f45aa3d102de12b09012060ce4309 into 082d9283fdd5e4deb44c7462e28700b62a80fea9
+2026-10-27T22:29:12.9946823Z ##[endgroup]
+2026-10-27T22:29:13.0018157Z [command]/usr/bin/git log -1 --format=%H
+2026-10-27T22:29:13.0062051Z c3a81506dd4fb2fec6e2eef9210a28c3d21761bf
+2026-10-27T22:29:13.0520173Z ##[group]Run dtolnay/rust-toolchain@1.85.0
+2026-10-27T22:29:13.0520523Z with:
+2026-10-27T22:29:13.0520717Z ##[endgroup]
+2026-10-27T22:29:13.0596172Z ##[start-action display=Parse toolchain version;id=__dtolnay_rust-toolchain.parse]
+2026-10-27T22:29:13.0664892Z ##[group]Run if [[ -z $toolchain ]]; then
+2026-10-27T22:29:13.0665308Z [36;1mif [[ -z $toolchain ]]; then[0m
+2026-10-27T22:29:13.0665865Z [36;1m  # GitHub does not enforce `required: true` inputs itself. https://github.com/actions/runner/issues/1070[0m
+2026-10-27T22:29:13.0666483Z [36;1m  echo "'toolchain' is a required input" >&2[0m
+2026-10-27T22:29:13.0666785Z [36;1m  exit 1[0m
+2026-10-27T22:29:13.0667117Z [36;1melif [[ $toolchain =~ ^stable' '[0-9]+' '(year|month|week|day)s?' 'ago$ ]]; then[0m
+2026-10-27T22:29:13.0667532Z [36;1m  if [[ Linux == macOS ]]; then[0m
+2026-10-27T22:29:13.0668114Z [36;1m    echo "toolchain=1.$((($(date -v-$(sed 's/stable \([0-9]*\) \(.\).*/\1\2/' <<< $toolchain) +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-10-27T22:29:13.0668625Z [36;1m  else[0m
+2026-10-27T22:29:13.0669038Z [36;1m    echo "toolchain=1.$((($(date --date "${toolchain#stable }" +%s)/60/60/24-16569)/7/6))" >> $GITHUB_OUTPUT[0m
+2026-10-27T22:29:13.0669493Z [36;1m  fi[0m
+2026-10-27T22:29:13.0669793Z [36;1melif [[ $toolchain =~ ^stable' 'minus' '[0-9]+' 'releases?$ ]]; then[0m
+2026-10-27T22:29:13.0670324Z [36;1m  echo "toolchain=1.$((($(date +%s)/60/60/24-16569)/7/6-${toolchain//[^0-9]/}))" >> $GITHUB_OUTPUT[0m
+2026-10-27T22:29:13.0670790Z [36;1melif [[ $toolchain =~ ^1\.[0-9]+$ ]]; then[0m
+2026-10-27T22:29:13.0671310Z [36;1m  echo "toolchain=1.$((i=${toolchain#1.}, c=($(date +%s)/60/60/24-16569)/7/6, i+9*i*(10*i<=c)+90*i*(100*i<=c)))" >> $GITHUB_OUTPUT[0m
+2026-10-27T22:29:13.0672009Z [36;1melse[0m
+2026-10-27T22:29:13.0672220Z [36;1m  delimiter=EOF[0m
+2026-10-27T22:29:13.0672533Z [36;1m  while [[ $toolchain == *$delimiter* ]]; do delimiter+=_; done[0m
+2026-10-27T22:29:13.0673089Z [36;1m  printf 'toolchain<<%s\n%s\n%s\n' "$delimiter" "$toolchain" "$delimiter" >> $GITHUB_OUTPUT[0m
+2026-10-27T22:29:13.0673723Z [36;1mfi[0m
+2026-10-27T22:29:13.0698073Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:13.0698445Z env:
+2026-10-27T22:29:13.0698647Z   toolchain: 1.85.0
+2026-10-27T22:29:13.0698856Z ##[endgroup]
+2026-10-27T22:29:13.0793957Z ##[end-action id=__dtolnay_rust-toolchain.parse;outcome=success;conclusion=success;duration_ms=19]
+2026-10-27T22:29:13.0798303Z ##[start-action display=Set $CARGO_HOME;id=__dtolnay_rust-toolchain.__run]
+2026-10-27T22:29:13.0838471Z ##[group]Run echo CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV
+2026-10-27T22:29:13.0838970Z [36;1mecho CARGO_HOME=${CARGO_HOME:-"$HOME/.cargo"} >> $GITHUB_ENV[0m
+2026-10-27T22:29:13.0858392Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:13.0858747Z ##[endgroup]
+2026-10-27T22:29:13.0908533Z ##[end-action id=__dtolnay_rust-toolchain.__run;outcome=success;conclusion=success;duration_ms=10]
+2026-10-27T22:29:13.0910741Z ##[start-action display=Install rustup if needed;id=__dtolnay_rust-toolchain.__run_2]
+2026-10-27T22:29:13.0944793Z ##[group]Run if ! command -v rustup &>/dev/null; then
+2026-10-27T22:29:13.0945171Z [36;1mif ! command -v rustup &>/dev/null; then[0m
+2026-10-27T22:29:13.0945951Z [36;1m  curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused --location --silent --show-error --fail https://sh.rustup.rs | sh -s -- --default-toolchain none -y[0m
+2026-10-27T22:29:13.0946715Z [36;1m  echo "$CARGO_HOME/bin" >> $GITHUB_PATH[0m
+2026-10-27T22:29:13.0946999Z [36;1mfi[0m
+2026-10-27T22:29:13.0966278Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:13.0966622Z env:
+2026-10-27T22:29:13.0966833Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:13.0967089Z ##[endgroup]
+2026-10-27T22:29:13.1013259Z ##[end-action id=__dtolnay_rust-toolchain.__run_2;outcome=success;conclusion=success;duration_ms=10]
+2026-10-27T22:29:13.1015820Z ##[start-action display=Install rustup if needed on windows;id=__dtolnay_rust-toolchain.__run_3]
+2026-10-27T22:29:13.1022360Z ##[end-action id=__dtolnay_rust-toolchain.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+2026-10-27T22:29:13.1036902Z ##[start-action display=rustup toolchain install 1.85.0;id=__dtolnay_rust-toolchain.__run_4]
+2026-10-27T22:29:13.1064130Z ##[group]Run set -f  # split targets and components on commas and whitespace, without glob expansion
+2026-10-27T22:29:13.1064834Z [36;1mset -f  # split targets and components on commas and whitespace, without glob expansion[0m
+2026-10-27T22:29:13.1065288Z [36;1mflags=()[0m
+2026-10-27T22:29:13.1065575Z [36;1mfor t in ${targets//,/ }; do flags+=(--target "$t"); done[0m
+2026-10-27T22:29:13.1065991Z [36;1mfor c in ${components//,/ }; do flags+=(--component "$c"); done[0m
+2026-10-27T22:29:13.1066494Z [36;1mif [[ $toolchain == nightly && -n $components ]]; then flags+=(--allow-downgrade); fi[0m
+2026-10-27T22:29:13.1066923Z [36;1mlog=$(mktemp)[0m
+2026-10-27T22:29:13.1067184Z [36;1mtrap 'rm -f "$log"' EXIT[0m
+2026-10-27T22:29:13.1067462Z [36;1mfor attempt in 1 2 3 4 5; do[0m
+2026-10-27T22:29:13.1068058Z [36;1m  if rustup toolchain install "$toolchain" "${flags[@]}" --profile minimal --no-self-update --force-non-host 2>&1 | tee "$log"; then[0m
+2026-10-27T22:29:13.1068632Z [36;1m    break[0m
+2026-10-27T22:29:13.1068834Z [36;1m  else[0m
+2026-10-27T22:29:13.1069032Z [36;1m    status=$?[0m
+2026-10-27T22:29:13.1069248Z [36;1m  fi[0m
+2026-10-27T22:29:13.1069545Z [36;1m  if [[ $attempt == 5 ]] || ! grep -Fq 'checksum failed for ' "$log" \[0m
+2026-10-27T22:29:13.1070118Z [36;1m      || ! grep -Fq 'this is likely due to an ongoing update of the official release server' "$log"; then[0m
+2026-10-27T22:29:13.1070601Z [36;1m    exit "$status"[0m
+2026-10-27T22:29:13.1070862Z [36;1m  fi[0m
+2026-10-27T22:29:13.1071220Z [36;1m  echo "Retrying rustup toolchain install in 30 seconds (retry $attempt of 4)" >&2[0m
+2026-10-27T22:29:13.1071653Z [36;1m  sleep 30[0m
+2026-10-27T22:29:13.1072198Z [36;1mdone[0m
+2026-10-27T22:29:13.1090969Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:13.1091479Z env:
+2026-10-27T22:29:13.1091981Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:13.1092314Z   toolchain: 1.85.0
+2026-10-27T22:29:13.1092520Z   targets: 
+2026-10-27T22:29:13.1092709Z   components: 
+2026-10-27T22:29:13.1092915Z   RUSTUP_PERMIT_COPY_RENAME: 1
+2026-10-27T22:29:13.1093151Z ##[endgroup]
+2026-10-27T22:29:13.1572621Z info: syncing channel updates for 1.85.0-x86_64-unknown-linux-gnu
+2026-10-27T22:29:13.3946438Z info: latest update on 2025-02-20 for version 1.85.0 (4d91de4e4 2025-02-17)
+2026-10-27T22:29:13.3948629Z info: downloading 3 components
+2026-10-27T22:29:20.3955966Z 
+2026-10-27T22:29:20.4033479Z   1.85.0-x86_64-unknown-linux-gnu installed - rustc 1.85.0 (4d91de4e4 2025-02-17)
+2026-10-27T22:29:20.4034152Z 
+2026-10-27T22:29:20.4278308Z ##[end-action id=__dtolnay_rust-toolchain.__run_4;outcome=success;conclusion=success;duration_ms=7324]
+2026-10-27T22:29:20.4286895Z ##[start-action display=rustup default 1.85.0;id=__dtolnay_rust-toolchain.__run_5]
+2026-10-27T22:29:20.4313259Z ##[group]Run rustup default "$toolchain" --force-non-host
+2026-10-27T22:29:20.4313659Z [36;1mrustup default "$toolchain" --force-non-host[0m
+2026-10-27T22:29:20.4334038Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:20.4334370Z env:
+2026-10-27T22:29:20.4334565Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.4334815Z   toolchain: 1.85.0
+2026-10-27T22:29:20.4335018Z ##[endgroup]
+2026-10-27T22:29:20.4419684Z info: using existing install for 1.85.0-x86_64-unknown-linux-gnu
+2026-10-27T22:29:20.4426434Z info: default toolchain set to 1.85.0-x86_64-unknown-linux-gnu
+2026-10-27T22:29:20.4426710Z 
+2026-10-27T22:29:20.4498678Z   1.85.0-x86_64-unknown-linux-gnu unchanged - rustc 1.85.0 (4d91de4e4 2025-02-17)
+2026-10-27T22:29:20.4499072Z 
+2026-10-27T22:29:20.4516159Z ##[end-action id=__dtolnay_rust-toolchain.__run_5;outcome=success;conclusion=success;duration_ms=22]
+2026-10-27T22:29:20.4519523Z ##[start-action display=Create cachekey;id=__dtolnay_rust-toolchain.rustc-version]
+2026-10-27T22:29:20.4543444Z ##[group]Run DATE=$(rustc +"$toolchain" --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')
+2026-10-27T22:29:20.4544318Z [36;1mDATE=$(rustc +"$toolchain" --version --verbose | sed -ne 's/^commit-date: \(20[0-9][0-9]\)-\([01][0-9]\)-\([0-3][0-9]\)$/\1\2\3/p')[0m
+2026-10-27T22:29:20.4545010Z [36;1mHASH=$(rustc +"$toolchain" --version --verbose | sed -ne 's/^commit-hash: //p')[0m
+2026-10-27T22:29:20.4545536Z [36;1mecho "cachekey=$(echo $DATE$HASH | head -c12)" >> $GITHUB_OUTPUT[0m
+2026-10-27T22:29:20.4564865Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:20.4565207Z env:
+2026-10-27T22:29:20.4565406Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.4565661Z   toolchain: 1.85.0
+2026-10-27T22:29:20.4565863Z ##[endgroup]
+2026-10-27T22:29:20.4876441Z ##[end-action id=__dtolnay_rust-toolchain.rustc-version;outcome=success;conclusion=success;duration_ms=35]
+2026-10-27T22:29:20.4879008Z ##[start-action display=Disable incremental compilation;id=__dtolnay_rust-toolchain.__run_6]
+2026-10-27T22:29:20.4944387Z ##[group]Run if [ -z "${CARGO_INCREMENTAL+set}" ]; then
+2026-10-27T22:29:20.4944771Z [36;1mif [ -z "${CARGO_INCREMENTAL+set}" ]; then[0m
+2026-10-27T22:29:20.4945097Z [36;1m  echo CARGO_INCREMENTAL=0 >> $GITHUB_ENV[0m
+2026-10-27T22:29:20.4945382Z [36;1mfi[0m
+2026-10-27T22:29:20.4986448Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:20.4986797Z env:
+2026-10-27T22:29:20.4986999Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.4987248Z ##[endgroup]
+2026-10-27T22:29:20.5033824Z ##[end-action id=__dtolnay_rust-toolchain.__run_6;outcome=success;conclusion=success;duration_ms=15]
+2026-10-27T22:29:20.5035937Z ##[start-action display=Enable colors in Cargo output;id=__dtolnay_rust-toolchain.__run_7]
+2026-10-27T22:29:20.5059692Z ##[group]Run if [ -z "${CARGO_TERM_COLOR+set}" ]; then
+2026-10-27T22:29:20.5060226Z [36;1mif [ -z "${CARGO_TERM_COLOR+set}" ]; then[0m
+2026-10-27T22:29:20.5060572Z [36;1m  echo CARGO_TERM_COLOR=always >> $GITHUB_ENV[0m
+2026-10-27T22:29:20.5060861Z [36;1mfi[0m
+2026-10-27T22:29:20.5079592Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:20.5079931Z env:
+2026-10-27T22:29:20.5080130Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.5080394Z   CARGO_INCREMENTAL: 0
+2026-10-27T22:29:20.5080606Z ##[endgroup]
+2026-10-27T22:29:20.5125949Z ##[end-action id=__dtolnay_rust-toolchain.__run_7;outcome=success;conclusion=success;duration_ms=8]
+2026-10-27T22:29:20.5129744Z ##[start-action display=Enable Cargo sparse registry;id=__dtolnay_rust-toolchain.__run_8]
+2026-10-27T22:29:20.5154529Z ##[group]Run # implemented in 1.66, stabilized in 1.68, made default in 1.70
+2026-10-27T22:29:20.5155060Z [36;1m# implemented in 1.66, stabilized in 1.68, made default in 1.70[0m
+2026-10-27T22:29:20.5155780Z [36;1mif [ -z "${CARGO_REGISTRIES_CRATES_IO_PROTOCOL+set}" -o -f "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol ]; then[0m
+2026-10-27T22:29:20.5156541Z [36;1m  if rustc +"$toolchain" --version --verbose | grep -q '^release: 1\.6[89]\.'; then[0m
+2026-10-27T22:29:20.5157128Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-10-27T22:29:20.5157674Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=sparse >> $GITHUB_ENV[0m
+2026-10-27T22:29:20.5158206Z [36;1m  elif rustc +"$toolchain" --version --verbose | grep -q '^release: 1\.6[67]\.'; then[0m
+2026-10-27T22:29:20.5158791Z [36;1m    touch "/home/runner/work/_temp"/.implicit_cargo_registries_crates_io_protocol || true[0m
+2026-10-27T22:29:20.5159323Z [36;1m    echo CARGO_REGISTRIES_CRATES_IO_PROTOCOL=git >> $GITHUB_ENV[0m
+2026-10-27T22:29:20.5159673Z [36;1m  fi[0m
+2026-10-27T22:29:20.5159863Z [36;1mfi[0m
+2026-10-27T22:29:20.5178415Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:20.5178768Z env:
+2026-10-27T22:29:20.5178971Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.5179230Z   CARGO_INCREMENTAL: 0
+2026-10-27T22:29:20.5179458Z   CARGO_TERM_COLOR: always
+2026-10-27T22:29:20.5179677Z   toolchain: 1.85.0
+2026-10-27T22:29:20.5179872Z ##[endgroup]
+2026-10-27T22:29:20.5465823Z ##[end-action id=__dtolnay_rust-toolchain.__run_8;outcome=success;conclusion=success;duration_ms=33]
+2026-10-27T22:29:20.5469567Z ##[start-action display=Work around spurious network errors in curl 8.0;id=__dtolnay_rust-toolchain.__run_9]
+2026-10-27T22:29:20.5493824Z ##[group]Run # https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation
+2026-10-27T22:29:20.5494609Z [36;1m# https://rust-lang.zulipchat.com/#narrow/stream/246057-t-cargo/topic/timeout.20investigation[0m
+2026-10-27T22:29:20.5495270Z [36;1mif rustc +"$toolchain" --version --verbose | grep -q '^release: 1\.7[01]\.'; then[0m
+2026-10-27T22:29:20.5495773Z [36;1m  echo CARGO_HTTP_MULTIPLEXING=false >> $GITHUB_ENV[0m
+2026-10-27T22:29:20.5496099Z [36;1mfi[0m
+2026-10-27T22:29:20.5516236Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:20.5516566Z env:
+2026-10-27T22:29:20.5516775Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.5517030Z   CARGO_INCREMENTAL: 0
+2026-10-27T22:29:20.5517247Z   CARGO_TERM_COLOR: always
+2026-10-27T22:29:20.5517467Z   toolchain: 1.85.0
+2026-10-27T22:29:20.5517665Z ##[endgroup]
+2026-10-27T22:29:20.5684794Z ##[end-action id=__dtolnay_rust-toolchain.__run_9;outcome=success;conclusion=success;duration_ms=21]
+2026-10-27T22:29:20.5689085Z ##[start-action display=rustc +1.85.0 --version --verbose;id=__dtolnay_rust-toolchain.__run_10]
+2026-10-27T22:29:20.5712819Z ##[group]Run rustc +"$toolchain" --version --verbose
+2026-10-27T22:29:20.5713202Z [36;1mrustc +"$toolchain" --version --verbose[0m
+2026-10-27T22:29:20.5732713Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+2026-10-27T22:29:20.5733113Z env:
+2026-10-27T22:29:20.5733320Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.5733757Z   CARGO_INCREMENTAL: 0
+2026-10-27T22:29:20.5733993Z   CARGO_TERM_COLOR: always
+2026-10-27T22:29:20.5734237Z   toolchain: 1.85.0
+2026-10-27T22:29:20.5734438Z ##[endgroup]
+2026-10-27T22:29:20.5882258Z rustc 1.85.0 (4d91de4e4 2025-02-17)
+2026-10-27T22:29:20.5882987Z binary: rustc
+2026-10-27T22:29:20.5883428Z commit-hash: 4d91de4e48198da2e33413efdcd9cd2cc0c46688
+2026-10-27T22:29:20.5883959Z commit-date: 2025-02-17
+2026-10-27T22:29:20.5884343Z host: x86_64-unknown-linux-gnu
+2026-10-27T22:29:20.5884802Z release: 1.85.0
+2026-10-27T22:29:20.5885232Z LLVM version: 19.1.7
+2026-10-27T22:29:20.5900290Z ##[end-action id=__dtolnay_rust-toolchain.__run_10;outcome=success;conclusion=success;duration_ms=21]
+2026-10-27T22:29:20.5973156Z ##[group]Run cargo test --locked --workspace --all-features --exclude base-scheduler-bake
+2026-10-27T22:29:20.5973801Z [36;1mcargo test --locked --workspace --all-features --exclude base-scheduler-bake[0m
+2026-10-27T22:29:20.5994390Z shell: /usr/bin/bash -e {0}
+2026-10-27T22:29:20.5994661Z env:
+2026-10-27T22:29:20.5994867Z   CARGO_HOME: /home/runner/.cargo
+2026-10-27T22:29:20.5995123Z   CARGO_INCREMENTAL: 0
+2026-10-27T22:29:20.5995351Z   CARGO_TERM_COLOR: always
+2026-10-27T22:29:20.5995583Z ##[endgroup]
+2026-10-27T22:29:20.6404674Z [1m[32m    Updating[0m crates.io index
+2026-10-27T22:29:22.0412690Z [1m[32m Downloading[0m crates ...
+2026-10-27T22:29:22.1899205Z [1m[32m  Downloaded[0m atomic-waker v1.1.2
+2026-10-27T22:29:22.2237529Z [1m[32m  Downloaded[0m cfg-if v1.0.5
+2026-10-27T22:29:22.2327598Z [1m[32m  Downloaded[0m autocfg v1.5.1
+2026-10-27T22:29:22.2362966Z [1m[32m  Downloaded[0m itoa v1.0.18
+2026-10-27T22:29:22.2379759Z [1m[32m  Downloaded[0m thread_local v1.1.10
+2026-10-27T22:29:22.2414582Z [1m[32m  Downloaded[0m scoped-tls v1.0.1
+2026-10-27T22:29:22.2426852Z [1m[32m  Downloaded[0m lazy_static v1.5.1
+2026-10-27T22:29:22.2468071Z [1m[32m  Downloaded[0m errno v0.3.14
+2026-10-27T22:29:22.2504047Z [1m[32m  Downloaded[0m allocation-counter v0.8.1
+2026-10-27T22:29:22.2517904Z [1m[32m  Downloaded[0m tokio-macros v2.7.2
+2026-10-27T22:29:22.2531553Z [1m[32m  Downloaded[0m parking v2.2.1
+2026-10-27T22:29:22.2546406Z [1m[32m  Downloaded[0m matchers v0.2.0
+2026-10-27T22:29:22.2558827Z [1m[32m  Downloaded[0m slab v0.4.12
+2026-10-27T22:29:22.2572958Z [1m[32m  Downloaded[0m shlex v2.0.1
+2026-10-27T22:29:22.2590162Z [1m[32m  Downloaded[0m zmij v1.0.23
+2026-10-27T22:29:22.2613818Z [1m[32m  Downloaded[0m tracing-log v0.2.0
+2026-10-27T22:29:22.2633341Z [1m[32m  Downloaded[0m crossbeam-queue v0.3.14
+2026-10-27T22:29:22.2652214Z [1m[32m  Downloaded[0m smallvec v1.16.4
+2026-10-27T22:29:22.2675460Z [1m[32m  Downloaded[0m unicode-ident v1.0.27
+2026-10-27T22:29:22.2710572Z [1m[32m  Downloaded[0m tracing-core v0.1.36
+2026-10-27T22:29:22.2750891Z [1m[32m  Downloaded[0m proc-macro2 v1.0.107
+2026-10-27T22:29:22.2789165Z [1m[32m  Downloaded[0m loom v0.7.2
+2026-10-27T22:29:22.2853210Z [1m[32m  Downloaded[0m memchr v2.8.3
+2026-10-27T22:29:22.2920034Z [1m[32m  Downloaded[0m mio v1.2.4
+2026-10-27T22:29:22.2988434Z [1m[32m  Downloaded[0m aho-corasick v1.1.5
+2026-10-27T22:29:22.3053233Z [1m[32m  Downloaded[0m cc v1.10.0
+2026-10-27T22:29:22.3104616Z [1m[32m  Downloaded[0m tracing-subscriber v0.3.23
+2026-10-27T22:29:22.3201487Z [1m[32m  Downloaded[0m serde_json v1.0.154
+2026-10-27T22:29:22.3286799Z [1m[32m  Downloaded[0m io-uring v0.7.15
+2026-10-27T22:29:22.3334059Z [1m[32m  Downloaded[0m bytes v1.12.1
+2026-10-27T22:29:22.3378089Z [1m[32m  Downloaded[0m generator v0.8.11
+2026-10-27T22:29:22.3423770Z [1m[32m  Downloaded[0m hdrhistogram v7.5.4
+2026-10-27T22:29:22.3503381Z [1m[32m  Downloaded[0m regex-syntax v0.8.11
+2026-10-27T22:29:22.3589115Z [1m[32m  Downloaded[0m syn v3.0.9
+2026-10-27T22:29:22.3715094Z [1m[32m  Downloaded[0m event-listener v5.4.2
+2026-10-27T22:29:22.3736300Z [1m[32m  Downloaded[0m tempfile v3.27.0
+2026-10-27T22:29:22.3765235Z [1m[32m  Downloaded[0m rustix v1.1.5
+2026-10-27T22:29:22.4050301Z [1m[32m  Downloaded[0m socket2 v0.6.5
+2026-10-27T22:29:22.4074321Z [1m[32m  Downloaded[0m tracing v0.1.44
+2026-10-27T22:29:22.4281432Z [1m[32m  Downloaded[0m signal-hook v0.4.5
+2026-10-27T22:29:22.4309707Z [1m[32m  Downloaded[0m polling v3.11.0
+2026-10-27T22:29:22.4344641Z [1m[32m  Downloaded[0m pin-project-lite v0.2.17
+2026-10-27T22:29:22.4403951Z [1m[32m  Downloaded[0m num-traits v0.2.19
+2026-10-27T22:29:22.4432726Z [1m[32m  Downloaded[0m regex-automata v0.4.18
+2026-10-27T22:29:22.4606958Z [1m[32m  Downloaded[0m log v0.4.34
+2026-10-27T22:29:22.4635447Z [1m[32m  Downloaded[0m getrandom v0.4.3
+2026-10-27T22:29:22.4675499Z [1m[32m  Downloaded[0m futures-lite v2.6.1
+2026-10-27T22:29:22.4695891Z [1m[32m  Downloaded[0m futures-channel v0.3.34
+2026-10-27T22:29:22.4716815Z [1m[32m  Downloaded[0m concurrent-queue v2.5.0
+2026-10-27T22:29:22.4735339Z [1m[32m  Downloaded[0m sharded-slab v0.1.7
+2026-10-27T22:29:22.4771867Z [1m[32m  Downloaded[0m serde_core v1.0.229
+2026-10-27T22:29:22.4803553Z [1m[32m  Downloaded[0m crossbeam-utils v0.8.23
+2026-10-27T22:29:22.4833664Z [1m[32m  Downloaded[0m crossbeam-epoch v0.9.21
+2026-10-27T22:29:22.4861361Z [1m[32m  Downloaded[0m once_cell v1.21.4
+2026-10-27T22:29:22.4888677Z [1m[32m  Downloaded[0m async-task v4.7.1
+2026-10-27T22:29:22.4916471Z [1m[32m  Downloaded[0m async-io v2.6.0
+2026-10-27T22:29:22.4948362Z [1m[32m  Downloaded[0m tokio v1.54.1
+2026-10-27T22:29:22.5467188Z [1m[32m  Downloaded[0m libc v0.2.191
+2026-10-27T22:29:22.5975460Z [1m[32m  Downloaded[0m signal-hook-registry v1.4.8
+2026-10-27T22:29:22.5988833Z [1m[32m  Downloaded[0m rustversion v1.0.23
+2026-10-27T22:29:22.6017621Z [1m[32m  Downloaded[0m nu-ansi-term v0.50.3
+2026-10-27T22:29:22.6043079Z [1m[32m  Downloaded[0m crossbeam-deque v0.8.8
+2026-10-27T22:29:22.6059741Z [1m[32m  Downloaded[0m quote v1.0.47
+2026-10-27T22:29:22.6088330Z [1m[32m  Downloaded[0m futures-io v0.3.34
+2026-10-27T22:29:22.6098030Z [1m[32m  Downloaded[0m futures-core v0.3.34
+2026-10-27T22:29:22.6112507Z [1m[32m  Downloaded[0m fastrand v2.5.0
+2026-10-27T22:29:22.6128018Z [1m[32m  Downloaded[0m find-msvc-tools v0.1.15
+2026-10-27T22:29:22.6146531Z [1m[32m  Downloaded[0m byteorder v1.5.0
+2026-10-27T22:29:22.6165813Z [1m[32m  Downloaded[0m bitflags v2.13.2
+2026-10-27T22:29:22.6245273Z [1m[32m  Downloaded[0m linux-raw-sys v0.12.1
+2026-10-27T22:29:22.7474020Z [1m[32m   Compiling[0m libc v0.2.191
+2026-10-27T22:29:22.7483135Z [1m[32m   Compiling[0m pin-project-lite v0.2.17
+2026-10-27T22:29:22.7483800Z [1m[32m   Compiling[0m parking v2.2.1
+2026-10-27T22:29:22.7484412Z [1m[32m   Compiling[0m futures-core v0.3.34
+2026-10-27T22:29:22.7983132Z [1m[32m   Compiling[0m fastrand v2.5.0
+2026-10-27T22:29:22.8450384Z [1m[32m   Compiling[0m event-listener v5.4.2
+2026-10-27T22:29:22.8622402Z [1m[32m   Compiling[0m futures-channel v0.3.34
+2026-10-27T22:29:22.9905092Z [1m[32m   Compiling[0m futures-io v0.3.34
+2026-10-27T22:29:23.0353447Z [1m[32m   Compiling[0m cfg-if v1.0.5
+2026-10-27T22:29:23.0583126Z [1m[32m   Compiling[0m futures-lite v2.6.1
+2026-10-27T22:29:23.0873538Z [1m[32m   Compiling[0m base-scheduler v0.1.2 (/home/runner/work/base-scheduler/base-scheduler)
+2026-10-27T22:29:23.0935230Z [1m[32m   Compiling[0m bitflags v2.13.2
+2026-10-27T22:29:23.2740618Z [1m[32m   Compiling[0m rustix v1.1.5
+2026-10-27T22:29:23.6623190Z [1m[32m   Compiling[0m signal-hook v0.4.5
+2026-10-27T22:29:23.7996726Z [1m[32m   Compiling[0m linux-raw-sys v0.12.1
+2026-10-27T22:29:23.8403492Z [1m[32m   Compiling[0m crossbeam-utils v0.8.23
+2026-10-27T22:29:23.9322638Z [1m[32m   Compiling[0m autocfg v1.5.1
+2026-10-27T22:29:24.3178356Z [1m[32m   Compiling[0m async-io v2.6.0
+2026-10-27T22:29:24.4583565Z [1m[32m   Compiling[0m errno v0.3.14
+2026-10-27T22:29:24.5043056Z [1m[32m   Compiling[0m socket2 v0.6.5
+2026-10-27T22:29:24.5387515Z [1m[32m   Compiling[0m signal-hook-registry v1.4.8
+2026-10-27T22:29:24.8258578Z [1m[32m   Compiling[0m concurrent-queue v2.5.0
+2026-10-27T22:29:25.0143624Z [1m[32m   Compiling[0m slab v0.4.12
+2026-10-27T22:29:25.0482953Z [1m[32m   Compiling[0m async-task v4.7.1
+2026-10-27T22:29:25.0963150Z [1m[32m   Compiling[0m crossbeam-queue v0.3.14
+2026-10-27T22:29:25.1334890Z [1m[32m   Compiling[0m once_cell v1.21.4
+2026-10-27T22:29:25.1899522Z [1m[32m   Compiling[0m crossbeam-epoch v0.9.21
+2026-10-27T22:29:25.2273763Z [1m[32m   Compiling[0m base-scheduler-timers v0.1.2 (/home/runner/work/base-scheduler/base-scheduler/crates/timers)
+2026-10-27T22:29:25.2887309Z [1m[32m   Compiling[0m crossbeam-deque v0.8.8
+2026-10-27T22:29:25.5187038Z [1m[32m   Compiling[0m getrandom v0.4.3
+2026-10-27T22:29:25.5363496Z [1m[32m   Compiling[0m proc-macro2 v1.0.107
+2026-10-27T22:29:25.8559912Z [1m[32m   Compiling[0m unicode-ident v1.0.27
+2026-10-27T22:29:25.8753115Z [1m[32m   Compiling[0m quote v1.0.47
+2026-10-27T22:29:25.9272971Z [1m[32m   Compiling[0m io-uring v0.7.15
+2026-10-27T22:29:26.1323517Z [1m[32m   Compiling[0m mio v1.2.4
+2026-10-27T22:29:26.6913078Z [1m[32m   Compiling[0m atomic-waker v1.1.2
+2026-10-27T22:29:26.7533147Z [1m[32m   Compiling[0m syn v3.0.9
+2026-10-27T22:29:26.8123033Z [1m[32m   Compiling[0m allocation-counter v0.8.1
+2026-10-27T22:29:26.9243268Z [1m[32m   Compiling[0m bytes v1.12.1
+2026-10-27T22:29:27.1825263Z [1m[32m   Compiling[0m zmij v1.0.23
+2026-10-27T22:29:27.4203283Z [1m[32m   Compiling[0m serde_core v1.0.229
+2026-10-27T22:29:27.6963077Z [1m[32m   Compiling[0m serde_json v1.0.154
+2026-10-27T22:29:28.1943160Z [1m[32m   Compiling[0m memchr v2.8.3
+2026-10-27T22:29:29.0483085Z [1m[32m   Compiling[0m itoa v1.0.18
+2026-10-27T22:29:29.1963814Z [1m[32m   Compiling[0m base-scheduler-conformance v0.1.2 (/home/runner/work/base-scheduler/base-scheduler/crates/conformance)
+2026-10-27T22:29:30.2383219Z [1m[32m   Compiling[0m polling v3.11.0
+2026-10-27T22:29:31.0813794Z [1m[32m   Compiling[0m base-scheduler-selector v0.1.2 (/home/runner/work/base-scheduler/base-scheduler/crates/selector)
+2026-10-27T22:29:31.1309990Z [1m[32m   Compiling[0m tempfile v3.27.0
+2026-10-27T22:29:31.3733142Z [1m[32m   Compiling[0m tokio-macros v2.7.2
+2026-10-27T22:29:31.6053608Z [1m[32m   Compiling[0m base-scheduler-direct v0.1.2 (/home/runner/work/base-scheduler/base-scheduler/crates/direct)
+2026-10-27T22:29:32.2359292Z [1m[32m   Compiling[0m base-scheduler-native v0.1.2 (/home/runner/work/base-scheduler/base-scheduler/crates/native)
+2026-10-27T22:29:32.8683057Z [1m[32m   Compiling[0m tokio v1.54.1
+2026-10-27T22:29:32.9933551Z [1m[32m   Compiling[0m base-scheduler-iouring v0.1.2 (/home/runner/work/base-scheduler/base-scheduler/crates/iouring)
+2026-10-27T22:29:33.2312984Z [1m[32m   Compiling[0m num-traits v0.2.19
+2026-10-27T22:29:33.4383408Z [1m[32m   Compiling[0m byteorder v1.5.0
+2026-10-27T22:29:33.6459583Z [1m[32m   Compiling[0m rustversion v1.0.23
+2026-10-27T22:29:33.9913687Z [1m[32m   Compiling[0m shlex v2.0.1
+2026-10-27T22:29:34.1223039Z [1m[32m   Compiling[0m find-msvc-tools v0.1.15
+2026-10-27T22:29:34.3344615Z [1m[32m   Compiling[0m hdrhistogram v7.5.4
+2026-10-27T22:29:34.3585605Z [1m[32m   Compiling[0m cc v1.10.0
+2026-10-27T22:29:35.1413352Z [1m[32m   Compiling[0m tracing-core v0.1.36
+2026-10-27T22:29:35.5763355Z [1m[32m   Compiling[0m regex-syntax v0.8.11
+2026-10-27T22:29:35.7923255Z [1m[32m   Compiling[0m log v0.4.34
+2026-10-27T22:29:35.9513253Z [1m[32m   Compiling[0m lazy_static v1.5.1
+2026-10-27T22:29:35.9983326Z [1m[32m   Compiling[0m sharded-slab v0.1.7
+2026-10-27T22:29:36.3041607Z [1m[32m   Compiling[0m generator v0.8.11
+2026-10-27T22:29:36.5823353Z [1m[32m   Compiling[0m tracing-log v0.2.0
+2026-10-27T22:29:36.6373846Z [1m[32m   Compiling[0m tracing v0.1.44
+2026-10-27T22:29:36.7645812Z [1m[32m   Compiling[0m regex-automata v0.4.18
+2026-10-27T22:29:36.8213602Z [1m[32m   Compiling[0m thread_local v1.1.10
+2026-10-27T22:29:37.0023575Z [1m[32m   Compiling[0m base-scheduler-tokio v0.1.2 (/home/runner/work/base-scheduler/base-scheduler/crates/tokio)
+2026-10-27T22:29:38.2213884Z [1m[32m   Compiling[0m base-scheduler-examples v0.0.0 (/home/runner/work/base-scheduler/base-scheduler/examples)
+2026-10-27T22:29:38.3503680Z [1m[32m   Compiling[0m base-scheduler-file-benchmark v0.0.0 (/home/runner/work/base-scheduler/base-scheduler/benchmarks/files)
+2026-10-27T22:29:38.7788201Z [1m[32m   Compiling[0m nu-ansi-term v0.50.3
+2026-10-27T22:29:39.0873238Z [1m[32m   Compiling[0m matchers v0.2.0
+2026-10-27T22:29:39.1082870Z [1m[32m   Compiling[0m smallvec v1.16.4
+2026-10-27T22:29:39.1632631Z [1m[32m   Compiling[0m base-scheduler-timer-benchmark v0.0.0 (/home/runner/work/base-scheduler/base-scheduler/benchmarks/timers)
+2026-10-27T22:29:39.2893986Z [1m[32m   Compiling[0m tracing-subscriber v0.3.23
+2026-10-27T22:29:39.2943376Z [1m[32m   Compiling[0m base-scheduler-echo-benchmark v0.0.0 (/home/runner/work/base-scheduler/base-scheduler/benchmarks/echo)
+2026-10-27T22:29:39.2973456Z [1m[32m   Compiling[0m base-scheduler-write-benchmark v0.0.0 (/home/runner/work/base-scheduler/base-scheduler/benchmarks/writes)
+2026-10-27T22:29:41.3298495Z [1m[32m   Compiling[0m scoped-tls v1.0.1
+2026-10-27T22:29:41.3881544Z [1m[32m   Compiling[0m loom v0.7.2
+2026-10-27T22:29:48.1888047Z [1m[32m   Compiling[0m base-scheduler-buffer-benchmark v0.0.0 (/home/runner/work/base-scheduler/base-scheduler/benchmarks/buffers)
+2026-10-27T22:30:52.7576881Z [1m[32m    Finished[0m `test` profile [unoptimized + debuginfo] target(s) in 1m 32s
+2026-10-27T22:30:52.8167883Z [1m[32m     Running[0m unittests src/lib.rs (target/debug/deps/base_scheduler-3b78af897f7f7fea)
+2026-10-27T22:30:52.8186349Z 
+2026-10-27T22:30:52.8186616Z running 11 tests
+2026-10-27T22:30:52.8197315Z test cancellation::tests::never_signals_need_no_cancellation_registration ... ok
+2026-10-27T22:30:52.8198763Z test heap_buffer_pool::tests::abandoned_exhaustion_restores_the_fast_return_path ... ok
+2026-10-27T22:30:52.8200056Z test heap_buffer_pool::tests::closing_retires_idle_tokens_across_availability_words ... ok
+2026-10-27T22:30:52.8201456Z test cancellation::tests::dropped_children_release_their_registrations_and_ancestors ... ok
+2026-10-27T22:30:52.8203838Z test heap_buffer_pool::tests::notification_can_synchronously_acquire_and_retain_a_returned_slot ... ok
+2026-10-27T22:30:52.8214432Z test heap_buffer_pool::tests::slot_tokens_survive_pool_close_and_all_frozen_views ... ok
+2026-10-27T22:30:52.8523068Z test cancellation::tests::an_exclusively_owned_deep_chain_is_released_without_recursive_destruction ... ok
+2026-10-27T22:30:52.8527570Z test spawn_error::tests::spawn_errors_have_descriptive_messages ... ok
+2026-10-27T22:30:52.8957432Z test heap_buffer_pool::tests::concurrent_returns_and_pool_close_reclaim_every_token ... ok
+2026-10-27T22:30:52.9288824Z test heap_buffer_pool::tests::frozen_reader_limit_aborts_before_the_count_can_wrap ... ok
+2026-10-27T22:30:52.9298991Z test heap_buffer_pool::tests::waiter_limit_aborts_before_the_count_can_wrap ... ok
+2026-10-27T22:30:52.9299754Z 
+2026-10-27T22:30:52.9300375Z test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+2026-10-27T22:30:52.9300983Z 
+2026-10-27T22:30:52.9302851Z [1m[32m     Running[0m tests/address_info_collections.rs (target/debug/deps/address_info_collections-808131805aa84c12)
+2026-10-27T22:30:52.9317430Z 
+2026-10-27T22:30:52.9321339Z running 2 tests
+2026-10-27T22:30:52.9324703Z test portable_arrays_vectors_boxed_slices_and_cached_results_preserve_entries_without_allocating ... ok
+2026-10-27T22:30:52.9326708Z test borrowed_entry_iteration_can_cross_polling_threads ... ok
+2026-10-27T22:30:52.9327384Z 
+2026-10-27T22:30:52.9328030Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:52.9328886Z 
+2026-10-27T22:30:52.9333244Z [1m[32m     Running[0m tests/address_resolve_error.rs (target/debug/deps/address_resolve_error-689a26f7c6b1158f)
+2026-10-27T22:30:52.9344427Z 
+2026-10-27T22:30:52.9344788Z running 1 test
+2026-10-27T22:30:52.9347889Z test resolver_errors_retain_category_code_message_and_source ... ok
+2026-10-27T22:30:52.9348687Z 
+2026-10-27T22:30:52.9349409Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:52.9350048Z 
+2026-10-27T22:30:52.9351424Z [1m[32m     Running[0m tests/buffer_pool.rs (target/debug/deps/buffer_pool-9cb056856bd896f2)
+2026-10-27T22:30:52.9365198Z 
+2026-10-27T22:30:52.9365553Z running 18 tests
+2026-10-27T22:30:52.9372440Z test abandoning_waits_and_forgetting_owners_are_safe ... ok
+2026-10-27T22:30:52.9373765Z test aligned_slots_share_one_slab_without_aliasing_other_live_slots ... ok
+2026-10-27T22:30:52.9377150Z test availability_words_preserve_exact_capacity_and_stable_storage ... ok
+2026-10-27T22:30:52.9378506Z test forgetting_a_frozen_view_never_recycles_its_slot ... ok
+2026-10-27T22:30:52.9379599Z test each_return_wakes_a_distinct_waiter_before_either_is_polled ... ok
+2026-10-27T22:30:52.9385090Z test exhaustion_waits_for_capacity_and_cancellation_does_not_take_a_buffer ... ok
+2026-10-27T22:30:52.9386050Z test generic_pool_operations_allocate_nothing_after_setup ... ok
+2026-10-27T22:30:52.9390383Z test invalid_alignment_and_unrepresentable_padded_capacity_are_rejected ... ok
+2026-10-27T22:30:52.9395566Z test frozen_views_hold_storage_until_the_final_cross_thread_return ... ok
+2026-10-27T22:30:52.9400418Z test leases_cannot_expose_bytes_outside_the_initialized_prefix - should panic ... ok
+2026-10-27T22:30:52.9401902Z test leases_and_views_keep_their_send_and_sync_contracts ... ok
+2026-10-27T22:30:52.9402731Z test leases_outlive_the_pool_handle_and_can_be_used_as_owned_ranges ... ok
+2026-10-27T22:30:52.9411209Z test pools_validate_capacity_and_recycle_stable_initialized_storage ... ok
+2026-10-27T22:30:52.9412410Z test portable_pool_factories_need_only_the_ownership_contract ... ok
+2026-10-27T22:30:52.9420981Z test steady_state_acquire_freeze_views_and_return_allocate_nothing ... ok
+2026-10-27T22:30:52.9460154Z test pool_contract_preserves_alignment_prefixes_and_shared_capacity ... ok
+2026-10-27T22:30:52.9565300Z test concurrent_checkouts_exclusively_own_their_slots ... ok
+2026-10-27T22:30:52.9686026Z test many_readers_return_each_slot_once ... ok
+2026-10-27T22:30:52.9686599Z 
+2026-10-27T22:30:52.9687360Z test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+2026-10-27T22:30:52.9688164Z 
+2026-10-27T22:30:52.9690780Z [1m[32m     Running[0m tests/buffers.rs (target/debug/deps/buffers-8521dd092aff11d3)
+2026-10-27T22:30:52.9703990Z 
+2026-10-27T22:30:52.9707996Z running 2 tests
+2026-10-27T22:30:52.9708903Z test operation_errors_keep_cancellation_and_os_errors_distinct ... ok
+2026-10-27T22:30:52.9709954Z test owned_ranges_preserve_storage_and_validate_boundaries ... ok
+2026-10-27T22:30:52.9710652Z 
+2026-10-27T22:30:52.9711429Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:52.9712993Z 
+2026-10-27T22:30:52.9718883Z [1m[32m     Running[0m tests/cancellation.rs (target/debug/deps/cancellation-de996fab036393b5)
+2026-10-27T22:30:52.9730713Z 
+2026-10-27T22:30:52.9731010Z running 21 tests
+2026-10-27T22:30:52.9740495Z test ancestor_cancellation_reaches_children_after_intermediate_handles_are_dropped ... ok
+2026-10-27T22:30:52.9741526Z test already_cancelled_tokens_notify_before_the_first_protected_poll ... ok
+2026-10-27T22:30:52.9742557Z test a_wait_uses_the_waker_from_its_latest_poll ... ok
+2026-10-27T22:30:52.9748807Z test callback_panics_propagate_and_the_wrapper_can_be_destroyed ... ok
+2026-10-27T22:30:52.9753755Z test cancellation_wakers_can_reenter_token_operations ... ok
+2026-10-27T22:30:52.9756943Z test cancellation_wakes_every_registered_waiter_including_descendants ... ok
+2026-10-27T22:30:52.9761184Z test clones_share_persistent_cancellation_and_a_descriptive_error ... ok
+2026-10-27T22:30:52.9791171Z test concurrent_cancellation_requests_have_one_winner ... ok
+2026-10-27T22:30:52.9794635Z test deferred_cancellation_keeps_pending_work_alive_and_calls_a_consuming_callback_once ... ok
+2026-10-27T22:30:52.9801431Z test deferred_work_completes_normally_without_a_cancellation_callback ... ok
+2026-10-27T22:30:52.9809174Z test dropping_a_wait_unregisters_it_without_affecting_other_waiters ... ok
+2026-10-27T22:30:52.9812300Z test dropping_a_wrapper_drops_its_work_and_does_not_call_on_cancel ... ok
+2026-10-27T22:30:52.9813430Z test dropping_all_parent_handles_does_not_cancel_surviving_children ... ok
+2026-10-27T22:30:52.9814486Z test independent_and_child_signals_have_separate_cancellation_boundaries ... ok
+2026-10-27T22:30:52.9815475Z test nested_wrappers_observe_their_own_tokens_and_keep_draining ... ok
+2026-10-27T22:30:52.9816737Z test never_cancelled_tokens_remain_pending_and_can_create_independent_children ... ok
+2026-10-27T22:30:52.9817699Z test protected_futures_need_not_be_unpin ... ok
+2026-10-27T22:30:52.9818500Z test the_callback_can_make_protected_work_ready_in_the_same_poll ... ok
+2026-10-27T22:30:53.0039872Z test cancellation_racing_waiter_registration_preserves_wakeups ... ok
+2026-10-27T22:30:53.0113493Z test cancellation_racing_child_registration_cannot_escape_propagation ... ok
+2026-10-27T22:30:53.0179327Z test cancellation_traverses_a_deep_chain_without_recursion ... ok
+2026-10-27T22:30:53.0188185Z 
+2026-10-27T22:30:53.0188942Z test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+2026-10-27T22:30:53.0189825Z 
+2026-10-27T22:30:53.0193691Z [1m[32m     Running[0m tests/cancellation_allocations.rs (target/debug/deps/cancellation_allocations-937e9bea895ed042)
+2026-10-27T22:30:53.0206755Z 
+2026-10-27T22:30:53.0207105Z running 3 tests
+2026-10-27T22:30:53.0212160Z test a_registered_wait_can_be_polled_on_another_thread ... ok
+2026-10-27T22:30:53.0214780Z test checks_clones_and_first_and_repeated_waits_do_not_allocate ... ok
+2026-10-27T22:30:53.0215899Z test observing_cancellation_does_not_allocate ... ok
+2026-10-27T22:30:53.0216606Z 
+2026-10-27T22:30:53.0217235Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.0218104Z 
+2026-10-27T22:30:53.0230506Z 
+2026-10-27T22:30:53.0230897Z running 2 tests
+2026-10-27T22:30:53.0233278Z [1m[32m     Running[0m tests/clock.rs (target/debug/deps/clock-5becc3365a61d052)
+2026-10-27T22:30:53.0234439Z test cancellation_and_overflow_do_not_delegate_to_a_timer ... ok
+2026-10-27T22:30:53.0235534Z test relative_sleep_is_lazy_and_uses_the_supplied_clock_domain ... ok
+2026-10-27T22:30:53.0236276Z 
+2026-10-27T22:30:53.0239074Z [1m[32m     Running[0m tests/file_capabilities.rs (target/debug/deps/file_capabilities-d283d68c09036da8)
+2026-10-27T22:30:53.0240889Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.0242127Z 
+2026-10-27T22:30:53.0250864Z 
+2026-10-27T22:30:53.0251230Z running 2 tests
+2026-10-27T22:30:53.0255331Z test read_only_resource_reuses_owned_storage_without_allocating ... ok
+2026-10-27T22:30:53.0260082Z [1m[32m     Running[0m tests/io_vectors.rs (target/debug/deps/io_vectors-fd8c89e10062b906)
+2026-10-27T22:30:53.0273057Z test read_only_resource_satisfies_a_read_only_consumer ... ok
+2026-10-27T22:30:53.0273774Z 
+2026-10-27T22:30:53.0274496Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.0279123Z 
+2026-10-27T22:30:53.0279614Z 
+2026-10-27T22:30:53.0280072Z running 7 tests
+2026-10-27T22:30:53.0280883Z test advancement_handles_empty_ranges_exact_boundaries_and_invalid_counts ... ok
+2026-10-27T22:30:53.0282035Z test prepared_packages_retain_boxed_buffers_and_owned_subranges ... ok
+2026-10-27T22:30:53.0284746Z test plain_collections_leave_vector_storage_to_the_backend ... ok
+2026-10-27T22:30:53.0303255Z test unix_syscalls_use_the_prepared_arrays_directly ... ok
+2026-10-27T22:30:53.0304347Z test writable_vectors_allow_repeated_byte_access_and_recover_original_owners ... ok
+2026-10-27T22:30:53.0305640Z test prepared_packages_keep_boxed_outer_collections_stable ... ok
+2026-10-27T22:30:53.0308876Z [1m[32m     Running[0m tests/message_buffers.rs (target/debug/deps/message_buffers-cb67989d9566e509)
+2026-10-27T22:30:53.0311052Z test prepared_read_vectors_reuse_storage_across_moves_and_partial_advancement ... ok
+2026-10-27T22:30:53.0312399Z 
+2026-10-27T22:30:53.0313024Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.0313859Z 
+2026-10-27T22:30:53.0322212Z 
+2026-10-27T22:30:53.0322716Z running 3 tests
+2026-10-27T22:30:53.0327019Z test empty_arrays_and_default_messages_remain_supported ... ok
+2026-10-27T22:30:53.0329724Z test abandoning_a_wait_retains_the_entire_collection_until_backend_retirement ... ok
+2026-10-27T22:30:53.0338252Z test arrays_vectors_boxed_slices_and_pool_owners_compose_without_new_allocations ... ok
+2026-10-27T22:30:53.0338902Z 
+2026-10-27T22:30:53.0339321Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.0339917Z 
+2026-10-27T22:30:53.0346153Z [1m[32m     Running[0m tests/native_address_info.rs (target/debug/deps/native_address_info-d672e2a0430586e1)
+2026-10-27T22:30:53.0356058Z 
+2026-10-27T22:30:53.0356420Z running 2 tests
+2026-10-27T22:30:53.0361616Z test abandoned_work_releases_its_native_result_exactly_once ... ok
+2026-10-27T22:30:53.0377672Z [1m[32m     Running[0m tests/notify.rs (target/debug/deps/notify-121304e94aaa9051)
+2026-10-27T22:30:53.0378735Z test native_list_wrapping_validation_and_borrowed_iteration_need_no_extra_allocation ... ok
+2026-10-27T22:30:53.0382488Z 
+2026-10-27T22:30:53.0382953Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.0383574Z 
+2026-10-27T22:30:53.0395339Z 
+2026-10-27T22:30:53.0396029Z running 2 tests
+2026-10-27T22:30:53.0398800Z test cancellation_ignores_values_and_propagates_to_children ... ok
+2026-10-27T22:30:53.0403494Z test shared_targets_and_standard_channels_retain_values_in_order ... ok
+2026-10-27T22:30:53.0404057Z 
+2026-10-27T22:30:53.0408511Z [1m[32m     Running[0m tests/pool_contention.rs (target/debug/deps/pool_contention-ebedef7b33ce5270)
+2026-10-27T22:30:53.0409658Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.0410333Z 
+2026-10-27T22:30:53.0427805Z 
+2026-10-27T22:30:53.0428190Z running 3 tests
+2026-10-27T22:30:53.0429131Z test abandoning_a_notified_waiter_preserves_other_waiters_capacity ... ok
+2026-10-27T22:30:53.0434451Z test cancelling_one_waiter_preserves_returns_from_later_availability_words ... ok
+2026-10-27T22:30:53.1010746Z test racing_exhaustion_and_returns_do_not_lose_capacity_or_notifications ... ok
+2026-10-27T22:30:53.1011542Z 
+2026-10-27T22:30:53.1012531Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+2026-10-27T22:30:53.1013408Z 
+2026-10-27T22:30:53.1014997Z [1m[32m     Running[0m tests/resource_defaults.rs (target/debug/deps/resource_defaults-4a19123023e949a9)
+2026-10-27T22:30:53.1028696Z 
+2026-10-27T22:30:53.1029084Z running 2 tests
+2026-10-27T22:30:53.1032810Z test file_defaults_return_original_owners_and_handle_short_writes ... ok
+2026-10-27T22:30:53.1033900Z test socket_defaults_preserve_owners_and_forward_flags_and_addresses ... ok
+2026-10-27T22:30:53.1034674Z 
+2026-10-27T22:30:53.1035287Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.1036535Z [1m[32m     Running[0m tests/socket_domain.rs (target/debug/deps/socket_domain-68b2c58de99a4427)
+2026-10-27T22:30:53.1037386Z 
+2026-10-27T22:30:53.1048942Z 
+2026-10-27T22:30:53.1049318Z running 1 test
+2026-10-27T22:30:53.1051215Z test domains_follow_the_address_family ... ok
+2026-10-27T22:30:53.1052380Z 
+2026-10-27T22:30:53.1053071Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.1054797Z [1m[32m     Running[0m tests/socket_recv_message.rs (target/debug/deps/socket_recv_message-584f1c263815193d)
+2026-10-27T22:30:53.1055493Z 
+2026-10-27T22:30:53.1068167Z 
+2026-10-27T22:30:53.1068552Z running 5 tests
+2026-10-27T22:30:53.1075498Z test custom_immutable_messages_can_decode_metadata_lazily_and_move_between_workers ... ok
+2026-10-27T22:30:53.1076684Z test empty_payloads_and_clear_flags_are_preserved ... ok
+2026-10-27T22:30:53.1077913Z test portable_message_rejects_an_inconsistent_payload_length - should panic ... ok
+2026-10-27T22:30:53.1079289Z [1m[32m     Running[0m tests/task_errors.rs (target/debug/deps/task_errors-cff9fafebe8f2807)
+2026-10-27T22:30:53.1080610Z test pooled_payload_mutation_and_freezing_preserve_ownership_after_teardown ... ok
+2026-10-27T22:30:53.1082515Z test portable_messages_preserve_metadata_and_transfer_the_completed_payload ... ok
+2026-10-27T22:30:53.1083493Z 
+2026-10-27T22:30:53.1084124Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.1084961Z 
+2026-10-27T22:30:53.1092173Z 
+2026-10-27T22:30:53.1092610Z running 2 tests
+2026-10-27T22:30:53.1095689Z test blocking_admission_errors_are_distinct_from_job_errors ... ok
+2026-10-27T22:30:53.1096630Z test task_errors_preserve_panic_payloads ... ok
+2026-10-27T22:30:53.1097179Z 
+2026-10-27T22:30:53.1097777Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.1098961Z [1m[32m     Running[0m tests/timeouts.rs (target/debug/deps/timeouts-78c223fd60b4cb4a)
+2026-10-27T22:30:53.1099780Z 
+2026-10-27T22:30:53.1111083Z 
+2026-10-27T22:30:53.1111458Z running 9 tests
+2026-10-27T22:30:53.1116902Z test abandoning_a_pending_timeout_releases_both_waits ... ok
+2026-10-27T22:30:53.1118574Z test ready_operations_preserve_outputs_without_reading_the_clock_or_allocating ... ok
+2026-10-27T22:30:53.1122157Z test generic_clock_timeouts_are_send_and_can_borrow_the_operation ... ok
+2026-10-27T22:30:53.1123582Z test operation_completion_wins_expiry_and_releases_the_timer_before_returning ... ok
+2026-10-27T22:30:53.1124775Z test timeout_is_lazy_and_dropping_an_unpolled_timeout_drops_its_operation ... ok
+2026-10-27T22:30:53.1126097Z test relative_timeout_registers_only_when_polled_and_expires_in_its_clock_domain ... ok
+2026-10-27T22:30:53.1127358Z test timeout_composition_and_timer_cleanup_do_not_allocate ... ok
+2026-10-27T22:30:53.1128548Z test zero_duration_expires_a_pending_operation_and_overflow_is_a_clock_error ... ok
+2026-10-27T22:30:53.1129732Z test timeout_errors_report_expiry_and_preserve_the_clock_error_chain ... ok
+2026-10-27T22:30:53.1130589Z 
+2026-10-27T22:30:53.1131197Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:53.1132507Z 
+2026-10-27T22:30:53.1140722Z 
+2026-10-27T22:30:53.1141089Z running 6 tests
+2026-10-27T22:30:53.1148516Z [1m[32m     Running[0m unittests src/bin/files.rs (target/debug/deps/files-542f28182848b3d6)
+2026-10-27T22:30:53.1162981Z test tests::pooled_input_returns_capacity_after_cancellation_and_read_errors ... ok
+2026-10-27T22:30:53.1171215Z test tests::rejects_unknown_mode - should panic ... ok
+2026-10-27T22:30:53.1172402Z test tests::rejects_unknown_backend - should panic ... ok
+2026-10-27T22:30:53.1173297Z test tests::empty_input_returns_eof ... ok
+2026-10-27T22:30:53.1174312Z test tests::submitted_output_retries_only_the_suffix_and_propagates_errors ... ok
+2026-10-27T22:30:54.5472780Z test tests::pipelines_copy_partial_tails_on_each_backend ... ok
+2026-10-27T22:30:54.5473302Z 
+2026-10-27T22:30:54.5473700Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.43s
+2026-10-27T22:30:54.5474252Z 
+2026-10-27T22:30:54.5479141Z [1m[32m     Running[0m unittests src/bin/leases.rs (target/debug/deps/leases-0a6edefd12b855d6)
+2026-10-27T22:30:54.5491961Z 
+2026-10-27T22:30:54.5492169Z running 1 test
+2026-10-27T22:30:54.5503267Z test tests::shared_and_local_leases_can_be_moved_and_frozen ... ok
+2026-10-27T22:30:54.5503653Z 
+2026-10-27T22:30:54.5503933Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:30:54.5504664Z 
+2026-10-27T22:30:54.5506669Z [1m[32m     Running[0m unittests src/bin/pipeline.rs (target/debug/deps/pipeline-3e3bd0f067140b29)
+2026-10-27T22:30:54.5518291Z 
+2026-10-27T22:30:54.5518463Z running 8 tests
+2026-10-27T22:30:54.5540417Z test linux::tests::abandoned_receive_does_not_recycle_kernel_storage ... ok
+2026-10-27T22:30:54.5552704Z test linux::tests::notifications_decode_actual_zero_copy_and_partial_copy_reports ... ok
+2026-10-27T22:30:54.5909350Z test linux::tests::large_streams_and_small_packets_preserve_sequence ... ok
+2026-10-27T22:30:54.5994938Z test linux::tests::pipelines_preserve_slices_and_return_every_lease ... ok
+2026-10-27T22:30:54.6005259Z test linux::tests::truncated_requests_and_reset_peers_fail_without_recycling_live_owners ... ok
+2026-10-27T22:30:54.6065127Z test linux::tests::shared_pool_pressure_drives_completions_and_waits_for_external_owners ... ok
+2026-10-27T22:30:54.6621402Z test linux::tests::defaults_run_and_invalid_workloads_fail_before_submission ... ok
+2026-10-27T22:30:56.4527406Z test linux::tests::short_sends_keep_each_notification_owner_until_retirement ... ok
+2026-10-27T22:30:56.4527987Z 
+2026-10-27T22:30:56.4528370Z test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.90s
+2026-10-27T22:30:56.4528890Z 
+2026-10-27T22:30:56.4537583Z [1m[32m     Running[0m unittests src/bin/registered.rs (target/debug/deps/registered-ebfe1281dc17e859)
+2026-10-27T22:30:56.4549444Z 
+2026-10-27T22:30:56.4549583Z running 5 tests
+2026-10-27T22:30:56.4617957Z test linux::tests::small_network_payloads_do_not_discard_allocator_pages ... ok
+2026-10-27T22:30:56.4633924Z test linux::tests::uncollected_requests_retain_their_pool_storage_during_unwinding ... ok
+2026-10-27T22:30:56.4697213Z test linux::tests::unexpected_end_of_file_rejects_a_truncated_sample - should panic ... ok
+2026-10-27T22:30:56.4864151Z test linux::tests::stream_transfers_reassemble_partial_completions ... ok
+2026-10-27T22:30:57.1561361Z test linux::tests::registered_and_ordinary_buffers_preserve_data ... ok
+2026-10-27T22:30:57.1562127Z 
+2026-10-27T22:30:57.1562476Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.70s
+2026-10-27T22:30:57.1562845Z 
+2026-10-27T22:30:57.1580729Z [1m[32m     Running[0m unittests src/bin/sockets.rs (target/debug/deps/sockets-9e3573ff371745dd)
+2026-10-27T22:30:57.1594722Z 
+2026-10-27T22:30:57.1595020Z running 8 tests
+2026-10-27T22:30:57.1616958Z test tests::rejects_multishot_on_portable_backends - should panic ... ok
+2026-10-27T22:30:57.1620810Z test tests::rejects_unknown_backend - should panic ... ok
+2026-10-27T22:30:57.1627173Z test tests::rejects_unknown_mode - should panic ... ok
+2026-10-27T22:30:57.1629541Z test multishot::tests::portable_backends_reject_the_retired_multishot_control ... ok
+2026-10-27T22:30:57.1630273Z test tests::rejects_unknown_transport - should panic ... ok
+2026-10-27T22:30:57.1630811Z test tests::rejects_unknown_pool_layout - should panic ... ok
+2026-10-27T22:30:59.7605980Z test tests::receivers_share_capacity_across_concurrent_connections ... ok
+2026-10-27T22:31:04.4917073Z test tests::receivers_preserve_tcp_and_udp_data_on_each_backend ... ok
+2026-10-27T22:31:04.4917621Z 
+2026-10-27T22:31:04.4918047Z test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.33s
+2026-10-27T22:31:04.4918674Z 
+2026-10-27T22:31:04.4924632Z [1m[32m     Running[0m tests/cli.rs (target/debug/deps/cli-da062e25993dba77)
+2026-10-27T22:31:04.4937852Z 
+2026-10-27T22:31:04.4938123Z running 3 tests
+2026-10-27T22:31:04.4980964Z test registered_buffer_binary_emits_a_parseable_sample ... ok
+2026-10-27T22:31:04.5015567Z test remote_pipeline_client_verifies_frozen_payloads ... ok
+2026-10-27T22:31:04.5456626Z test benchmark_binaries_emit_parseable_samples ... ok
+2026-10-27T22:31:04.5457061Z 
+2026-10-27T22:31:04.5457477Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+2026-10-27T22:31:04.5458095Z 
+2026-10-27T22:31:04.5460275Z [1m[32m     Running[0m unittests src/lib.rs (target/debug/deps/base_scheduler_conformance-78c24f260886a90a)
+2026-10-27T22:31:04.5469764Z 
+2026-10-27T22:31:04.5469906Z running 2 tests
+2026-10-27T22:31:04.5473354Z test socket_stream_writing::tests::flush_accepts_completion_or_cancellation_and_rejects_other_errors ... ok
+2026-10-27T22:31:04.5474425Z test socket_resources::tests::cancellation_assertion_rejects_progress_and_io_errors ... ok
+2026-10-27T22:31:04.5475049Z 
+2026-10-27T22:31:04.5475459Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5476000Z 
+2026-10-27T22:31:04.5484217Z [1m[32m     Running[0m tests/address_resolution.rs (target/debug/deps/address_resolution-4ad9296c745121c0)
+2026-10-27T22:31:04.5497254Z 
+2026-10-27T22:31:04.5497400Z running 15 tests
+2026-10-27T22:31:04.5503762Z test empty_successful_results_are_allowed ... ok
+2026-10-27T22:31:04.5505801Z test generated::configured_named_service ... ok
+2026-10-27T22:31:04.5506442Z test generated::forwards_all_hints ... ok
+2026-10-27T22:31:04.5508324Z test generated::input_validation ... ok
+2026-10-27T22:31:04.5509736Z test generated::ordered_owned_results ... ok
+2026-10-27T22:31:04.5511401Z test generated::preserves_resolver_errors ... ok
+2026-10-27T22:31:04.5513709Z test ipv4::absent_name_and_passive_hints ... ok
+2026-10-27T22:31:04.5515023Z test generated::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.5517898Z test ipv4::numeric_hosts_and_transport_hints ... ok
+2026-10-27T22:31:04.5518595Z test generated::numeric_host_prevents_name_lookup ... ok
+2026-10-27T22:31:04.5519230Z test ipv6::absent_name_and_passive_hints ... ok
+2026-10-27T22:31:04.5519828Z test ipv6::numeric_hosts_and_transport_hints ... ok
+2026-10-27T22:31:04.5520263Z test rejects_dropped_hint_fields_and_numeric_host_fallback ... ok
+2026-10-27T22:31:04.5521176Z test rejects_swapped_native_hint_flags ... ok
+2026-10-27T22:31:04.5528479Z test rejects_resolver_contract_violations ... ok
+2026-10-27T22:31:04.5528875Z 
+2026-10-27T22:31:04.5529305Z test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5529910Z 
+2026-10-27T22:31:04.5532346Z [1m[32m     Running[0m tests/clock.rs (target/debug/deps/clock-2a7dbb394eb8f2db)
+2026-10-27T22:31:04.5542186Z 
+2026-10-27T22:31:04.5542377Z running 9 tests
+2026-10-27T22:31:04.5548445Z test generated::overflow_registers_no_timer ... ok
+2026-10-27T22:31:04.5551989Z test generated::absolute_deadline_and_wakeup ... ok
+2026-10-27T22:31:04.5552980Z test generated::expiry_wins_concurrent_cancellation ... ok
+2026-10-27T22:31:04.5554683Z test generated::lazy_registration_and_drop ... ok
+2026-10-27T22:31:04.5555239Z test generated::pre_cancelled_waits ... ok
+2026-10-27T22:31:04.5555815Z test generated::pending_cancellation_and_wakeup ... ok
+2026-10-27T22:31:04.5557954Z test generated::relative_wait_starts_on_poll ... ok
+2026-10-27T22:31:04.5558647Z test generated::timeout_results_expiry_and_cleanup ... ok
+2026-10-27T22:31:04.5567675Z test rejects_clock_contract_violations ... ok
+2026-10-27T22:31:04.5568062Z 
+2026-10-27T22:31:04.5568472Z test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5568924Z 
+2026-10-27T22:31:04.5571326Z [1m[32m     Running[0m tests/file_extensions.rs (target/debug/deps/file_extensions-ecc79c8cc712ce64)
+2026-10-27T22:31:04.5580829Z 
+2026-10-27T22:31:04.5580966Z running 10 tests
+2026-10-27T22:31:04.5588257Z test advice::accepted_work_survives_abandonment ... ok
+2026-10-27T22:31:04.5590765Z test advice::lazy_admission ... ok
+2026-10-27T22:31:04.5593135Z test advice::validation_and_execution_errors ... ok
+2026-10-27T22:31:04.5595515Z test allocation::keep_size_reserves_beyond_eof ... ok
+2026-10-27T22:31:04.5596310Z test advice::modes_ranges_and_completion ... ok
+2026-10-27T22:31:04.5598362Z test allocation::validation_and_execution_errors ... ok
+2026-10-27T22:31:04.5599374Z test allocation::extend_preserves_data_and_cursor ... ok
+2026-10-27T22:31:04.5600125Z test allocation::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.5608147Z test rejects_advice_contract_violations ... ok
+2026-10-27T22:31:04.5646030Z test rejects_allocation_contract_violations ... ok
+2026-10-27T22:31:04.5646434Z 
+2026-10-27T22:31:04.5646856Z test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+2026-10-27T22:31:04.5647286Z 
+2026-10-27T22:31:04.5649823Z [1m[32m     Running[0m tests/process_wait.rs (target/debug/deps/process_wait-f917be8bca969f59)
+2026-10-27T22:31:04.5659519Z 
+2026-10-27T22:31:04.5659671Z running 2 tests
+2026-10-27T22:31:04.5661370Z test process_child_fixture ... ignored, child fixture, invoked by process-wait conformance assertions
+2026-10-27T22:31:04.5677329Z test shutdown_retirement_without_reaping_preserves_child_status ... ok
+2026-10-27T22:31:04.5677848Z 
+2026-10-27T22:31:04.5678222Z test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5678692Z 
+2026-10-27T22:31:04.5679866Z [1m[32m     Running[0m tests/rejection.rs (target/debug/deps/rejection-8eda1c705bb51455)
+2026-10-27T22:31:04.5689798Z 
+2026-10-27T22:31:04.5689980Z running 6 tests
+2026-10-27T22:31:04.5695871Z test rejects_a_read_that_ignores_cancellation - should panic ... ok
+2026-10-27T22:31:04.5698869Z test rejects_a_write_that_loses_an_expected_error - should panic ... ok
+2026-10-27T22:31:04.5699848Z test isolated_pre_cancelled_assertions_reject_hidden_scalar_and_message_side_effects ... ok
+2026-10-27T22:31:04.5700489Z test short_send_assertions_cover_advancement_and_reject_zero_and_full_counts ... ok
+2026-10-27T22:31:04.5701020Z test rejects_eager_submission_ignored_cancellation_and_lost_panics ... ok
+2026-10-27T22:31:04.5702072Z test socket_conformance_rejects_ignored_cancellation_and_lost_os_errors ... ok
+2026-10-27T22:31:04.5702412Z 
+2026-10-27T22:31:04.5702659Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5702998Z 
+2026-10-27T22:31:04.5703376Z [1m[32m     Running[0m tests/reporting.rs (target/debug/deps/reporting-ad60b776f8847627)
+2026-10-27T22:31:04.5710072Z 
+2026-10-27T22:31:04.5710227Z running 5 tests
+2026-10-27T22:31:04.5716563Z test generated::lazy_submission ... ok
+2026-10-27T22:31:04.5717185Z test generated::pre_cancelled_submission ... ok
+2026-10-27T22:31:04.5717762Z test generated::preserves_panic_payload ... ok
+2026-10-27T22:31:04.5718414Z test generated::returns_output ... ok
+2026-10-27T22:31:04.5759595Z test generated_cases_are_listed_filterable_and_report_failures_independently ... ok
+2026-10-27T22:31:04.5760214Z 
+2026-10-27T22:31:04.5760669Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5761283Z 
+2026-10-27T22:31:04.5762574Z [1m[32m     Running[0m tests/signals.rs (target/debug/deps/signals-e4dfdc8c88753376)
+2026-10-27T22:31:04.5772973Z 
+2026-10-27T22:31:04.5773145Z running 7 tests
+2026-10-27T22:31:04.5780852Z test generated::independent_subscriptions ... ok
+2026-10-27T22:31:04.5784732Z test generated::multiple_targets_and_signals ... ok
+2026-10-27T22:31:04.5785734Z test dispatch::unsubscribe_retains_in_progress_target_without_joining ... ok
+2026-10-27T22:31:04.5786794Z test generated::reentrant_subscription ... ok
+2026-10-27T22:31:04.5787587Z test generated::setup_errors_release_target ... ok
+2026-10-27T22:31:04.5788565Z test rejects_target_retention_after_unsubscribed_dispatch_finishes ... ok
+2026-10-27T22:31:04.5789651Z test rejects_wrong_selection_detached_subscriptions_and_lost_setup_errors ... ok
+2026-10-27T22:31:04.5790187Z 
+2026-10-27T22:31:04.5790511Z test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5790882Z 
+2026-10-27T22:31:04.5792898Z [1m[32m     Running[0m tests/socket_extensions.rs (target/debug/deps/socket_extensions-8d39618397f37995)
+2026-10-27T22:31:04.5803714Z 
+2026-10-27T22:31:04.5803867Z running 10 tests
+2026-10-27T22:31:04.5815561Z test getter_only::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.5816886Z test ipv4::imports_established_stream ... ok
+2026-10-27T22:31:04.5817961Z test getter_only::native_values_and_errors ... ok
+2026-10-27T22:31:04.5818770Z test rejects_pre_cancelled_setter_side_effects ... ok
+2026-10-27T22:31:04.5819697Z test ipv6::imports_listening_socket ... ok
+2026-10-27T22:31:04.5820569Z test ipv4::imports_listening_socket ... ok
+2026-10-27T22:31:04.5821450Z test ipv6::imports_established_stream ... ok
+2026-10-27T22:31:04.5822640Z test setter_only::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.5823343Z test setter_only::native_values_and_errors ... ok
+2026-10-27T22:31:04.5831455Z test rejects_socket_extension_contract_violations ... ok
+2026-10-27T22:31:04.5832143Z 
+2026-10-27T22:31:04.5832793Z test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5833441Z 
+2026-10-27T22:31:04.5835244Z [1m[32m     Running[0m tests/socket_poll.rs (target/debug/deps/socket_poll-4fbeb89f80376cf0)
+2026-10-27T22:31:04.5845366Z 
+2026-10-27T22:31:04.5845540Z running 1 test
+2026-10-27T22:31:04.5848829Z test borrowed_suite_rejects_success_and_io_error_when_pre_cancelled ... ok
+2026-10-27T22:31:04.5849363Z 
+2026-10-27T22:31:04.5849771Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5850343Z 
+2026-10-27T22:31:04.5851233Z [1m[32m     Running[0m tests/spawn.rs (target/debug/deps/spawn-9c3aaf117917ae19)
+2026-10-27T22:31:04.5860899Z 
+2026-10-27T22:31:04.5861077Z running 11 tests
+2026-10-27T22:31:04.5867826Z test generated::abandoned_handle_releases_completed_output ... ok
+2026-10-27T22:31:04.5872087Z test generated::abandonment_destroys_task ... ok
+2026-10-27T22:31:04.5876141Z test generated::closed_service_rejects_unpolled_input ... ok
+2026-10-27T22:31:04.5877516Z test dispatch::handle_drop_defers_destruction_until_active_poll_returns ... ok
+2026-10-27T22:31:04.5878937Z test generated::cooperative_cancellation ... ok
+2026-10-27T22:31:04.5880751Z test generated::preserves_panic_payload ... ok
+2026-10-27T22:31:04.5881526Z test generated::registers_before_first_poll ... ok
+2026-10-27T22:31:04.5882555Z test generated::output_and_handle_transfer ... ok
+2026-10-27T22:31:04.5883495Z test rejects_detaching_an_abandoned_active_task ... ok
+2026-10-27T22:31:04.5884330Z test handle_drop_may_wait_for_an_active_poll ... ok
+2026-10-27T22:31:04.5888448Z test rejects_detaching_lost_panics_and_closed_service_violations ... ok
+2026-10-27T22:31:04.5889004Z 
+2026-10-27T22:31:04.5889578Z test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5890063Z 
+2026-10-27T22:31:04.5892697Z [1m[32m     Running[0m unittests src/lib.rs (target/debug/deps/base_scheduler_direct-a644caec1a4ebcde)
+2026-10-27T22:31:04.5904978Z 
+2026-10-27T22:31:04.5905158Z running 234 tests
+2026-10-27T22:31:04.5910423Z test blocking_pool::tests::capacity_wait_rechecks_available_or_closed_state_before_sleeping ... ok
+2026-10-27T22:31:04.5911418Z test blocking_pool::tests::admission_reports_worker_startup_failure ... ok
+2026-10-27T22:31:04.5919026Z test blocking_pool::tests::abandoned_result_panics_release_capacity_and_preserve_the_worker ... ok
+2026-10-27T22:31:04.5926899Z test blocking_pool::tests::dropping_a_queued_handle_on_another_thread_skips_execution_and_preserves_the_worker ... ok
+2026-10-27T22:31:04.5928240Z test blocking_pool::tests::draining_waits_for_running_work_and_releases_capacity ... ok
+2026-10-27T22:31:04.5932303Z test blocking_pool::tests::immediate_admission_and_empty_drain_need_no_listeners_or_allocations ... ok
+2026-10-27T22:31:04.5936822Z test blocking_pool::tests::concurrent_first_admissions_share_one_startup ... ok
+2026-10-27T22:31:04.5939435Z test blocking_pool::tests::forgetting_an_accepted_completion_can_leak_storage_but_does_not_block_retirement ... ok
+2026-10-27T22:31:04.5940908Z test blocking_pool::tests::io_cancellation_returns_owned_input_and_worker_panics_resume_in_the_waiter ... ok
+2026-10-27T22:31:04.5942625Z test blocking_pool::tests::partial_startup_failure_closes_admission_and_releases_started_workers ... ok
+2026-10-27T22:31:04.5946023Z test blocking_pool::tests::pending_capacity_and_drain_waits_do_not_allocate_and_unregister_on_drop ... ok
+2026-10-27T22:31:04.5948145Z test blocking_pool::tests::shutdown_catches_capture_destructor_panics_and_cancels_other_queued_jobs ... ok
+2026-10-27T22:31:04.5949948Z test blocking_pool::tests::shutdown_during_startup_cannot_admit_work ... ok
+2026-10-27T22:31:04.5950613Z 
+2026-10-27T22:31:04.5952111Z running 1 test
+2026-10-27T22:31:04.5957981Z test blocking_pool::tests::skipped_jobs_release_captures_before_reporting_completion ... ok
+2026-10-27T22:31:04.5959521Z test blocking_pool::tests::shutdown_drain_waits_until_discarded_capture_destructors_finish ... ok
+2026-10-27T22:31:04.5962486Z test blocking_pool::tests::submitted_io_retains_its_buffer_and_capacity_after_unpolled_completion_drop ... ok
+2026-10-27T22:31:04.5963408Z 
+2026-10-27T22:31:04.5969193Z thread '<unnamed>' panicked at crates/direct/src/blocking_pool/tests.rs:653:13:
+2026-10-27T22:31:04.5970317Z test blocking_pool::tests::submitted_jobs_survive_abandonment_and_shutdown_with_bounded_admission ... ok
+2026-10-27T22:31:04.5971287Z Box<dyn Any>
+2026-10-27T22:31:04.5972123Z note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+2026-10-27T22:31:04.5974506Z test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+2026-10-27T22:31:04.5976192Z 
+2026-10-27T22:31:04.5976826Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+2026-10-27T22:31:04.5977622Z 
+2026-10-27T22:31:04.5979679Z 
+2026-10-27T22:31:04.5980262Z test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+2026-10-27T22:31:04.5984536Z test blocking_pool::tests::prepared_work_allocates_only_jobs_and_completion_channels ... ok
+2026-10-27T22:31:04.5987653Z test bound_io_tests::default_packet_pool_and_closed_lanes_preserve_message_boundaries ... ok
+2026-10-27T22:31:04.5989999Z thread 'base-direct-0' panicked at crates/direct/src/blocking_pool/tests.rs:653:13:
+2026-10-27T22:31:04.5990753Z Box<dyn Any>
+2026-10-27T22:31:04.5990959Z 
+2026-10-27T22:31:04.5991347Z thread 'base-direct-0' panicked at crates/direct/src/blocking_pool/tests.rs:694:25:
+2026-10-27T22:31:04.5992308Z Box<dyn Any>
+2026-10-27T22:31:04.5992489Z 
+2026-10-27T22:31:04.5992878Z thread 'base-direct-0' panicked at crates/direct/src/blocking_pool/tests.rs:653:13:
+2026-10-27T22:31:04.5993583Z Box<dyn Any>
+2026-10-27T22:31:04.6000552Z test bound_io_tests::file_submission_rejection_keeps_the_original_buffer ... ok
+2026-10-27T22:31:04.6016449Z test bound_io_tests::file_completion_collection_does_not_hold_a_retired_file_open ... ok
+2026-10-27T22:31:04.6024243Z test direct_scheduler::tests::abandoned_io_and_scheduler_drop_retain_worker_access_until_retirement ... ok
+2026-10-27T22:31:04.6028955Z test bound_io_tests::owned_stream_reads_report_syscall_and_wait_errors_and_lazy_setup_rejects_shutdown ... ok
+2026-10-27T22:31:04.6032856Z test bound_io_tests::abandoned_owned_transfers_keep_the_lane_busy_until_worker_retirement ... ok
+2026-10-27T22:31:04.6040993Z test direct_scheduler::tests::cleanup_completion_preserves_os_and_worker_errors ... ok
+2026-10-27T22:31:04.6042442Z test direct_scheduler::tests::cancellation_after_io_dispatch_preserves_the_actual_result ... ok
+2026-10-27T22:31:04.6052838Z test direct_scheduler::tests::invalid_options_and_closed_services_return_errors_and_buffers ... ok
+2026-10-27T22:31:04.6053877Z test direct_scheduler::tests::file_errors_and_exclusive_close_are_observable ... ok
+2026-10-27T22:31:04.6063287Z test direct_scheduler::tests::startup_failures_preserve_io_ownership_and_report_cleanup_errors ... ok
+2026-10-27T22:31:04.6064590Z test direct_scheduler::tests::cleanup_makes_progress_independently_and_accepted_close_survives_abandonment ... ok
+2026-10-27T22:31:04.6065650Z test bound_io_tests::default_stream_pool_and_eof_are_consistent_across_read_forms ... ok
+2026-10-27T22:31:04.6075138Z test direct_scheduler::tests::running_cancellation_preserves_results_and_abandonment_keeps_capacity_occupied ... ok
+2026-10-27T22:31:04.6182621Z test direct_stream_writer::tests::accepted_cancellation_and_drop_release_owners ... ok
+2026-10-27T22:31:04.6188018Z test direct_stream_writer::tests::background_retry_errors_and_pending_close_preserve_the_result ... ok
+2026-10-27T22:31:04.6236845Z test direct_stream_writer::tests::bound_io ... ok
+2026-10-27T22:31:04.6249911Z test direct_stream_writer::tests::abandoned_admission ... ok
+2026-10-27T22:31:04.6262400Z test direct_stream_writer::tests::close_pending ... ok
+2026-10-27T22:31:04.6264306Z test direct_stream_writer::tests::immediate_error_is_accepted_and_retained ... ok
+2026-10-27T22:31:04.6275690Z test direct_stream_writer::tests::ordering ... ok
+2026-10-27T22:31:04.6282076Z test direct_stream_writer::tests::every_write_form_waits_for_accepted_output_and_preserves_terminal_errors ... ok
+2026-10-27T22:31:04.6294070Z test direct_stream_writer::tests::partial_initial_sends_continue_from_the_accepted_offset ... ok
+2026-10-27T22:31:04.6310446Z test direct_stream_writer::tests::ready_submission_and_flush_allocate_nothing ... ok
+2026-10-27T22:31:04.6339511Z test direct_stream_writer::tests::rejects_datagrams_and_closed_admission ... ok
+2026-10-27T22:31:04.6371297Z test direct_stream_writer::tests::syscall_and_task_admission_failures_are_retained_after_acceptance ... ok
+2026-10-27T22:31:04.6389079Z test file_extensions::tests::advice::accepted_work_survives_abandonment ... ok
+2026-10-27T22:31:04.6417401Z test file_extensions::tests::advice::lazy_admission ... ok
+2026-10-27T22:31:04.6459875Z test file_extensions::tests::advice::modes_ranges_and_completion ... ok
+2026-10-27T22:31:04.6493928Z test file_extensions::tests::advice::validation_and_execution_errors ... ok
+2026-10-27T22:31:04.6546605Z test file_extensions::tests::advice_waiting_for_capacity_can_be_abandoned_and_closed_admission_reports_errors ... ok
+2026-10-27T22:31:04.6564928Z test file_extensions::tests::allocation::extend_preserves_data_and_cursor ... ok
+2026-10-27T22:31:04.6582617Z test file_extensions::tests::allocation::keep_size_reserves_beyond_eof ... ok
+2026-10-27T22:31:04.6599881Z test file_extensions::tests::allocation::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.6623423Z test file_extensions::tests::allocation::validation_and_execution_errors ... ok
+2026-10-27T22:31:04.6642796Z test file_io::tests::close_consumes_the_handle_and_preserves_system_errors ... ok
+2026-10-27T22:31:04.6643932Z test file_io::tests::file_io_operations_read_and_write_at_the_requested_offset ... ok
+2026-10-27T22:31:04.6645155Z test file_io::tests::read_and_write_reject_offsets_outside_the_platform_range ... ok
+2026-10-27T22:31:04.6653640Z test file_io::tests::retries_interrupted_file_operations ... ok
+2026-10-27T22:31:04.6764486Z test operation_state::tests::admission_observes_cross_thread_retirement_before_reusing_the_lane ... ok
+2026-10-27T22:31:04.6767623Z test operation_state::tests::guard_preserves_owned_vectors_and_prepared_ranges ... ok
+2026-10-27T22:31:04.6773953Z test operation_state::tests::lazy_state_tracks_admission_and_retirement ... ok
+2026-10-27T22:31:04.6794230Z test operation_state::tests::panicking_owner_still_publishes_retirement ... ok
+2026-10-27T22:31:04.6797240Z test operation_state::tests::retired_results_do_not_block_the_next_operation_or_close ... ok
+2026-10-27T22:31:04.6799145Z test process_child_fixture ... ignored, child fixture, invoked by process-wait conformance assertions
+2026-10-27T22:31:04.6800818Z test process_io::tests::cancellation_and_io_errors_are_distinct ... ok
+2026-10-27T22:31:04.6802025Z test process_io::tests::interrupted_wait_preserves_the_os_error ... ok
+2026-10-27T22:31:04.6848152Z test process_wait::tests::started_wait_returns_status_after_cancellation ... ok
+2026-10-27T22:31:04.6863635Z test resolver::tests::conformance::configured_named_service ... ok
+2026-10-27T22:31:04.6879298Z test resolver::tests::conformance::forwards_all_hints ... ok
+2026-10-27T22:31:04.6905571Z test resolver::tests::conformance::input_validation ... ok
+2026-10-27T22:31:04.6934933Z test resolver::tests::conformance::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.6953546Z test resolver::tests::conformance::numeric_host_prevents_name_lookup ... ok
+2026-10-27T22:31:04.6968080Z test resolver::tests::conformance::ordered_owned_results ... ok
+2026-10-27T22:31:04.6974536Z test resolver::tests::conformance::preserves_resolver_errors ... ok
+2026-10-27T22:31:04.6980010Z test resolver::tests::ipv4::absent_name_and_passive_hints ... ok
+2026-10-27T22:31:04.6985074Z test resolver::tests::ipv4::numeric_hosts_and_transport_hints ... ok
+2026-10-27T22:31:04.6990309Z test resolver::tests::ipv6::absent_name_and_passive_hints ... ok
+2026-10-27T22:31:04.6998381Z test resolver::tests::ipv6::numeric_hosts_and_transport_hints ... ok
+2026-10-27T22:31:04.7001317Z test resolver::tests::native_address_validation_and_unusual_socket_parameters_are_preserved ... ok
+2026-10-27T22:31:04.7003709Z test resolver::tests::native_resolver_error_codes_keep_categories_and_system_errors ... ok
+2026-10-27T22:31:04.7008623Z test resolver::tests::running_lookup_retains_bounded_capacity_after_cancellation_and_abandonment ... ok
+2026-10-27T22:31:04.7014992Z test resolver::tests::started_lookup_preserves_success_and_native_owner_moves_without_allocating_views ... ok
+2026-10-27T22:31:04.7020047Z test signal_service::tests::conformance::independent_subscriptions ... ok
+2026-10-27T22:31:04.7025794Z test signal_service::tests::conformance::multiple_targets_and_signals ... ok
+2026-10-27T22:31:04.7029500Z test signal_service::tests::conformance::reentrant_subscription ... ok
+2026-10-27T22:31:04.7032684Z test signal_service::tests::conformance::setup_errors_release_target ... ok
+2026-10-27T22:31:04.7044222Z test signal_service::tests::dispatch::unsubscribe_retains_in_progress_target_without_joining ... ok
+2026-10-27T22:31:04.7074591Z 
+2026-10-27T22:31:04.7075123Z running 1 test
+2026-10-27T22:31:04.7111399Z 
+2026-10-27T22:31:04.7134137Z thread 'base-direct-signal' panicked at crates/direct/src/signal_service/tests.rs:159:13:
+2026-10-27T22:31:04.7163773Z signal target destructor
+2026-10-27T22:31:04.7164444Z test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+2026-10-27T22:31:04.7165234Z 
+2026-10-27T22:31:04.7165930Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.01s
+2026-10-27T22:31:04.7166705Z 
+2026-10-27T22:31:04.7169965Z test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+2026-10-27T22:31:04.7186121Z test signal_service::tests::panicking_targets_do_not_poison_dispatch_or_prevent_other_targets ... ok
+2026-10-27T22:31:04.7189635Z test signal_service::tests::rejects_empty_forbidden_native_and_closed_registrations_and_startup_failure ... ok
+2026-10-27T22:31:04.7196814Z note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+2026-10-27T22:31:04.7218070Z test socket_io::tests::borrowed_message_lengths_are_validated_before_native_access ... ok
+2026-10-27T22:31:04.7219660Z test socket_io::tests::borrowed_native_io_enforces_nonblocking_without_allocating_vectors ... ok
+2026-10-27T22:31:04.7220930Z test socket_io::tests::invalid_vector_counts_fail_before_iterating_or_performing_native_io ... ok
+2026-10-27T22:31:04.7222449Z test socket_io::tests::message_validation_rejects_oversized_counts_lengths_and_overflow ... ok
+2026-10-27T22:31:04.7223886Z test socket_io::tests::missing_control_storage_reports_discarded_packet_metadata ... ok
+2026-10-27T22:31:04.7225062Z test socket_io::tests::native_connect_preserves_immediate_and_deferred_results ... ok
+2026-10-27T22:31:04.7244811Z test socket_io::tests::native_parameters_addresses_and_errors_are_preserved ... ok
+2026-10-27T22:31:04.7265534Z test socket_io::tests::prepared_messages_bypass_scratch_and_native_attempts_need_no_vector_allocation ... ok
+2026-10-27T22:31:04.7269981Z test socket_io::tests::zero_capacity_message_receives_use_a_real_native_vector_and_report_os_results ... ok
+2026-10-27T22:31:04.7359845Z test socket_operations::tests::accepted_shutdown_and_close_survive_abandonment_and_drain_during_shutdown ... ok
+2026-10-27T22:31:04.7383866Z test socket_operations::tests::borrowed_calls_make_progress_without_a_blocking_pool_slot ... ok
+2026-10-27T22:31:04.7417377Z test socket_operations::tests::borrowed_operations_reject_closed_schedulers_and_preserve_storage_on_errors ... ok
+2026-10-27T22:31:04.7463134Z test socket_operations::tests::borrowed_retry_handles_interruption_startup_errors_and_successful_cancellation_races ... ok
+2026-10-27T22:31:04.8365747Z test direct_stream_writer::tests::overlapped_read_write ... ok
+2026-10-27T22:31:04.8394701Z test socket_operations::tests::exclusive_close_rejects_retained_access_and_unpolled_close_drops_normally ... ok
+2026-10-27T22:31:04.8462260Z test socket_operations::tests::interrupted_attempts_retry_and_retry_service_errors_return_input ... ok
+2026-10-27T22:31:04.8512762Z test socket_operations::tests::pending_socket_attempts_release_capacity_and_observe_cancellation_and_scheduler_close ... ok
+2026-10-27T22:31:04.8670204Z test socket_operations::tests::pooled_receivers_preserve_messages_and_stream_eof ... ok
+2026-10-27T22:31:04.8704669Z test direct_stream_writer::tests::independent_progress ... ok
+2026-10-27T22:31:04.8732895Z test socket_operations::tests::socket_cleanup_is_independent_bounded_and_preserves_closed_admission_errors ... ok
+2026-10-27T22:31:04.8759563Z test socket_options::tests::actual_option_syscall_errors_are_preserved ... ok
+2026-10-27T22:31:04.8762547Z test socket_options::tests::imported_resources_are_nonblocking_and_closed_admission_is_rejected ... ok
+2026-10-27T22:31:04.8771552Z test socket_operations::tests::vectored_sends_preserve_short_counts_without_implicitly_advancing_the_owner ... ok
+2026-10-27T22:31:04.8779028Z test socket_options::tests::ipv4::imports_established_stream ... ok
+2026-10-27T22:31:04.8788282Z test socket_options::tests::ipv4::imports_listening_socket ... ok
+2026-10-27T22:31:04.8794829Z test socket_options::tests::ipv6::imports_established_stream ... ok
+2026-10-27T22:31:04.8798866Z test socket_options::tests::keepalive_get::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.8805762Z test socket_options::tests::keepalive_get::native_values_and_errors ... ok
+2026-10-27T22:31:04.8823792Z test socket_options::tests::keepalive_set::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.8831632Z test socket_options::tests::ipv6::imports_listening_socket ... ok
+2026-10-27T22:31:04.8832763Z test socket_options::tests::nodelay_get::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.8835499Z test socket_options::tests::keepalive_set::native_values_and_errors ... ok
+2026-10-27T22:31:04.8839041Z test socket_options::tests::nodelay_set::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.8844354Z test socket_options::tests::nodelay_get::native_values_and_errors ... ok
+2026-10-27T22:31:04.8849547Z test socket_options::tests::reuse_get::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.8855167Z test socket_options::tests::nodelay_set::native_values_and_errors ... ok
+2026-10-27T22:31:04.8860201Z test socket_options::tests::reuse_set::lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:04.8862896Z test socket_options::tests::reuse_get::native_values_and_errors ... ok
+2026-10-27T22:31:04.8872935Z test socket_options::tests::reuse_set::native_values_and_errors ... ok
+2026-10-27T22:31:04.8882735Z test socket_receiving::tests::bound_factories_validate_kind_and_preserve_pool_ownership ... ok
+2026-10-27T22:31:04.8884777Z test socket_retry::tests::retry_startup_failure_is_reported_consistently ... ok
+2026-10-27T22:31:04.8933183Z test socket_retry::tests::retries_wake_without_workers_and_cancellation_and_close_do_not_lose_wakeups ... ok
+2026-10-27T22:31:04.8950548Z test socket_tests::aggregate_socket_helpers_remain_compatible ... ok
+2026-10-27T22:31:04.8956500Z test socket_tests::failed_writes_return_the_original_buffer ... ok
+2026-10-27T22:31:04.8965087Z test socket_tests::ipv4::borrowed_datagrams::addresses_peek_and_truncation ... ok
+2026-10-27T22:31:04.8974267Z test socket_tests::ipv4::borrowed_datagrams::empty_messages ... ok
+2026-10-27T22:31:04.8980726Z test socket_tests::ipv4::borrowed_datagrams::pending_cancellation ... ok
+2026-10-27T22:31:04.8987211Z test socket_tests::directional_socket_handles_reuse_caller_owned_storage ... ok
+2026-10-27T22:31:04.8997632Z test socket_tests::ipv4::borrowed_messages::abandoned_receives ... ok
+2026-10-27T22:31:04.9000281Z test socket_operations::tests::borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full ... ok
+2026-10-27T22:31:04.9009012Z test socket_tests::ipv4::borrowed_messages::pending_cancellation ... ok
+2026-10-27T22:31:04.9014342Z test socket_tests::ipv4::borrowed_messages::pre_cancelled ... ok
+2026-10-27T22:31:04.9026398Z test socket_tests::ipv4::borrowed_messages::stack_transfers ... ok
+2026-10-27T22:31:04.9032838Z test socket_tests::ipv4::borrowed_scalar::abandoned_receives ... ok
+2026-10-27T22:31:04.9039074Z test socket_tests::ipv4::borrowed_messages::readiness ... ok
+2026-10-27T22:31:04.9039918Z test socket_tests::ipv4::borrowed_scalar::pending_cancellation ... ok
+2026-10-27T22:31:04.9053415Z test socket_tests::ipv4::borrowed_scalar::pre_cancelled ... ok
+2026-10-27T22:31:04.9060423Z test socket_tests::ipv4::borrowed_scalar::stack_transfers ... ok
+2026-10-27T22:31:04.9066682Z test socket_tests::ipv4::datagrams::addresses_peek_and_truncation ... ok
+2026-10-27T22:31:04.9077453Z test socket_tests::ipv4::borrowed_scalar::readiness_and_eof ... ok
+2026-10-27T22:31:04.9078544Z test socket_tests::ipv4::datagrams::empty_messages_and_boundaries ... ok
+2026-10-27T22:31:04.9080615Z test socket_tests::ipv4::datagrams::pending_receive_cancellation ... ok
+2026-10-27T22:31:04.9088301Z test socket_tests::ipv4::messages::pending_receive_cancellation ... ok
+2026-10-27T22:31:04.9102365Z test socket_tests::ipv4::messages::pre_cancelled ... ok
+2026-10-27T22:31:04.9103772Z test socket_tests::ipv4::messages::prepared_transfers ... ok
+2026-10-27T22:31:04.9111053Z test socket_tests::ipv4::packet_handles::cancellation ... ok
+2026-10-27T22:31:04.9122100Z test socket_tests::ipv4::packet_handles::borrowed ... ok
+2026-10-27T22:31:04.9125183Z test socket_tests::ipv4::pooled_datagram_receiver ... ok
+2026-10-27T22:31:04.9138178Z test socket_tests::ipv4::packet_handles::owned ... ok
+2026-10-27T22:31:04.9139267Z test socket_tests::ipv4::scalar::pending_borrowed_read_cancellation ... ok
+2026-10-27T22:31:04.9154009Z test socket_tests::ipv4::scalar::pending_read_cancellation ... ok
+2026-10-27T22:31:04.9159018Z test socket_tests::ipv4::scalar::pre_cancelled ... ok
+2026-10-27T22:31:04.9167858Z test socket_tests::ipv4::pooled_stream_receiver ... ok
+2026-10-27T22:31:04.9176376Z test socket_tests::ipv4::scalar::shutdown_and_eof ... ok
+2026-10-27T22:31:04.9178108Z test socket_tests::ipv6::borrowed_datagrams::addresses_peek_and_truncation ... ok
+2026-10-27T22:31:04.9183855Z test socket_tests::ipv4::scalar::transfer ... ok
+2026-10-27T22:31:04.9188895Z test socket_tests::ipv6::borrowed_datagrams::empty_messages ... ok
+2026-10-27T22:31:04.9193495Z test socket_tests::ipv6::borrowed_datagrams::pending_cancellation ... ok
+2026-10-27T22:31:04.9199696Z test socket_tests::ipv6::borrowed_messages::abandoned_receives ... ok
+2026-10-27T22:31:04.9203488Z test socket_tests::ipv6::borrowed_messages::pending_cancellation ... ok
+2026-10-27T22:31:04.9208070Z test socket_tests::ipv6::borrowed_messages::pre_cancelled ... ok
+2026-10-27T22:31:04.9216861Z test socket_tests::ipv6::borrowed_messages::stack_transfers ... ok
+2026-10-27T22:31:04.9225232Z test socket_tests::ipv6::borrowed_scalar::abandoned_receives ... ok
+2026-10-27T22:31:04.9231303Z test socket_tests::ipv6::borrowed_scalar::pending_cancellation ... ok
+2026-10-27T22:31:04.9238084Z test socket_tests::ipv6::borrowed_messages::readiness ... ok
+2026-10-27T22:31:04.9240935Z test socket_tests::ipv6::borrowed_scalar::pre_cancelled ... ok
+2026-10-27T22:31:04.9256163Z test socket_tests::ipv6::borrowed_scalar::stack_transfers ... ok
+2026-10-27T22:31:04.9279209Z test socket_tests::ipv6::datagrams::addresses_peek_and_truncation ... ok
+2026-10-27T22:31:04.9293128Z test socket_tests::ipv6::borrowed_scalar::readiness_and_eof ... ok
+2026-10-27T22:31:04.9294414Z test socket_tests::ipv6::datagrams::pending_receive_cancellation ... ok
+2026-10-27T22:31:04.9296175Z test socket_tests::ipv6::datagrams::empty_messages_and_boundaries ... ok
+2026-10-27T22:31:04.9297173Z test socket_tests::ipv6::messages::pre_cancelled ... ok
+2026-10-27T22:31:04.9298116Z test socket_tests::ipv6::messages::pending_receive_cancellation ... ok
+2026-10-27T22:31:04.9307541Z test socket_tests::ipv6::messages::prepared_transfers ... ok
+2026-10-27T22:31:04.9309402Z test socket_tests::ipv6::packet_handles::cancellation ... ok
+2026-10-27T22:31:04.9328263Z test socket_tests::ipv6::packet_handles::borrowed ... ok
+2026-10-27T22:31:04.9342334Z test socket_tests::ipv6::pooled_datagram_receiver ... ok
+2026-10-27T22:31:04.9347759Z test socket_tests::ipv6::packet_handles::owned ... ok
+2026-10-27T22:31:04.9360363Z test socket_tests::ipv6::scalar::pending_borrowed_read_cancellation ... ok
+2026-10-27T22:31:04.9365450Z test socket_tests::ipv6::scalar::pending_read_cancellation ... ok
+2026-10-27T22:31:04.9373318Z test socket_tests::ipv6::pooled_stream_receiver ... ok
+2026-10-27T22:31:04.9380789Z test socket_tests::ipv6::scalar::shutdown_and_eof ... ok
+2026-10-27T22:31:04.9393349Z test socket_tests::ipv6::scalar::transfer ... ok
+2026-10-27T22:31:04.9394498Z test socket_tests::ipv6::scalar::pre_cancelled ... ok
+2026-10-27T22:31:04.9399717Z test socket_tests::prepared_receive_lifecycle::abandoned_operation_retains_input ... ok
+2026-10-27T22:31:04.9432638Z test socket_tests::prepared_send_lifecycle::abandoned_operation_retains_input ... ok
+2026-10-27T22:31:04.9434008Z test socket_tests::prepared_receive_lifecycle::completion_wins_cancellation ... ok
+2026-10-27T22:31:04.9435230Z test socket_tests::prepared_send_lifecycle::completion_wins_cancellation ... ok
+2026-10-27T22:31:04.9437306Z test socket_tests::scalar_read_lifecycle::abandoned_operation_retains_input ... ok
+2026-10-27T22:31:04.9441004Z test socket_write_state::tests::cancelled_wait_retains_pending_operation_and_close_signals_retirement ... ok
+2026-10-27T22:31:04.9443403Z test socket_write_state::tests::drop_cancels_the_background_operation ... ok
+2026-10-27T22:31:04.9444942Z test socket_write_state::tests::retained_errors_preserve_classification_and_first_failure ... ok
+2026-10-27T22:31:04.9448349Z test socket_tests::sockets_move_between_threads_and_compatible_scheduler_instances ... ok
+2026-10-27T22:31:04.9449476Z test system_file_metadata::tests::classification_preserves_special_and_unknown_file_kinds ... ok
+2026-10-27T22:31:04.9456338Z test system_file_metadata::tests::classifies_real_symlinks_and_special_files ... ok
+2026-10-27T22:31:04.9459769Z test socket_write_state::tests::successful_completion_wins_cancelled_wait_and_task_failure_reports_cleanup_failure ... ok
+2026-10-27T22:31:04.9461110Z test socket_tests::scalar_read_lifecycle::completion_wins_cancellation ... ok
+2026-10-27T22:31:04.9462662Z test system_file_metadata::tests::preserves_native_metadata_and_exposes_portable_observations ... ok
+2026-10-27T22:31:04.9468989Z test task_service::tests::conformance::abandoned_handle_releases_completed_output ... ok
+2026-10-27T22:31:04.9471379Z test task_service::tests::conformance::abandonment_destroys_task ... ok
+2026-10-27T22:31:04.9477834Z test task_service::tests::conformance::closed_service_rejects_unpolled_input ... ok
+2026-10-27T22:31:04.9486106Z test task_service::tests::conformance::cooperative_cancellation ... ok
+2026-10-27T22:31:04.9487094Z test task_service::tests::conformance::preserves_panic_payload ... ok
+2026-10-27T22:31:04.9487721Z 
+2026-10-27T22:31:04.9487997Z running 1 test
+2026-10-27T22:31:04.9488653Z test task_service::tests::conformance::registers_before_first_poll ... ok
+2026-10-27T22:31:04.9495745Z 
+2026-10-27T22:31:04.9496458Z thread 'base-direct-task' panicked at crates/direct/src/task_service/tests.rs:147:13:
+2026-10-27T22:31:04.9497880Z test task_service::tests::dispatch::handle_drop_defers_destruction_until_active_poll_returns ... ok
+2026-10-27T22:31:04.9499135Z Box<dyn Any>
+2026-10-27T22:31:04.9499737Z test task_service::tests::conformance::output_and_handle_transfer ... ok
+2026-10-27T22:31:04.9500723Z note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+2026-10-27T22:31:04.9502243Z 
+2026-10-27T22:31:04.9502901Z thread '<unnamed>' panicked at crates/direct/src/task_service/tests.rs:134:13:
+2026-10-27T22:31:04.9504179Z test task_service::tests::startup_and_identifier_exhaustion_are_reported_without_polling_inputs ... ok
+2026-10-27T22:31:04.9506211Z abandoned destructor
+2026-10-27T22:31:04.9506868Z test task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... ok
+2026-10-27T22:31:04.9508044Z 
+2026-10-27T22:31:04.9508053Z 
+2026-10-27T22:31:04.9508700Z thread 'base-direct-task' panicked at crates/direct/src/task_service/tests.rs:173:28:
+2026-10-27T22:31:04.9509625Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+2026-10-27T22:31:04.9510800Z Box<dyn Any>
+2026-10-27T22:31:04.9510979Z 
+2026-10-27T22:31:04.9511612Z 
+2026-10-27T22:31:04.9512261Z test task_service::tests::future_destructor_panic_is_reported_and_worker_stays_available ... ok
+2026-10-27T22:31:04.9515041Z thread '<unnamed>' panicked at crates/direct/src/task_service/tests.rs:134:13:
+2026-10-27T22:31:04.9515896Z test test_support::watchdog_propagates_assertion_panics ... ok
+2026-10-27T22:31:04.9517260Z abandoned destructor
+2026-10-27T22:31:04.9517962Z test task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... ok
+2026-10-27T22:31:04.9519585Z 
+2026-10-27T22:31:04.9520174Z test task_service::tests::tasks_progress_without_occupying_syscall_workers_and_survive_admission_close ... ok
+2026-10-27T22:31:04.9525687Z thread 'base-direct-task' panicked at crates/direct/src/task_service/tests.rs:159:13:
+2026-10-27T22:31:04.9526725Z test timer_service::tests::conformance::expiry_wins_concurrent_cancellation ... ok
+2026-10-27T22:31:04.9528363Z completed future destructor
+2026-10-27T22:31:04.9528982Z test timer_service::tests::conformance::lazy_registration_and_drop ... ok
+2026-10-27T22:31:04.9529860Z 
+2026-10-27T22:31:04.9530452Z test timer_service::tests::conformance::absolute_deadline_and_wakeup ... ok
+2026-10-27T22:31:04.9532694Z thread 'base-direct-task' panicked at crates/direct/src/task_service/tests.rs:134:13:
+2026-10-27T22:31:04.9533843Z test timer_service::tests::conformance::overflow_registers_no_timer ... ok
+2026-10-27T22:31:04.9536127Z abandoned destructor
+2026-10-27T22:31:04.9536692Z test timer_service::tests::conformance::pre_cancelled_waits ... ok
+2026-10-27T22:31:04.9538088Z test timer_service::tests::conformance::pending_cancellation_and_wakeup ... ok
+2026-10-27T22:31:04.9540408Z test timer_service::tests::conformance::relative_wait_starts_on_poll ... ok
+2026-10-27T22:31:04.9543940Z test timer_service::tests::conformance::timeout_results_expiry_and_cleanup ... ok
+2026-10-27T22:31:04.9545720Z test timer_service::tests::startup_failure_exhaustion_and_shutdown_release_waiters ... ok
+2026-10-27T22:31:04.9547893Z test timer_service::tests::timer_waker_callbacks_run_outside_the_registry_lock ... ok
+2026-10-27T22:31:04.9552968Z test timer_service::tests::reusable_timer_startup_and_identifier_exhaustion ... ok
+2026-10-27T22:31:05.0047808Z test timer_service::tests::native_timer_driver_wakes_and_retires_deadlines ... ok
+2026-10-27T22:31:11.5586418Z test direct_stream_writer::tests::admission_rechecks_cancellation_and_shutdown_after_retiring_the_previous_owner ... ok
+2026-10-27T22:31:11.5587082Z 
+2026-10-27T22:31:11.5587417Z test result: ok. 233 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 6.97s
+2026-10-27T22:31:11.5587897Z 
+2026-10-27T22:31:11.5659277Z [1m[32m     Running[0m tests/conformance.rs (target/debug/deps/conformance-143d95b7fc2c934c)
+2026-10-27T22:31:11.5672732Z 
+2026-10-27T22:31:11.5672882Z running 35 tests
+2026-10-27T22:31:11.5686652Z test blocking_work::pre_cancelled_submission ... ok
+2026-10-27T22:31:11.5688007Z test blocking_work::lazy_submission ... ok
+2026-10-27T22:31:11.5694416Z test blocking_queue::queued_cancellation_and_admission ... ok
+2026-10-27T22:31:11.5705980Z test blocking_queue::abandoned_handle_does_not_execute ... ok
+2026-10-27T22:31:11.5709336Z test blocking_work::preserves_panic_payload ... ok
+2026-10-27T22:31:11.5717159Z test blocking_work::returns_output ... ok
+2026-10-27T22:31:11.5723871Z test files::abandoned_resource_operation ... ok
+2026-10-27T22:31:11.5740135Z test files::bound_file_handles_preserve_cursor_offsets_and_ownership ... ok
+2026-10-27T22:31:11.5750840Z test files::accepted_write_progresses_without_polling_its_completion ... ok
+2026-10-27T22:31:11.5752645Z test files::bound_file_handles_reject_cancelled_and_closed_operations ... ok
+2026-10-27T22:31:11.5760699Z test files::bound_file_submissions_separate_acceptance_from_owner_collection ... ok
+2026-10-27T22:31:11.5776114Z test files::close_retires_accepted_work_before_its_completion_is_collected ... ok
+2026-10-27T22:31:11.5777067Z test files::create ... ok
+2026-10-27T22:31:11.5781544Z test files::dropping_an_unpolled_accepted_completion_releases_only_after_retirement ... ok
+2026-10-27T22:31:11.5809102Z test files::independent_readers ... ok
+2026-10-27T22:31:11.5809798Z test files::metadata ... ok
+2026-10-27T22:31:11.5816365Z test files::read_at ... ok
+2026-10-27T22:31:11.5822456Z test files::read ... ok
+2026-10-27T22:31:11.5823063Z test files::resource_inflight_cancellation ... ok
+2026-10-27T22:31:11.5831039Z test files::pending_resource_retirement ... ok
+2026-10-27T22:31:11.5832864Z test files::resource_cancellation ... ok
+2026-10-27T22:31:11.5844914Z test files::resource_write_error ... ok
+2026-10-27T22:31:11.5851548Z test files::seek ... ok
+2026-10-27T22:31:11.5854152Z test files::submission_is_lazy_and_pre_cancelled_admission_returns_the_owner ... ok
+2026-10-27T22:31:11.5869205Z test files::sequential_reader_writer ... ok
+2026-10-27T22:31:11.5888429Z test files::sync ... ok
+2026-10-27T22:31:11.5894713Z test files::truncate_grow ... ok
+2026-10-27T22:31:11.5899648Z test files::submitted_reads_and_writes_return_the_original_storage ... ok
+2026-10-27T22:31:11.5902748Z test files::truncate_shrink ... ok
+2026-10-27T22:31:11.5913492Z test files::write_error ... ok
+2026-10-27T22:31:11.5920009Z test files::write ... ok
+2026-10-27T22:31:11.5926058Z test files::write_at ... ok
+2026-10-27T22:31:11.5940404Z test files_move_between_threads_and_compatible_scheduler_instances ... ok
+2026-10-27T22:31:11.5943531Z test unix_positioned_operations_preserve_the_shared_cursor ... ok
+2026-10-27T22:31:11.5944490Z test queue_conformance_rejects_cancellation_capacity_and_handle_ownership_violations ... ok
+2026-10-27T22:31:11.5945111Z 
+2026-10-27T22:31:11.5945554Z test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+2026-10-27T22:31:11.5946186Z 
+2026-10-27T22:31:11.5948668Z [1m[32m     Running[0m tests/process_wait.rs (target/debug/deps/process_wait-d4c8cacc8d3e5564)
+2026-10-27T22:31:11.5960214Z 
+2026-10-27T22:31:11.5960408Z running 9 tests
+2026-10-27T22:31:11.5990885Z test fixture_cleanup ... ok
+2026-10-27T22:31:11.6003465Z test exit_status ... ok
+2026-10-27T22:31:11.6034007Z test lazy_and_pre_cancelled ... ok
+2026-10-27T22:31:11.6038892Z test pending_cancellation ... ok
+2026-10-27T22:31:11.6039771Z test pending_shutdown ... ok
+2026-10-27T22:31:11.6040622Z test process_child_fixture ... ignored, child fixture, invoked by the process-wait suite
+2026-10-27T22:31:11.6041417Z test dropped_and_forgotten_waits ... ok
+2026-10-27T22:31:11.6042261Z test process_group_fixture ... ignored, isolated process-group fixture
+2026-10-27T22:31:11.6048946Z 
+2026-10-27T22:31:11.6049186Z running 1 test
+2026-10-27T22:31:11.6114802Z test process_group_fixture ... ok
+2026-10-27T22:31:11.6115133Z 
+2026-10-27T22:31:11.6115561Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.01s
+2026-10-27T22:31:11.6116193Z 
+2026-10-27T22:31:11.6117806Z test process_groups ... ok
+2026-10-27T22:31:11.6118102Z 
+2026-10-27T22:31:11.6119325Z test result: ok. 7 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.02s
+2026-10-27T22:31:11.6119927Z 
+2026-10-27T22:31:11.6123410Z [1m[32m     Running[0m unittests src/lib.rs (target/debug/deps/base_scheduler_echo_benchmark-96c4e5418139e8c0)
+2026-10-27T22:31:11.6134103Z 
+2026-10-27T22:31:11.6134253Z running 6 tests
+2026-10-27T22:31:11.6143627Z test server::tests::poll_echo_reuses_the_allocation_and_completes_partial_writes ... ok
+2026-10-27T22:31:11.6144396Z test server::tests::monitor_echo_reuses_payload_storage_and_completes_partial_writes ... ok
+2026-10-27T22:31:11.6146999Z test server::tests::monitor_echo_rejects_zero_progress ... ok
+2026-10-27T22:31:11.6148316Z test server::tests::echo_reuses_the_allocation_and_completes_partial_writes ... ok
+2026-10-27T22:31:11.6149678Z test server::tests::poll_zero_progress_is_an_error_instead_of_an_infinite_loop ... ok
+2026-10-27T22:31:11.6150878Z test server::tests::zero_progress_is_an_error_instead_of_an_infinite_loop ... ok
+2026-10-27T22:31:11.6151514Z 
+2026-10-27T22:31:11.6152683Z [1m[32m     Running[0m unittests src/main.rs (target/debug/deps/base_scheduler_echo_benchmark-14ab03acf295d686)
+2026-10-27T22:31:11.6153387Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:11.6153929Z 
+2026-10-27T22:31:11.6162813Z 
+2026-10-27T22:31:11.6162964Z running 0 tests
+2026-10-27T22:31:11.6164487Z 
+2026-10-27T22:31:11.6165042Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:11.6165549Z 
+2026-10-27T22:31:11.6166484Z [1m[32m     Running[0m tests/smoke.rs (target/debug/deps/smoke-28d0a9aae5b48582)
+2026-10-27T22:31:11.6176593Z 
+2026-10-27T22:31:11.6176774Z running 12 tests
+2026-10-27T22:31:11.6235367Z test client_rejects_an_empty_measurement ... ok
+2026-10-27T22:31:11.6247827Z test client_rejects_corrupt_echoes ... ok
+2026-10-27T22:31:11.6612428Z test every_client_field_is_validated_and_server_connection_count_must_be_positive ... ok
+2026-10-27T22:31:11.6848446Z test invalid_configuration_fails_before_running_a_workload ... ok
+2026-10-27T22:31:11.7232326Z test native_iouring ... ok
+2026-10-27T22:31:11.7282303Z test native_iouring_monitor ... ok
+2026-10-27T22:31:11.7729112Z test native_iouring_multishot ... ok
+2026-10-27T22:31:11.7902209Z test native_iouring_poll ... ok
+2026-10-27T22:31:11.8174795Z test pure_tokio ... ok
+2026-10-27T22:31:11.8280006Z test tokio_adapter ... ok
+2026-10-27T22:31:11.8772211Z test tokio_adapter_monitor ... ok
+2026-10-27T22:31:11.8922569Z test tokio_adapter_poll ... ok
+2026-10-27T22:31:11.8922887Z 
+2026-10-27T22:31:11.8923334Z test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+2026-10-27T22:31:11.8923785Z 
+2026-10-27T22:31:11.8926154Z [1m[32m     Running[0m unittests src/lib.rs (target/debug/deps/base_scheduler_examples-d0b3220eb7751c7c)
+2026-10-27T22:31:11.8936590Z 
+2026-10-27T22:31:11.8936757Z running 0 tests
+2026-10-27T22:31:11.8938685Z 
+2026-10-27T22:31:11.8939247Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:11.8939830Z 
+2026-10-27T22:31:11.8940444Z [1m[32m     Running[0m unittests src/main.rs (target/debug/deps/base_scheduler_examples-5ec170bdbf1fd704)
+2026-10-27T22:31:11.8951203Z 
+2026-10-27T22:31:11.8951377Z running 6 tests
+2026-10-27T22:31:11.8955985Z test tests::rejects_empty_storage - should panic ... ok
+2026-10-27T22:31:11.8956676Z test tests::rejects_datagram_overflow - should panic ... ok
+2026-10-27T22:31:11.8957336Z test tests::rejects_unknown_backend - should panic ... ok
+2026-10-27T22:31:11.8958318Z test tests::rejects_unknown_recipe - should panic ... ok
+2026-10-27T22:31:11.8958997Z test tests::stopped_packet_consumer_ends_the_generator ... ok
+2026-10-27T22:31:11.9846816Z test tests::recipes_preserve_data_on_every_backend ... ok
+2026-10-27T22:31:11.9847238Z 
+2026-10-27T22:31:11.9847649Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+2026-10-27T22:31:11.9848293Z 
+2026-10-27T22:31:11.9852360Z [1m[32m     Running[0m tests/command.rs (target/debug/deps/command-446becd513c7ba67)
+2026-10-27T22:31:11.9862038Z 
+2026-10-27T22:31:11.9862283Z running 1 test
+2026-10-27T22:31:11.9894758Z test command_emits_a_validated_sample ... ok
+2026-10-27T22:31:11.9895136Z 
+2026-10-27T22:31:11.9895421Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:11.9895797Z 
+2026-10-27T22:31:11.9897867Z [1m[32m     Running[0m tests/datagrams.rs (target/debug/deps/datagrams-0d2277bb8ae067ba)
+2026-10-27T22:31:11.9907614Z 
+2026-10-27T22:31:11.9907779Z running 5 tests
+2026-10-27T22:31:11.9923536Z test cancellation_after_handoff_waits_for_processing_and_returns_storage ... ok
+2026-10-27T22:31:11.9945351Z test frame_receiver_validates_setup_and_reports_close_failure ... ok
+2026-10-27T22:31:11.9947169Z test frame_receiver_closes_after_incomplete_eof_consumer_failure_and_cancellation ... ok
+2026-10-27T22:31:11.9954772Z test packet_handoff_preserves_empty_messages_addresses_and_bounded_capacity ... ok
+2026-10-27T22:31:11.9956137Z test packet_errors_and_task_panics_still_close_receivers_and_drain_accepted_work ... ok
+2026-10-27T22:31:11.9956681Z 
+2026-10-27T22:31:11.9957274Z test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:11.9957855Z 
+2026-10-27T22:31:11.9963415Z [1m[32m     Running[0m tests/files.rs (target/debug/deps/files-27798d75252c1bc3)
+2026-10-27T22:31:11.9973263Z 
+2026-10-27T22:31:11.9973543Z running 3 tests
+2026-10-27T22:31:11.9978949Z test copy_closes_both_handles_on_cancellation_empty_input_and_write_failure ... ok
+2026-10-27T22:31:11.9979875Z test copy_drives_reads_and_writes_together_and_advances_short_writes ... ok
+2026-10-27T22:31:11.9980376Z test copy_reports_setup_read_and_cleanup_failures ... ok
+2026-10-27T22:31:11.9980633Z 
+2026-10-27T22:31:11.9980882Z test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:11.9981256Z 
+2026-10-27T22:31:11.9981609Z [1m[32m     Running[0m tests/frames.rs (target/debug/deps/frames-a351564cf2a7a83a)
+2026-10-27T22:31:11.9989499Z 
+2026-10-27T22:31:11.9989673Z running 2 tests
+2026-10-27T22:31:11.9993160Z test framing_handles_tiny_chunks_incomplete_eof_and_consumer_errors ... ok
+2026-10-27T22:31:11.9993995Z test retained_ranges_prevent_reuse_and_fragmented_records_copy_only_their_bytes ... ok
+2026-10-27T22:31:11.9994361Z 
+2026-10-27T22:31:11.9994609Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:11.9994947Z 
+2026-10-27T22:31:11.9995726Z [1m[32m     Running[0m tests/stream.rs (target/debug/deps/stream-a290e9fbf2744960)
+2026-10-27T22:31:12.0005676Z 
+2026-10-27T22:31:12.0005863Z running 2 tests
+2026-10-27T22:31:12.0008831Z test stream_reports_reader_setup_and_close_failures ... ok
+2026-10-27T22:31:12.0024422Z test stream_cleanup_allows_exclusive_close_after_cancellation_and_consumer_errors ... ok
+2026-10-27T22:31:12.0024833Z 
+2026-10-27T22:31:12.0025088Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:12.0025432Z 
+2026-10-27T22:31:12.0028494Z [1m[32m     Running[0m unittests src/lib.rs (target/debug/deps/base_scheduler_file_benchmark-831b46b6ab703340)
+2026-10-27T22:31:12.0037860Z 
+2026-10-27T22:31:12.0038004Z running 0 tests
+2026-10-27T22:31:12.0038291Z 
+2026-10-27T22:31:12.0038795Z test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+2026-10-27T22:31:12.0039399Z 
+2026-10-27T22:31:12.0041404Z [1m[32m     Running[0m unittests src/main.rs (target/debug/deps/base_scheduler_file_benchmark-6e419f982d8d72c7)
+2026-10-27T22:31:12.0052321Z 
+2026-10-27T22:31:12.0052507Z running 6 tests
+2026-10-27T22:31:12.0060305Z test tests::migration_rejects_unknown_workloads - should panic ... ok
+2026-10-27T22:31:12.0061286Z test tests::unknown_backend_is_rejected - should panic ... ok
+2026-10-27T22:31:12.0062512Z test tests::unknown_mode_is_rejected - should panic ... ok
+2026-10-27T22:31:12.0079241Z test tests::unknown_workload_is_rejected - should panic ... ok
+2026-10-27T22:31:12.0208420Z test tests::migration_workloads_run_with_registered_and_unregistered_files ... ok
+2026-10-27T22:31:15.1732074Z test tests::matched_workloads_run_on_each_backend ... ok
+2026-10-27T22:31:15.1732370Z 
+2026-10-27T22:31:15.1732644Z test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.17s
+2026-10-27T22:31:15.1733009Z 
+2026-10-27T22:31:15.1739011Z [1m[32m     Running[0m unittests src/bin/migration.rs (target/debug/deps/migration-9503b96b058f4b1d)
+2026-10-27T22:31:15.1750843Z 
+2026-10-27T22:31:15.1751240Z running 1 test
+2026-10-27T22:31:15.1880101Z test tests::owned_state_moves_between_entered_workers_and_closes ... ok
+2026-10-27T22:31:15.1880606Z 
+2026-10-27T22:31:15.1880975Z test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+2026-10-27T22:31:15.1881355Z 
+2026-10-27T22:31:15.1884780Z [1m[32m     Running[0m tests/cli.rs (target/debug/deps/cli-9dad4d697d51d920)
+2026-10-27T22:31:15.1895417Z 
+2026-10-27T22:31:15.1895569Z running 2 tests
+2026-10-27T22:31:15.1936515Z test benchmark_binary_emits_a_parseable_sample ... ok
+2026-10-27T22:31:15.6537269Z test migration_binary_runs_the_controlled_handoff_workload ... ok
+2026-10-27T22:31:15.6537588Z 
+2026-10-27T22:31:15.6537843Z test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+2026-10-27T22:31:15.6538192Z 
+2026-10-27T22:31:15.6540285Z [1m[32m     Running[0m unittests src/lib.rs (target/debug/deps/base_scheduler_iouring-7aa534938f9dc1b3)
+2026-10-27T22:31:15.6554154Z 
+2026-10-27T22:31:15.6557860Z running 234 tests
+2026-10-27T22:31:15.6558693Z test io_uring_recv_message::tests::incomplete_empty_and_unsupported_native_addresses_have_no_ip_view ... ok
+2026-10-27T22:31:15.6560178Z test io_uring_recv_message::tests::portable_metadata_and_empty_payloads_use_the_same_message_contract ... ok
+2026-10-27T22:31:15.6562013Z test io_uring_recv_message::tests::native_addresses_decode_unaligned_ipv4_and_ipv6_metadata_without_exposing_it_as_payload ... ok
+2026-10-27T22:31:15.6578815Z test io_uring_selector::file_monitor::tests::abandoned_close_preserves_release_and_retry_waits_for_every_registration ... ok
+2026-10-27T22:31:15.6586257Z test io_uring_selector::file_monitor::tests::a_driver_failure_wakes_close_that_already_waits_for_retirement ... ok
+2026-10-27T22:31:15.6588269Z test io_uring_selector::file_monitor::tests::abandoned_operations_can_be_reused_and_forgotten_completions_can_be_closed ... ok
+2026-10-27T22:31:15.6590592Z test io_uring_selector::file_monitor::tests::active_request_keeps_its_ring_when_polling_moves_to_another_worker ... ok
+2026-10-27T22:31:15.6607277Z test io_uring_selector::file_monitor::tests::close_waits_for_migration_release_on_the_original_ring_after_abandonment ... ok
+2026-10-27T22:31:15.6613188Z test io_uring_selector::file_monitor::tests::admission_cancellation_and_identifier_exhaustion_return_the_buffer ... ok
+2026-10-27T22:31:15.6616019Z test io_uring_selector::file_monitor::tests::concurrent_completion_and_close_keep_independent_wakers_and_release_file_access ... ok
+2026-10-27T22:31:15.6624398Z test io_uring_selector::file_monitor::tests::disposal_of_an_abandoned_owner_can_close_admission_before_publication ... ok
+2026-10-27T22:31:15.6643733Z test io_uring_selector::file_monitor::tests::close_and_reuse_both_report_an_abandoned_driver_failure ... FAILED
+2026-10-27T22:31:15.6653910Z test io_uring_selector::file_monitor::tests::dropping_a_cancelled_completion_releases_its_retired_owner_without_lane_reuse ... ok
+2026-10-27T22:31:15.6663188Z test io_uring_selector::file_monitor::tests::failed_eviction_remains_observable_after_another_migration ... ok
+2026-10-27T22:31:15.6672934Z test io_uring_selector::file_monitor::tests::dropping_an_unpolled_monitor_completion_queues_cancellation_without_close ... ok
+2026-10-27T22:31:15.6686910Z test io_uring_selector::file_monitor::tests::ordinary_and_submitted_monitor_operations_share_admission_and_retirement ... ok
+2026-10-27T22:31:15.6689708Z test io_uring_selector::file_monitor::tests::incompatible_and_closed_selectors_reject_monitor_operations ... ok
+2026-10-27T22:31:15.6690750Z test io_uring_selector::file_monitor::tests::migration_invalidates_old_registrations_and_reuses_request_storage ... ok
+2026-10-27T22:31:15.6703034Z test io_uring_selector::file_monitor::tests::rejected_abandoned_command_is_reclaimed_before_reuse_reports_shutdown ... ok
+2026-10-27T22:31:15.6713203Z test io_uring_selector::file_monitor::tests::queued_requests_return_owners_but_unknown_kernel_retirement_never_does ... FAILED
+2026-10-27T22:31:15.6720300Z test io_uring_selector::file_monitor::tests::repeated_operations_reuse_request_storage_without_allocations ... ok
+2026-10-27T22:31:15.6723478Z test io_uring_selector::file_monitor::tests::synchronous_submission_rejection_preserves_the_original_completion_owner ... ok
+2026-10-27T22:31:15.6735502Z test io_uring_selector::message::tests::empty_receive_consumes_one_datagram_without_replacing_the_sequence ... ok
+2026-10-27T22:31:15.6737098Z test io_uring_selector::file_monitor::tests::release_errors_and_driver_exit_remain_observable_on_repeated_close ... ok
+2026-10-27T22:31:15.6753330Z test io_uring_selector::message::tests::message_admission_is_lazy_cancellable_and_reports_closure_or_exhaustion ... ok
+2026-10-27T22:31:15.6758652Z test io_uring_selector::message::tests::inline_prepared_vectors_survive_submission_and_are_used_without_copying ... ok
+2026-10-27T22:31:15.6763944Z test io_uring_selector::message::tests::message_length_validation_rejects_overflow_without_truncating_datagrams ... ok
+2026-10-27T22:31:15.6779271Z test io_uring_selector::file_monitor::tests::write_all_reuses_one_request_type_across_short_transfers_and_logical_writes ... ok
+2026-10-27T22:31:15.6789079Z test io_uring_selector::file_monitor::tests::unavailable_fixed_files_fall_back_without_changing_io_results ... ok
+2026-10-27T22:31:15.6790995Z test io_uring_selector::message::tests::ordinary_sequences_preserve_datagram_addresses_flags_and_payloads ... ok
+2026-10-27T22:31:15.6794457Z test io_uring_selector::message::tests::submitted_message_keeps_payload_alive_after_waiter_drop_until_driver_retirement ... ok
+2026-10-27T22:31:15.6796369Z test io_uring_selector::monitor::tests::a_close_caller_can_release_its_socket_before_the_completion_wake_returns ... ok
+2026-10-27T22:31:15.6798462Z test io_uring_selector::monitor::tests::a_forgotten_wait_does_not_prevent_reuse_or_retirement ... ok
+2026-10-27T22:31:15.6801534Z test io_uring_selector::monitor::tests::a_general_tcp_monitor_keeps_syscall_first_behavior_after_short_reads ... ok
+2026-10-27T22:31:15.6808991Z test io_uring_selector::monitor::tests::a_stream_monitor_on_a_datagram_socket_keeps_message_semantics ... ok
+2026-10-27T22:31:15.6812696Z test io_uring_selector::monitor::tests::a_later_wait_rebinds_to_its_new_workers_ring_after_retirement ... ok
+2026-10-27T22:31:15.6824986Z test io_uring_selector::message::tests::queued_or_disconnected_message_requests_return_owners_and_unknown_completion_panics ... ok
+2026-10-27T22:31:15.6827073Z test io_uring_selector::monitor::tests::abandoning_a_child_wait_does_not_retain_its_parent_task ... ok
+2026-10-27T22:31:15.6831571Z test io_uring_selector::monitor::tests::broad_tcp_wake_hints_are_not_urgent_and_closure_remains_sticky ... ok
+2026-10-27T22:31:15.6834086Z test io_uring_selector::monitor::tests::an_active_monitor_receive_can_move_to_another_workers_thread ... ok
+2026-10-27T22:31:15.6835565Z test io_uring_selector::message::tests::message_cancellation_and_abandonment_retain_payload_until_original_completion ... ok
+2026-10-27T22:31:15.6838941Z test io_uring_selector::monitor::tests::cancellation_racing_a_scalar_would_block_registers_no_wait ... ok
+2026-10-27T22:31:15.6844915Z test io_uring_selector::monitor::tests::cancellation_racing_would_block_does_not_wait_for_readiness ... ok
+2026-10-27T22:31:15.6846764Z test io_uring_selector::monitor::tests::cached_readiness_survives_success_and_newer_notifications_survive_would_block ... ok
+2026-10-27T22:31:15.6849104Z test io_uring_selector::monitor::tests::cancelled_and_dropped_waiters_leave_the_registration_active ... ok
+2026-10-27T22:31:15.6852288Z test io_uring_selector::monitor::tests::an_active_monitor_future_can_move_to_another_workers_thread ... ok
+2026-10-27T22:31:15.6854022Z test io_uring_selector::monitor::tests::close_drains_the_registration_and_rejects_subsequent_operations ... ok
+2026-10-27T22:31:15.6856541Z test io_uring_selector::monitor::tests::datagram_scalar_receives_do_not_treat_short_messages_as_stream_exhaustion ... ok
+2026-10-27T22:31:15.6858532Z test io_uring_selector::monitor::tests::cancelling_a_pending_receive_preserves_bytes_that_are_already_available ... ok
+2026-10-27T22:31:15.6862558Z test io_uring_selector::monitor::tests::completion_releases_backend_storage_before_waking ... ok
+2026-10-27T22:31:15.6870717Z test io_uring_selector::monitor::tests::datagram_boundaries_including_empty_messages_reuse_one_registration ... ok
+2026-10-27T22:31:15.6873068Z test io_uring_selector::monitor::tests::dropping_close_leaves_retirement_running_and_can_be_awaited_again ... ok
+2026-10-27T22:31:15.6874458Z test io_uring_selector::monitor::tests::dropping_a_task_retires_its_cached_waker_without_socket_activity ... ok
+2026-10-27T22:31:15.6880030Z test io_uring_selector::monitor::tests::full_reads_keep_progress_and_short_reads_preserve_racing_notifications ... ok
+2026-10-27T22:31:15.6881139Z test io_uring_selector::monitor::tests::driver_abandonment_notifies_active_queued_and_submission_space_waiters ... ok
+2026-10-27T22:31:15.6884706Z test io_uring_selector::monitor::tests::dropping_the_resource_retires_its_registration ... ok
+2026-10-27T22:31:15.6885858Z test io_uring_selector::monitor::tests::incompatible_closed_selectors_and_exhausted_ids_reject_waits ... ok
+2026-10-27T22:31:15.6887200Z test io_uring_selector::monitor::tests::one_shot_compatibility_waits_rearm_after_each_terminal_completion ... ok
+2026-10-27T22:31:15.6895641Z test io_uring_selector::monitor::tests::readiness_generations_preserve_a_notification_across_wraparound ... ok
+2026-10-27T22:31:15.6896878Z test io_uring_selector::monitor::tests::peeking_and_empty_receives_keep_syscall_semantics ... ok
+2026-10-27T22:31:15.6897999Z test io_uring_selector::monitor::tests::pending_receive_cancellation_leaves_the_stream_usable ... ok
+2026-10-27T22:31:15.6900515Z test io_uring_selector::monitor::tests::registrations_do_not_consume_transient_operation_capacity ... ok
+2026-10-27T22:31:15.6903614Z test io_uring_selector::monitor::tests::interrupted_syscalls_retry_and_observe_cancellation_and_closure ... ok
+2026-10-27T22:31:15.6907023Z test io_uring_selector::monitor::tests::scalar_short_reads_preserve_notifications_racing_the_syscall ... ok
+2026-10-27T22:31:15.6911047Z test io_uring_selector::monitor::tests::repolling_a_pending_receive_can_read_before_the_driver_reports_readiness ... ok
+2026-10-27T22:31:15.6912963Z test io_uring_selector::monitor::tests::scalar_stream_reads_report_wait_failures_and_selector_shutdown ... ok
+2026-10-27T22:31:15.6924580Z test io_uring_selector::monitor::tests::scalar_short_reads_preserve_shutdown_and_eof ... ok
+2026-10-27T22:31:15.6925744Z test io_uring_selector::monitor::tests::scalar_stream_reads_skip_empty_probes_and_continue_after_full_reads ... ok
+2026-10-27T22:31:15.6927013Z test io_uring_selector::monitor::tests::repeated_notifications_retain_one_registration_without_allocations ... ok
+2026-10-27T22:31:15.6935951Z test io_uring_selector::monitor::tests::short_stream_reads_clear_readiness_only_on_would_block_and_preserve_eof ... ok
+2026-10-27T22:31:15.6937183Z test io_uring_selector::monitor::tests::shutdown_readiness_survives_the_last_short_receive ... ok
+2026-10-27T22:31:15.6938419Z test io_uring_selector::monitor::tests::scalar_stream_waits_can_be_cancelled_and_abandoned_without_consuming_input ... ok
+2026-10-27T22:31:15.6941522Z test io_uring_selector::monitor::tests::shutdown_overtakes_an_accepted_local_registration ... ok
+2026-10-27T22:31:15.6945098Z test io_uring_selector::monitor::tests::unconnected_stream_receives_return_the_os_error_without_waiting ... ok
+2026-10-27T22:31:15.6947785Z test io_uring_selector::monitor::tests::shutdown_retires_active_and_accepted_queued_monitors ... ok
+2026-10-27T22:31:15.6948985Z test io_uring_selector::monitor::tests::terminal_and_cancellation_cqes_retire_in_either_order ... ok
+2026-10-27T22:31:15.6950630Z test io_uring_selector::monitor::tests::unsupported_multishot_poll_falls_back_and_terminal_success_can_rearm ... ok
+2026-10-27T22:31:15.6983298Z test io_uring_selector::multishot::tests::a_completion_batch_preserves_every_queued_datagram ... ok
+2026-10-27T22:31:15.6985262Z test io_uring_selector::monitor::tests::worker_owned_receives_complete_cancel_and_abandon_with_only_nonblocking_turns ... ok
+2026-10-27T22:31:15.6996352Z test io_uring_selector::multishot::tests::a_returned_buffer_before_terminal_collection_allows_immediate_resubmission ... ok
+2026-10-27T22:31:15.7009062Z test io_uring_selector::multishot::tests::cancellation_and_abandonment_retire_before_exclusive_socket_close ... ok
+2026-10-27T22:31:15.7010250Z test io_uring_selector::multishot::tests::cancellation_reports_retirement_failure ... ok
+2026-10-27T22:31:15.7016821Z test io_uring_selector::multishot::tests::completion_between_queue_probe_and_listener_registration_is_not_lost ... ok
+2026-10-27T22:31:15.7386923Z test io_uring_selector::multishot::tests::construction_failures_release_admission_and_close_races_notify_the_receiver ... ok
+2026-10-27T22:31:15.7394941Z test io_uring_selector::multishot::tests::construction_is_lazy_and_rejects_invalid_options_peeking_cancellation_and_closure ... ok
+2026-10-27T22:31:15.7408963Z test io_uring_selector::multishot::tests::dormant_close_and_shutdown_leave_held_leases_valid ... ok
+2026-10-27T22:31:15.7431200Z test io_uring_selector::multishot::tests::dropping_pending_dormant_and_prepared_requests_notifies_receivers ... ok
+2026-10-27T22:31:15.7433733Z test io_uring_selector::multishot::tests::empty_datagrams_truncation_and_exhaustion_preserve_message_boundaries ... ok
+2026-10-27T22:31:15.7444512Z test io_uring_selector::multishot::tests::eof_follows_data_and_leases_support_owned_writes ... ok
+2026-10-27T22:31:15.7462039Z test io_uring_selector::multishot::tests::local_returns_publish_directly_and_only_exhaustion_queues_a_rearm ... ok
+2026-10-27T22:31:15.7479403Z test io_uring_selector::multishot::tests::persistent_stream_reuses_one_submission_and_keeps_leases_alive_after_shutdown ... ok
+2026-10-27T22:31:15.7500030Z test io_uring_selector::multishot::tests::pool_errors_and_driver_failure_notify_the_receiver ... ok
+2026-10-27T22:31:15.7513441Z test io_uring_selector::multishot::tests::precancelled_receive_preserves_a_live_stream_and_admission_cancels_without_submission ... ok
+2026-10-27T22:31:15.7519993Z test io_uring_selector::multishot::tests::remote_return_rearms_the_original_pool_and_forgotten_receivers_drain_on_shutdown ... ok
+2026-10-27T22:31:15.7540387Z test io_uring_selector::multishot::tests::retained_leases_can_be_released_after_worker_thread_locals_are_destroyed ... ok
+2026-10-27T22:31:15.7551478Z test io_uring_selector::multishot::tests::selected_error_and_eof_buffers_are_returned_without_reading_a_header ... ok
+2026-10-27T22:31:15.7560006Z test io_uring_selector::multishot::tests::shutdown_during_buffer_exhaustion_retires_without_a_transport_error ... ok
+2026-10-27T22:31:15.7571509Z test io_uring_selector::multishot::tests::terminal_decoding_preserves_payload_before_rearm_and_accepts_eof_without_a_buffer ... ok
+2026-10-27T22:31:15.7583121Z test io_uring_selector::multishot::tests::unpublished_receivers_are_notified_when_the_driver_is_dropped ... ok
+2026-10-27T22:31:15.7587460Z test io_uring_selector::process_wait::tests::cancellation_retains_a_wait_reply_until_it_is_detached_exactly_once ... ok
+2026-10-27T22:31:15.7590272Z test io_uring_selector::monitor::tests::urgent_tcp_boundary_keeps_trailing_bytes_readable ... ok
+2026-10-27T22:31:15.7592802Z test io_uring_selector::process_wait::tests::native_status_conversion_preserves_every_child_state ... ok
+2026-10-27T22:31:15.7594220Z test io_uring_selector::process_wait::tests::no_event_ignores_stale_kernel_child_fields ... ok
+2026-10-27T22:31:15.7605891Z test io_uring_selector::process_wait::tests::capacity_cancellation_closure_and_identifier_exhaustion_prevent_submission ... ok
+2026-10-27T22:31:15.7607579Z test io_uring_selector::process_wait::tests::optional_waitid_uses_the_shared_fallback_when_unavailable ... ok
+2026-10-27T22:31:15.7609473Z test io_uring_selector::process_wait::tests::unsubmitted_driver_drop_reports_an_error_and_unknown_kernel_access_is_retained ... ok
+2026-10-27T22:31:15.7613724Z test io_uring_selector::readiness::rejection_tests::detaching_payload_failure_notification_preserves_ownership ... ok
+2026-10-27T22:31:15.7621142Z test io_uring_selector::readiness::rejection_tests::taking_a_readiness_reply_preserves_the_owned_input_until_request_disposal ... ok
+2026-10-27T22:31:15.7629506Z test io_uring_selector::readiness::rejection_tests::unpublished_payload_requests_return_the_original_owner ... ok
+2026-10-27T22:31:15.7651046Z test io_uring_selector::readiness::tests::readiness_errors_and_unpublished_shutdown_release_the_socket ... ok
+2026-10-27T22:31:15.7666893Z test io_uring_selector::readiness::tests::ready_waits_and_cancelled_waits_retire_before_returning ... ok
+2026-10-27T22:31:15.7676953Z test io_uring_selector::socket::tests::abandoned_retry_wait_retains_the_owned_lane_until_poll_retirement ... ok
+2026-10-27T22:31:15.7691090Z test io_uring_selector::socket::tests::empty_owned_write_sends_one_udp_datagram_and_returns_the_owner ... ok
+2026-10-27T22:31:15.7702642Z test io_uring_selector::socket::tests::owned_write_checks_precancellation_and_closure_before_sending ... ok
+2026-10-27T22:31:15.7709159Z test io_uring_selector::readiness::rejection_tests::rejected_readiness_admission_returns_the_unchanged_owner ... ok
+2026-10-27T22:31:15.7717590Z test io_uring_selector::socket::tests::owned_write_fast_path_errors_and_ring_fallbacks_preserve_the_owner ... ok
+2026-10-27T22:31:15.7722251Z test io_uring_selector::socket::tests::ready_owned_writes_preserve_the_owner_without_consuming_ring_capacity ... ok
+2026-10-27T22:31:15.7734145Z test io_uring_selector::socket::tests::socket_retries_keep_the_original_ring_across_threads_and_nested_workers ... ok
+2026-10-27T22:31:15.7743587Z test io_uring_selector::socket::tests::socket_retry_readiness_cancels_and_closes_after_kernel_submission ... ok
+2026-10-27T22:31:15.7749831Z test io_uring_selector::socket::tests::transient_socket_failures_retry_and_preserve_the_owner ... ok
+2026-10-27T22:31:15.7759667Z test io_uring_selector::socket::tests::scalar_socket_requests_use_ring_opcodes_and_release_before_notification ... ok
+2026-10-27T22:31:15.7761579Z test io_uring_selector::socket_read::tests::abandoned_cached_reads_retain_the_socket_until_request_retirement ... ok
+2026-10-27T22:31:15.7763768Z test io_uring_selector::socket_read::tests::abandoning_receive_retires_its_owner_and_allows_a_different_buffer_type ... ok
+2026-10-27T22:31:15.7769265Z test io_uring_selector::socket_read::tests::cached_reads_release_replaced_sockets_and_the_final_socket_on_drop ... ok
+2026-10-27T22:31:15.7782911Z test io_uring_selector::socket_read::tests::cached_reads_keep_active_ring_ownership_and_rebind_after_retirement ... ok
+2026-10-27T22:31:15.7788989Z test io_uring_selector::socket_read::tests::cancellation_during_receive_retry_returns_the_original_owner ... ok
+2026-10-27T22:31:15.7800887Z test io_uring_selector::socket_read::tests::cancellation_retires_the_original_receive_and_returns_its_buffer ... ok
+2026-10-27T22:31:15.7811198Z test io_uring_selector::socket_read::tests::completion_during_waker_registration_is_collected_without_another_poll ... ok
+2026-10-27T22:31:15.7813401Z test io_uring_selector::socket_read::tests::cancellation_while_waiting_for_capacity_returns_the_unsubmitted_buffer ... ok
+2026-10-27T22:31:15.7815371Z test io_uring_selector::socket_read::tests::forgetting_a_receive_and_dropping_its_reader_still_retains_the_owner_until_completion ... ok
+2026-10-27T22:31:15.7824465Z test io_uring_selector::socket_read::tests::early_failures_return_the_original_owner_without_publishing_a_request ... ok
+2026-10-27T22:31:15.7826267Z test io_uring_selector::socket_read::tests::interrupted_and_would_block_receives_retry_without_losing_the_owner ... ok
+2026-10-27T22:31:15.7842782Z test io_uring_selector::socket_read::tests::prepared_receives_do_not_invoke_buffer_callbacks_on_the_ring_owner ... ok
+2026-10-27T22:31:15.7844241Z test io_uring_selector::socket_read::tests::repeated_owned_reads_reuse_request_and_completion_storage_without_allocations ... ok
+2026-10-27T22:31:15.7854077Z test io_uring_selector::socket_read::tests::scalar_dispatch_retains_capacity_waiting_closure_and_cancellation_semantics ... ok
+2026-10-27T22:31:15.7856046Z test io_uring_selector::socket_read::tests::unknown_retirement_retains_the_buffer_and_panics_instead_of_returning_it ... ok
+2026-10-27T22:31:15.7868204Z test io_uring_selector::socket_read::tests::unpublished_receive_is_rejected_when_its_driver_disappears ... ok
+2026-10-27T22:31:15.7870557Z test io_uring_selector::stream_writer::tests::cancellation_racing_registration_prevents_submission ... ok
+2026-10-27T22:31:15.7884538Z test io_uring_selector::stream_writer::tests::completed_writes_can_migrate_rings_while_reusing_the_request_allocation ... ok
+2026-10-27T22:31:15.7970696Z test io_uring_selector::stream_writer::tests::cancelled_flush_does_not_cancel_accepted_output_but_submission_token_does ... ok
+2026-10-27T22:31:15.8002803Z test io_uring_selector::stream_writer::tests::completion_outcomes_preserve_short_write_order_and_retire_errors ... ok
+2026-10-27T22:31:15.8004621Z test io_uring_selector::stream_writer::tests::delayed_cancellation_wakes_cannot_cancel_a_reused_request ... ok
+2026-10-27T22:31:15.8032693Z test io_uring_selector::stream_writer::tests::direct_send_errors_are_accepted_then_reported_and_drop_retires_pending_output ... ok
+2026-10-27T22:31:15.8034483Z test io_uring_selector::stream_writer::tests::immediate_writes_release_buffers_and_reuse_writer_without_allocating ... ok
+2026-10-27T22:31:15.8062970Z test io_uring_selector::stream_writer::tests::immediate_zero_progress_and_identifier_exhaustion_become_terminal_write_errors ... ok
+2026-10-27T22:31:15.8093124Z test io_uring_selector::stream_writer::tests::next_submission_waits_and_cancelled_admission_does_not_touch_the_previous_write ... ok
+2026-10-27T22:31:15.8122771Z test io_uring_selector::stream_writer::tests::raw_send_errors_preserve_os_details_and_completed_writers_can_be_dropped_without_flushing ... ok
+2026-10-27T22:31:15.8124612Z test io_uring_selector::stream_writer::tests::socket_query_failure_and_closed_selector_reject_before_output ... ok
+2026-10-27T22:31:16.0583215Z test io_uring_selector::stream_writer::tests::stalled_write_finishes_and_releases_its_owner_without_polling_a_writer_future ... ok
+2026-10-27T22:31:16.0598810Z test io_uring_selector::stream_writer::tests::stream_type_scheduler_and_pre_cancellation_checks_preserve_new_buffers ... ok
+2026-10-27T22:31:16.0607315Z test io_uring_selector::stream_writer::tests::unpublished_commands_release_normally_and_unknown_kernel_access_reports_retirement_failure ... ok
+2026-10-27T22:31:16.0609047Z test io_uring_selector::submission_notifications::tests::consumed_counter_wrap_preserves_order ... ok
+2026-10-27T22:31:16.0662202Z test io_uring_selector::submission_notifications::tests::issuance_handles_full_submission_queues_and_abandoned_waiters ... ok
+2026-10-27T22:31:16.0698906Z test io_uring_selector::submission_notifications::tests::issuance_is_acknowledged_after_kernel_entry_without_waiting_for_output_completion ... ok
+2026-10-27T22:31:16.0722617Z test io_uring_selector::submission_notifications::tests::mixed_submissions_allow_receipt_wakers_to_enqueue_more_work ... ok
+2026-10-27T22:31:16.0724492Z test io_uring_selector::submission_notifications::tests::partial_submission_notifies_only_consumed_entries_even_with_later_refills ... ok
+2026-10-27T22:31:16.0803580Z test io_uring_selector::submission_notifications::tests::terminal_failure_before_issuance_still_resolves_accepted_submission ... ok
+2026-10-27T22:31:16.0842144Z test io_uring_selector::tests::a_full_local_readiness_batch_returns_before_waiting ... ok
+2026-10-27T22:31:16.0845980Z test io_uring_selector::tests::a_retired_driver_can_enter_a_worker_without_recreating_its_ring ... ok
+2026-10-27T22:31:16.0864207Z test io_uring_selector::tests::abandoned_buffer_destructor_panics_do_not_stop_other_operations ... ok
+2026-10-27T22:31:16.0874063Z test io_uring_selector::tests::abandoning_submitted_io_keeps_storage_until_original_retirement ... ok
+2026-10-27T22:31:16.0895972Z test io_uring_selector::tests::binding_an_already_driven_ring_preserves_inflight_io_without_upgrade ... ok
+2026-10-27T22:31:16.0905261Z test io_uring_selector::tests::borrowed_routes_preserve_worker_identity_without_cloning_controllers ... ok
+2026-10-27T22:31:16.0914167Z test io_uring_selector::tests::bounded_admission_wakes_for_cancellation_and_closure ... ok
+2026-10-27T22:31:16.0916961Z test io_uring_selector::tests::capacity_admission_rechecks_closure_after_a_competing_transition ... ok
+2026-10-27T22:31:16.0919636Z test io_uring_selector::tests::capacity_wait_observes_retirement_and_closure_before_registration ... ok
+2026-10-27T22:31:16.0926308Z test io_uring_selector::tests::close_returns_pending_owners_and_cancellation_tolerates_retired_requests ... ok
+2026-10-27T22:31:16.1034566Z test io_uring_selector::tests::closing_a_full_local_batch_drains_all_accepted_owners ... ok
+2026-10-27T22:31:16.1037844Z test io_uring_selector::tests::convenience_driver_loop_reports_the_original_failure ... ok
+2026-10-27T22:31:16.1049133Z test io_uring_selector::tests::cooperative_cancellation_waits_for_original_completion_and_returns_the_owner ... ok
+2026-10-27T22:31:16.1093269Z test io_uring_selector::tests::deferred_cancellations_prevent_waiting_while_originals_fill_the_submission_queue ... ok
+2026-10-27T22:31:16.1113279Z test io_uring_selector::tests::driver_failure_retains_submitted_storage_and_wakes_waiters_with_a_panic ... ok
+2026-10-27T22:31:16.1143004Z test io_uring_selector::tests::dropping_an_undriven_driver_returns_queued_buffers_and_closes_fallback ... ok
+2026-10-27T22:31:16.1173506Z test io_uring_selector::tests::dropping_local_driver_returns_queued_owners_before_shutdown_and_allows_reentrant_wakes ... ok
+2026-10-27T22:31:16.1203204Z test io_uring_selector::tests::empty_operations_keep_native_access_mode_errors ... ok
+2026-10-27T22:31:16.1223601Z test io_uring_selector::tests::event_loop_wakers_and_notification_errors_do_not_lose_work ... ok
+2026-10-27T22:31:16.1233385Z test io_uring_selector::tests::eventfd_creation_reports_descriptor_exhaustion ... ok
+2026-10-27T22:31:16.2623237Z test io_uring_selector::tests::external_admission_remains_bounded_under_contention ... ok
+2026-10-27T22:31:16.2643547Z test io_uring_selector::tests::failed_notification_completion_still_retires_original_completions_in_the_batch ... ok
+2026-10-27T22:31:16.2663383Z test io_uring_selector::tests::fresh_bound_worker_attempts_optional_upgrade_without_losing_queued_io ... ok
+2026-10-27T22:31:16.2694364Z test io_uring_selector::tests::full_eventfd_preserves_existing_notifications_without_failing_the_waker ... ok
+2026-10-27T22:31:16.2723142Z test io_uring_selector::tests::full_submission_queue_defers_cancellations_and_shutdown_tolerates_duplicate_requests ... ok
+2026-10-27T22:31:16.2753007Z test io_uring_selector::tests::full_submission_queue_defers_waiting_until_the_notification_can_be_armed ... ok
+2026-10-27T22:31:16.2782771Z test io_uring_selector::tests::idle_ring_waits_honor_finite_timeouts_and_rearm_after_notifications ... ok
+2026-10-27T22:31:16.2808221Z test io_uring_selector::tests::idle_turn_consumes_local_and_remote_notifications_together ... ok
+2026-10-27T22:31:16.2814042Z test io_uring_selector::tests::idle_wait_publishes_completions_and_preserves_explicit_wakes ... ok
+2026-10-27T22:31:16.2820338Z test io_uring_selector::tests::idle_waits_do_not_read_the_eventfd_without_a_notification_completion ... ok
+2026-10-27T22:31:16.2822374Z test io_uring_selector::multishot::tests::concurrent_completion_publication_preserves_receive_wakeups ... ok
+2026-10-27T22:31:16.2825497Z test io_uring_selector::tests::interrupted_notification_reads_yield_without_losing_the_wake ... ok
+2026-10-27T22:31:16.2827048Z test io_uring_selector::tests::lazy_precancelled_empty_invalid_and_closed_operations_preserve_the_buffer ... ok
+2026-10-27T22:31:16.2828504Z test io_uring_selector::tests::local_notifications_match_the_ring_controller_including_nested_workers ... ok
+2026-10-27T22:31:16.2829862Z test io_uring_selector::tests::local_readiness_submission_can_submit_and_wait_in_one_turn ... ok
+2026-10-27T22:31:16.2831325Z test io_uring_selector::tests::migrated_cancellation_cannot_overtake_a_queued_submission ... ok
+2026-10-27T22:31:16.2833475Z test io_uring_selector::tests::movable_driver_never_upgrades_and_completes_inflight_io_after_thread_migration ... ok
+2026-10-27T22:31:16.2845266Z test io_uring_selector::tests::moving_a_waiter_to_another_thread_keeps_cancellation_on_the_original_ring ... ok
+2026-10-27T22:31:16.2860612Z test io_uring_selector::tests::native_workers_use_distinct_rings_without_external_submission_routing ... ok
+2026-10-27T22:31:16.2862376Z test io_uring_selector::tests::nested_selectors_restore_routes_and_never_use_another_selectors_ring ... ok
+2026-10-27T22:31:16.2869383Z test io_uring_selector::tests::nonblocking_submission_publishes_immediate_completions_before_returning ... ok
+2026-10-27T22:31:16.2876178Z test io_uring_selector::tests::nonblocking_and_productive_turns_do_not_prepare_an_idle_wait ... ok
+2026-10-27T22:31:16.2879421Z test io_uring_selector::tests::notification_completion_read_failure_stops_the_driver ... ok
+2026-10-27T22:31:16.2883472Z test io_uring_selector::tests::notification_read_failure_after_an_idle_wait_stops_the_driver ... ok
+2026-10-27T22:31:16.2886418Z test io_uring_selector::tests::nonblocking_turn_delivers_notifications_without_an_idle_wait ... ok
+2026-10-27T22:31:16.2898119Z test io_uring_selector::tests::notifications_racing_idle_preparation_remain_observable ... ok
+2026-10-27T22:31:16.2903640Z test io_uring_selector::tests::one_entry_ring_submits_payload_and_cancellation_before_notification ... ok
+2026-10-27T22:31:16.2907140Z test io_uring_selector::tests::one_notification_read_clears_coalesced_wakes_without_a_second_read ... ok
+2026-10-27T22:31:16.2926188Z test io_uring_selector::tests::optional_worker_upgrade_failures_preserve_the_valid_ring_and_queued_io ... ok
+2026-10-27T22:31:16.2928144Z test io_uring_selector::tests::partial_ring_construction_releases_previously_created_drivers ... ok
+2026-10-27T22:31:16.2947108Z test io_uring_selector::tests::owner_wakes_coalesce_without_writes_and_survive_productive_turns ... ok
+2026-10-27T22:31:16.2962870Z test io_uring_selector::tests::preparing_user_buffers_returns_to_the_executor_before_waiting ... ok
+2026-10-27T22:31:16.2964333Z test io_uring_selector::tests::pending_submissions_are_flushed_before_preparing_to_sleep ... ok
+2026-10-27T22:31:16.2966056Z test io_uring_selector::tests::remote_notification_retires_before_waiting_with_a_socket_read_pending ... ok
+2026-10-27T22:31:16.2967902Z test io_uring_selector::stream_writer::tests::completion_callbacks_can_cancel_or_close_a_waiting_admission_before_its_first_byte ... ok
+2026-10-27T22:31:16.2972596Z test io_uring_selector::tests::readiness_submission_is_deferred_for_at_most_one_nonblocking_turn ... ok
+2026-10-27T22:31:16.2977885Z test io_uring_selector::tests::remote_wakes_interrupt_entered_workers_during_idle_preparation ... ok
+2026-10-27T22:31:16.2979206Z test io_uring_selector::tests::setup_probes_and_errors_are_explicit ... ok
+2026-10-27T22:31:16.2984445Z test io_uring_selector::tests::stopping_one_ring_closes_the_group_and_shared_fallback ... ok
+2026-10-27T22:31:16.2995379Z test io_uring_selector::tests::successful_completion_wins_cancellation_and_releases_the_file_before_waking ... ok
+2026-10-27T22:31:16.2998076Z test io_uring_selector::tests::submission_racing_shutdown_or_driver_exit_returns_unpublished_storage ... ok
+2026-10-27T22:31:16.3014506Z test io_uring_selector::tests::unsupported_deferred_worker_setup_preserves_cooperative_upgrade ... ok
+2026-10-27T22:31:16.3028577Z test io_uring_selector::tests::transient_syscall_errors_preserve_progress_and_fatal_errors_stop_the_driver ... ok
+2026-10-27T22:31:16.3030258Z test io_uring_selector::tests::workers_route_locally_and_external_operations_share_ring_capacity_fairly ... ok
+2026-10-27T22:31:16.3143281Z test io_uring_socket_stream_reader::tests::default_reader_rejects_reported_urgent_data_and_can_opt_in ... ok
+2026-10-27T22:31:16.3163528Z test operation_state::tests::admission_observes_cross_thread_retirement_before_reusing_the_lane ... ok
+2026-10-27T22:31:16.3165730Z test operation_state::tests::close_unregisters_abandoned_waiters_and_can_wait_again ... ok
+2026-10-27T22:31:16.3168298Z test operation_state::tests::collected_operations_reuse_the_lane_after_abandoned_close_waits ... ok
+2026-10-27T22:31:16.3263597Z test io_uring_socket_stream_reader::tests::opt_in_reads_past_urgent_marks_with_or_without_an_alias_consuming_oob ... ok
+2026-10-27T22:31:16.3265219Z test operation_state::tests::retirement_releases_the_owned_value_before_waking_close ... ok
+2026-10-27T22:31:16.3285691Z test retained_socket::tests::oversized_native_messages_are_rejected_before_accessing_payload_pages ... ok
+2026-10-27T22:31:16.3287625Z test retained_socket::tests::scalar_datagrams_transfer_and_consume_empty_messages ... ok
+2026-10-27T22:31:16.3288908Z test retained_socket::tests::scalar_stream_reads_preserve_peek_empty_ranges_and_would_block ... ok
+2026-10-27T22:31:16.3290315Z test retained_socket::tests::scalar_stream_writes_preserve_empty_ranges_and_report_broken_peers ... ok
+2026-10-27T22:31:16.3341795Z test operation_state::tests::retirement_racing_close_cannot_lose_its_wakeup ... ok
+2026-10-27T22:31:35.4518532Z test io_uring_selector::multishot::pool::tests::group_identifiers_are_bounded_and_reused_after_release ... ok
+2026-10-27T22:32:16.2965383Z test io_uring_selector::tests::repeated_external_notifications_cannot_starve_a_one_entry_ring_payload has been running for over 60 seconds
+2026-10-27T22:39:22.8607502Z ##[error]The operation was canceled.
+2026-10-27T22:39:22.8733569Z Post job cleanup.
+2026-10-27T22:39:22.9616986Z [command]/usr/bin/git version
+2026-10-27T22:39:22.9668113Z git version 2.56.0
+2026-10-27T22:39:22.9707726Z Temporarily overriding HOME='/home/runner/work/_temp/1d4103df-37e7-4ee8-9635-ce468bec1df9' before making global git config changes
+2026-10-27T22:39:22.9709445Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-27T22:39:22.9724124Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/base-scheduler/base-scheduler
+2026-10-27T22:39:22.9751200Z Removing SSH command configuration
+2026-10-27T22:39:22.9757430Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-27T22:39:22.9798759Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-27T22:39:23.0086209Z Removing HTTP extra header
+2026-10-27T22:39:23.0092091Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-27T22:39:23.0133426Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-27T22:39:23.0439295Z Removing includeIf entries pointing to credentials config files
+2026-10-27T22:39:23.0446507Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-27T22:39:23.0490037Z includeif.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git.path
+2026-10-27T22:39:23.0494048Z includeif.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git/worktrees/*.path
+2026-10-27T22:39:23.0495099Z includeif.gitdir:/github/workspace/.git.path
+2026-10-27T22:39:23.0495967Z includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-27T22:39:23.0502086Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git.path
+2026-10-27T22:39:23.0552629Z /home/runner/work/_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:39:23.0565942Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git.path \/home\/runner\/work\/_temp\/git\-credentials\-dd9db935\-257f\-40be\-af33\-35122e0ebc4a\.config
+2026-10-27T22:39:23.0644273Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git/worktrees/*.path
+2026-10-27T22:39:23.0692789Z /home/runner/work/_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:39:23.0706673Z [command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/base-scheduler/base-scheduler/.git/worktrees/*.path \/home\/runner\/work\/_temp\/git\-credentials\-dd9db935\-257f\-40be\-af33\-35122e0ebc4a\.config
+2026-10-27T22:39:23.0763526Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path
+2026-10-27T22:39:23.0802742Z /github/runner_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:39:23.0844236Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \/github\/runner_temp\/git\-credentials\-dd9db935\-257f\-40be\-af33\-35122e0ebc4a\.config
+2026-10-27T22:39:23.0890845Z [command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path
+2026-10-27T22:39:23.0925841Z /github/runner_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config
+2026-10-27T22:39:23.0934152Z [command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \/github\/runner_temp\/git\-credentials\-dd9db935\-257f\-40be\-af33\-35122e0ebc4a\.config
+2026-10-27T22:39:23.0979976Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-27T22:39:23.1251408Z Removing credentials config '/home/runner/work/_temp/git-credentials-dd9db935-257f-40be-af33-35122e0ebc4a.config'
+2026-10-27T22:39:23.1422870Z Cleaning up orphan processes
+2026-10-27T22:39:23.1645918Z Terminate orphan process: pid (2405) (cargo)
+2026-10-27T22:39:23.1695456Z Terminate orphan process: pid (9960) (base_scheduler_iouring-7aa534938f9dc1b3)

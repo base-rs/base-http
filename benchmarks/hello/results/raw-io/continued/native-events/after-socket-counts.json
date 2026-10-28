@@ -1,0 +1,93 @@
+{
+  "diagnostic_only": true,
+  "workload": "wrk",
+  "connections": 64,
+  "pipelining": false,
+  "provenance": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "binary": "/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/results/raw-io/continued/native-events/server",
+    "binary_sha256": "eb61766794b5665988579494d9b375fbaa69108e5b210c68b341627446237901",
+    "library_sha256": "17dac5c4e3ca4c3b1869d7306ab2f7de1ffd862c8c57ca08caf31ebce059e34e"
+  },
+  "results": [
+    {
+      "mode": "base-native-raw",
+      "requests": 422200,
+      "request_bytes": 41,
+      "operations": {
+        "read": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "readv": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recv": {
+          "calls": 422454,
+          "positive": 422261,
+          "would_block": 128,
+          "other_error": 61,
+          "bytes": 17312701
+        },
+        "recvfrom": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recvmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "write": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "writev": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "send": {
+          "calls": 422261,
+          "positive": 422261,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 32936358
+        },
+        "sendto": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "sendmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        }
+      },
+      "wrk_output": "Running 3s test @ http://127.0.0.1:60367/\n  4 threads and 64 connections\n  Thread Stats   Avg      Stdev     Max   +/- Stdev\n    Latency   466.06us   93.58us 749.00us   77.51%\n    Req/Sec    34.23k     2.07k   37.91k    80.65%\n  422200 requests in 3.10s, 31.41MB read\nRequests/sec: 136194.38\nTransfer/sec:     10.13MB\n",
+      "server_stderr": "connection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\nconnection: Connection reset by peer (os error 54)\n"
+    }
+  ]
+}

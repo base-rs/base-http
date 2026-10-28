@@ -1,0 +1,248 @@
+{
+  "diagnostic_only": true,
+  "workload": "sequential",
+  "connections": 1,
+  "pipelining": false,
+  "provenance": {
+    "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+    "binary": "/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/results/remaining-gap/matched-current/server",
+    "binary_sha256": "8a7c62542fb2780736e0521e07c35b4e50f86d966f8f66c272be3129da71b0a8",
+    "library_sha256": "17dac5c4e3ca4c3b1869d7306ab2f7de1ffd862c8c57ca08caf31ebce059e34e"
+  },
+  "results": [
+    {
+      "mode": "base-native",
+      "requests": 10000,
+      "request_bytes": 41,
+      "operations": {
+        "read": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "readv": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recv": {
+          "calls": 10000,
+          "positive": 10000,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 410000
+        },
+        "recvfrom": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recvmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "write": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "writev": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "send": {
+          "calls": 10000,
+          "positive": 10000,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 780000
+        },
+        "sendto": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "sendmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        }
+      },
+      "server_stderr": ""
+    },
+    {
+      "mode": "base-tokio",
+      "requests": 10000,
+      "request_bytes": 41,
+      "operations": {
+        "read": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "readv": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recv": {
+          "calls": 20000,
+          "positive": 10000,
+          "would_block": 10000,
+          "other_error": 0,
+          "bytes": 410000
+        },
+        "recvfrom": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recvmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "write": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "writev": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "send": {
+          "calls": 10000,
+          "positive": 10000,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 780000
+        },
+        "sendto": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "sendmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        }
+      },
+      "server_stderr": ""
+    },
+    {
+      "mode": "hyper-tokio",
+      "requests": 10000,
+      "request_bytes": 41,
+      "operations": {
+        "read": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "readv": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recv": {
+          "calls": 10000,
+          "positive": 10000,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 410000
+        },
+        "recvfrom": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "recvmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "write": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "writev": {
+          "calls": 10000,
+          "positive": 10000,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 780000
+        },
+        "send": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "sendto": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        },
+        "sendmsg": {
+          "calls": 0,
+          "positive": 0,
+          "would_block": 0,
+          "other_error": 0,
+          "bytes": 0
+        }
+      },
+      "server_stderr": ""
+    }
+  ]
+}

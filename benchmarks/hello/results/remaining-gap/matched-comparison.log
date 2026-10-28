@@ -1,0 +1,82 @@
+old-handler-current-native
+base-native  c= 64 r=1:     122495 req/s, p99 0.686 ms, CPU 100%
+matched-current-native
+base-native  c= 64 r=1:     124150 req/s, p99 0.689 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=1:     130494 req/s, p99 0.690 ms, CPU 100%
+matched-before-native
+base-native  c= 64 r=1:     126100 req/s, p99 0.710 ms, CPU 100%
+matched-current-native
+base-native  c= 64 r=2:     127421 req/s, p99 0.700 ms, CPU 100%
+matched-before-native
+base-native  c= 64 r=2:     126393 req/s, p99 0.709 ms, CPU 100%
+old-handler-current-native
+base-native  c= 64 r=2:     127403 req/s, p99 0.702 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=2:     128927 req/s, p99 0.694 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=3:     130696 req/s, p99 0.693 ms, CPU 100%
+matched-current-native
+base-native  c= 64 r=3:     126635 req/s, p99 0.702 ms, CPU 100%
+old-handler-current-native
+base-native  c= 64 r=3:     129483 req/s, p99 0.700 ms, CPU 100%
+matched-before-native
+base-native  c= 64 r=3:     128883 req/s, p99 0.699 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=4:     130526 req/s, p99 0.694 ms, CPU 100%
+matched-before-native
+base-native  c= 64 r=4:     124775 req/s, p99 0.706 ms, CPU 100%
+old-handler-current-native
+base-native  c= 64 r=4:     123778 req/s, p99 0.711 ms, CPU 100%
+matched-current-native
+base-native  c= 64 r=4:     100856 req/s, p99 0.726 ms, CPU 100%
+matched-before-native
+base-native  c= 64 r=5:     114822 req/s, p99 0.731 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=5:     111276 req/s, p99 0.793 ms, CPU 99%
+old-handler-current-native
+base-native  c= 64 r=5:     124814 req/s, p99 0.707 ms, CPU 100%
+matched-current-native
+base-native  c= 64 r=5:     127070 req/s, p99 0.703 ms, CPU 100%
+{
+  "matched-before-native": {
+    "median_requests_per_second": 126100.18,
+    "min_requests_per_second": 114821.58,
+    "max_requests_per_second": 128883.15,
+    "median_p99_ms": 0.709,
+    "median_cpu_percent": 99.54923543725396,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.9742038646841648,
+    "median_system_cpu_us_per_request": 6.93143830104278
+  },
+  "old-handler-current-native": {
+    "median_requests_per_second": 124813.88,
+    "min_requests_per_second": 122494.84,
+    "max_requests_per_second": 129482.92,
+    "median_p99_ms": 0.7020000000000001,
+    "median_cpu_percent": 99.5533028624947,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.8725960405121017,
+    "median_system_cpu_us_per_request": 7.105692163613817
+  },
+  "matched-current-native": {
+    "median_requests_per_second": 126635.47,
+    "min_requests_per_second": 100855.62,
+    "max_requests_per_second": 127420.78,
+    "median_p99_ms": 0.7020000000000001,
+    "median_cpu_percent": 99.55032274194444,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.8486322977858624,
+    "median_system_cpu_us_per_request": 7.019643613809812
+  },
+  "hyper-tokio": {
+    "median_requests_per_second": 130493.59,
+    "min_requests_per_second": 111275.64,
+    "max_requests_per_second": 130696.37,
+    "median_p99_ms": 0.6940000000000001,
+    "median_cpu_percent": 99.55028743595268,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.6739922912269816,
+    "median_system_cpu_us_per_request": 6.963243194701211
+  }
+}

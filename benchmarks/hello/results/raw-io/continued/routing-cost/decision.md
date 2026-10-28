@@ -1,0 +1,3 @@
+# Internal routing lookup screen
+
+Five interleaved five-second repetitions per candidate. Plain per-event routing with the ready-write change used 0.32025 user microseconds/request; buffered routing 0.32238; buffered routing with a multiplicative internal-ID hash0.30693; direct Tokio 0.26624. All errors zero. CPU improved every paired round for the hash variant relative to ordinary buffered routing, but throughput remained variable and did not establish a win. This diagnostic supports that routing lookup machinery contributes measurable cost. The custom hasher is not retained: the subsequent pointer experiment removes the hot lookup entirely while preserving stable ownership.

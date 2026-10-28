@@ -1,0 +1,20 @@
+   Compiling base-scheduler-iouring v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/iouring)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.31s
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/debug/deps/base_scheduler_iouring-3509ad254f791c8a)
+
+running 1 test
+events 3
+
+thread 'io_uring_socket_stream_reader::tests::default_policy_rejects_urgent_data_without_stalling' (93261) panicked at crates/iouring/src/io_uring_socket_stream_reader/tests.rs:47:48:
+called `Result::unwrap()` on an `Err` value: Io(Custom { kind: Unsupported, error: "TCP urgent data is not supported by this reader" })
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test io_uring_socket_stream_reader::tests::default_policy_rejects_urgent_data_without_stalling ... FAILED
+
+failures:
+
+failures:
+    io_uring_socket_stream_reader::tests::default_policy_rejects_urgent_data_without_stalling
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 226 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p base-scheduler-iouring --lib`

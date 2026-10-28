@@ -1,0 +1,62 @@
+native-events-raw
+base-native-raw c= 64 r=1:     131416 req/s, p99 0.656 ms, CPU 100%
+tokio-task-raw
+tokio-task-raw c= 64 r=1:     135001 req/s, p99 0.661 ms, CPU 100%
+before-native-raw
+base-native-raw c= 64 r=1:     131873 req/s, p99 0.668 ms, CPU 100%
+native-events-raw
+base-native-raw c= 64 r=2:     130773 req/s, p99 0.673 ms, CPU 99%
+before-native-raw
+base-native-raw c= 64 r=2:     127702 req/s, p99 0.677 ms, CPU 99%
+tokio-task-raw
+tokio-task-raw c= 64 r=2:     134720 req/s, p99 0.660 ms, CPU 100%
+before-native-raw
+base-native-raw c= 64 r=3:     133989 req/s, p99 0.664 ms, CPU 100%
+tokio-task-raw
+tokio-task-raw c= 64 r=3:     134995 req/s, p99 0.662 ms, CPU 100%
+native-events-raw
+base-native-raw c= 64 r=3:     136150 req/s, p99 0.663 ms, CPU 99%
+native-events-raw
+base-native-raw c= 64 r=4:     135313 req/s, p99 0.662 ms, CPU 100%
+before-native-raw
+base-native-raw c= 64 r=4:     135115 req/s, p99 0.665 ms, CPU 100%
+tokio-task-raw
+tokio-task-raw c= 64 r=4:     134896 req/s, p99 0.664 ms, CPU 100%
+tokio-task-raw
+tokio-task-raw c= 64 r=5:     135066 req/s, p99 0.663 ms, CPU 100%
+native-events-raw
+base-native-raw c= 64 r=5:     132292 req/s, p99 0.667 ms, CPU 100%
+before-native-raw
+base-native-raw c= 64 r=5:     133963 req/s, p99 0.669 ms, CPU 99%
+{
+  "before-native-raw": {
+    "median_requests_per_second": 133962.69,
+    "min_requests_per_second": 127702.45,
+    "max_requests_per_second": 135115.25,
+    "median_p99_ms": 0.668,
+    "median_cpu_percent": 99.53717065787453,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.303677583570889,
+    "median_system_cpu_us_per_request": 7.133070116502938
+  },
+  "native-events-raw": {
+    "median_requests_per_second": 132292.41,
+    "min_requests_per_second": 130773.38,
+    "max_requests_per_second": 136149.81,
+    "median_p99_ms": 0.663,
+    "median_cpu_percent": 99.53828892090056,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.2885698566007216,
+    "median_system_cpu_us_per_request": 7.2427665795694915
+  },
+  "tokio-task-raw": {
+    "median_requests_per_second": 134995.24,
+    "min_requests_per_second": 134720.17,
+    "max_requests_per_second": 135065.78,
+    "median_p99_ms": 0.662,
+    "median_cpu_percent": 99.53917801028634,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.265276295611477,
+    "median_system_cpu_us_per_request": 7.111489364914925
+  }
+}

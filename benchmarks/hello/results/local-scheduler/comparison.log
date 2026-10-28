@@ -1,0 +1,92 @@
+hyper-tokio
+hyper-tokio  c= 64 r=1:     125428 req/s, p99 0.675 ms, CPU 100%
+native-polling
+base-native  c= 64 r=1:      62862 req/s, p99 1.250 ms, CPU 100%
+base-tokio
+base-tokio   c= 64 r=1:      66530 req/s, p99 1.210 ms, CPU 100%
+native-kqueue
+base-native  c= 64 r=1:      65558 req/s, p99 1.240 ms, CPU 100%
+native-background
+base-native-background c= 64 r=1:      58423 req/s, p99 1.360 ms, CPU 119%
+native-kqueue
+base-native  c= 64 r=2:      67850 req/s, p99 1.270 ms, CPU 100%
+native-background
+base-native-background c= 64 r=2:      60035 req/s, p99 1.350 ms, CPU 119%
+base-tokio
+base-tokio   c= 64 r=2:      69985 req/s, p99 1.230 ms, CPU 100%
+native-polling
+base-native  c= 64 r=2:      68022 req/s, p99 1.270 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=2:     129218 req/s, p99 0.693 ms, CPU 99%
+native-polling
+base-native  c= 64 r=3:      67582 req/s, p99 1.290 ms, CPU 100%
+native-kqueue
+base-native  c= 64 r=3:      67989 req/s, p99 1.280 ms, CPU 100%
+base-tokio
+base-tokio   c= 64 r=3:      69585 req/s, p99 1.250 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=3:     130620 req/s, p99 0.693 ms, CPU 99%
+native-background
+base-native-background c= 64 r=3:      61336 req/s, p99 1.370 ms, CPU 119%
+hyper-tokio
+hyper-tokio  c= 64 r=4:     128761 req/s, p99 0.695 ms, CPU 99%
+native-kqueue
+base-native  c= 64 r=4:      67507 req/s, p99 1.300 ms, CPU 100%
+native-background
+base-native-background c= 64 r=4:      61597 req/s, p99 1.370 ms, CPU 119%
+native-polling
+base-native  c= 64 r=4:      67686 req/s, p99 1.290 ms, CPU 100%
+base-tokio
+base-tokio   c= 64 r=4:      68596 req/s, p99 1.260 ms, CPU 100%
+native-background
+base-native-background c= 64 r=5:      60533 req/s, p99 1.380 ms, CPU 119%
+native-kqueue
+base-native  c= 64 r=5:      67873 req/s, p99 1.300 ms, CPU 100%
+native-polling
+base-native  c= 64 r=5:      67288 req/s, p99 1.310 ms, CPU 100%
+base-tokio
+base-tokio   c= 64 r=5:      69946 req/s, p99 1.260 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=5:     129664 req/s, p99 0.692 ms, CPU 99%
+{
+  "native-background": {
+    "median_requests_per_second": 60532.56,
+    "min_requests_per_second": 58423.32,
+    "max_requests_per_second": 61597.08,
+    "median_p99_ms": 1.37,
+    "median_cpu_percent": 118.7828458702248,
+    "errors": 0
+  },
+  "native-kqueue": {
+    "median_requests_per_second": 67850.27,
+    "min_requests_per_second": 65558.17,
+    "max_requests_per_second": 67988.81,
+    "median_p99_ms": 1.28,
+    "median_cpu_percent": 99.53720902387256,
+    "errors": 0
+  },
+  "base-tokio": {
+    "median_requests_per_second": 69584.56,
+    "min_requests_per_second": 66530.05,
+    "max_requests_per_second": 69985.1,
+    "median_p99_ms": 1.25,
+    "median_cpu_percent": 99.54597260785684,
+    "errors": 0
+  },
+  "hyper-tokio": {
+    "median_requests_per_second": 129217.65,
+    "min_requests_per_second": 125428.14,
+    "max_requests_per_second": 130619.91,
+    "median_p99_ms": 0.6930000000000001,
+    "median_cpu_percent": 99.42469112644731,
+    "errors": 0
+  },
+  "native-polling": {
+    "median_requests_per_second": 67581.8,
+    "min_requests_per_second": 62861.61,
+    "max_requests_per_second": 68021.96,
+    "median_p99_ms": 1.29,
+    "median_cpu_percent": 99.53891607952326,
+    "errors": 0
+  }
+}

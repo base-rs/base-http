@@ -1,0 +1,69 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 12K of event 'cycles:u'
+# Event count (approx.): 49210859145
+#
+# Overhead  Command      Shared Object     Symbol                                                                                                                                                                                                                    
+# ........  ...........  ................  ..........................................................................................................................................................................................................................
+#
+     8.16%  codec-probe  codec-probe       [.] base_http1::wire::authority
+     8.11%  codec-probe  codec-probe       [.] <base_http1::input::RequestReader<codec_probe::Input>>::read_request::{closure#0}
+     5.81%  codec-probe  codec-probe       [.] <base_http1::output::ResponseWriter<codec_probe::Output>>::write_response::<base_http::body::buffered::BufferedBody<&[u8]>>::{closure#0}
+     4.85%  codec-probe  codec-probe       [.] <base_http::fields::Fields>::add::<&str, &[u8]>
+     4.29%  codec-probe  codec-probe       [.] base_http1::wire::strict_lines
+     4.02%  codec-probe  codec-probe       [.] base_http::syntax::is_token
+     3.48%  codec-probe  codec-probe       [.] <base_http::fields::Fields>::add::<&str, &str>
+     3.36%  codec-probe  codec-probe       [.] base_http1::wire::request
+     3.03%  codec-probe  codec-probe       [.] <base_http1::output::ResponseWriter<codec_probe::Output>>::write_field::{closure#0}
+     2.97%  codec-probe  codec-probe       [.] base_http1::output::send_all::<codec_probe::Output>::{closure#0}
+     2.61%  codec-probe  codec-probe       [.] <base_http1::output::ResponseWriter<codec_probe::Output>>::write_all::{closure#0}
+     2.57%  codec-probe  codec-probe       [.] <allocation_counter::allocator::CountingAllocator as core::alloc::global::GlobalAlloc>::alloc
+     2.41%  codec-probe  codec-probe       [.] <base_http::fields::NameStorage>::new
+     2.30%  codec-probe  codec-probe       [.] httparse::parse_headers_iter_uninit
+     2.23%  codec-probe  codec-probe       [.] base_http1::output::plan
+     2.22%  codec-probe  codec-probe       [.] <base_http::fields::Fields>::append
+     2.17%  codec-probe  codec-probe       [.] <httparse::Request>::parse_with_config_and_uninit_headers
+     2.14%  codec-probe  codec-probe       [.] <core::future::poll_fn::PollFn<<base_http1::output::ResponseWriter<codec_probe::Output>>::write_body<base_http::body::buffered::BufferedBody<&[u8]>>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+     1.87%  codec-probe  libc.so.6         [.] 0x0000000000176391
+            |
+            ---0x7f94ceb3c391
+
+     1.87%  codec-probe  codec-probe       [.] <std::thread::local::LocalKey<core::cell::RefCell<(parking::Parker, core::task::wake::Waker)>>>::with::<futures_lite::future::block_on<(), codec_probe::run_base::{closure#0}>::{closure#0}, ()>
+     1.53%  codec-probe  codec-probe       [.] core::str::converts::from_utf8
+     1.37%  codec-probe  codec-probe       [.] httparse::simd::avx2::match_header_value_vectored
+     1.35%  codec-probe  codec-probe       [.] <base_http1::output::ResponseWriter<codec_probe::Output>>::flush::{closure#0}
+     1.25%  codec-probe  codec-probe       [.] <alloc::raw_vec::RawVecInner>::try_allocate_in
+     1.17%  codec-probe  libc.so.6         [.] malloc
+            |
+            ---malloc
+
+     0.99%  codec-probe  codec-probe       [.] httparse::simd::avx2::match_uri_vectored
+     0.96%  codec-probe  codec-probe       [.] base_http1::wire::response_framing
+     0.94%  codec-probe  codec-probe       [.] <u16>::from_ascii_bytes_radix_impl
+     0.83%  codec-probe  codec-probe       [.] <allocation_counter::allocator::CountingAllocator as core::alloc::global::GlobalAlloc>::dealloc
+     0.77%  codec-probe  libc.so.6         [.] 0x0000000000176380
+            |
+            ---0x7f94ceb3c380
+
+     0.73%  codec-probe  codec-probe       [.] <base_http1::input::IncomingBody<codec_probe::Input>>::new
+     0.64%  codec-probe  libc.so.6         [.] cfree
+            |
+            ---cfree
+
+     0.64%  codec-probe  libc.so.6         [.] 0x0000000000176410
+            |
+            ---0x7f94ceb3c410
+
+     0.59%  codec-probe  libc.so.6         [.] 0x00000000001764f1
+            |
+            ---0x7f94ceb3c4f1
+
+     0.52%  codec-probe  codec-probe       [.] <smallvec::SmallVec<[base_http::fields::Field; 1]> as core::ops::drop::Drop>::drop
+
+
+#
+# (Tip: To record callchains for each sample: perf record -g)
+#

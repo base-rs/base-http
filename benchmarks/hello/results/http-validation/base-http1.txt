@@ -1,0 +1,56 @@
+   Compiling pin-project-lite v0.2.17
+   Compiling parking v2.2.1
+   Compiling httparse v1.10.1
+   Compiling futures-io v0.3.34
+   Compiling futures-core v0.3.34
+   Compiling fastrand v2.5.0
+   Compiling event-listener v5.4.2
+   Compiling futures-lite v2.6.1
+   Compiling base-scheduler v0.1.0
+   Compiling base-http v0.0.0 (/Users/samuel/Developer/base-rs/base-http)
+   Compiling base-http1 v0.0.0 (/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/http-validation/base-http1)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.37s
+     Running unittests src/lib.rs (target/http-validation/build/debug/deps/base_http1-a7b4d7c84b9cffb2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/codec.rs (target/http-validation/build/debug/deps/codec-41e2a21c382808d2)
+
+running 26 tests
+test client_rejects_invalid_heads_before_sending_and_bad_lengths_after_progress ... ok
+test client_requests_frame_streams_and_static_trailers ... ok
+test client_close_delimited_responses_and_close_fields_disable_reuse ... ok
+test custom_field_policy_cannot_allow_framing_fields_in_wire_trailers ... ok
+test abandoning_started_output_prevents_further_responses ... ok
+test conflicting_declared_length_is_rejected_before_any_wire_output ... ok
+test client_cancellation_closes_request_body_and_poisons_started_response_input ... ok
+test client_truncated_invalid_and_abandoned_response_bodies_disable_reuse ... ok
+test client_rejects_malformed_and_ambiguous_response_heads ... ok
+test every_short_write_is_retried_in_order ... ok
+test early_response_allows_active_upload_but_reuse_requires_its_completion ... ok
+test failed_body_reads_prevent_reuse_even_if_the_body_is_dropped ... ok
+test client_switch_responses_are_final_and_never_reusable ... ok
+test client_requests_retry_short_writes_and_preserve_boundaries ... ok
+test output_cancels_an_uncooperative_body_and_closes_it ... ok
+test precancelled_input_does_not_consume_the_request ... ok
+test request_target_forms_reconstruct_semantic_components ... ok
+test reset_content_never_emits_nonempty_data_even_with_unknown_length ... ok
+test static_trailers_select_chunked_framing_and_stay_after_the_split ... ok
+test every_successful_connect_uses_raw_framing_including_204_and_205 ... ok
+test too_short_and_too_long_bodies_poison_output ... ok
+test zero_write_progress_is_an_error ... ok
+test upgrade_advertisement_can_appear_in_a_normal_response ... ok
+test switching_with_expect_sends_continue_before_101 ... ok
+test incoming_fixed_and_chunked_bodies_leave_the_next_request_intact_at_every_fragment_size ... ok
+test client_responses_preserve_interims_trailers_and_boundaries_at_every_fragment_size ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests base_http1
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

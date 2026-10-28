@@ -1,0 +1,1228 @@
+--- before/base-http1/src/input.rs
++++ after/base-http1/src/input.rs
+@@ -13,29 +13,27 @@
+ };
+ 
+ #[derive(Default)]
+-struct State {
++struct ExchangeState {
++    upgrade: Option<Box<[u8]>>,
+     complete: AtomicBool,
+     tunnel: AtomicBool,
+     abandoned: AtomicBool,
+ }
+ 
+-/// Per-request framing context shared with the output direction. A successful
+-/// switch changes incoming body reads to raw data without releasing transport.
+-/// Keeps version, method classification, persistence and handshake decisions
+-/// independent of application mutations, retaining bytes only for upgrade offers.
+-#[derive(Clone)]
+-pub struct Exchange {
+-    context: Arc<Context>,
+-}
+-
+-struct Context {
++#[derive(Clone, Copy)]
++struct ExchangeFacts {
+     version: Version,
+     head: bool,
+     connect: bool,
+     persistent: bool,
+     expect_continue: bool,
+-    upgrade: Option<Box<[u8]>>,
+-    state: State,
++}
++
++/// Captured framing facts and, when input can still change, shared state. A successful switch changes incoming body reads to raw data without releasing transport.
++#[derive(Clone)]
++pub struct Exchange {
++    facts: ExchangeFacts,
++    state: Option<Arc<ExchangeState>>,
+ }
+ 
+ pub(crate) fn request_persistent(head: &RequestHead) -> bool {
+@@ -65,54 +63,108 @@
+             offers.into_boxed_slice()
+         });
+         Self {
+-            context: Arc::new(Context {
++            facts: ExchangeFacts {
+                 version: head.version.unwrap_or(Version::Http11),
+                 head: head.method == Method::HEAD,
+                 connect: head.method == Method::CONNECT,
+                 persistent: request_persistent(head),
+                 expect_continue: wire::has_token(&head.fields, "expect", b"100-continue"),
++            },
++            // Client response completion depends on incoming response framing,
++            // independently of the matching outgoing request's body length.
++            state: Some(Arc::new(ExchangeState {
+                 upgrade,
+-                state: State::default(),
++                ..Default::default()
++            })),
++        }
++    }
++    fn from_request(head: &RequestHead, framing: wire::RequestFraming) -> Self {
++        let facts = ExchangeFacts {
++            version: head.version.unwrap_or(Version::Http11),
++            head: head.method == Method::HEAD,
++            connect: head.method == Method::CONNECT,
++            persistent: framing.persistent,
++            expect_continue: framing.expect_continue,
++        };
++        // Completed ordinary server input cannot become active or abandoned.
++        // CONNECT and offered upgrades can become raw even when initially empty.
++        let mutable = facts.connect
++            || framing.upgrade.is_some()
++            || framing.chunked
++            || framing.length.is_some_and(|n| n != 0);
++        Self {
++            facts,
++            state: mutable.then(|| {
++                Arc::new(ExchangeState {
++                    upgrade: framing.upgrade,
++                    ..Default::default()
++                })
+             }),
+         }
+     }
++
+     pub fn version(&self) -> Version {
+-        self.context.version
++        self.facts.version
+     }
+     pub fn is_head(&self) -> bool {
+-        self.context.head
++        self.facts.head
+     }
+     pub fn is_connect(&self) -> bool {
+-        self.context.connect
++        self.facts.connect
+     }
+     pub fn expects_continue(&self) -> bool {
+-        self.context.expect_continue
++        self.facts.expect_continue
+     }
+     pub(crate) fn has_upgrade(&self) -> bool {
+-        self.context.upgrade.is_some()
++        self.state
++            .as_ref()
++            .is_some_and(|state| state.upgrade.is_some())
+     }
+     pub(crate) fn accepts_upgrade(&self, protocol: &[u8]) -> bool {
+-        self.context.upgrade.as_ref().is_some_and(|offers| {
+-            offers
+-                .split(|byte| *byte == b',')
+-                .any(|offer| wire::trim(offer).eq_ignore_ascii_case(protocol))
+-        })
++        self.state
++            .as_ref()
++            .and_then(|state| state.upgrade.as_ref())
++            .is_some_and(|offers| {
++                offers
++                    .split(|byte| *byte == b',')
++                    .any(|offer| wire::trim(offer).eq_ignore_ascii_case(protocol))
++            })
+     }
+     pub fn is_complete(&self) -> bool {
+-        self.context.state.complete.load(Ordering::Acquire)
++        self.state
++            .as_ref()
++            .is_none_or(|state| state.complete.load(Ordering::Acquire))
+     }
+     pub fn is_tunnel(&self) -> bool {
+-        self.context.state.tunnel.load(Ordering::Acquire)
++        self.state
++            .as_ref()
++            .is_some_and(|state| state.tunnel.load(Ordering::Acquire))
+     }
+     /// Whether the application discarded input before reaching its boundary.
+     pub fn is_abandoned(&self) -> bool {
+-        self.context.state.abandoned.load(Ordering::Acquire)
++        self.state
++            .as_ref()
++            .is_some_and(|state| state.abandoned.load(Ordering::Acquire))
+     }
+     pub fn is_persistent(&self) -> bool {
+-        self.context.persistent
++        self.facts.persistent
+     }
+     pub(crate) fn switch(&self) {
+-        self.context.state.tunnel.store(true, Ordering::Release);
++        self.state
++            .as_ref()
++            .expect("switches retain shared state")
++            .tunnel
++            .store(true, Ordering::Release);
++    }
++    fn set_complete(&self, complete: bool) {
++        if let Some(state) = &self.state {
++            state.complete.store(complete, Ordering::Release);
++        }
++    }
++    fn abandon(&self) {
++        if let Some(state) = &self.state {
++            state.abandoned.store(true, Ordering::Release);
++        }
+     }
+ }
+ 
+@@ -188,12 +240,12 @@
+         cancellation: &Cancellation,
+     ) -> Result<Option<&[u8]>, Error> {
+         self.poisoned = true;
++        let mut scanned = 0;
+         loop {
+-            if let Some(end) = self
+-                .available()
++            if let Some(end) = self.available()[scanned..]
+                 .windows(4)
+                 .position(|w| w == b"\r\n\r\n")
+-                .map(|p| p + 4)
++                .map(|p| scanned + p + 4)
+             {
+                 if end > self.options.max_head_bytes {
+                     return Err(Error::Limit("message head"));
+@@ -209,6 +261,7 @@
+             if self.available().len() >= self.options.max_head_bytes {
+                 return Err(Error::Limit("message head"));
+             }
++            scanned = self.available().len().saturating_sub(3);
+             if !self.fill(cancellation).await? {
+                 if self.available().is_empty() {
+                     return Ok(None);
+@@ -246,8 +299,9 @@
+             Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
+             _ => return Err(Error::Invalid("invalid request head")),
+         }
+-        let head = wire::request(&parsed)?;
+-        let (length, chunked) = wire::framing(&head.fields)?;
++        let (head, facts) = wire::request(&parsed)?;
++        let length = facts.length;
++        let chunked = facts.chunked;
+         if chunked && head.version != Some(Version::Http11) {
+             return Err(Error::Invalid("HTTP/1.0 transfer-encoding"));
+         }
+@@ -259,7 +313,7 @@
+         } else {
+             Framing::Fixed(length.unwrap_or(0))
+         };
+-        let exchange = Exchange::new(&head);
++        let exchange = Exchange::from_request(&head, facts);
+         self.previous = Some(exchange.clone());
+         self.poisoned = false;
+         let body = IncomingBody::new(
+@@ -357,11 +411,7 @@
+         forbid_content: bool,
+     ) -> Self {
+         let complete = !raw && matches!(framing, Framing::Fixed(0));
+-        exchange
+-            .context
+-            .state
+-            .complete
+-            .store(complete, Ordering::Release);
++        exchange.set_complete(complete);
+         Self {
+             input,
+             exchange,
+@@ -459,11 +509,7 @@
+     }
+     fn close(&mut self, _: Option<Error>) {
+         if !self.complete {
+-            self.exchange
+-                .context
+-                .state
+-                .abandoned
+-                .store(true, Ordering::Release);
++            self.exchange.abandon();
+         }
+         self.closed = true;
+     }
+@@ -494,11 +540,7 @@
+         });
+         if result.is_ok() {
+             self.input.poisoned = false;
+-            self.exchange
+-                .context
+-                .state
+-                .complete
+-                .store(self.complete, Ordering::Release);
++            self.exchange.set_complete(self.complete);
+         }
+         result
+     }
+@@ -507,11 +549,7 @@
+ impl<R> Drop for IncomingBody<'_, R> {
+     fn drop(&mut self) {
+         if !self.complete {
+-            self.exchange
+-                .context
+-                .state
+-                .abandoned
+-                .store(true, Ordering::Release);
++            self.exchange.abandon();
+         }
+     }
+ }
+--- before/base-http1/src/wire.rs
++++ after/base-http1/src/wire.rs
+@@ -43,7 +43,17 @@
+ }
+ 
+ pub(crate) fn framing(fields: &Fields) -> Result<(Option<u64>, bool), Error> {
+-    let length = singleton(fields, "content-length")?
++    parse_framing(
++        singleton(fields, "content-length")?,
++        singleton(fields, "transfer-encoding")?,
++    )
++}
++
++fn parse_framing(
++    length: Option<&[u8]>,
++    transfer: Option<&[u8]>,
++) -> Result<(Option<u64>, bool), Error> {
++    let length = length
+         .map(|bytes| {
+             if bytes.is_empty() || !bytes.iter().all(u8::is_ascii_digit) {
+                 return Err(Error::Invalid("invalid content-length"));
+@@ -54,7 +64,6 @@
+                 .map_err(|_| Error::Invalid("content-length overflow"))
+         })
+         .transpose()?;
+-    let transfer = singleton(fields, "transfer-encoding")?;
+     if transfer.is_some() && length.is_some() {
+         return Err(Error::Invalid("content-length with transfer-encoding"));
+     }
+@@ -136,7 +145,70 @@
+     Ok(())
+ }
+ 
+-pub(crate) fn request(parsed: &httparse::Request<'_, '_>) -> Result<RequestHead, Error> {
++pub(crate) struct ResponseFraming<'a> {
++    pub length: Option<u64>,
++    pub chunked: bool,
++    pub close: bool,
++    pub keep_alive: bool,
++    pub connection_upgrade: bool,
++    pub trailer: bool,
++    pub upgrade: Option<&'a [u8]>,
++    pub duplicate_upgrade: bool,
++}
++
++pub(crate) fn response_framing(fields: &Fields) -> Result<ResponseFraming<'_>, Error> {
++    let mut length = None;
++    let mut transfer = None;
++    let mut facts = ResponseFraming {
++        length: None,
++        chunked: false,
++        close: false,
++        keep_alive: false,
++        connection_upgrade: false,
++        trailer: false,
++        upgrade: None,
++        duplicate_upgrade: false,
++    };
++    for field in fields.headers() {
++        let name = field.name();
++        if name.eq_ignore_ascii_case("content-length") {
++            set_singleton(&mut length, field.value())?;
++        } else if name.eq_ignore_ascii_case("transfer-encoding") {
++            set_singleton(&mut transfer, field.value())?;
++        } else if name.eq_ignore_ascii_case("connection") {
++            for option in field.value().split(|b| *b == b',').map(trim) {
++                facts.close |= option.eq_ignore_ascii_case(b"close");
++                facts.keep_alive |= option.eq_ignore_ascii_case(b"keep-alive");
++                facts.connection_upgrade |= option.eq_ignore_ascii_case(b"upgrade");
++            }
++        } else if name.eq_ignore_ascii_case("trailer") {
++            facts.trailer = true;
++        } else if name.eq_ignore_ascii_case("upgrade") {
++            facts.duplicate_upgrade |= facts.upgrade.replace(trim(field.value())).is_some();
++        }
++    }
++    (facts.length, facts.chunked) = parse_framing(length, transfer)?;
++    Ok(facts)
++}
++
++pub(crate) struct RequestFraming {
++    pub length: Option<u64>,
++    pub chunked: bool,
++    pub persistent: bool,
++    pub expect_continue: bool,
++    pub upgrade: Option<Box<[u8]>>,
++}
++
++fn set_singleton<'a>(slot: &mut Option<&'a [u8]>, value: &'a [u8]) -> Result<(), Error> {
++    if slot.replace(trim(value)).is_some() {
++        return Err(Error::Invalid("duplicate singleton field"));
++    }
++    Ok(())
++}
++
++pub(crate) fn request(
++    parsed: &httparse::Request<'_, '_>,
++) -> Result<(RequestHead, RequestFraming), Error> {
+     let method = match parsed.method.ok_or(Error::Invalid("missing method"))? {
+         "GET" => Method::GET,
+         "HEAD" => Method::HEAD,
+@@ -161,8 +233,41 @@
+     };
+     let mut head = RequestHead::new(method);
+     head.version = Some(version);
+-    head.fields = fields(parsed.headers)?;
+-    let host = singleton(&head.fields, "host")?
++    let mut host = None;
++    let mut length = None;
++    let mut transfer = None;
++    let mut close = false;
++    let mut keep_alive = false;
++    let mut connection_upgrade = false;
++    let mut expect_continue = false;
++    let mut first_upgrade = None;
++    let mut upgrade_count = 0;
++    for field in parsed.headers.iter() {
++        head.fields.add(field.name, field.value)?;
++        let name = field.name;
++        if name.eq_ignore_ascii_case("host") {
++            set_singleton(&mut host, field.value)?;
++        } else if name.eq_ignore_ascii_case("content-length") {
++            set_singleton(&mut length, field.value)?;
++        } else if name.eq_ignore_ascii_case("transfer-encoding") {
++            set_singleton(&mut transfer, field.value)?;
++        } else if name.eq_ignore_ascii_case("connection") {
++            for option in field.value.split(|b| *b == b',').map(trim) {
++                close |= option.eq_ignore_ascii_case(b"close");
++                keep_alive |= option.eq_ignore_ascii_case(b"keep-alive");
++                connection_upgrade |= option.eq_ignore_ascii_case(b"upgrade");
++            }
++        } else if name.eq_ignore_ascii_case("expect") {
++            expect_continue |= field
++                .value
++                .split(|b| *b == b',')
++                .any(|v| trim(v).eq_ignore_ascii_case(b"100-continue"));
++        } else if name.eq_ignore_ascii_case("upgrade") {
++            first_upgrade.get_or_insert(field.value);
++            upgrade_count += 1;
++        }
++    }
++    let host = host
+         .map(|v| std::str::from_utf8(v).map_err(|_| Error::Invalid("invalid host")))
+         .transpose()?;
+     if version == Version::Http11 && host.is_none() {
+@@ -196,22 +301,39 @@
+     } else {
+         return Err(Error::Invalid("invalid request target form"));
+     }
+-    if version == Version::Http11 && has_token(&head.fields, "connection", b"upgrade") {
+-        let mut offers = head
+-            .fields
+-            .headers()
++    let upgrade = if connection_upgrade {
++        if version == Version::Http11 {
++            let first = first_upgrade.ok_or(Error::Invalid("missing upgrade protocol"))?;
++            if upgrade_count == 1 {
++                if let Ok(offer) = std::str::from_utf8(trim(first)) {
++                    head.protocol = Protocol::new(offer).ok();
++                }
++            }
++        }
++        let mut offers = Vec::new();
++        for field in parsed
++            .headers
+             .iter()
+-            .filter(|f| f.name().eq_ignore_ascii_case("upgrade"));
+-        let offer = offers
+-            .next()
+-            .ok_or(Error::Invalid("missing upgrade protocol"))?
+-            .value();
+-        // Preserve all raw offers. The semantic shorthand represents one token.
+-        if let (Ok(offer), None) = (std::str::from_utf8(trim(offer)), offers.next()) {
+-            head.protocol = Protocol::new(offer).ok();
+-        }
+-    }
+-    Ok(head)
++            .filter(|f| f.name.eq_ignore_ascii_case("upgrade"))
++        {
++            if !offers.is_empty() {
++                offers.push(b',');
++            }
++            offers.extend_from_slice(field.value);
++        }
++        Some(offers.into_boxed_slice())
++    } else {
++        None
++    };
++    let (length, chunked) = parse_framing(length, transfer)?;
++    let framing = RequestFraming {
++        length,
++        chunked,
++        persistent: !close && (version == Version::Http11 || keep_alive),
++        expect_continue,
++        upgrade,
++    };
++    Ok((head, framing))
+ }
+ 
+ pub(crate) fn append_fields(bytes: &mut Vec<u8>, fields: &[base_http::Field]) {
+--- before/base-http1/src/client.rs
++++ after/base-http1/src/client.rs
+@@ -171,8 +171,8 @@
+     if parsed.parse(&bytes) != Ok(httparse::Status::Complete(bytes.len())) {
+         return Err(Error::Invalid("invalid request head"));
+     }
+-    let prepared = wire::request(&parsed)?;
+-    let persistent = input::request_persistent(&prepared);
++    let (_, prepared) = wire::request(&parsed)?;
++    let persistent = prepared.persistent;
+     Ok((bytes, framing, persistent))
+ }
+ 
+--- before/base-http1/src/output.rs
++++ after/base-http1/src/output.rs
+@@ -148,6 +148,15 @@
+         version: Option<Version>,
+         cancellation: &Cancellation,
+     ) -> Result<(), Error> {
++        if status == Status::OK && version == Some(Version::Http11) {
++            let line = b"HTTP/1.1 200 OK\r\n";
++            if line.len() <= OUTPUT_BATCH_LIMIT - self.pending.len() {
++                self.reserve(line.len());
++                self.pending.extend_from_slice(line);
++                return Ok(());
++            }
++            return self.write_all(line, cancellation).await;
++        }
+         let version = match version {
+             Some(Version::Http10) => b"HTTP/1.0 ",
+             Some(Version::Http11) => b"HTTP/1.1 ",
+@@ -499,24 +508,18 @@
+     if response.version.is_some_and(|v| v != version) {
+         return Err(Error::Invalid("response version differs from request"));
+     }
+-    // All framing/connection lookups inspect the initial section only.
+-    let contains = |name: &str| {
+-        fields
+-            .headers()
+-            .iter()
+-            .any(|field| field.name().eq_ignore_ascii_case(name))
+-    };
+-    let (declared, chunked) = wire::framing(fields)?;
++    // Derive framing and connection facts together from the initial section.
++    let facts = wire::response_framing(fields)?;
++    let declared = facts.length;
++    let chunked = facts.chunked;
+     let connect = exchange.is_connect() && response.status.is_success();
+     let upgrade = response.status == Status::SWITCHING_PROTOCOLS;
+     let tunnel = connect || upgrade;
+     let status_bodyless =
+         response.status == Status::NO_CONTENT || response.status == Status::NOT_MODIFIED;
+     let absent = !tunnel && (exchange.is_head() || status_bodyless);
+-    let mut persistent = exchange.is_persistent()
+-        && !exchange.is_abandoned()
+-        && !wire::has_token(fields, "connection", b"close")
+-        && !tunnel;
++    let mut persistent =
++        exchange.is_persistent() && !exchange.is_abandoned() && !facts.close && !tunnel;
+     let mut content_length = None;
+     let mut generated_chunked = false;
+     let mut declare_trailers = false;
+@@ -535,17 +538,20 @@
+             if version != Version::Http11 || !exchange.has_upgrade() {
+                 return Err(Error::Invalid("unsolicited upgrade"));
+             }
++            if facts.duplicate_upgrade {
++                return Err(Error::Invalid("duplicate singleton field"));
++            }
+             let selected = response
+                 .protocol
+                 .as_ref()
+                 .map(|p| p.as_str().as_bytes())
+-                .or(wire::singleton(fields, "upgrade")?)
++                .or(facts.upgrade)
+                 .ok_or(Error::Invalid("missing selected protocol"))?;
+             if !wire::token(selected) || !exchange.accepts_upgrade(selected) {
+                 return Err(Error::Invalid("upgrade protocol was not offered"));
+             }
+             selected_upgrade = Some(selected);
+-            connection_upgrade = !wire::has_token(fields, "connection", b"upgrade");
++            connection_upgrade = !facts.connection_upgrade;
+         } else if response.protocol.is_some() {
+             return Err(Error::Invalid("protocol on traditional CONNECT"));
+         }
+@@ -554,8 +560,8 @@
+         if response.protocol.is_some() {
+             return Err(Error::Invalid("protocol without upgrade status"));
+         }
+-        if contains("upgrade") {
+-            connection_upgrade = !wire::has_token(fields, "connection", b"upgrade");
++        if facts.upgrade.is_some() {
++            connection_upgrade = !facts.connection_upgrade;
+         }
+         if chunked && version != Version::Http11 {
+             return Err(Error::Invalid("HTTP/1.0 transfer-encoding"));
+@@ -589,16 +595,16 @@
+                 && declared.is_none()
+                 && !chunked
+                 && !has_trailers
+-                && !contains("trailer")
++                && !facts.trailer
+             {
+                 content_length = Some(0);
+                 framing = Framing::Fixed(0);
+-            } else if chunked || has_trailers || contains("trailer") {
++            } else if chunked || has_trailers || facts.trailer {
+                 if declared.is_some() || version != Version::Http11 {
+                     return Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"));
+                 }
+                 generated_chunked = !chunked;
+-                declare_trailers = !fields.trailers().is_empty() && !contains("trailer");
++                declare_trailers = !fields.trailers().is_empty() && !facts.trailer;
+                 framing = Framing::Chunked;
+             } else if let Some(length) = declared.or(length) {
+                 if declared.is_none() {
+@@ -614,12 +620,10 @@
+             }
+         }
+         if !persistent {
+-            if !wire::has_token(fields, "connection", b"close") {
++            if !facts.close {
+                 connection = Some(&b"close"[..]);
+             }
+-        } else if version == Version::Http10
+-            && !wire::has_token(fields, "connection", b"keep-alive")
+-        {
++        } else if version == Version::Http10 && !facts.keep_alive {
+             connection = Some(&b"keep-alive"[..]);
+         }
+     }
+--- before/base-http1/tests/codec.rs
++++ after/base-http1/tests/codec.rs
+@@ -1443,3 +1443,189 @@
+         assert_eq!(bytes.lock().unwrap().len(), sent);
+     });
+ }
++
++#[test]
++fn fused_request_facts_preserve_repeated_tokens_and_upgrade_offers() {
++    block_on(async {
++        let bytes = b"GET / HTTP/1.1\r\nhOsT: example\r\nConnection: keep-alive\r\ncOnNeCtIoN: ClOsE, UpGrAdE\r\nExpect: other\r\neXpEcT: 100-CoNtInUe\r\nUpgrade: first\r\nuPgRaDe: second\r\nContent-Length: 0\r\n\r\n";
++        for step in 1..=bytes.len() {
++            let mut input = reader(bytes, step);
++            let (request, exchange) = input
++                .read_request(&Cancellation::never())
++                .await
++                .unwrap()
++                .unwrap();
++            assert_eq!(request.fields.len(), 8);
++            assert_eq!(request.fields.pairs()[0].name(), "hOsT");
++            assert!(!exchange.is_persistent());
++            assert!(exchange.expects_continue());
++            assert!(exchange.is_complete());
++            drop(request);
++            let (mut output, wire) = output(usize::MAX);
++            let mut response = Response::empty(Status::SWITCHING_PROTOCOLS);
++            response.protocol = Some(base_http::Protocol::new("second").unwrap());
++            assert!(
++                !output
++                    .write_response(&exchange, &mut response, &Cancellation::never())
++                    .await
++                    .unwrap()
++            );
++            assert!(
++                wire.lock().unwrap().starts_with(
++                    b"HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 101 Switching Protocols\r\n"
++                )
++            );
++            assert!(exchange.is_tunnel());
++            assert!(!input.is_reusable());
++        }
++        let mut input = reader(b"GET / HTTP/1.0\r\nConnection: upgrade\r\n\r\n", 1);
++        assert!(
++            input
++                .read_request(&Cancellation::never())
++                .await
++                .unwrap()
++                .is_some()
++        );
++    });
++}
++
++#[test]
++fn fused_request_facts_reject_ambiguous_framing_and_invalid_lines() {
++    block_on(async {
++        let cases: &[&[u8]] = &[
++            b"GET / HTTP/1.1\r\nHost: x\r\nhOsT: x\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\r\nContent-Length: 0\r\ncOnTeNt-LeNgTh: 0\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\ntRaNsFeR-EnCoDiNg: chunked\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\r\nContent-Length: 0\r\nTransfer-Encoding: chunked\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\r\nContent-Length: 18446744073709551616\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\r\nContent-Length: +1\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: gzip\r\n\r\n",
++            b"GET / HTTP/1.0\r\nTransfer-Encoding: chunked\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\r\nConnection: upgrade\r\n\r\n",
++            b"GET / HTTP/1.1\nHost: x\r\n\r\n",
++            b"GET / HTTP/1.1\r\nHost: x\nX: y\r\n\r\n",
++            b" GET / HTTP/1.1\r\nHost: x\r\n\r\n",
++        ];
++        for &bytes in cases {
++            for step in 1..=bytes.len() {
++                let mut input = reader(bytes, step);
++                assert!(
++                    input.read_request(&Cancellation::never()).await.is_err(),
++                    "{bytes:?} at {step}"
++                );
++                assert!(!input.is_reusable());
++            }
++        }
++    });
++}
++
++#[test]
++fn empty_server_input_and_chunked_completion_keep_exchange_clones_consistent() {
++    block_on(async {
++        let cases: &[(&[u8], bool)] = &[
++            (b"GET / HTTP/1.1\r\nHost: x\r\n\r\nGET /next HTTP/1.1\r\nHost: x\r\n\r\n", true),
++            (b"POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 0\r\n\r\nGET /next HTTP/1.1\r\nHost: x\r\n\r\n", true),
++            (b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\nGET /next HTTP/1.1\r\nHost: x\r\n\r\n", false),
++        ];
++        for &(bytes, complete) in cases {
++            for step in [1, 3, usize::MAX] {
++                let mut input = reader(bytes, step);
++                let (mut request, exchange) = input
++                    .read_request(&Cancellation::never())
++                    .await
++                    .unwrap()
++                    .unwrap();
++                let copy = exchange.clone();
++                assert_eq!(copy.is_complete(), complete);
++                assert!(!copy.is_tunnel());
++                assert!(!copy.is_abandoned());
++                request.method = Method::CONNECT;
++                request.fields.set("Connection", "close, upgrade").unwrap();
++                request.fields.add("Upgrade", "forged").unwrap();
++                assert!(!copy.is_connect());
++                assert!(copy.is_persistent());
++                assert!(
++                    request
++                        .read(&Cancellation::never())
++                        .await
++                        .unwrap()
++                        .is_none()
++                );
++                drop(request);
++                assert!(copy.is_complete());
++                assert!(input.is_reusable());
++                let (request, _) = input
++                    .read_request(&Cancellation::never())
++                    .await
++                    .unwrap()
++                    .unwrap();
++                assert_eq!(request.path.as_deref(), Some("/next"));
++            }
++        }
++    });
++}
++
++#[test]
++fn client_get_responses_still_track_live_input_and_abandonment() {
++    block_on(async {
++        for bytes in [
++            &b"HTTP/1.1 200 OK\r\nContent-Length: 3\r\n\r\nabc"[..],
++            &b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n0\r\n\r\n"[..],
++            &b"HTTP/1.1 200 OK\r\n\r\nabc"[..],
++        ] {
++            for consume in [false, true] {
++                let mut input = response_reader(bytes, 1);
++                let request = RequestHead::new(Method::GET);
++                let mut response = input
++                    .read_response(&request, &mut observer(), &Cancellation::never())
++                    .await
++                    .unwrap();
++                assert!(!response.body.is_empty());
++                if consume {
++                    let mut body = Vec::new();
++                    while let Some(chunk) = response.read(&Cancellation::never()).await.unwrap() {
++                        body.extend_from_slice(&chunk);
++                    }
++                    assert_eq!(body, b"abc");
++                }
++                drop(response);
++                let close_delimited = bytes == b"HTTP/1.1 200 OK\r\n\r\nabc";
++                assert_eq!(input.is_reusable(), consume && !close_delimited);
++            }
++        }
++    });
++}
++
++#[test]
++fn response_fact_scan_preserves_upgrade_singletons_and_repeated_connection_tokens() {
++    block_on(async {
++        let exchange = exchange_from(
++            b"GET / HTTP/1.1\r\nHost: x\r\nConnection: upgrade\r\nUpgrade: first, second\r\n\r\n",
++        );
++        let (mut output, bytes) = output(usize::MAX);
++        let mut response = Response::empty(Status::SWITCHING_PROTOCOLS);
++        response.protocol = Some(base_http::Protocol::new("first").unwrap());
++        response.fields.add("Upgrade", "first").unwrap();
++        response.fields.add("uPgRaDe", "second").unwrap();
++        assert!(matches!(
++            output
++                .write_response(&exchange, &mut response, &Cancellation::never())
++                .await,
++            Err(Error::Invalid("duplicate singleton field"))
++        ));
++        assert!(bytes.lock().unwrap().is_empty());
++
++        let exchange = exchange_from(b"GET / HTTP/1.0\r\nConnection: keep-alive\r\n\r\n");
++        let (mut output, bytes) = self::output(usize::MAX);
++        let mut response = Response::empty(Status::OK);
++        response.fields.add("Connection", "KEEP-ALIVE").unwrap();
++        response.fields.add("cOnNeCtIoN", "other, ClOsE").unwrap();
++        assert!(
++            !output
++                .write_response(&exchange, &mut response, &Cancellation::never())
++                .await
++                .unwrap()
++        );
++        assert_eq!(*bytes.lock().unwrap(), b"HTTP/1.0 200 OK\r\nConnection: KEEP-ALIVE\r\ncOnNeCtIoN: other, ClOsE\r\nContent-Length: 0\r\n\r\n");
++    });
++}
+--- before/base-scheduler/crates/selector/src/readiness_socket_stream_writer.rs
++++ after/base-scheduler/crates/selector/src/readiness_socket_stream_writer.rs
+@@ -1,7 +1,7 @@
+ // Released under the MIT License.
+ // Copyright, 2026, by Samuel Williams.
+ 
+-use crate::{NativeSocket, ReadinessSelector, socket_io};
++use crate::{Interest, NativeSocket, ReadinessSelector, readiness_driver::Registration, socket_io};
+ use base_scheduler::{
+     BufferPool, Cancellation, IoBuf, OperationError, OperationResult, SocketSendFlags,
+     SocketStreamWriter, SocketStreamWriting,
+@@ -11,6 +11,7 @@
+     io::{self, IoSlice},
+     marker::PhantomData,
+     pin::{Pin, pin},
++    sync::Arc,
+     task::Poll,
+ };
+ 
+@@ -20,6 +21,7 @@
+ pub(crate) struct ReadinessSocketStreamWriter<'scheduler, B> {
+     scheduler: &'scheduler ReadinessSelector,
+     socket: NativeSocket,
++    registration: Option<Arc<Registration>>,
+     pending: Option<Completion>,
+     stopping: Cancellation,
+     error: Option<OperationError>,
+@@ -39,6 +41,7 @@
+         Ok(Self {
+             scheduler,
+             socket: socket.retain(),
++            registration: None,
+             pending: None,
+             stopping: Cancellation::new(),
+             error: None,
+@@ -83,6 +86,48 @@
+         }
+         self.result()
+     }
++
++    async fn write_with(
++        &mut self,
++        cancellation: &Cancellation,
++        mut send: impl FnMut(&socket2::Socket) -> io::Result<usize> + Send,
++    ) -> OperationResult<usize> {
++        self.scheduler
++            .cancellable(cancellation, async {
++                let Some(group) = &self.scheduler.readiness else {
++                    return self.socket.io(Interest::Writable, send).await;
++                };
++                if self.registration.is_none() {
++                    // Ready writes need neither a registration nor a table lookup.
++                    let result = send(self.socket.get_ref());
++                    if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                        return result;
++                    }
++                    self.registration = Some(
++                        self.socket
++                            .registrations
++                            .get(group, self.socket.get_ref())?,
++                    );
++                }
++                let direction = self
++                    .registration
++                    .as_ref()
++                    .unwrap()
++                    .direction(Interest::Writable);
++                loop {
++                    // Retry across lazy registration, and never clear a newer edge.
++                    let observed = direction.snapshot();
++                    match send(self.socket.get_ref()) {
++                        Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
++                            direction.clear(observed);
++                            direction.wait(group).await?;
++                        }
++                        result => return result,
++                    }
++                }
++            })
++            .await
++    }
+ }
+ impl SocketStreamWriting for ReadinessSelector {
+     fn socket_stream_writer<'scheduler>(
+@@ -110,14 +155,10 @@
+         if self.pending.is_some() {
+             self.wait(cancellation).await?;
+         }
+-        self.scheduler
+-            .socket_send_poll(
+-                &self.socket,
+-                buffer,
+-                SocketSendFlags::default(),
+-                cancellation,
+-            )
+-            .await
++        self.write_with(cancellation, |socket| {
++            socket_io::send_poll(socket, buffer, SocketSendFlags::default())
++        })
++        .await
+     }
+     async fn write_vectored(
+         &mut self,
+@@ -137,9 +178,10 @@
+         if self.pending.is_some() {
+             self.wait(cancellation).await?;
+         }
+-        self.scheduler
+-            .socket_sendmsg_poll(&self.socket, buffers, None, flags, cancellation)
+-            .await
++        self.write_with(cancellation, |socket| {
++            socket_io::sendmsg_poll(socket, buffers, None, flags)
++        })
++        .await
+     }
+     async fn write_owned_vectored<Buffers: base_scheduler::IoBufSequence>(
+         &mut self,
+@@ -303,6 +345,10 @@
+     }
+ }
+ 
++#[cfg(all(test, target_os = "macos"))]
++#[path = "readiness_socket_stream_writer/tests.rs"]
++mod readiness_tests;
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+--- before/base-scheduler/crates/selector/src/readiness_socket_stream_writer/tests.rs
++++ after/base-scheduler/crates/selector/src/readiness_socket_stream_writer/tests.rs
+@@ -0,0 +1,204 @@
++// Released under the MIT License.
++// Copyright, 2026, by Samuel Williams.
++
++use super::*;
++use crate::{SelectorDriver, SelectorOptions};
++use futures_lite::future::{block_on, poll_once};
++use std::io::Read;
++
++fn setup() -> (
++    ReadinessSelector,
++    crate::ReadinessWorker,
++    NativeSocket,
++    std::net::TcpStream,
++) {
++    let (selector, drivers) =
++        ReadinessSelector::with_workers(SelectorOptions::default(), 1).unwrap();
++    let worker = drivers.into_iter().next().unwrap().enter();
++    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
++    let peer = std::net::TcpStream::connect(listener.local_addr().unwrap()).unwrap();
++    peer.set_read_timeout(Some(std::time::Duration::from_secs(3)))
++        .unwrap();
++    let (socket, _) = listener.accept().unwrap();
++    (
++        selector,
++        worker,
++        NativeSocket::new(socket.into()).unwrap(),
++        peer,
++    )
++}
++
++#[test]
++fn ready_writes_skip_registration_and_blocked_writes_retain_it() {
++    let (selector, _worker, socket, mut peer) = setup();
++    let never = Cancellation::never();
++    let mut writer = ReadinessSocketStreamWriter::<Vec<u8>>::new(&selector, &socket).unwrap();
++    assert_eq!(block_on(writer.write(b"first", &never)).unwrap(), 5);
++    assert!(writer.registration.is_none());
++    let mut received = [0; 5];
++    peer.read_exact(&mut received).unwrap();
++    assert_eq!(&received, b"first");
++
++    // Registration is shared with a reader, but a ready write still needs no lookup.
++    let group = selector.readiness.as_ref().unwrap();
++    let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
++    assert_eq!(
++        block_on(writer.write_vectored(&[IoSlice::new(b"next")], &never)).unwrap(),
++        4
++    );
++    assert!(writer.registration.is_none());
++    peer.read_exact(&mut received[..4]).unwrap();
++    assert_eq!(&received[..4], b"next");
++
++    let mut attempts = 0;
++    assert_eq!(
++        block_on(writer.write_with(&never, |socket| {
++            attempts += 1;
++            if attempts == 1 {
++                Err(io::ErrorKind::WouldBlock.into())
++            } else {
++                socket_io::send_poll(socket, b"retry", SocketSendFlags::default())
++            }
++        }))
++        .unwrap(),
++        5
++    );
++    assert_eq!(attempts, 2);
++    assert!(Arc::ptr_eq(
++        writer.registration.as_ref().unwrap(),
++        &registration
++    ));
++    peer.read_exact(&mut received).unwrap();
++    assert_eq!(&received, b"retry");
++
++    let direction = registration.direction(Interest::Writable);
++    direction.publish();
++    let mut attempts = 0;
++    assert_eq!(
++        block_on(writer.write_with(&never, |socket| {
++            attempts += 1;
++            if attempts == 1 {
++                // A newer event delivered during WouldBlock must survive its clear.
++                direction.publish();
++                Err(io::ErrorKind::WouldBlock.into())
++            } else {
++                socket_io::send_poll(socket, b"last", SocketSendFlags::default())
++            }
++        }))
++        .unwrap(),
++        4
++    );
++    assert_eq!(attempts, 2);
++    assert_ne!(direction.snapshot() & 1, 0);
++    peer.read_exact(&mut received[..4]).unwrap();
++    assert_eq!(&received[..4], b"last");
++}
++
++#[test]
++fn pending_writes_observe_cancellation_and_scheduler_closure() {
++    let (selector, _worker, socket, _peer) = setup();
++    let mut writer = ReadinessSocketStreamWriter::<Vec<u8>>::new(&selector, &socket).unwrap();
++    let cancel = Cancellation::new();
++    {
++        let mut writing =
++            pin!(writer.write_with(&cancel, |_| Err(io::ErrorKind::WouldBlock.into())));
++        assert!(block_on(poll_once(writing.as_mut())).is_none());
++        cancel.cancel();
++        assert!(matches!(
++            block_on(writing),
++            Err(OperationError::Cancelled(_))
++        ));
++    }
++    let registration = writer.registration.as_ref().unwrap().clone();
++    assert!(
++        block_on(writer.write_with(&Cancellation::never(), |_| Err(
++            io::ErrorKind::PermissionDenied.into()
++        )))
++        .is_err()
++    );
++    assert!(Arc::ptr_eq(
++        writer.registration.as_ref().unwrap(),
++        &registration
++    ));
++    let never = Cancellation::never();
++    let mut writing = pin!(writer.write_with(&never, |_| Err(io::ErrorKind::WouldBlock.into())));
++    assert!(block_on(poll_once(writing.as_mut())).is_none());
++    selector.close();
++    assert_eq!(
++        block_on(writing).unwrap_err().kind(),
++        io::ErrorKind::BrokenPipe
++    );
++
++    let (selector, _worker, socket, _peer) = setup();
++    let mut writer = ReadinessSocketStreamWriter::<Vec<u8>>::new(&selector, &socket).unwrap();
++    assert_eq!(
++        block_on(writer.write_with(&never, |_| {
++            selector.close();
++            Err(io::ErrorKind::WouldBlock.into())
++        }))
++        .unwrap_err()
++        .kind(),
++        io::ErrorKind::BrokenPipe
++    );
++}
++
++#[test]
++fn worker_driven_writes_resume_after_real_tcp_backpressure() {
++    use crate::SelectorWorker;
++    use std::time::{Duration, Instant};
++    let (selector, mut worker, socket, mut peer) = setup();
++    socket.get_ref().set_send_buffer_size(4096).unwrap();
++    socket2::SockRef::from(&peer)
++        .set_recv_buffer_size(4096)
++        .unwrap();
++    let payload = [0x37; 64 * 1024];
++    let mut queued = 0;
++    let deadline = Instant::now() + Duration::from_secs(3);
++    loop {
++        assert!(Instant::now() < deadline, "TCP send queue did not fill");
++        match socket_io::send_poll(socket.get_ref(), &payload, SocketSendFlags::default()) {
++            Ok(count) => {
++                assert_ne!(count, 0);
++                queued += count;
++            }
++            Err(error) if error.kind() == io::ErrorKind::WouldBlock => break,
++            Err(error) => panic!("send failed: {error}"),
++        }
++    }
++    let mut writer = ReadinessSocketStreamWriter::<Vec<u8>>::new(&selector, &socket).unwrap();
++    let never = Cancellation::never();
++    // TCP may free capacity between the saturation probe and the first write.
++    // Keep accepted progress in the prefix until a write actually suspends.
++    let extra = std::cell::Cell::new(0);
++    let resume = std::cell::Cell::new(false);
++    let mut writing = pin!(async {
++        loop {
++            let count = writer.write(&[0x37], &never).await?;
++            extra.set(extra.get() + count);
++            if resume.get() {
++                return Ok::<usize, OperationError>(count);
++            }
++        }
++    });
++    assert!(block_on(poll_once(writing.as_mut())).is_none());
++    let expected = queued + extra.get() + 1;
++    resume.set(true);
++    let receiving = std::thread::spawn(move || {
++        let mut received = vec![0; expected];
++        peer.read_exact(&mut received).unwrap();
++        assert!(received.iter().all(|byte| *byte == 0x37));
++    });
++    let deadline = Instant::now() + Duration::from_secs(3);
++    loop {
++        if let Some(result) = block_on(poll_once(writing.as_mut())) {
++            assert_eq!(result.unwrap(), 1);
++            break;
++        }
++        assert!(
++            Instant::now() < deadline,
++            "worker did not resume the blocked write"
++        );
++        worker.turn(Some(Duration::from_millis(10))).unwrap();
++    }
++    receiving.join().unwrap();
++}
+--- before/base-scheduler/crates/selector/src/socket_operations.rs
++++ after/base-scheduler/crates/selector/src/socket_operations.rs
+@@ -271,26 +271,6 @@
+ }
+ 
+ impl ReadinessSelector {
+-    pub(crate) async fn socket_send_poll(
+-        &self,
+-        socket: &NativeSocket,
+-        buffer: &[u8],
+-        flags: SocketSendFlags,
+-        cancellation: &Cancellation,
+-    ) -> OperationResult<usize> {
+-        self.socket_operation(
+-            socket,
+-            buffer,
+-            cancellation,
+-            Interest::Writable,
+-            |socket, buffer| socket_io::send_poll(socket, buffer, flags),
+-        )
+-        .await
+-        .0
+-    }
+-}
+-
+-impl ReadinessSelector {
+     pub(crate) async fn socket_recvmsg_poll(
+         &self,
+         socket: &NativeSocket,
+--- before/base-scheduler/crates/selector/src/socket_operations/tests.rs
++++ after/base-scheduler/crates/selector/src/socket_operations/tests.rs
+@@ -409,10 +409,6 @@
+     let mut target = [0x5a; 4];
+     // An unconnected datagram send must report the immediate native error.
+     assert!(matches!(
+-        block_on(scheduler.socket_send_poll(&socket, b"x", SocketSendFlags::default(), &never)),
+-        Err(OperationError::Io(_))
+-    ));
+-    assert!(matches!(
+         block_on(scheduler.socket_sendmsg_poll(
+             &socket,
+             &[IoSlice::new(b"x")],
+@@ -457,12 +453,6 @@
+         io::ErrorKind::BrokenPipe
+     );
+     assert_eq!(
+-        block_on(scheduler.socket_send_poll(&socket, b"x", SocketSendFlags::default(), &never))
+-            .unwrap_err()
+-            .kind(),
+-        io::ErrorKind::BrokenPipe
+-    );
+-    assert_eq!(
+         block_on(scheduler.socket_sendmsg_poll(
+             &socket,
+             &[IoSlice::new(b"x")],
+@@ -494,6 +484,7 @@
+         server_socket.set_recv_buffer_size(4096).unwrap();
+         let payload = vec![7; 4 * 1024 * 1024];
+         let never = Cancellation::never();
++        let mut writer = scheduler.socket_stream_writer(&client).unwrap();
+         let count = if message {
+             block_on(scheduler.socket_sendmsg_poll(
+                 &client,
+@@ -504,13 +495,7 @@
+             ))
+             .unwrap()
+         } else {
+-            block_on(scheduler.socket_send_poll(
+-                &client,
+-                &payload,
+-                SocketSendFlags::default(),
+-                &never,
+-            ))
+-            .unwrap()
++            block_on(writer.write(&payload, &never)).unwrap()
+         };
+         assert!(
+             count > 0 && count < payload.len(),
+@@ -539,15 +524,7 @@
+                         &token,
+                     )
+                 } else {
+-                    cancel_pending_send(
+-                        scheduler.socket_send_poll(
+-                            &client,
+-                            &payload,
+-                            SocketSendFlags::default(),
+-                            &token,
+-                        ),
+-                        &token,
+-                    )
++                    cancel_pending_send(writer.write(&payload, &token), &token)
+                 };
+                 if cancelled {
+                     break;
+@@ -557,6 +534,8 @@
+             assert!(result.unwrap() > 0);
+         }
+         assert!(payload.iter().all(|byte| *byte == 7));
++        block_on(writer.close()).unwrap();
++        drop(writer);
+         block_on(scheduler.shutdown());
+     }
+ }

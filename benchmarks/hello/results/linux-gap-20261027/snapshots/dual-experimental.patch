@@ -1,0 +1,342 @@
+diff --git a/crates/iouring/src/io_uring_selector/monitor.rs b/crates/iouring/src/io_uring_selector/monitor.rs
+index ade182c..584a10d 100644
+--- a/crates/iouring/src/io_uring_selector/monitor.rs
++++ b/crates/iouring/src/io_uring_selector/monitor.rs
+@@ -239,7 +239,7 @@ impl IoUringSelector {
+ 
+     async fn monitor_io<T>(
+         &self,
+-        monitor: &mut Storage,
++        monitor: &Storage,
+         interest: Interest,
+         cancellation: &Cancellation,
+         mut operation: impl FnMut(&RegisteredSocket) -> io::Result<T> + Send,
+@@ -316,6 +316,29 @@ impl IoUringSelector {
+     pub(crate) async fn socket_monitor_close(&self, monitor: &mut Storage) -> io::Result<()> {
+         self.monitor_close(monitor).await
+     }
++    pub(crate) fn socket_stream_monitor(&self, socket: &impl SocketSource) -> Storage {
++        let monitor = self.socket_monitor(socket, Interest::Readable);
++        monitor.registration().multishot.store(false, Ordering::Relaxed);
++        monitor
++    }
++    pub(crate) async fn socket_stream_recv_poll(
++        &self,
++        monitor: &mut Storage,
++        wait_first: &mut bool,
++        buffer: &mut [u8],
++        cancellation: &Cancellation,
++    ) -> OperationResult<usize> {
++        if *wait_first { self.monitor_wait(monitor, cancellation).await?; }
++        let registration = monitor.registration();
++        let count = self.monitor_io(monitor, Interest::Readable, cancellation, |socket| {
++            let observed = registration.readiness.load(Ordering::Acquire);
++            let count = crate::retained_socket::recv(socket, buffer, SocketRecvFlags::default())?;
++            if count > 0 && count < buffer.len() { registration.clear_readiness(observed); }
++            Ok(count)
++        }).await?;
++        *wait_first = count > 0 && count < buffer.len();
++        Ok(count)
++    }
+     pub(crate) async fn socket_monitor_recv_poll(
+         &self,
+         monitor: &mut Storage,
+diff --git a/crates/iouring/src/io_uring_socket_stream_reader.rs b/crates/iouring/src/io_uring_socket_stream_reader.rs
+index 7bf1299..f1c64a9 100644
+--- a/crates/iouring/src/io_uring_socket_stream_reader.rs
++++ b/crates/iouring/src/io_uring_socket_stream_reader.rs
+@@ -1,7 +1,6 @@
+ // Released under the MIT License.
+ // Copyright, 2026, by Samuel Williams.
+ 
+-use crate::Interest;
+ use crate::{IoUringBufferPool, IoUringSelector, MonitorStorage};
+ use base_scheduler::{
+     BufferPool, BufferPoolOptions, BufferPooling, Cancellation, OperationResult, ReceiveBuffer,
+@@ -23,6 +22,7 @@ pub(crate) struct IoUringSocketStreamReader<'a> {
+     monitor: MonitorStorage,
+     pool: Option<IoUringBufferPool>,
+     eof: bool,
++    wait_first: bool,
+     closed: bool,
+ }
+ 
+@@ -39,9 +39,10 @@ impl<'a> IoUringSocketStreamReader<'a> {
+             scheduler,
+             operations: Default::default(),
+             owned: None,
+-            monitor: scheduler.socket_monitor(socket, Interest::Readable),
++            monitor: scheduler.socket_stream_monitor(socket),
+             pool: None,
+             eof: false,
++            wait_first: false,
+             closed: false,
+         })
+     }
+@@ -123,10 +124,10 @@ impl SocketStreamReader for IoUringSocketStreamReader<'_> {
+         }
+         let count = self
+             .scheduler
+-            .socket_monitor_recv_poll(
++            .socket_stream_recv_poll(
+                 &mut self.monitor,
++                &mut self.wait_first,
+                 buffer,
+-                SocketRecvFlags::default(),
+                 cancellation,
+             )
+             .await?;
+diff --git a/crates/selector/src/readiness_driver.rs b/crates/selector/src/readiness_driver.rs
+index 70413e4..06ffe1c 100644
+--- a/crates/selector/src/readiness_driver.rs
++++ b/crates/selector/src/readiness_driver.rs
+@@ -144,6 +144,8 @@ pub(crate) struct Direction {
+     // Low bits are advisory readiness and readable EOF; upper bits identify
+     // the notification. EOF inhibits short-read clearing, not WouldBlock clear.
+     tick: AtomicUsize,
++    #[cfg(target_os = "linux")]
++    level: bool,
+     #[cfg(target_os = "macos")]
+     available: AtomicUsize,
+     changed: Notification,
+@@ -152,6 +154,8 @@ impl Direction {
+     fn new() -> Self {
+         Self {
+             tick: AtomicUsize::new(0),
++            #[cfg(target_os = "linux")]
++            level: false,
+             #[cfg(target_os = "macos")]
+             available: AtomicUsize::new(0),
+             changed: Notification::new(),
+@@ -161,6 +165,8 @@ impl Direction {
+         self.tick.load(Ordering::Acquire)
+     }
+     pub(crate) fn publish(&self) {
++        #[cfg(target_os = "linux")]
++        if self.level && self.snapshot() & 1 != 0 { return; }
+         // Increment the generation before publishing readiness. A racing clear
+         // can at most cause a spurious retry, never erase this notification.
+         self.tick.fetch_add(4, Ordering::AcqRel);
+@@ -178,6 +184,8 @@ impl Direction {
+         self.publish();
+     }
+     pub(crate) fn clear_after_read(&self, observed: usize, count: usize, capacity: usize) {
++        #[cfg(target_os = "linux")]
++        if self.level && count != 0 && count < capacity { self.clear(observed); }
+         #[cfg(target_os = "macos")]
+         if count != 0
+             && count < capacity
+@@ -247,6 +255,12 @@ impl Registration {
+             self.key
+         }
+     }
++    #[cfg(target_os = "linux")]
++    pub(crate) fn recheck_remote_read(&self) {
++        if !self.readable.level { return; }
++        let local = ROUTES.with(|routes| routes.borrow().iter().any(|(_, owner)| Arc::as_ptr(owner) == self.owner.as_ptr()));
++        if !local { if let Some(owner) = self.owner.upgrade() { let _ = owner.poller.notify(); } }
++    }
+     pub(crate) fn direction(&self, interest: Interest) -> &Direction {
+         match interest {
+             Interest::Readable => &self.readable,
+@@ -319,11 +333,14 @@ impl SocketRegistrations {
+             .checked_add(1)
+             .filter(|next| *next != usize::MAX)
+             .ok_or_else(|| io::Error::other("readiness event keys exhausted"))?;
++        let readable = Direction::new();
++        #[cfg(target_os = "linux")]
++        let readable = Direction { level: owner.poller.level_reads(), ..readable };
+         let registration = Arc::new(Registration {
+             owner: Arc::downgrade(&owner),
+             key,
+             inactive: AtomicBool::new(false),
+-            readable: Direction::new(),
++            readable,
+             writable: Direction::new(),
+         });
+         // Publish ownership before the kernel can return this pointer. Failed
+@@ -555,6 +572,18 @@ impl SelectorWorker for ReadinessWorker {
+         if inner.group.closed.is_cancelled() {
+             return Ok(true);
+         }
++        #[cfg(target_os = "linux")]
++        let timeout = match inner.controller.poller.probe_readable(&mut inner.events, |token| {
++            // SAFETY: Both native queues obey the same synchronous deletion and
++            // controller retention boundary as the primary event batch.
++            let registration = unsafe { &*std::ptr::with_exposed_provenance::<Registration>(token) };
++            !registration.inactive.load(Ordering::Acquire) && registration.readable.snapshot() & 1 == 0
++        }) {
++            Ok(0) => timeout,
++            Ok(_) => Some(Duration::ZERO),
++            Err(error) if error.kind() == io::ErrorKind::Interrupted => return Ok(false),
++            Err(error) => { inner.group.close(); return Err(error); }
++        };
+         if let Err(error) = inner.controller.poller.wait(&mut inner.events, timeout) {
+             if error.kind() == io::ErrorKind::Interrupted {
+                 return Ok(false);
+diff --git a/crates/selector/src/readiness_driver/epoll.rs b/crates/selector/src/readiness_driver/epoll.rs
+index 47d79fd..b241fce 100644
+--- a/crates/selector/src/readiness_driver/epoll.rs
++++ b/crates/selector/src/readiness_driver/epoll.rs
+@@ -16,6 +16,7 @@ pub(super) const INTERRUPT: usize = usize::MAX;
+ const TIMER: usize = usize::MAX - 1;
+ const BATCH: usize = 1024;
+ const READ: u32 = (libc::EPOLLIN | libc::EPOLLPRI | libc::EPOLLERR | libc::EPOLLHUP) as u32;
++const LEVEL_READ: u32 = (libc::EPOLLIN | libc::EPOLLRDHUP | libc::EPOLLERR | libc::EPOLLHUP) as u32;
+ const WRITE: u32 = (libc::EPOLLOUT | libc::EPOLLERR | libc::EPOLLHUP) as u32;
+ 
+ pub(super) struct Poller {
+@@ -34,6 +35,7 @@ impl Poller {
+         };
+         Ok(Self { backend })
+     }
++    pub(super) fn level_reads(&self) -> bool { matches!(&self.backend, Backend::Native(_)) }
+     pub(super) fn supports_edge(&self) -> bool {
+         match &self.backend {
+             Backend::Native(_) => true,
+@@ -50,12 +52,12 @@ impl Poller {
+         match &self.backend {
+             Backend::Native(poller) => {
+                 debug_assert_eq!(mode, PollMode::Edge);
+-                poller.change(
+-                    libc::EPOLL_CTL_ADD,
+-                    socket.as_raw_fd(),
+-                    event.key,
+-                    flags(event) | libc::EPOLLET as u32,
+-                )
++                poller.change(libc::EPOLL_CTL_ADD, socket.as_raw_fd(), event.key,
++                    flags(event) | libc::EPOLLET as u32)?;
++                // Publish the same retained token in the read recheck queue.
++                // The owner quarantines failed partial registrations.
++                poller.change_on(poller.read_queue.as_raw_fd(), libc::EPOLL_CTL_ADD,
++                    socket.as_raw_fd(), event.key, LEVEL_READ)
+             }
+             // SAFETY: The caller retains the socket through deletion or poller shutdown.
+             Backend::Compatible(poller) => unsafe { poller.add_with_mode(socket, event, mode) },
+@@ -63,7 +65,11 @@ impl Poller {
+     }
+     pub(super) fn delete(&self, socket: &socket2::Socket) -> io::Result<()> {
+         match &self.backend {
+-            Backend::Native(poller) => poller.change(libc::EPOLL_CTL_DEL, socket.as_raw_fd(), 0, 0),
++            Backend::Native(poller) => {
++                let primary = poller.change(libc::EPOLL_CTL_DEL, socket.as_raw_fd(), 0, 0);
++                let secondary = poller.change_on(poller.read_queue.as_raw_fd(), libc::EPOLL_CTL_DEL, socket.as_raw_fd(), 0, 0);
++                primary.and(secondary)
++            },
+             Backend::Compatible(poller) => poller.delete(socket),
+         }
+     }
+@@ -81,6 +87,22 @@ impl Poller {
+             }
+         }
+     }
++    pub(super) fn probe_readable(&self, events: &mut Events, mut needed: impl FnMut(usize) -> bool) -> io::Result<usize> {
++        let Backend::Native(poller) = &self.backend else { return Ok(0); };
++        events.probe.clear();
++        events.probe.reserve(BATCH);
++        // SAFETY: The kernel initializes only this reserved tail; no address escapes.
++        let count = unsafe { syscalls::epoll_pwait(poller.read_queue.as_raw_fd(), events.probe.as_mut_ptr(), BATCH as i32, 0, ptr::null()) };
++        if count < 0 { return Err(io::Error::last_os_error()); }
++        unsafe { events.probe.set_len(count as usize); }
++        let before = events.raw.len();
++        for event in &events.probe {
++            if needed(event.u64 as usize) {
++                events.raw.push(libc::epoll_event { events: libc::EPOLLIN as u32, u64: event.u64 });
++            }
++        }
++        Ok(events.raw.len() - before)
++    }
+     pub(super) fn wait(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<usize> {
+         match &self.backend {
+             Backend::Native(poller) => poller.wait(&mut events.raw, timeout),
+@@ -114,6 +136,7 @@ fn flags(event: Event) -> u32 {
+ 
+ struct NativePoller {
+     queue: OwnedFd,
++    read_queue: OwnedFd,
+     interrupt: OwnedFd,
+     timer: OwnedFd,
+ }
+@@ -121,6 +144,7 @@ impl NativePoller {
+     fn try_new() -> io::Result<Option<Self>> {
+         // SAFETY: The calls create new descriptors with no borrowed storage.
+         let queue = owned(unsafe { syscalls::epoll_create1(libc::EPOLL_CLOEXEC) })?;
++        let Ok(read_queue) = owned(unsafe { syscalls::epoll_create1(libc::EPOLL_CLOEXEC) }) else { return Ok(None); };
+         let Ok(interrupt) =
+             owned(unsafe { syscalls::eventfd(0, libc::EFD_CLOEXEC | libc::EFD_NONBLOCK) })
+         else {
+@@ -137,6 +161,7 @@ impl NativePoller {
+         };
+         let poller = Self {
+             queue,
++            read_queue,
+             interrupt,
+             timer,
+         };
+@@ -155,6 +180,9 @@ impl NativePoller {
+         Ok(Some(poller))
+     }
+     fn change(&self, operation: i32, descriptor: i32, key: usize, flags: u32) -> io::Result<()> {
++        self.change_on(self.queue.as_raw_fd(), operation, descriptor, key, flags)
++    }
++    fn change_on(&self, queue: i32, operation: i32, descriptor: i32, key: usize, flags: u32) -> io::Result<()> {
+         let mut event = libc::epoll_event {
+             events: flags,
+             u64: key as u64,
+@@ -162,7 +190,7 @@ impl NativePoller {
+         loop {
+             // SAFETY: Descriptor owners and event storage live through this synchronous call.
+             let result = unsafe {
+-                syscalls::epoll_ctl(self.queue.as_raw_fd(), operation, descriptor, &mut event)
++                syscalls::epoll_ctl(queue, operation, descriptor, &mut event)
+             };
+             if result >= 0 {
+                 return Ok(());
+@@ -292,16 +320,19 @@ fn owned(descriptor: i32) -> io::Result<OwnedFd> {
+ pub(super) struct Events {
+     raw: Vec<libc::epoll_event>,
+     compatible: Option<polling::Events>,
++    probe: Vec<libc::epoll_event>,
+ }
+ impl Events {
+     pub(super) fn new() -> Self {
+         Self {
+             raw: Vec::with_capacity(BATCH),
+             compatible: None,
++            probe: Vec::with_capacity(BATCH),
+         }
+     }
+     pub(super) fn clear(&mut self) {
+         self.raw.clear();
++        self.probe.clear();
+     }
+     pub(super) fn iter(&self) -> impl Iterator<Item = Event> + '_ {
+         // Timer expirations end a timed turn; disarm already reset their counter. Interrupts are drained during the same dispatch pass, before pointer decoding.
+diff --git a/crates/selector/src/readiness_driver/test_poller.rs b/crates/selector/src/readiness_driver/test_poller.rs
+index e6572b2..97f7964 100644
+--- a/crates/selector/src/readiness_driver/test_poller.rs
++++ b/crates/selector/src/readiness_driver/test_poller.rs
+@@ -40,6 +40,10 @@ impl Poller {
+         }
+         Ok(())
+     }
++    #[cfg(target_os = "linux")]
++    pub(super) fn level_reads(&self) -> bool { self.inner.level_reads() }
++    #[cfg(target_os = "linux")]
++    pub(super) fn probe_readable(&self, events: &mut Events, needed: impl FnMut(usize) -> bool) -> io::Result<usize> { self.check()?; self.inner.probe_readable(events, needed) }
+     pub(super) fn supports_edge(&self) -> bool {
+         self.inner.supports_edge()
+     }
+diff --git a/crates/selector/src/readiness_socket_stream_reader.rs b/crates/selector/src/readiness_socket_stream_reader.rs
+index ff772f8..0853eea 100644
+--- a/crates/selector/src/readiness_socket_stream_reader.rs
++++ b/crates/selector/src/readiness_socket_stream_reader.rs
+@@ -118,6 +118,8 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+                             // bytes before clearing. An urgent-data boundary can
+                             // leave bytes queued even after a short receive.
+                             direction.clear_after_read(observed, count, capacity);
++                            #[cfg(target_os = "linux")]
++                            if count != 0 && count < capacity { self.registration.as_ref().unwrap().recheck_remote_read(); }
+                             return Ok(count);
+                         }
+                         Err(error) if error.kind() == io::ErrorKind::WouldBlock => {

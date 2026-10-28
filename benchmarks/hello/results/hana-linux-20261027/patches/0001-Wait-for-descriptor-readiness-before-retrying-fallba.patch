@@ -1,0 +1,90 @@
+From bd06ccdd1fa4f444f5f10757f5eda36006164afa Mon Sep 17 00:00:00 2001
+From: Samuel Williams <samuel.williams@shopify.com>
+Date: Tue, 27 Oct 2026 15:25:33 +1300
+Subject: [PATCH 1/2] Wait for descriptor readiness before retrying fallback
+ socket I/O
+
+---
+ context/design.md                          |  2 ++
+ crates/selector/src/native_socket.rs       | 20 +++++++++++--------
+ crates/selector/src/native_socket/tests.rs | 23 ++++++++++++++++++++++
+ 3 files changed, 37 insertions(+), 8 deletions(-)
+
+diff --git a/context/design.md b/context/design.md
+index 32edd72..89b1889 100644
+--- a/context/design.md
++++ b/context/design.md
+@@ -156,6 +156,8 @@ The controller anchors each registration with a strong reference before adding i
+ 
+ Readability and writability each retain advisory readiness and a notification generation. A `WouldBlock` clears only the generation observed before its syscall. Independent inline listeners support concurrent waits in the same direction; abandoning one wait cannot replace or remove another's waker. Bound scalar stream readers retain their registration and, after establishing progress, wait first when readiness is clear. On macOS, kqueue also supplies the readable byte count and directional EOF. A positive short receive may clear its observed readiness only when it consumed at least the reported byte count and that event did not report EOF. An urgent-data boundary can stop a short receive before already-queued ordinary bytes, including when another alias consumed the urgent byte; the byte-count comparison preserves progress in that case. Publishing the count precedes advancing the notification generation, so a concurrent event either supplies a conservative byte hint or prevents the old generation from being cleared. Other edge backends retain readiness until `WouldBlock`, and message receives preserve their first-poll syscall contract. EOF remains readable through the final data read. All payload access finishes inside the polling future; neither kqueue nor a readiness registration retains borrowed payload pointers. Registration owners retain no native-socket owner. The final socket alias synchronously deregisters its filters before releasing its descriptor, including on another thread, so an event batch temporarily retaining a record cannot prevent exclusive close. Closing or dropping a driver closes readiness admission across its group and wakes pending waits. Readiness records retire at a driver batch boundary; the kernel retains no payload storage for these waits.
+ 
++Independent `async-io` socket fallback operations also attempt immediate progress first. After `WouldBlock`, they await descriptor readiness before another attempt. Repeated polling because a containing task wakes for another descriptor must not retry the blocked syscall. This matters for the io\_uring selector's fallback listener, which can share one supervisor task with active connections.
++
+ Bound borrowed stream writers attempt ready progress without a registration-table lookup. Their first `WouldBlock` acquires and retains the shared registration, retries across registration and then clears only the generation observed before a blocked send. Subsequent blocked operations reuse that registration. After writer/output-lane and operation admission checks, a successful send returns before constructing cancellation or readiness wait futures. Immediate errors and short counts also return directly. Cancellation and closure retain the same contract; owned output submission remains separately managed.
+ 
+ `base-scheduler-timers` is extracted as runtime-independent support with no dependency on the scheduler interface. It retains batched queues, stable slots, constant-time cancellation, optional sharded assistance and deadline notifications, and the optional bounded producer driver. Its `local` feature exposes the same queue engine with exclusive ownership and no synchronization or reference counting.
+diff --git a/crates/selector/src/native_socket.rs b/crates/selector/src/native_socket.rs
+index 83ab91d..f5592bd 100644
+--- a/crates/selector/src/native_socket.rs
++++ b/crates/selector/src/native_socket.rs
+@@ -64,14 +64,18 @@ impl NativeSocket {
+     where
+         Operation: FnMut(&socket2::Socket) -> io::Result<Output> + Send,
+     {
+-        // Invalid socket states must return their immediate OS error instead of waiting for readiness that cannot occur.
+-        let result = operation(self.get_ref());
+-        if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
+-            return result;
+-        }
+-        match interest {
+-            Interest::Readable => self.inner.read_with(|socket| operation(socket)).await,
+-            Interest::Writable => self.inner.write_with(|socket| operation(socket)).await,
++        loop {
++            // Preserve immediate progress/errors. A pending descriptor must
++            // observe actual readiness before retrying: an unrelated wake of
++            // the containing task says nothing about this socket.
++            let result = operation(self.get_ref());
++            if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                return result;
++            }
++            match interest {
++                Interest::Readable => self.inner.readable().await?,
++                Interest::Writable => self.inner.writable().await?,
++            }
+         }
+     }
+     pub fn local_addr(&self) -> io::Result<SocketAddr> {
+diff --git a/crates/selector/src/native_socket/tests.rs b/crates/selector/src/native_socket/tests.rs
+index 5499727..6fe4f30 100644
+--- a/crates/selector/src/native_socket/tests.rs
++++ b/crates/selector/src/native_socket/tests.rs
+@@ -128,3 +128,26 @@ fn native_retention_preserves_the_registration_until_completion() {
+     assert_eq!(Arc::strong_count(&socket.inner), 1);
+     socket.into_close()().unwrap();
+ }
++
++#[test]
++fn unrelated_polls_do_not_retry_a_blocked_socket_operation() {
++    use futures_lite::future::{block_on, poll_once};
++    use std::sync::atomic::{AtomicUsize, Ordering};
++    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
++    let _peer = std::net::TcpStream::connect(listener.local_addr().unwrap()).unwrap();
++    let socket = super::NativeSocket::new(listener.accept().unwrap().0.into()).unwrap();
++    let calls = AtomicUsize::new(0);
++    let mut buffer = [0; 8];
++    let mut operation = Box::pin(socket.io(crate::Interest::Readable, |socket| {
++        calls.fetch_add(1, Ordering::Relaxed);
++        crate::socket_io::recv_poll(
++            socket,
++            &mut buffer,
++            base_scheduler::SocketRecvFlags::default(),
++        )
++    }));
++    for _ in 0..5 {
++        assert!(block_on(poll_once(&mut operation)).is_none());
++        assert_eq!(calls.load(Ordering::Relaxed), 1);
++    }
++}
+-- 
+2.55.0-shop-a6ff2433
+

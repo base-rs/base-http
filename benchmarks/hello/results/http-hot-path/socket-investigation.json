@@ -1,0 +1,28 @@
+{
+  "utc": "2026-10-26T11:25:20.714987+00:00",
+  "purpose": "Diagnostic reproduction; not throughput comparison",
+  "baseline_binary": "/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/results/http-hot-path/before-server",
+  "completed_repetitions": 12,
+  "measured_seconds_per_repetition": 8,
+  "warmup_seconds_per_repetition": 1,
+  "completed_measured_requests": 11619499,
+  "reported_errors": 0,
+  "clock_outliers_logged": 0,
+  "resource_observations": 28,
+  "peak_tcp_entries": 472,
+  "peak_time_wait": 91,
+  "peak_local_tcp_ports": 340,
+  "peak_benchmark_descriptors": 71,
+  "inherited_rlimit_nofile": [
+    4096,
+    9223372036854775807
+  ],
+  "system_open_file_range": [
+    23282,
+    23319
+  ],
+  "memory_denial_counter_values": [
+    6
+  ],
+  "conclusion": "No resource pressure or latency overflow reproduced. Earlier timeout cause remains unestablished. Snapshots are intermittent and cannot exclude a transient event outside observation windows. The stale-object diagnostic attempt is explicitly invalidated in a separate directory."
+}

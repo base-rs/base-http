@@ -1,0 +1,57 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 1394153,
+    "allocations_per_response": 15.000731662703494,
+    "deallocations": 1394152,
+    "reallocations": 92942,
+    "reallocations_per_response": 1.0000322792369187,
+    "requested_bytes": 1172412688,
+    "requested_bytes_per_response": 12614.86230753505,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.9983560000000001,
+  "client_cpu_us_per_request": 10.742056617781557,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000603792,
+  "fresh": false,
+  "implementation": "hyper",
+  "latency_us": {
+    "max": 711.167,
+    "mean": 344.253390804721,
+    "p50": 359.167,
+    "p90": 395.007,
+    "p99": 551.935
+  },
+  "requests": 92939,
+  "requests_per_second": 92882.91803715251,
+  "tls": false,
+  "warmup_requests": 27594,
+  "client_command": [
+    "/private/tmp/base-http-exchange-allocation-after-20261029",
+    "client",
+    "--implementation",
+    "hyper",
+    "--address",
+    "127.0.0.1:63381",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-do17jnp6",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-allocation-after-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-do17jnp6"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 120533
+  },
+  "server_cpu_seconds_including_warmup": 1.5211199999999963
+}

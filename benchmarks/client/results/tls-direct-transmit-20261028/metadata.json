@@ -1,0 +1,24 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "logical_cpus": 12,
+  "started": "2026-10-28T09:55:13Z",
+  "binary_sha256": "15c68fc10545881cd75ecf43786e6b70bd609ecde79d1c7f046b41b0b92fe85b",
+  "arguments": {
+    "binary": "/tmp/base-http-validation-target/release/base-http-client-benchmark",
+    "output": "benchmarks/client/results/tls-direct-transmit-20261028",
+    "baseline_binary": "/tmp/base-http-connection-state-20261028",
+    "baseline_sources": "benchmarks/client/results/connection-state-20261028/sources.tar.gz",
+    "repeats": 3,
+    "seconds": 3.0,
+    "warmup": 1.0,
+    "concurrency": "1,32",
+    "modes": "reuse",
+    "transports": "tcp,tls",
+    "fresh_seconds": 2,
+    "fresh_cooldown": 10,
+    "implementations": "before-open,base-open,base-call,base-connection,hyper-connection,hyper"
+  },
+  "cpu": "Apple M4 Pro",
+  "rustc": "rustc 1.87.0 (17067e9ac 2025-05-09)\nbinary: rustc\ncommit-hash: 17067e9ac6d7ecb70e50f92c1944e545188d2359\ncommit-date: 2025-05-09\nhost: aarch64-apple-darwin\nrelease: 1.87.0\nLLVM version: 20.1.1\n"
+}

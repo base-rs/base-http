@@ -1,0 +1,70 @@
+--- before/base-http1/src/input.rs
++++ candidate/base-http1/src/input.rs
+@@ -173,6 +173,9 @@
+ pub struct RequestReader<R> {
+     reader: R,
+     buffer: Vec<u8>,
++    // The active body exclusively borrows this lane. Keep pending trailers here
++    // rather than moving an absent field collection through every request.
++    trailers: Option<Fields>,
+     start: usize,
+     end: usize,
+     pub(crate) options: Options,
+@@ -186,6 +189,7 @@
+         Ok(Self {
+             reader,
+             buffer: vec![0; options.read_size],
++            trailers: None,
+             start: 0,
+             end: 0,
+             options,
+@@ -397,7 +401,6 @@
+     complete: bool,
+     closed: bool,
+     raw: bool,
+-    trailers: Option<Fields>,
+     forbid_content: bool,
+ }
+ 
+@@ -410,6 +413,7 @@
+         raw: bool,
+         forbid_content: bool,
+     ) -> Self {
++        input.trailers = None;
+         let complete = !raw && matches!(framing, Framing::Fixed(0));
+         exchange.set_complete(complete);
+         Self {
+@@ -420,7 +424,6 @@
+             complete,
+             closed: false,
+             raw,
+-            trailers: None,
+             forbid_content,
+         }
+     }
+@@ -479,7 +482,7 @@
+                         .await?;
+                     let size = chunk_size(&line)?;
+                     if size == 0 {
+-                        self.trailers = Some(self.input.trailers(cancellation).await?);
++                        self.input.trailers = Some(self.input.trailers(cancellation).await?);
+                         self.complete = true;
+                         return Ok(None);
+                     }
+@@ -517,7 +520,7 @@
+         if !self.complete {
+             return Err(Error::Invalid("body has not reached EOF"));
+         }
+-        if let Some(trailers) = self.trailers.take() {
++        if let Some(trailers) = self.input.trailers.take() {
+             fields.mark_trailers();
+             for field in trailers.pairs() {
+                 fields.append(field.clone())?;
+@@ -551,6 +554,7 @@
+         if !self.complete {
+             self.exchange.abandon();
+         }
++        self.input.trailers = None;
+     }
+ }
+ 

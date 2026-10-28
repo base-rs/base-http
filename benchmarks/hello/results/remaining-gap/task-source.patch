@@ -1,0 +1,555 @@
+--- a/base-scheduler/crates/selector/src/socket_operations.rs
++++ b/base-scheduler/crates/selector/src/socket_operations.rs
+@@ -82,6 +82,11 @@
+         };
+         cancellation.check()?;
+         self.check_open()?;
++        if cancellation.is_never() && self.readiness.is_some() {
++            // Worker direction waits already wake and report driver closure.
++            // Neither cancellation listener can contribute on this path.
++            return operation.await.map_err(Into::into);
++        }
+         let mut operation = pin!(operation);
+         let mut cancelled = pin!(cancellation.cancelled());
+         let mut closed = pin!(self.closed.cancelled());
+--- a/base-scheduler/crates/selector/src/readiness_socket_stream_reader.rs
++++ b/base-scheduler/crates/selector/src/readiness_socket_stream_reader.rs
+@@ -72,9 +72,9 @@
+         cancellation: &Cancellation,
+         mut receive: impl FnMut(&socket2::Socket) -> io::Result<usize> + Send,
+     ) -> OperationResult<usize> {
+-        let result = self
+-            .scheduler
+-            .cancellable(cancellation, async {
++        let result = {
++            let scheduler = self.scheduler;
++            let operation = pin!(async {
+                 let Some(group) = &self.scheduler.readiness else {
+                     return self.socket.io(Interest::Readable, receive).await;
+                 };
+@@ -118,8 +118,9 @@
+                         Err(error) => return Err(error),
+                     }
+                 }
+-            })
+-            .await;
++            });
++            scheduler.cancellable(cancellation, operation).await
++        };
+         if matches!(result, Ok(count) if count != 0) {
+             self.established = true;
+         }
+--- a/base-scheduler/crates/selector/src/readiness_socket_stream_writer.rs
++++ b/base-scheduler/crates/selector/src/readiness_socket_stream_writer.rs
+@@ -92,41 +92,41 @@
+         cancellation: &Cancellation,
+         mut send: impl FnMut(&socket2::Socket) -> io::Result<usize> + Send,
+     ) -> OperationResult<usize> {
+-        self.scheduler
+-            .cancellable(cancellation, async {
+-                let Some(group) = &self.scheduler.readiness else {
+-                    return self.socket.io(Interest::Writable, send).await;
+-                };
+-                if self.registration.is_none() {
+-                    // Ready writes need neither a registration nor a table lookup.
+-                    let result = send(self.socket.get_ref());
+-                    if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
+-                        return result;
++        let scheduler = self.scheduler;
++        let operation = pin!(async {
++            let Some(group) = &self.scheduler.readiness else {
++                return self.socket.io(Interest::Writable, send).await;
++            };
++            if self.registration.is_none() {
++                // Ready writes need neither a registration nor a table lookup.
++                let result = send(self.socket.get_ref());
++                if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                    return result;
++                }
++                self.registration = Some(
++                    self.socket
++                        .registrations
++                        .get(group, self.socket.get_ref())?,
++                );
++            }
++            let direction = self
++                .registration
++                .as_ref()
++                .unwrap()
++                .direction(Interest::Writable);
++            loop {
++                // Retry across lazy registration, and never clear a newer edge.
++                let observed = direction.snapshot();
++                match send(self.socket.get_ref()) {
++                    Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
++                        direction.clear(observed);
++                        direction.wait(group).await?;
+                     }
+-                    self.registration = Some(
+-                        self.socket
+-                            .registrations
+-                            .get(group, self.socket.get_ref())?,
+-                    );
++                    result => return result,
+                 }
+-                let direction = self
+-                    .registration
+-                    .as_ref()
+-                    .unwrap()
+-                    .direction(Interest::Writable);
+-                loop {
+-                    // Retry across lazy registration, and never clear a newer edge.
+-                    let observed = direction.snapshot();
+-                    match send(self.socket.get_ref()) {
+-                        Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+-                            direction.clear(observed);
+-                            direction.wait(group).await?;
+-                        }
+-                        result => return result,
+-                    }
+-                }
+-            })
+-            .await
++            }
++        });
++        scheduler.cancellable(cancellation, operation).await
+     }
+ }
+ impl SocketStreamWriting for ReadinessSelector {
+--- a/base-scheduler/crates/selector/src/readiness_driver/tests.rs
++++ b/base-scheduler/crates/selector/src/readiness_driver/tests.rs
+@@ -481,3 +481,32 @@
+             .is_ready()
+     );
+ }
++
++#[test]
++fn events_after_table_retirement_do_not_notify_the_old_registration() {
++    let (selector, mut workers) = setup(1);
++    let Some(group) = &selector.readiness else {
++        return;
++    };
++    let socket = packet();
++    let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
++    // Deregistration removes routing before deleting the kernel filter. Model
++    // that supported window deterministically while the worker collects an edge.
++    let retired = registration
++        .owner
++        .table
++        .lock()
++        .unwrap()
++        .registrations
++        .remove(&registration.key);
++    assert!(retired.is_some());
++    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
++    sender
++        .send_to(b"retired", socket.local_addr().unwrap())
++        .unwrap();
++    assert!(!workers[0].turn(Some(Duration::from_secs(1))).unwrap());
++    assert_eq!(registration.readable.snapshot(), 0);
++    assert_eq!(registration.writable.snapshot(), 0);
++    drop(registration);
++    block_on(selector.socket_close(socket)).unwrap();
++}
+--- a/base-http-server/src/lib.rs
++++ b/base-http-server/src/lib.rs
+@@ -217,11 +217,10 @@
+         };
+         let result = {
+             let mut interim = InterimResponses::new(output.interim(exchange.version()));
+-            let result = cancellable(
+-                handler.call(request, &mut interim, cancellation),
+-                cancellation,
+-            )
+-            .await?;
++            let result = {
++                let called = pin!(handler.call(request, &mut interim, cancellation));
++                cancellable(called, cancellation).await?
++            };
+             interim.finish();
+             result
+         };
+--- a/base-http1/src/output.rs
++++ b/base-http1/src/output.rs
+@@ -359,13 +359,16 @@
+                 // Readiness is only a hint: buffered input can contain incomplete
+                 // chunk framing. Flush on actual suspension, retaining the same
+                 // read future so partial reads and cancellation stay intact.
+-                let mut read = pin!(wait(body.read(cancellation), cancellation));
+-                let ready = poll_fn(|cx| Poll::Ready(read.as_mut().poll(cx))).await;
+-                let chunk = match ready {
+-                    Poll::Ready(result) => result,
+-                    Poll::Pending => {
+-                        self.flush(cancellation).await?;
+-                        read.await
++                let chunk = {
++                    let reading = pin!(body.read(cancellation));
++                    let mut read = pin!(wait(reading, cancellation));
++                    let ready = poll_fn(|cx| Poll::Ready(read.as_mut().poll(cx))).await;
++                    match ready {
++                        Poll::Ready(result) => result,
++                        Poll::Pending => {
++                            self.flush(cancellation).await?;
++                            read.await
++                        }
+                     }
+                 }?
+                 .map_err(|e| {
+--- a/base-http1/tests/codec.rs
++++ b/base-http1/tests/codec.rs
+@@ -81,11 +81,15 @@
+     step: usize,
+     events: Option<Arc<Mutex<Vec<OutputEvent>>>>,
+     fail_after: Option<usize>,
++    released_read: Option<Arc<std::sync::atomic::AtomicBool>>,
+ }
+ impl SocketStreamWriter for Output {
+     type Buffer = Vec<u8>;
+     async fn write(&mut self, bytes: &[u8], cancellation: &Cancellation) -> OperationResult<usize> {
+         cancellation.check()?;
++        if let Some(released) = &self.released_read {
++            assert!(released.load(std::sync::atomic::Ordering::Acquire));
++        }
+         if self
+             .fail_after
+             .is_some_and(|limit| self.bytes.lock().unwrap().len() >= limit)
+@@ -357,6 +361,7 @@
+             step,
+             events: None,
+             fail_after: None,
++            released_read: None,
+         }),
+         bytes,
+     )
+@@ -682,6 +687,7 @@
+             step,
+             events: None,
+             fail_after: None,
++            released_read: None,
+         }),
+         bytes,
+     )
+@@ -1148,6 +1154,7 @@
+             step: usize::MAX,
+             events: Some(events.clone()),
+             fail_after: None,
++            released_read: None,
+         });
+         for _ in 0..2 {
+             let mut response = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
+@@ -1253,6 +1260,7 @@
+             step: 3,
+             events: None,
+             fail_after: Some(3),
++            released_read: None,
+         });
+         let mut response = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
+         assert!(
+@@ -1403,6 +1411,7 @@
+             step: usize::MAX,
+             events: Some(events.clone()),
+             fail_after: None,
++            released_read: None,
+         });
+         let mut response = Response::new(
+             Status::OK,
+@@ -1629,3 +1638,270 @@
+         assert_eq!(*bytes.lock().unwrap(), b"HTTP/1.0 200 OK\r\nConnection: KEEP-ALIVE\r\ncOnNeCtIoN: other, ClOsE\r\nContent-Length: 0\r\n\r\n");
+     });
+ }
++
++#[test]
++fn request_trailers_stay_with_their_body_through_finish_close_drop_and_reuse() {
++    for step in 1..80 {
++        for disposition in 0..4 {
++            block_on(async {
++                let cancellation = Cancellation::never();
++                let mut input = reader(b"POST /one HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n0\r\nx-tail: first\r\nx-tail: repeated\r\n\r\nPOST /two HTTP/1.1\r\nHost: x\r\nContent-Length: 1\r\n\r\nxPOST /three HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n0\r\nx-tail: third\r\n\r\nGET /four HTTP/1.1\r\nHost: x\r\n\r\n", step);
++                let (mut request, _) = input.read_request(&cancellation).await.unwrap().unwrap();
++                assert!(request.body.read(&cancellation).await.unwrap().is_none());
++                assert!(!request.fields.has_trailers());
++                if disposition == 1 || disposition == 2 {
++                    if disposition == 2 {
++                        request.body.close(None);
++                    }
++                    request.body.finish(&mut request.head.fields).unwrap();
++                    request.body.finish(&mut request.head.fields).unwrap();
++                    let values: Vec<_> = request
++                        .fields
++                        .trailers()
++                        .iter()
++                        .map(|f| f.value())
++                        .collect();
++                    assert_eq!(values, [b"first".as_slice(), b"repeated"]);
++                }
++                if disposition == 3 {
++                    // A safe forgotten completed body must not expose its fields
++                    // through the next message, even though Drop never runs.
++                    let (head, body) = request.into_parts();
++                    drop(head);
++                    std::mem::forget(body);
++                } else {
++                    drop(request);
++                }
++                assert!(input.is_reusable());
++                let (mut request, _) = input.read_request(&cancellation).await.unwrap().unwrap();
++                assert_eq!(request.read(&cancellation).await.unwrap().unwrap(), b"x");
++                assert!(request.read(&cancellation).await.unwrap().is_none());
++                assert!(!request.fields.has_trailers());
++                drop(request);
++                let (mut request, _) = input.read_request(&cancellation).await.unwrap().unwrap();
++                assert!(request.read(&cancellation).await.unwrap().is_none());
++                assert_eq!(request.fields.trailers().len(), 1);
++                assert_eq!(request.fields.trailers()[0].value(), b"third");
++                drop(request);
++                let (mut request, _) = input.read_request(&cancellation).await.unwrap().unwrap();
++                assert!(request.read(&cancellation).await.unwrap().is_none());
++                assert!(!request.fields.has_trailers());
++                drop(request);
++                assert!(input.is_reusable());
++            });
++        }
++    }
++}
++
++#[test]
++fn response_trailers_stay_with_their_body_across_interims_and_reuse() {
++    for step in 1..120 {
++        for disposition in 0..4 {
++            block_on(async {
++                let cancellation = Cancellation::never();
++                let head = RequestHead::new(Method::GET);
++                let mut input = response_reader(b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n0\r\nx-tail: first\r\nx-tail: repeated\r\n\r\nHTTP/1.1 103 Early Hints\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 1\r\n\r\nxHTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n0\r\nx-tail: third\r\n\r\nHTTP/1.1 204 No Content\r\n\r\n", step);
++                let mut response = input
++                    .read_response(&head, &mut observer(), &cancellation)
++                    .await
++                    .unwrap();
++                assert!(response.body.read(&cancellation).await.unwrap().is_none());
++                assert!(!response.fields.has_trailers());
++                if disposition == 1 || disposition == 2 {
++                    if disposition == 2 {
++                        response.body.close(None);
++                    }
++                    response.body.finish(&mut response.head.fields).unwrap();
++                    response.body.finish(&mut response.head.fields).unwrap();
++                    let values: Vec<_> = response
++                        .fields
++                        .trailers()
++                        .iter()
++                        .map(|f| f.value())
++                        .collect();
++                    assert_eq!(values, [b"first".as_slice(), b"repeated"]);
++                }
++                if disposition == 3 {
++                    let (head, body) = response.into_parts();
++                    drop(head);
++                    std::mem::forget(body);
++                } else {
++                    drop(response);
++                }
++                assert!(input.is_reusable());
++                let mut response = input
++                    .read_response(&head, &mut observer(), &cancellation)
++                    .await
++                    .unwrap();
++                assert_eq!(response.read(&cancellation).await.unwrap().unwrap(), b"x");
++                assert!(response.read(&cancellation).await.unwrap().is_none());
++                assert!(!response.fields.has_trailers());
++                drop(response);
++                let mut response = input
++                    .read_response(&head, &mut observer(), &cancellation)
++                    .await
++                    .unwrap();
++                assert!(response.read(&cancellation).await.unwrap().is_none());
++                assert_eq!(response.fields.trailers().len(), 1);
++                assert_eq!(response.fields.trailers()[0].value(), b"third");
++                drop(response);
++                let mut response = input
++                    .read_response(&head, &mut observer(), &cancellation)
++                    .await
++                    .unwrap();
++                assert!(response.read(&cancellation).await.unwrap().is_none());
++                assert!(!response.fields.has_trailers());
++                drop(response);
++                assert!(input.is_reusable());
++            });
++        }
++    }
++}
++
++#[test]
++fn completed_body_read_future_is_dropped_before_output_writes_its_chunk() {
++    use std::{
++        future::Future,
++        sync::atomic::{AtomicBool, Ordering},
++        task::{Context, Poll},
++    };
++    struct Reading {
++        result: Option<Option<Vec<u8>>>,
++        released: Arc<AtomicBool>,
++    }
++    impl Future for Reading {
++        type Output = Result<Option<Vec<u8>>, std::convert::Infallible>;
++        fn poll(mut self: std::pin::Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
++            Poll::Ready(Ok(self.result.take().unwrap()))
++        }
++    }
++    impl Drop for Reading {
++        fn drop(&mut self) {
++            self.released.store(true, Ordering::Release);
++        }
++    }
++    struct Body {
++        delivered: bool,
++        released: Arc<AtomicBool>,
++    }
++    impl ReadableBody for Body {
++        type Data = Vec<u8>;
++        type Error = std::convert::Infallible;
++        fn is_ready(&self) -> bool {
++            true
++        }
++        fn is_empty(&self) -> bool {
++            self.delivered
++        }
++        fn length(&self) -> Option<u64> {
++            Some(32768)
++        }
++        fn close(&mut self, _: Option<Self::Error>) {
++            self.delivered = true;
++        }
++        fn read(
++            &mut self,
++            _: &Cancellation,
++        ) -> impl Future<Output = Result<Option<Vec<u8>>, Self::Error>> + Send {
++            self.released.store(false, Ordering::Release);
++            let result = if std::mem::replace(&mut self.delivered, true) {
++                None
++            } else {
++                Some(vec![b'a'; 32768])
++            };
++            Reading {
++                result: Some(result),
++                released: self.released.clone(),
++            }
++        }
++    }
++    block_on(async {
++        let released = Arc::new(AtomicBool::new(true));
++        let bytes = Arc::new(Mutex::new(Vec::new()));
++        let mut output = ResponseWriter::new(Output {
++            bytes: bytes.clone(),
++            step: usize::MAX,
++            events: None,
++            fail_after: None,
++            released_read: Some(released.clone()),
++        });
++        let mut response = Response::new(
++            Status::OK,
++            Body {
++                delivered: false,
++                released: released.clone(),
++            },
++        );
++        assert!(
++            output
++                .write_response(&exchange(), &mut response, &Cancellation::never())
++                .await
++                .unwrap()
++        );
++        assert!(released.load(Ordering::Acquire));
++        assert!(bytes.lock().unwrap().ends_with(&vec![b'a'; 32768]));
++    });
++}
++
++#[test]
++fn empty_request_trailers_publish_the_boundary_only_once() {
++    for step in 1..80 {
++        for close in [false, true] {
++            block_on(async {
++                let cancellation = Cancellation::never();
++                let mut input = reader(b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\nGET /next HTTP/1.1\r\nHost: x\r\n\r\n", step);
++                let (mut request, _) = input.read_request(&cancellation).await.unwrap().unwrap();
++                assert!(request.body.read(&cancellation).await.unwrap().is_none());
++                assert!(!request.fields.has_trailers());
++                if close {
++                    request.body.close(None);
++                }
++                request.body.finish(&mut request.head.fields).unwrap();
++                assert!(request.fields.has_trailers());
++                assert!(request.fields.trailers().is_empty());
++                request.fields.clear();
++                request.body.finish(&mut request.head.fields).unwrap();
++                assert!(!request.fields.has_trailers());
++                drop(request);
++                let (mut request, _) = input.read_request(&cancellation).await.unwrap().unwrap();
++                assert!(request.read(&cancellation).await.unwrap().is_none());
++                assert!(!request.fields.has_trailers());
++            });
++        }
++    }
++}
++
++#[test]
++fn empty_response_trailers_publish_the_boundary_only_once() {
++    for step in 1..80 {
++        for close in [false, true] {
++            block_on(async {
++                let cancellation = Cancellation::never();
++                let head = RequestHead::new(Method::GET);
++                let mut input = response_reader(b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\nHTTP/1.1 204 No Content\r\n\r\n", step);
++                let mut response = input
++                    .read_response(&head, &mut observer(), &cancellation)
++                    .await
++                    .unwrap();
++                assert!(response.body.read(&cancellation).await.unwrap().is_none());
++                assert!(!response.fields.has_trailers());
++                if close {
++                    response.body.close(None);
++                }
++                response.body.finish(&mut response.head.fields).unwrap();
++                assert!(response.fields.has_trailers());
++                assert!(response.fields.trailers().is_empty());
++                response.fields.clear();
++                response.body.finish(&mut response.head.fields).unwrap();
++                assert!(!response.fields.has_trailers());
++                drop(response);
++                let mut response = input
++                    .read_response(&head, &mut observer(), &cancellation)
++                    .await
++                    .unwrap();
++                assert!(response.read(&cancellation).await.unwrap().is_none());
++                assert!(!response.fields.has_trailers());
++            });
++        }
++    }
++}
+--- a/base-http/benchmarks/hello/src/main.rs
++++ b/base-http/benchmarks/hello/src/main.rs
+@@ -31,15 +31,21 @@
+     type Error = Infallible;
+     type Body<B: ReadableBody> = BufferedBody<&'static [u8]>;
+ 
+-    async fn call<B: ReadableBody, I: InterimHandler>(
++    #[allow(clippy::manual_async_fn)] // Drop the unused request at the service-call boundary.
++    fn call<B: ReadableBody, I: InterimHandler>(
+         &self,
+         _: Request<B>,
+         _: &mut InterimResponses<I>,
+         _: &Cancellation,
+-    ) -> std::result::Result<Response<Self::Body<B>>, Infallible> {
+-        let mut response = Response::new(Status::OK, BufferedBody::from(BODY));
+-        response.fields.add("Content-Type", "text/plain").unwrap();
+-        Ok(response)
++    ) -> impl std::future::Future<Output = std::result::Result<Response<Self::Body<B>>, Infallible>> + Send
++    {
++        // Match Hyper's service closure: the unused request is dropped before
++        // returning a future, which constructs a fresh response when polled.
++        async {
++            let mut response = Response::new(Status::OK, BufferedBody::from(BODY));
++            response.fields.add("Content-Type", "text/plain").unwrap();
++            Ok(response)
++        }
+     }
+ }
+ 

@@ -1,0 +1,13 @@
+{
+  "purpose": "Diagnostic only; not used as throughput evidence",
+  "completed_samples": 15,
+  "completed_measured_requests": 14431239,
+  "reported_errors": 0,
+  "latency_outlier_logs": 0,
+  "variants": [
+    "before-native",
+    "hyper-tokio",
+    "response-native"
+  ],
+  "conclusion": "The lower-overhead logging diagnostic did not reproduce an overflow in five samples per variant. Earlier three wrk timeouts remain unexplained."
+}

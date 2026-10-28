@@ -1,0 +1,52 @@
+{
+  "before-native": {
+    "median_requests_per_second": 112810.5,
+    "min_requests_per_second": 111382.53,
+    "max_requests_per_second": 113555.19,
+    "median_p99_ms": 0.774,
+    "median_cpu_percent": 99.3017830487624,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 1.68921055732232,
+    "median_system_cpu_us_per_request": 7.1352436656338085
+  },
+  "before-tokio": {
+    "median_requests_per_second": 120516.42,
+    "min_requests_per_second": 118538.72,
+    "max_requests_per_second": 121561.64,
+    "median_p99_ms": 0.75,
+    "median_cpu_percent": 99.55052588483866,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 1.4359281232561196,
+    "median_system_cpu_us_per_request": 6.896346620584345
+  },
+  "after-native": {
+    "median_requests_per_second": 120170.45,
+    "min_requests_per_second": 110775.45,
+    "max_requests_per_second": 124913.07,
+    "median_p99_ms": 0.74,
+    "median_cpu_percent": 99.54843825530682,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 1.1943093113708714,
+    "median_system_cpu_us_per_request": 7.099035683799355
+  },
+  "after-tokio": {
+    "median_requests_per_second": 124996.99,
+    "min_requests_per_second": 114625.61,
+    "max_requests_per_second": 126332.52,
+    "median_p99_ms": 0.734,
+    "median_cpu_percent": 99.55407914460388,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 1.085689212910174,
+    "median_system_cpu_us_per_request": 6.872395627558196
+  },
+  "hyper-tokio": {
+    "median_requests_per_second": 129954.68,
+    "min_requests_per_second": 125929.49,
+    "max_requests_per_second": 133039.16,
+    "median_p99_ms": 0.6940000000000001,
+    "median_cpu_percent": 99.42156937975628,
+    "errors": 0,
+    "median_user_cpu_us_per_request": 0.6870043245450411,
+    "median_system_cpu_us_per_request": 6.9871483296996635
+  }
+}

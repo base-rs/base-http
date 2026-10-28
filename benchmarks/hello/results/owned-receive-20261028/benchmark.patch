@@ -1,0 +1,119 @@
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -189,7 +189,7 @@
+             let raw = backend == "base-native-raw";
+             let server = scheduler.spawn(async move {
+                 if raw {
+-                    raw::base_server(shared.as_ref()).await
++                    raw::base_server::<_, false>(shared.as_ref()).await
+                 } else {
+                     base_server(shared.as_ref()).await
+                 }
+@@ -201,7 +201,7 @@
+             result
+         }
+         #[cfg(target_os = "linux")]
+-        Some(backend @ ("base-iouring" | "base-iouring-raw")) => {
++        Some(backend @ ("base-iouring" | "base-iouring-raw" | "base-iouring-owned-raw")) => {
+             use base_scheduler_iouring::{IoUringOptions, IoUringSelector};
+             let (selector, drivers) = IoUringSelector::with_workers(IoUringOptions {
+                 capacity: MAX_CONNECTIONS,
+@@ -212,8 +212,10 @@
+                 base_scheduler_native::NativeExecutorOptions { workers: 1, ..Default::default() })?);
+             let shared = scheduler.clone();
+             let raw = backend.ends_with("-raw");
++            let owned_receive = backend == "base-iouring-owned-raw";
+             let server = scheduler.spawn(async move {
+-                if raw { raw::base_server(shared.as_ref()).await }
++                if owned_receive { raw::base_server::<_, true>(shared.as_ref()).await }
++                else if raw { raw::base_server::<_, false>(shared.as_ref()).await }
+                 else { base_server(shared.as_ref()).await }
+             })?;
+             let result = scheduler.block_on(server)
+@@ -230,7 +232,7 @@
+             futures_lite::future::block_on(scheduler.shutdown());
+             result
+         }
+-        Some(backend @ ("base-tokio" | "hyper-tokio" | "base-tokio-raw" | "tokio-raw" | "tokio-task-raw")) => {
++        Some(backend @ ("base-tokio" | "hyper-tokio" | "hyper-task-tokio" | "base-tokio-raw" | "tokio-raw" | "tokio-task-raw")) => {
+             let runtime = tokio::runtime::Builder::new_current_thread()
+                 .enable_all()
+                 .build()?;
+@@ -239,12 +241,14 @@
+                     tokio::spawn(raw::tokio_server()).await?
+                 } else if backend == "tokio-raw" {
+                     raw::tokio_server().await
++                } else if backend == "hyper-task-tokio" {
++                    tokio::spawn(hyper_server()).await?
+                 } else if backend == "hyper-tokio" {
+                     hyper_server().await
+                 } else {
+                     let scheduler = TokioScheduler::new(tokio::runtime::Handle::current());
+                     let result = if backend == "base-tokio-raw" {
+-                        raw::base_server(&scheduler).await
++                        raw::base_server::<_, false>(&scheduler).await
+                     } else {
+                         base_server(&scheduler).await
+                     };
+@@ -254,7 +258,7 @@
+             })
+         }
+         _ => Err(
+-            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-direct|base-tokio|hyper-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw"
++            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-direct|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw"
+                 .into(),
+         ),
+     }
+--- a/src/raw.rs
++++ b/src/raw.rs
+@@ -32,7 +32,7 @@
+     }
+ }
+ 
+-async fn base_connection<S>(
++async fn base_connection<S, const OWNED_RECEIVE: bool>(
+     scheduler: &S,
+     socket: S::Socket,
+     cancellation: &Cancellation,
+@@ -51,9 +51,17 @@
+             }
+         };
+         let result: Result<()> = async {
+-            let mut buffer = [0; READ_SIZE];
++            // Keep identical storage in both variants: only the receive API changes.
++            let mut buffer = vec![0; READ_SIZE];
+             loop {
+-                if reader.read_into(&mut buffer, cancellation).await? == 0 {
++                let count = if OWNED_RECEIVE {
++                    let (result, returned) = reader.read_owned(buffer, cancellation).await;
++                    buffer = returned;
++                    result?
++                } else {
++                    reader.read_into(&mut buffer, cancellation).await?
++                };
++                if count == 0 {
+                     return Ok(());
+                 }
+                 check_write(writer.write(RESPONSE, cancellation).await?)?;
+@@ -80,7 +88,7 @@
+     Ok(())
+ }
+ 
+-pub async fn base_server<S>(scheduler: &S) -> Result<()>
++pub async fn base_server<S, const OWNED_RECEIVE: bool>(scheduler: &S) -> Result<()>
+ where
+     S: SocketRegistration
+         + SocketAccept
+@@ -120,7 +128,11 @@
+         scheduler
+             .socket_set_option(&socket, TcpNoDelay, true, &cancellation)
+             .await?;
+-        connections.push(base_connection(scheduler, socket, &cancellation));
++        connections.push(base_connection::<_, OWNED_RECEIVE>(
++            scheduler,
++            socket,
++            &cancellation,
++        ));
+     }
+ }
+ 

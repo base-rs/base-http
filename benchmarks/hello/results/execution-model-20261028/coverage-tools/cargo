@@ -1,0 +1,5 @@
+#!/bin/bash
+if [[ "${1:-}" == llvm-cov ]]; then
+  exec /usr/bin/cargo "$@" --ignore-filename-regex '^/usr/src/debug/rust/'
+fi
+exec /usr/bin/cargo "$@"

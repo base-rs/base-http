@@ -1,0 +1,40 @@
+{
+  "unchanged_source_and_manifest_files_outside_echo": 557,
+  "changed_files": [
+    "benchmarks/echo/src/lib.rs",
+    "benchmarks/echo/src/server.rs",
+    "benchmarks/echo/tests/smoke.rs"
+  ],
+  "cohorts": {
+    "comparison": {
+      "samples": 80,
+      "instrumented": false,
+      "complete_matrix": true
+    },
+    "headroom": {
+      "samples": 24,
+      "instrumented": false,
+      "complete_matrix": true
+    },
+    "headroom-fixed-workers": {
+      "samples": 12,
+      "instrumented": false,
+      "complete_matrix": true
+    },
+    "operation-counts": {
+      "samples": 16,
+      "instrumented": true,
+      "complete_matrix": true
+    },
+    "smoke": {
+      "samples": 16,
+      "instrumented": false,
+      "complete_matrix": true
+    },
+    "headroom-smoke": {
+      "samples": 8,
+      "instrumented": false,
+      "complete_matrix": true
+    }
+  }
+}

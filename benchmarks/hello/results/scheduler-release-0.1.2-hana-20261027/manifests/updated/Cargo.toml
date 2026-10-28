@@ -1,0 +1,43 @@
+[package]
+name = "base-http-hello-benchmark"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+
+[features]
+profile-tools = ["dep:allocation-counter", "dep:rustc-demangle"]
+
+[[bin]]
+name = "profile-symbols"
+path = "src/bin/profile_symbols.rs"
+required-features = ["profile-tools"]
+
+[[bin]]
+name = "allocation-probe"
+path = "src/bin/allocation_probe.rs"
+required-features = ["profile-tools"]
+
+[dependencies]
+base-http = { path = "../.." }
+base-http-server = { path = "../../../base-http-server" }
+base-http1 = { path = "../../../base-http1" }
+base-scheduler = "=0.1.2"
+base-scheduler-direct = "=0.1.2"
+base-scheduler-native = "=0.1.2"
+base-scheduler-selector = "=0.1.2"
+base-scheduler-tokio = "=0.1.2"
+futures-lite = "2.6.1"
+futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await"] }
+http-body-util = "0.1.3"
+hyper = { version = "=1.12.0", features = ["http1", "server"] }
+hyper-util = { version = "=0.1.21", features = ["tokio"] }
+tokio = { version = "=1.54.1", features = ["rt", "net", "time", "io-util"] }
+allocation-counter = { version = "=0.8.1", optional = true }
+rustc-demangle = { version = "=0.1.28", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+base-scheduler-iouring = "=0.1.2"
+
+[profile.release]
+debug = 1

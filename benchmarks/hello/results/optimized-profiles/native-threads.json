@@ -1,0 +1,188 @@
+[
+  {
+    "name": "Thread_48853126   DispatchQueue_1: com.apple.main-thread  (serial)",
+    "samples": 5394,
+    "categories": {
+      "remaining user-space code": 0,
+      "cancellation/event/mutex work": 5394
+    },
+    "top_exclusive": [
+      [
+        "__psynch_cvwait",
+        5394
+      ],
+      [
+        "start",
+        0
+      ],
+      [
+        "main",
+        0
+      ],
+      [
+        "std::rt::lang_start_internal",
+        0
+      ],
+      [
+        "std::rt::lang_start::<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>::{closure#0}",
+        0
+      ],
+      [
+        "std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>, core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>",
+        0
+      ],
+      [
+        "base_http_hello_benchmark::main",
+        0
+      ],
+      [
+        "<base_scheduler_native::native_scheduler::NativeScheduler>::block_on::<base_scheduler_native::native_task::NativeTask<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>",
+        0
+      ],
+      [
+        "<event_listener::EventListener as event_listener::Listener>::wait",
+        0
+      ],
+      [
+        "<event_listener::InnerListener<(), alloc::sync::Arc<event_listener::Inner<()>>>>::wait_with_parker",
+        0
+      ],
+      [
+        "<parking::Inner>::park",
+        0
+      ],
+      [
+        "_pthread_cond_wait",
+        0
+      ]
+    ]
+  },
+  {
+    "name": "Thread_48853127: base-native-task",
+    "samples": 5394,
+    "categories": {
+      "remaining user-space code": 589,
+      "send syscalls": 2838,
+      "receive syscalls": 1290,
+      "waiting/readiness syscalls": 326,
+      "allocation/deallocation": 278,
+      "cancellation/event/mutex work": 73
+    },
+    "top_exclusive": [
+      [
+        "__sendto",
+        2838
+      ],
+      [
+        "__recvfrom",
+        1284
+      ],
+      [
+        "kevent",
+        326
+      ],
+      [
+        "_platform_memmove",
+        88
+      ],
+      [
+        "base_http_server::exchanges::<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader, base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}",
+        83
+      ],
+      [
+        "_xzm_free_tc",
+        64
+      ],
+      [
+        "_xzm_malloc_tc",
+        59
+      ],
+      [
+        "_malloc_zone_malloc",
+        34
+      ],
+      [
+        "alloc::vec::from_elem::<httparse::Header>",
+        31
+      ],
+      [
+        "_free",
+        29
+      ],
+      [
+        "base_http::syntax::is_token",
+        22
+      ],
+      [
+        "<base_http1::output::ResponseWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}",
+        19
+      ]
+    ]
+  },
+  {
+    "name": "Thread_48853128: async-io",
+    "samples": 5394,
+    "categories": {
+      "remaining user-space code": 216,
+      "waiting/readiness syscalls": 5118,
+      "cancellation/event/mutex work": 23,
+      "allocation/deallocation": 37
+    },
+    "top_exclusive": [
+      [
+        "kevent",
+        5117
+      ],
+      [
+        "mach_absolute_time",
+        73
+      ],
+      [
+        "<polling::kqueue::Poller>::wait_deadline",
+        30
+      ],
+      [
+        "<polling::Poller>::wait_impl",
+        17
+      ],
+      [
+        "_xzm_free_tc",
+        16
+      ],
+      [
+        "<async_io::reactor::ReactorLock>::react",
+        14
+      ],
+      [
+        "<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_native::native_scheduler::NativeScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref",
+        14
+      ],
+      [
+        "<rustix::event::kqueue::Event>::filter",
+        10
+      ],
+      [
+        "pthread_mutex_unlock",
+        9
+      ],
+      [
+        "_free",
+        9
+      ],
+      [
+        "pthread_mutex_lock",
+        8
+      ],
+      [
+        "<async_io::reactor::Reactor>::process_timers",
+        7
+      ]
+    ]
+  },
+  {
+    "name": "Thread_48853130: base-native-0",
+    "samples": 5394,
+    "categories": {},
+    "top_exclusive": []
+  }
+]

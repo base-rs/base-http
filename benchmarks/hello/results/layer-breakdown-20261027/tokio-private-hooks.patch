@@ -1,0 +1,223 @@
+--- before/tokio/src/lib.rs
++++ after/tokio/src/lib.rs
+@@ -752,3 +752,10 @@
+ /// fuzz test (`fuzz_linked_list`)
+ #[cfg(fuzzing)]
+ pub mod fuzz;
++
++
++#[doc(hidden)]
++pub fn layer_probe(kind: &str, iterations: u64, width: usize, waker: &std::task::Waker) -> (u64, usize) {
++    runtime::io::layer_probe::probe(kind, iterations, width, waker)
++}
++
+--- before/tokio/src/runtime/io/driver.rs
++++ after/tokio/src/runtime/io/driver.rs
+@@ -405,3 +405,125 @@
+         handle.release_pending_registrations();
+     }
+ }
++
++// Appended inside Tokio's private I/O driver only in the disposable probe copy.
++// Appended inside Tokio's private I/O driver only in the disposable probe copy.
++pub(super) fn layer_empty(iterations: u64) -> u64 {
++    let (mut driver, handle) = Driver::new(1024, None).unwrap();
++    let start = std::time::Instant::now();
++    for _ in 0..iterations {
++        driver.turn(&handle, Some(Duration::ZERO));
++    }
++    start.elapsed().as_nanos() as u64
++}
++pub(super) fn layer_events(iterations: u64, width: usize, waker: &std::task::Waker) -> u64 {
++    use std::{
++        io::{Read, Write},
++        os::{fd::AsRawFd, unix::net::UnixStream},
++        task::{Context, Poll},
++        time::Instant,
++    };
++    let (mut driver, handle) = Driver::new(1024, None).unwrap();
++    let records: Vec<_> = (0..width)
++        .map(|_| Box::new(super::ScheduledIo::default()))
++        .collect();
++    let mut sockets = Vec::new();
++    let mut peers = Vec::new();
++    for record in &records {
++        let (socket, peer) = UnixStream::pair().unwrap();
++        socket.set_nonblocking(true).unwrap();
++        handle
++            .registry
++            .register(
++                &mut mio::unix::SourceFd(&socket.as_raw_fd()),
++                record.token(),
++                mio::Interest::READABLE,
++            )
++            .unwrap();
++        sockets.push(socket);
++        peers.push(peer);
++    }
++    let mut cx = Context::from_waker(waker);
++    let mut elapsed = 0;
++    for _ in 0..iterations {
++        for record in &records {
++            assert!(record.poll_readiness(&mut cx, Direction::Read).is_pending());
++        }
++        for peer in &mut peers {
++            peer.write_all(&[1]).unwrap();
++        }
++        let start = Instant::now();
++        driver.turn(&handle, Some(Duration::ZERO));
++        elapsed += start.elapsed().as_nanos() as u64;
++        for record in &records {
++            let event = match record.poll_readiness(&mut cx, Direction::Read) {
++                Poll::Ready(event) => event,
++                _ => panic!("missing event"),
++            };
++            record.clear_readiness(event);
++        }
++        for socket in &mut sockets {
++            let mut byte = [0];
++            assert_eq!(socket.read(&mut byte).unwrap(), 1);
++        }
++    }
++    elapsed
++}
++
++pub(super) fn layer_dispatch(
++    iterations: u64,
++    width: usize,
++    waiting: bool,
++    waker: &std::task::Waker,
++) -> u64 {
++    use std::{
++        io::Write,
++        os::{fd::AsRawFd, unix::net::UnixStream},
++        task::Context,
++        time::Instant,
++    };
++    let mut poller = mio::Poll::new().unwrap();
++    let mut events = mio::Events::with_capacity(1024);
++    let records: Vec<_> = (0..width)
++        .map(|_| Box::new(super::ScheduledIo::default()))
++        .collect();
++    let mut pairs = Vec::new();
++    for record in &records {
++        let (socket, mut peer) = UnixStream::pair().unwrap();
++        socket.set_nonblocking(true).unwrap();
++        poller
++            .registry()
++            .register(
++                &mut mio::unix::SourceFd(&socket.as_raw_fd()),
++                record.token(),
++                mio::Interest::READABLE,
++            )
++            .unwrap();
++        peer.write_all(&[1]).unwrap();
++        pairs.push((socket, peer));
++    }
++    poller.poll(&mut events, Some(Duration::ZERO)).unwrap();
++    assert_eq!(events.iter().count(), width);
++    let mut cx = Context::from_waker(waker);
++    let mut elapsed = 0;
++    for _ in 0..iterations {
++        if waiting {
++            for record in &records {
++                assert!(record.poll_readiness(&mut cx, Direction::Read).is_pending());
++            }
++        }
++        let start = Instant::now();
++        for event in &events {
++            let token = event.token();
++            assert!(token != TOKEN_WAKEUP && token != TOKEN_SIGNAL);
++            unsafe {
++                dispatch_event(token, Ready::from_mio(event));
++            }
++        }
++        elapsed += start.elapsed().as_nanos() as u64;
++        for record in &records {
++            record.clear_readiness(record.ready_event(crate::io::Interest::READABLE));
++        }
++    }
++    elapsed
++}
+--- before/tokio/src/runtime/io/layer_probe.rs
++++ after/tokio/src/runtime/io/layer_probe.rs
+@@ -0,0 +1,71 @@
++//! Disposable microbenchmark hooks over the pinned Tokio implementation.
++use super::*;
++use crate::io::{Interest, Ready};
++use std::{
++    future::Future,
++    hint::black_box,
++    task::{Context, Waker},
++    time::Instant,
++};
++
++pub(crate) fn probe(kind: &str, iterations: u64, width: usize, waker: &Waker) -> (u64, usize) {
++    if kind == "empty-poll" {
++        return (driver::layer_empty(iterations), 0);
++    }
++    if kind == "events-driver" {
++        return (driver::layer_events(iterations, width, waker), 0);
++    }
++    if kind == "dispatch" || kind == "dispatch-waiting" {
++        return (
++            driver::layer_dispatch(iterations, width, kind == "dispatch-waiting", waker),
++            0,
++        );
++    }
++    let records: Vec<_> = (0..width)
++        .map(|_| Box::new(ScheduledIo::default()))
++        .collect();
++    let tokens: Vec<_> = records.iter().map(|record| record.token()).collect();
++    let mut cx = Context::from_waker(waker);
++    let elapsed;
++    match kind {
++        "readiness" => {
++            let start = Instant::now();
++            for _ in 0..iterations {
++                for (record, &token) in records.iter().zip(&tokens) {
++                    assert!(record.poll_readiness(&mut cx, Direction::Read).is_pending());
++                    // SAFETY: each token refers to a live Box-owned record.
++                    unsafe {
++                        driver::dispatch_event(token, Ready::READABLE);
++                    }
++                    let event = match record.poll_readiness(&mut cx, Direction::Read) {
++                        std::task::Poll::Ready(event) => event,
++                        _ => panic!("not ready"),
++                    };
++                    record.clear_readiness(event);
++                }
++            }
++            elapsed = start.elapsed().as_nanos() as u64;
++        }
++        "readiness-list" => {
++            let start = Instant::now();
++            for _ in 0..iterations {
++                for (record, &token) in records.iter().zip(&tokens) {
++                    let mut waiting = std::pin::pin!(record.readiness(Interest::READABLE));
++                    assert!(waiting.as_mut().poll(&mut cx).is_pending());
++                    unsafe {
++                        driver::dispatch_event(token, Ready::READABLE);
++                    }
++                    let event = match waiting.as_mut().poll(&mut cx) {
++                        std::task::Poll::Ready(event) => event,
++                        _ => panic!("not ready"),
++                    };
++                    record.clear_readiness(event);
++                }
++            }
++            elapsed = start.elapsed().as_nanos() as u64;
++        }
++        _ => panic!("unknown Tokio probe {kind}"),
++    }
++    black_box(&records);
++    (elapsed, 0)
++}
+--- before/tokio/src/runtime/io/mod.rs
++++ after/tokio/src/runtime/io/mod.rs
+@@ -23,3 +23,5 @@
+ 
+ use crate::util::ptr_expose::PtrExposeDomain;
+ static EXPOSE_IO: PtrExposeDomain<ScheduledIo> = PtrExposeDomain::new();
++
++pub(crate) mod layer_probe;

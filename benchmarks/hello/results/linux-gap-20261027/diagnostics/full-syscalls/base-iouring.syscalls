@@ -1,0 +1,19 @@
+# started on Tue Oct 27 16:35:31 2026
+
+
+ Performance counter stats for process id '78725':
+
+         1,169,850      syscalls:sys_enter_recvfrom                                           
+           584,904      syscalls:sys_exit_recvfrom                                            
+                 0      syscalls:sys_enter_recvmsg                                            
+                 0      syscalls:sys_exit_recvmsg                                             
+           584,942      syscalls:sys_enter_sendto                                             
+                 0      syscalls:sys_enter_writev                                             
+                55      syscalls:sys_enter_epoll_pwait                                        
+                 0      syscalls:sys_enter_epoll_wait                                         
+             5,998      syscalls:sys_enter_io_uring_enter                                      
+                70      syscalls:sys_enter_accept4                                            
+               189      syscalls:sys_enter_epoll_ctl                                          
+
+       4.385786755 seconds time elapsed
+

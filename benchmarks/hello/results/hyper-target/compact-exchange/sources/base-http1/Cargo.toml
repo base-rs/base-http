@@ -1,0 +1,20 @@
+[package]
+name = "base-http1"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+description = "Native HTTP/1 framing over Base scheduler stream capabilities"
+readme = "readme.md"
+
+[dependencies]
+base-http = { version = "0.0.0", path = "../base-http" }
+base-scheduler = "0.1.0"
+httparse = "1.10.1"
+
+[dev-dependencies]
+futures-lite = "2.6.1"
+
+# Exercise the local scheduler implementation throughout development.
+[patch.crates-io]
+base-scheduler = { path = "../base-scheduler" }

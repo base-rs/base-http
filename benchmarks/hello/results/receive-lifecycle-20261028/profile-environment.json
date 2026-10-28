@@ -1,0 +1,113 @@
+{
+  "utc": "2026-10-28T00:31:06.304517+00:00",
+  "events": [
+    [
+      "cycles",
+      "cycles",
+      null
+    ],
+    [
+      "instructions",
+      "instructions",
+      null
+    ],
+    [
+      "context_switches",
+      "context-switches",
+      null
+    ],
+    [
+      "ring_enter",
+      "syscalls:sys_enter_io_uring_enter",
+      null
+    ],
+    [
+      "recv_syscalls",
+      "syscalls:sys_enter_recvfrom",
+      null
+    ],
+    [
+      "recv_syscall_eagain",
+      "syscalls:sys_exit_recvfrom",
+      "ret==-11"
+    ],
+    [
+      "send_syscalls",
+      "syscalls:sys_enter_sendto",
+      null
+    ],
+    [
+      "epoll_wait",
+      "syscalls:sys_enter_epoll_wait",
+      null
+    ],
+    [
+      "epoll_pwait",
+      "syscalls:sys_enter_epoll_pwait",
+      null
+    ],
+    [
+      "ring_submissions",
+      "io_uring:io_uring_submit_req",
+      null
+    ],
+    [
+      "recv_submissions",
+      "io_uring:io_uring_submit_req",
+      "opcode==27"
+    ],
+    [
+      "poll_submissions",
+      "io_uring:io_uring_submit_req",
+      "opcode==6"
+    ],
+    [
+      "recv_poll_arm",
+      "io_uring:io_uring_poll_arm",
+      "opcode==27"
+    ],
+    [
+      "completions",
+      "io_uring:io_uring_complete",
+      null
+    ],
+    [
+      "task_add",
+      "io_uring:io_uring_task_add",
+      null
+    ],
+    [
+      "local_work_batches",
+      "io_uring:io_uring_local_work_run",
+      null
+    ],
+    [
+      "async_worker_queue",
+      "io_uring:io_uring_queue_async_work",
+      null
+    ],
+    [
+      "tcp_recv_calls",
+      "base_http_lifecycle:tcp_recvmsg",
+      null
+    ],
+    [
+      "tcp_recv_eagain",
+      "base_http_lifecycle:tcp_recvmsg_return__return",
+      "result==-11"
+    ]
+  ],
+  "binaries": {
+    "baseline": "09ac9a5a25d4d2b97f652bc1a58cedd92c6dab3435d22631af89891befdb2859",
+    "client": "45ff7d7ef8a0bd4cdd2280aae1706506b1ac7c0d180ca036a7bdbf5df9ef19c5"
+  },
+  "uname": [
+    "Linux",
+    "hana.oriontransfer.co.nz",
+    "7.2.11-arch1-1",
+    "#1 SMP PREEMPT_DYNAMIC Fri, 16 Oct 2026 00:28:58 +0000",
+    "x86_64"
+  ],
+  "initial_load": "3.23 1.63 1.38 1/567 394375\n",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  8\nOn-line CPU(s) list:                     0-7\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Xeon(R) CPU E3-1240 v6 @ 3.70GHz\nCPU family:                              6\nModel:                                   158\nThread(s) per core:                      2\nCore(s) per socket:                      4\nSocket(s):                               1\nStepping:                                9\nMicrocode version:                       0xf8\nCPU(s) scaling MHz:                      78%\nCPU max MHz:                             4100.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                7399.70\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust sgx bmi1 avx2 smep bmi2 erms invpcid mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp vnmi md_clear flush_l1d arch_capabilities\nVirtualization:                          VT-x\nL1d cache:                               128 KiB (4 instances)\nL1i cache:                               128 KiB (4 instances)\nL2 cache:                                1 MiB (4 instances)\nL3 cache:                                8 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-7\nVulnerability Gather data sampling:      Mitigation; Microcode\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             KVM: Mitigation: Split huge pages\nVulnerability L1tf:                      Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable\nVulnerability Mds:                       Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Meltdown:                  Mitigation; PTI\nVulnerability Mmio stale data:           Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; IBRS\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; IBRS; IBPB conditional; STIBP conditional; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Mitigation; Microcode\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Mitigation; TSX disabled\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace\n"
+}

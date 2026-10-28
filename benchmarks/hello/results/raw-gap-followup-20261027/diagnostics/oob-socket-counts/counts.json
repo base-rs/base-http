@@ -1,0 +1,2358 @@
+[
+  {
+    "binary": "oob-default",
+    "backend": "base-native-raw",
+    "concurrency": 16,
+    "requests": 861287,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 861349,
+        "positive": 861300,
+        "would_block": 32,
+        "errors": 13,
+        "bytes_or_events": 35313300,
+        "zero": 4
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 861300,
+        "positive": 861300,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 67181400,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 73211,
+        "positive": 73210,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 861337,
+        "zero": 1
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 32,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 32
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 27,
+        "positive": 17,
+        "would_block": 10,
+        "errors": 0,
+        "bytes_or_events": 290,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0000719852964226,
+        "positive": 1.0000150936911854,
+        "would_block": 3.7153701379447266e-05,
+        "errors": 1.5093691185400453e-05,
+        "bytes_or_events": 41.0006188413386,
+        "zero": 4.644212672430908e-06
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 1.0000150936911854,
+        "positive": 1.0000150936911854,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 78.00117730791246,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.08500186349033481,
+        "positive": 0.0850007024371667,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.0000580526584053,
+        "zero": 1.161053168107727e-06
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 3.7153701379447266e-05,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 3.7153701379447266e-05
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 3.1348435538908635e-05,
+        "positive": 1.973790385783136e-05,
+        "would_block": 1.1610531681077272e-05,
+        "errors": 0.0,
+        "bytes_or_events": 0.0003367054187512409,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  },
+  {
+    "binary": "oob-default",
+    "backend": "tokio-task-raw",
+    "concurrency": 16,
+    "requests": 902956,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 903002,
+        "positive": 902970,
+        "would_block": 15,
+        "errors": 14,
+        "bytes_or_events": 37021770,
+        "zero": 3
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 902970,
+        "positive": 902970,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 70431660,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 79438,
+        "positive": 79438,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 903014,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 34,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 34
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 30,
+        "positive": 17,
+        "would_block": 13,
+        "errors": 0,
+        "bytes_or_events": 239,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0000509437890661,
+        "positive": 1.000015504631455,
+        "would_block": 1.6612105130261053e-05,
+        "errors": 1.5504631454910315e-05,
+        "bytes_or_events": 41.00063568988965,
+        "zero": 3.3224210260522107e-06
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 1.000015504631455,
+        "positive": 1.000015504631455,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 78.00120936125349,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.08797549382251184,
+        "positive": 0.08797549382251184,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.0000642334731704,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 3.765410496192505e-05,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 3.765410496192505e-05
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 3.322421026052211e-05,
+        "positive": 1.8827052480962526e-05,
+        "would_block": 1.439715777955958e-05,
+        "errors": 0.0,
+        "bytes_or_events": 0.00026468620840882615,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  },
+  {
+    "binary": "oob-default",
+    "backend": "base-native",
+    "concurrency": 16,
+    "requests": 680866,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13",
+          "connection": "close"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 680928,
+        "positive": 680880,
+        "would_block": 31,
+        "errors": 14,
+        "bytes_or_events": 27916080,
+        "zero": 3
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 680894,
+        "positive": 680880,
+        "would_block": 0,
+        "errors": 14,
+        "bytes_or_events": 53108640,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 51260,
+        "positive": 51259,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 680895,
+        "zero": 1
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 32,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 32
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 23,
+        "positive": 17,
+        "would_block": 6,
+        "errors": 0,
+        "bytes_or_events": 290,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0000910605023603,
+        "positive": 1.00002056204892,
+        "would_block": 4.553025118011474e-05,
+        "errors": 2.0562048920051817e-05,
+        "bytes_or_events": 41.00084304400572,
+        "zero": 4.406153340011104e-06
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 1.0000411240978402,
+        "positive": 1.00002056204892,
+        "would_block": 0.0,
+        "errors": 2.0562048920051817e-05,
+        "bytes_or_events": 78.00160383981576,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.07528647340298972,
+        "positive": 0.07528500468520972,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.00004259281562,
+        "zero": 1.4687177800037012e-06
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 4.699896896011844e-05,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 4.699896896011844e-05
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 3.378050894008513e-05,
+        "positive": 2.496820226006292e-05,
+        "would_block": 8.812306680022207e-06,
+        "errors": 0.0,
+        "bytes_or_events": 0.00042592815620107335,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  },
+  {
+    "binary": "oob-default",
+    "backend": "hyper-tokio",
+    "concurrency": 16,
+    "requests": 699973,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "connection": "close",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 700014,
+        "positive": 699987,
+        "would_block": 10,
+        "errors": 14,
+        "bytes_or_events": 28699467,
+        "zero": 3
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 699987,
+        "positive": 699987,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 54598986,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 53238,
+        "positive": 53238,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 700021,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 34,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 34
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 27,
+        "positive": 17,
+        "would_block": 10,
+        "errors": 0,
+        "bytes_or_events": 239,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0000585736878422,
+        "positive": 1.0000200007714584,
+        "would_block": 1.4286265327376913e-05,
+        "errors": 2.000077145832768e-05,
+        "bytes_or_events": 41.00082003162979,
+        "zero": 4.285879598213074e-06
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 1.0000200007714584,
+        "positive": 1.0000200007714584,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 78.00156006017374,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.07605721934988921,
+        "positive": 0.07605721934988921,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.0000685740735713,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 4.8573302113081504e-05,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 4.8573302113081504e-05
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 3.8572916383917665e-05,
+        "positive": 2.4286651056540752e-05,
+        "would_block": 1.4286265327376913e-05,
+        "errors": 0.0,
+        "bytes_or_events": 0.0003414417413243082,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  },
+  {
+    "binary": "oob-default",
+    "backend": "base-native-raw",
+    "concurrency": 64,
+    "requests": 912718,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 912971,
+        "positive": 912779,
+        "would_block": 127,
+        "errors": 61,
+        "bytes_or_events": 37423939,
+        "zero": 4
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 912779,
+        "positive": 912779,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 71196762,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 15565,
+        "positive": 15564,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 912910,
+        "zero": 1
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 128,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 128
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 83,
+        "positive": 65,
+        "would_block": 18,
+        "errors": 0,
+        "bytes_or_events": 2666,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0002771940511745,
+        "positive": 1.000066833348307,
+        "would_block": 0.00013914483991769638,
+        "errors": 6.683334830692502e-05,
+        "bytes_or_events": 41.002740167280585,
+        "zero": 4.382514643077051e-06
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 1.000066833348307,
+        "positive": 1.000066833348307,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 78.00521300116795,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.017053460104873575,
+        "positive": 0.017052364476212806,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.0002103607028676,
+        "zero": 1.0956286607692628e-06
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 0.00014024046857846563,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.00014024046857846563
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 9.093717884384882e-05,
+        "positive": 7.121586295000208e-05,
+        "would_block": 1.9721315893846732e-05,
+        "errors": 0.0,
+        "bytes_or_events": 0.0029209460096108544,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  },
+  {
+    "binary": "oob-default",
+    "backend": "tokio-task-raw",
+    "concurrency": 64,
+    "requests": 929926,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 930096,
+        "positive": 929971,
+        "would_block": 60,
+        "errors": 45,
+        "bytes_or_events": 38128811,
+        "zero": 20
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 929971,
+        "positive": 929971,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 72537738,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 26361,
+        "positive": 26361,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 930123,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 130,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 130
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 92,
+        "positive": 65,
+        "would_block": 27,
+        "errors": 0,
+        "bytes_or_events": 2471,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0001828102451162,
+        "positive": 1.0000483909472366,
+        "would_block": 6.452126298221578e-05,
+        "errors": 4.839094723666184e-05,
+        "bytes_or_events": 41.0019840288367,
+        "zero": 2.1507087660738595e-05
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 1.0000483909472366,
+        "positive": 1.0000483909472366,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 78.00377449388446,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.02834741689123651,
+        "positive": 0.02834741689123651,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.0002118448134583,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 0.00013979606979480088,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.00013979606979480088
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 9.893260323939754e-05,
+        "positive": 6.989803489740044e-05,
+        "would_block": 2.9034568341997105e-05,
+        "errors": 0.0,
+        "bytes_or_events": 0.0026572006804842538,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  },
+  {
+    "binary": "oob-default",
+    "backend": "base-native",
+    "concurrency": 64,
+    "requests": 683137,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13",
+          "connection": "close"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 683385,
+        "positive": 683192,
+        "would_block": 128,
+        "errors": 55,
+        "bytes_or_events": 28010872,
+        "zero": 10
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 683247,
+        "positive": 683192,
+        "would_block": 0,
+        "errors": 55,
+        "bytes_or_events": 53288976,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 14839,
+        "positive": 14839,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 683294,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 128,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 128
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 80,
+        "positive": 65,
+        "would_block": 15,
+        "errors": 0,
+        "bytes_or_events": 2666,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0003630311343112,
+        "positive": 1.0000805109370448,
+        "would_block": 0.0001873709080316247,
+        "errors": 8.051093704483874e-05,
+        "bytes_or_events": 41.00330094841884,
+        "zero": 1.463835218997068e-05
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 1.0001610218740897,
+        "positive": 1.0000805109370448,
+        "would_block": 0.0,
+        "errors": 8.051093704483874e-05,
+        "bytes_or_events": 78.0062798530895,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.02172185081469749,
+        "positive": 0.02172185081469749,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.0002298221293826,
+        "zero": 0.0
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 0.0001873709080316247,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0001873709080316247
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 0.00011710681751976544,
+        "positive": 9.514928923480942e-05,
+        "would_block": 2.195752828495602e-05,
+        "errors": 0.0,
+        "bytes_or_events": 0.003902584693846183,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  },
+  {
+    "binary": "oob-default",
+    "backend": "hyper-tokio",
+    "concurrency": 64,
+    "requests": 699076,
+    "validation": [
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      },
+      {
+        "status": 200,
+        "fields": {
+          "content-type": "text/plain",
+          "connection": "close",
+          "content-length": "13"
+        },
+        "body": "Hello, world!"
+      }
+    ],
+    "operations": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 699249,
+        "positive": 699132,
+        "would_block": 52,
+        "errors": 56,
+        "bytes_or_events": 28664412,
+        "zero": 9
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 699132,
+        "positive": 699132,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 54532296,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 11769,
+        "positive": 11769,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 699267,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 130,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 130
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 89,
+        "positive": 65,
+        "would_block": 24,
+        "errors": 0,
+        "bytes_or_events": 2471,
+        "zero": 0
+      }
+    },
+    "polls": {},
+    "per_response": {
+      "read": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "readv": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recv": {
+        "calls": 1.0002474695169052,
+        "positive": 1.0000801057395763,
+        "would_block": 7.43839010350806e-05,
+        "errors": 8.010573957624064e-05,
+        "bytes_or_events": 41.003284335322626,
+        "zero": 1.2874136717610102e-05
+      },
+      "recvfrom": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "recvmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "write": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "writev": {
+        "calls": 1.0000801057395763,
+        "positive": 1.0000801057395763,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 78.00624824768694,
+        "zero": 0.0
+      },
+      "send": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendto": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "sendmsg": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_wait": {
+        "calls": 0.016835079447728146,
+        "positive": 0.016835079447728146,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 1.0002732177903404,
+        "zero": 0.0
+      },
+      "epoll_pwait": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_pwait2": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "epoll_ctl": {
+        "calls": 0.00018595975258770147,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.00018595975258770147
+      },
+      "accept": {
+        "calls": 0.0,
+        "positive": 0.0,
+        "would_block": 0.0,
+        "errors": 0.0,
+        "bytes_or_events": 0.0,
+        "zero": 0.0
+      },
+      "accept4": {
+        "calls": 0.000127310907540811,
+        "positive": 9.297987629385073e-05,
+        "would_block": 3.4331031246960274e-05,
+        "errors": 0.0,
+        "bytes_or_events": 0.003534665758801618,
+        "zero": 0.0
+      }
+    },
+    "polls_per_response": {}
+  }
+]

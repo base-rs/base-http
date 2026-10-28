@@ -1,0 +1,1069 @@
+Analysis of sampling server (pid 49667) every 1 millisecond
+Process:         server [49667]
+Path:            /Users/USER/*/server
+Load Address:    0x1027b4000
+Identifier:      server
+Version:         0
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  python3.13 [49582]
+Target Type:     live task
+
+Date/Time:       2026-10-26 20:23:11.435 +1300
+Launch Time:     2026-10-26 20:23:08.287 +1300
+OS Version:      macOS 27.0.1 (26A434)
+Report Version:  7
+Analysis Tool:   /usr/bin/sample
+
+Physical footprint:         3376K
+Physical footprint (peak):  3376K
+Idle exit:                  untracked
+----
+
+Call graph:
+    5993 Thread_48853473   DispatchQueue_1: com.apple.main-thread  (serial)
+    + 5993 start  (in dyld) + 6688  [0x1842f7e80]
+    +   5993 main  (in server) + 52  [0x1027ef85c]
+    +     5993 std::rt::lang_start_internal  (in server) + 936  [0x10288c3b0]
+    +       5993 std::rt::lang_start::<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>::{closure#0}  (in server) + 16  [0x102808a74]
+    +         5993 std::sys::backtrace::__rust_begin_short_backtrace::<fn() -> core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>, core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>  (in server) + 12  [0x1027fae84]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/std/src/sys/backtrace.rs:166
+    +           5993 base_http_hello_benchmark::main  (in server) + 716  [0x1027ee518]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/hello/src/main.rs:194
+    +             5993 <tokio::runtime::runtime::Runtime>::block_on::<base_http_hello_benchmark::main::{closure#2}>  (in server) + 120  [0x102805d04]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/runtime.rs:348
+    +               5993 tokio::runtime::context::runtime::enter_runtime::<<tokio::runtime::scheduler::current_thread::CurrentThread>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}, core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>  (in server) + 612  [0x102802550]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/runtime.rs:65
+    +                 5993 <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on::<base_http_hello_benchmark::main::{closure#2}>  (in server) + 124  [0x10280b3f8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:819
+    +                   5897 <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>  (in server) + 124  [0x102800b10]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+    +                   ! 5897 <tokio::runtime::scheduler::current_thread::Context>::enter::<core::task::poll::Poll<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}::{closure#0}>  (in server) + 6452  [0x10280b248]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/scheduler/current_thread/mod.rs:486
+    +                   !   5897 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler_tokio::tokio_scheduler::TokioScheduler as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}>, core::pin::Pin<&mut base_http_hello_benchmark::base_server<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::{closure#0}::{closure#0}>> as core::future::future::Future>::poll  (in server) + 124  [0x10280969c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+    +                   !     5897 <core::pin::Pin<&mut base_http_hello_benchmark::base_server<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::{closure#0}::{closure#0}> as futures_util::future::future::FutureExt>::poll_unpin  (in server) + 80  [0x1027e2c78]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/future/mod.rs:556
+    +                   !       5890 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin  (in server) + 1392  [0x1027d0990]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+    +                   !       : 3372 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 11836  [0x1027c60bc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 3332 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 2080  [0x1027c9610]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +                   !       : | + 3323 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 284  [0x1027de8bc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +                   !       : | + ! 3321 <socket2::socket::Socket>::send_with_flags  (in server) + 32  [0x1028634b8]
+    +                   !       : | + ! : 3320 __sendto  (in libsystem_kernel.dylib) + 8,4,...  [0x18468d39c,0x18468d398,...]
+    +                   !       : | + ! : 1 send  (in libsystem_c.dylib) + 0  [0x184567d70]
+    +                   !       : | + ! 2 <socket2::socket::Socket>::send_with_flags  (in server) + 32,100  [0x1028634b8,0x1028634fc]
+    +                   !       : | + 9 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 284,36,...  [0x1027de8bc,0x1027de7c4,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +                   !       : | 15 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 1736,1748,...  [0x1027c94b8,0x1027c94c4,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +                   !       : | 8 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 472  [0x1027c8fc8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:182
+    +                   !       : | + 2 ???  (in server)  load address 0x1027b4000 + 0x3ac70  [0x1027eec70]
+    +                   !       : | + 2 <base_scheduler_tokio::socket_write_state::SocketWriteState<base_scheduler_tokio::tokio_task::TokioTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}  (in server) + 0  [0x1027ca580]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-tokio-0.1.0/src/socket_write_state.rs:102
+    +                   !       : | + 1 <base_scheduler_tokio::socket_write_state::SocketWriteState<base_scheduler_tokio::tokio_task::TokioTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}  (in server) + 112  [0x1027ca5f0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-tokio-0.1.0/src/socket_write_state.rs:103
+    +                   !       : | + 1 <base_scheduler_tokio::socket_write_state::SocketWriteState<base_scheduler_tokio::tokio_task::TokioTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}  (in server) + 396  [0x1027ca70c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-tokio-0.1.0/src/socket_write_state.rs:104
+    +                   !       : | + 1 <base_scheduler_tokio::socket_write_state::SocketWriteState<base_scheduler_tokio::tokio_task::TokioTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}  (in server) + 420  [0x1027ca724]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-tokio-0.1.0/src/socket_write_state.rs:105
+    +                   !       : | + ! 1 ???  (in server)  load address 0x1027b4000 + 0x3ad4c  [0x1027eed4c]
+    +                   !       : | + 1 <base_scheduler_tokio::socket_write_state::SocketWriteState<base_scheduler_tokio::tokio_task::TokioTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}  (in server) + 412  [0x1027ca71c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/base-scheduler-tokio-0.1.0/src/socket_write_state.rs:105
+    +                   !       : | 4 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 528,344,...  [0x1027c9000,0x1027c8f48,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:182
+    +                   !       : | 3 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 524  [0x1027c8ffc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:182
+    +                   !       : | + 3 core::ptr::drop_glue::<<base_scheduler_direct::socket_write_state::SocketWriteState<base_scheduler_direct::direct_task::DirectTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}>  (in server) + 256,16  [0x1027ba134,0x1027ba044]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:102
+    +                   !       : | 2 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 4,40  [0x1027c8df4,0x1027c8e18]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:177
+    +                   !       : | 2 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 2528  [0x1027c97d0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +                   !       : | + 2 core::ptr::drop_glue::<core::pin::PinMacroHelper<<base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>>  (in server) + 0,148  [0x1027b48c0,0x1027b4954]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | 1 ???  (in server)  load address 0x1027b4000 + 0x3ad50  [0x1027eed50]
+    +                   !       : | 1 core::ptr::drop_glue::<<base_scheduler_direct::socket_write_state::SocketWriteState<base_scheduler_direct::direct_task::DirectTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}>  (in server) + 260  [0x1027ba138]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:102
+    +                   !       : | 1 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 1548  [0x1027c93fc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +                   !       : | + 1 <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::check_socket  (in server) + 36  [0x1028276e8]
+    +                   !       : | 1 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 2120  [0x1027c9638]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:179
+    +                   !       : | + 1 core::ptr::drop_glue::<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}>  (in server) + 0  [0x1027b8498]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | 1 <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server) + 260  [0x1027c8ef4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:181
+    +                   !       : | 1 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 1676  [0x1027dee2c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:152
+    +                   !       : 1461 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7624  [0x1027c5048]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 1411 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 840  [0x1027de3b0]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +                   !       : | + 1399 ???  (in server)  load address 0x1027b4000 + 0x38560  [0x1027ec560]
+    +                   !       : | + ! 1391 <socket2::socket::Socket>::recv_with_flags  (in server) + 32  [0x102863438]
+    +                   !       : | + ! : 1383 __recvfrom  (in libsystem_kernel.dylib) + 8,4  [0x18468d3c8,0x18468d3c4]
+    +                   !       : | + ! : 8 __recvfrom  (in libsystem_kernel.dylib) + 28  [0x18468d3dc]
+    +                   !       : | + ! :   3 cerror  (in libsystem_kernel.dylib) + 44  [0x18468a5f8]
+    +                   !       : | + ! :   + 3 _pthread_exit_if_canceled  (in libsystem_pthread.dylib) + 44,8  [0x1846c7984,0x1846c7960]
+    +                   !       : | + ! :   3 cerror  (in libsystem_kernel.dylib) + 52  [0x18468a600]
+    +                   !       : | + ! :   + 3 cerror_nocancel  (in libsystem_kernel.dylib) + 32  [0x184689600]
+    +                   !       : | + ! :   2 cerror  (in libsystem_kernel.dylib) + 0,28  [0x18468a5cc,0x18468a5e8]
+    +                   !       : | + ! 4 <socket2::socket::Socket>::recv_with_flags  (in server) + 40,32  [0x102863440,0x102863438]
+    +                   !       : | + ! 3 <socket2::socket::Socket>::recv_with_flags  (in server) + 56  [0x102863450]
+    +                   !       : | + ! : 3 DYLD-STUB$$__error  (in server) + 0,4  [0x1028b8c70,0x1028b8c74]
+    +                   !       : | + ! 1 __recvfrom  (in libsystem_kernel.dylib) + 36  [0x18468d3e4]
+    +                   !       : | + 4 ???  (in server)  load address 0x1027b4000 + 0x385ac  [0x1027ec5ac]
+    +                   !       : | + ! 4 core::io::error::os_functions::get_os_functions  (in server) + 0,4  [0x1028a6ad8,0x1028a6adc]
+    +                   !       : | + 2 ???  (in server)  load address 0x1027b4000 + 0x38560  [0x1027ec560]
+    +                   !       : | + 2 ???  (in server)  load address 0x1027b4000 + 0x385c4  [0x1027ec5c4]
+    +                   !       : | + 1 ???  (in server)  load address 0x1027b4000 + 0x38614  [0x1027ec614]
+    +                   !       : | + ! 1 <tokio::runtime::io::registration::Registration>::clear_readiness  (in server) + 72  [0x102839aac]
+    +                   !       : | + 1 ???  (in server)  load address 0x1027b4000 + 0x38564  [0x1027ec564]
+    +                   !       : | + 1 ???  (in server)  load address 0x1027b4000 + 0x38614  [0x1027ec614]
+    +                   !       : | + 1 ???  (in server)  load address 0x1027b4000 + 0x38640  [0x1027ec640]
+    +                   !       : | 25 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 540,592,...  [0x1027de284,0x1027de2b8,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +                   !       : | 16 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 664  [0x1027de300]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +                   !       : | + 11 <tokio::runtime::io::registration::Registration>::poll_ready  (in server) + 112  [0x1028398ec]
+    +                   !       : | + ! 6 <tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness  (in server) + 140  [0x10282ee7c]
+    +                   !       : | + ! : 2 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10287f0cc]
+    +                   !       : | + ! : | 2 pthread_mutex_lock  (in libsystem_pthread.dylib) + 112  [0x1846c8548]
+    +                   !       : | + ! : 2 <tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness  (in server) + 268  [0x10282eefc]
+    +                   !       : | + ! : | 2 futures_util::stream::futures_unordered::task::waker_ref::clone_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 12  [0x1027bc680]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:252
+    +                   !       : | + ! : 2 pthread_mutex_lock  (in libsystem_pthread.dylib) + 136  [0x1846c8560]
+    +                   !       : | + ! 4 <tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness  (in server) + 12,60,...  [0x10282edfc,0x10282ee2c,...]
+    +                   !       : | + ! 1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 20  [0x1846c8a30]
+    +                   !       : | + 4 <tokio::runtime::io::registration::Registration>::poll_ready  (in server) + 40,52,...  [0x1028398a4,0x1028398b0,...]
+    +                   !       : | + 1 <tokio::runtime::io::registration::Registration>::poll_ready  (in server) + 48  [0x1028398ac]
+    +                   !       : | +   1 _tlv_get_addr  (in libdyld.dylib) + 28  [0x1842a6e64]
+    +                   !       : | 6 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 1108  [0x1027de4bc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +                   !       : | + 6 <base_scheduler_tokio::tokio_socket::PollWaiter as core::ops::drop::Drop>::drop  (in server) + 0,8  [0x10282bc00,0x10282bc08]
+    +                   !       : | 2 <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server) + 1348  [0x1027de5ac]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/future/poll_fn.rs:151
+    +                   !       : | + 2 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 12,56  [0x1027dbaf4,0x1027dbb20]
+    +                   !       : | 1 <tokio::runtime::io::registration::Registration>::poll_ready  (in server) + 340  [0x1028399d0]
+    +                   !       : 152 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 3180  [0x1027c3eec]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 91 base_http1::output::head_bytes  (in server) + 160  [0x10286721c]
+    +                   !       : | + 85 alloc::fmt::format::format_inner  (in server) + 308  [0x1028a1b78]
+    +                   !       : | + ! 50 core::fmt::write  (in server) + 144  [0x1028a5738]
+    +                   !       : | + ! : 43 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 112  [0x1028a1ea8]
+    +                   !       : | + ! : | 37 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 68  [0x1028b83a0]
+    +                   !       : | + ! : | + 36 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 44  [0x1028b8458]
+    +                   !       : | + ! : | + ! 20 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    +                   !       : | + ! : | + ! : 17 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    +                   !       : | + ! : | + ! : | 10 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 24,400,...  [0x1844e5028,0x1844e51a0,...]
+    +                   !       : | + ! : | + ! : | 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    +                   !       : | + ! : | + ! : | + 2 _xzm_free  (in libsystem_malloc.dylib) + 284,688  [0x1844ec81c,0x1844ec9b0]
+    +                   !       : | + ! : | + ! : | 1 _xzm_free  (in libsystem_malloc.dylib) + 1820  [0x1844ece1c]
+    +                   !       : | + ! : | + ! : | 1 default_zone_realloc  (in libsystem_malloc.dylib) + 0  [0x1844b8cf8]
+    +                   !       : | + ! : | + ! : | 1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 896  [0x1844e5390]
+    +                   !       : | + ! : | + ! : | + 1 _xzm_malloc  (in libsystem_malloc.dylib) + 0  [0x1844e7df4]
+    +                   !       : | + ! : | + ! : | 1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 996  [0x1844e53f4]
+    +                   !       : | + ! : | + ! : | + 1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    +                   !       : | + ! : | + ! : | 1 xzm_malloc_zone_realloc  (in libsystem_malloc.dylib) + 0  [0x1844e4778]
+    +                   !       : | + ! : | + ! : 2 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 72,144  [0x1844f4ae0,0x1844f4b28]
+    +                   !       : | + ! : | + ! : 1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1056  [0x1844e5430]
+    +                   !       : | + ! : | + ! 7 _realloc  (in libsystem_malloc.dylib) + 252  [0x1844f528c]
+    +                   !       : | + ! : | + ! : 7 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 0,244,...  [0x1844e4304,0x1844e43f8,...]
+    +                   !       : | + ! : | + ! 6 _realloc  (in libsystem_malloc.dylib) + 36,0,...  [0x1844f51b4,0x1844f5190,...]
+    +                   !       : | + ! : | + ! 2 __rustc::__rdl_realloc  (in server) + 0  [0x10287daa8]
+    +                   !       : | + ! : | + ! 1 __rustc::__rust_realloc  (in server) + 0  [0x10280dc6c]
+    +                   !       : | + ! : | + 1 _realloc  (in libsystem_malloc.dylib) + 492  [0x1844f537c]
+    +                   !       : | + ! : | 6 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 68,76,...  [0x1028b83a0,0x1028b83a8,...]
+    +                   !       : | + ! : 6 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 64  [0x1028a1e78]
+    +                   !       : | + ! : | 5 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + ! : | 1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +                   !       : | + ! : 1 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 48  [0x1028a1e68]
+    +                   !       : | + ! 26 core::fmt::write  (in server) + 96  [0x1028a5708]
+    +                   !       : | + ! : 9 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 112  [0x1028a1ea8]
+    +                   !       : | + ! : | 8 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 68  [0x1028b83a0]
+    +                   !       : | + ! : | + 6 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 88  [0x1028b8484]
+    +                   !       : | + ! : | + ! 3 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0,12,...  [0x1844f44f0,0x1844f44fc,...]
+    +                   !       : | + ! : | + ! 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192,200  [0x1844efa50,0x1844efa58]
+    +                   !       : | + ! : | + ! 1 DYLD-STUB$$malloc  (in server) + 4  [0x1028b8e24]
+    +                   !       : | + ! : | + 2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 76  [0x1028b8478]
+    +                   !       : | + ! : | +   2 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | + ! : | 1 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 0  [0x1028b835c]
+    +                   !       : | + ! : 5 <u16 as core::fmt::Display>::fmt  (in server) + 216  [0x1028a8e50]
+    +                   !       : | + ! : | 2 <core::fmt::Formatter>::pad_integral  (in server) + 176  [0x1028a3bf0]
+    +                   !       : | + ! : | + 2 <core::fmt::Formatter>::pad_integral::write_prefix  (in server) + 0,32  [0x1028a73fc,0x1028a741c]
+    +                   !       : | + ! : | 2 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 64  [0x1028a1e78]
+    +                   !       : | + ! : | + 2 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +                   !       : | + ! : | 1 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 64  [0x1028a1e78]
+    +                   !       : | + ! : 4 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 64  [0x1028a1e78]
+    +                   !       : | + ! : | 4 _platform_memmove  (in libsystem_platform.dylib) + 428,460  [0x1846d7f0c,0x1846d7f2c]
+    +                   !       : | + ! : 4 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 0,84,...  [0x1028a1e38,0x1028a1e8c,...]
+    +                   !       : | + ! : 2 <u16 as core::fmt::Display>::fmt  (in server) + 12  [0x1028a8d84]
+    +                   !       : | + ! : 1 <core::fmt::Formatter>::pad  (in server) + 0  [0x1028a4840]
+    +                   !       : | + ! : 1 <str as core::fmt::Display>::fmt  (in server) + 0  [0x1028aa694]
+    +                   !       : | + ! 6 core::fmt::write  (in server) + 408,0,...  [0x1028a5840,0x1028a56a8,...]
+    +                   !       : | + ! 2 <core::fmt::Formatter>::pad  (in server) + 724  [0x1028a4b14]
+    +                   !       : | + ! 1 <alloc::string::String as core::fmt::Write>::write_str  (in server) + 84  [0x1028a1e8c]
+    +                   !       : | + 5 alloc::fmt::format::format_inner  (in server) + 92,16,...  [0x1028a1aa0,0x1028a1a54,...]
+    +                   !       : | + 1 core::fmt::write  (in server) + 424  [0x1028a5850]
+    +                   !       : | 39 base_http1::output::head_bytes  (in server) + 192  [0x10286723c]
+    +                   !       : | + 21 base_http1::wire::append_fields  (in server) + 320  [0x102864ec8]
+    +                   !       : | + ! 18 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 108  [0x1028b28d8]
+    +                   !       : | + ! : 17 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 92  [0x1028b2988]
+    +                   !       : | + ! : | 12 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    +                   !       : | + ! : | + 12 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    +                   !       : | + ! : | +   4 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 996  [0x1844e53f4]
+    +                   !       : | + ! : | +   ! 4 _platform_memmove  (in libsystem_platform.dylib) + 420,0,...  [0x1846d7f04,0x1846d7d60,...]
+    +                   !       : | + ! : | +   4 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    +                   !       : | + ! : | +   ! 4 _xzm_free  (in libsystem_malloc.dylib) + 80,404,...  [0x1844ec750,0x1844ec894,...]
+    +                   !       : | + ! : | +   3 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 896  [0x1844e5390]
+    +                   !       : | + ! : | +   ! 3 _xzm_malloc  (in libsystem_malloc.dylib) + 108,344,...  [0x1844e7e60,0x1844e7f4c,...]
+    +                   !       : | + ! : | +   1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1164  [0x1844e549c]
+    +                   !       : | + ! : | 2 __rustc::__rdl_realloc  (in server) + 0  [0x10287daa8]
+    +                   !       : | + ! : | 1 DYLD-STUB$$realloc  (in server) + 0  [0x1028b8fdc]
+    +                   !       : | + ! : | 1 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 220  [0x1844f4b74]
+    +                   !       : | + ! : | 1 _realloc  (in libsystem_malloc.dylib) + 208  [0x1844f5260]
+    +                   !       : | + ! : 1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 8  [0x1028b2934]
+    +                   !       : | + ! 3 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 108,32  [0x1028b28d8,0x1028b288c]
+    +                   !       : | + 6 base_http1::wire::append_fields  (in server) + 96  [0x102864de8]
+    +                   !       : | + ! 6 _platform_memmove  (in libsystem_platform.dylib) + 428,444,...  [0x1846d7f0c,0x1846d7f1c,...]
+    +                   !       : | + 6 base_http1::wire::append_fields  (in server) + 168  [0x102864e30]
+    +                   !       : | + ! 5 DYLD-STUB$$memcpy  (in server) + 4,0  [0x1028b8e3c,0x1028b8e38]
+    +                   !       : | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 460  [0x1846d7f2c]
+    +                   !       : | + 6 base_http1::wire::append_fields  (in server) + 108,40,...  [0x102864df4,0x102864db0,...]
+    +                   !       : | 19 base_http1::output::head_bytes  (in server) + 316  [0x1028672b8]
+    +                   !       : | + 18 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 108  [0x1028b28d8]
+    +                   !       : | + ! 17 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 92  [0x1028b2988]
+    +                   !       : | + ! : 9 _realloc  (in libsystem_malloc.dylib) + 456  [0x1844f5358]
+    +                   !       : | + ! : | 8 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x1844f4b2c]
+    +                   !       : | + ! : | + 4 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 896  [0x1844e5390]
+    +                   !       : | + ! : | + ! 4 _xzm_malloc  (in libsystem_malloc.dylib) + 108,208,...  [0x1844e7e60,0x1844e7ec4,...]
+    +                   !       : | + ! : | + 2 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 400,996  [0x1844e51a0,0x1844e53f4]
+    +                   !       : | + ! : | + 1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 996  [0x1844e53f4]
+    +                   !       : | + ! : | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 24  [0x1846d7d78]
+    +                   !       : | + ! : | + 1 xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib) + 1028  [0x1844e5414]
+    +                   !       : | + ! : | +   1 _xzm_free  (in libsystem_malloc.dylib) + 284  [0x1844ec81c]
+    +                   !       : | + ! : | 1 _malloc_zone_realloc  (in libsystem_malloc.dylib) + 48  [0x1844f4ac8]
+    +                   !       : | + ! : 5 _realloc  (in libsystem_malloc.dylib) + 252  [0x1844f528c]
+    +                   !       : | + ! : | 5 xzm_malloc_zone_size  (in libsystem_malloc.dylib) + 460,48,...  [0x1844e44d0,0x1844e4334,...]
+    +                   !       : | + ! : 2 _realloc  (in libsystem_malloc.dylib) + 248,412  [0x1844f5288,0x1844f532c]
+    +                   !       : | + ! : 1 __rustc::__rdl_realloc  (in server) + 0  [0x10287daa8]
+    +                   !       : | + ! 1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 36  [0x1028b2950]
+    +                   !       : | + 1 <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server) + 0  [0x1028b286c]
+    +                   !       : | 2 base_http1::output::head_bytes  (in server) + 20,232  [0x102867190,0x102867264]
+    +                   !       : | 1 alloc::fmt::format::format_inner  (in server) + 340  [0x1028a1b98]
+    +                   !       : 140 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 2960  [0x1027c3e10]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 33 base_http1::output::plan  (in server) + 472  [0x102867858]
+    +                   !       : | + 10 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 288  [0x1028697dc]
+    +                   !       : | + ! 6 <base_http::fields::Fields>::append  (in server) + 220  [0x10286e238]
+    +                   !       : | + ! : 6 <alloc::raw_vec::RawVec<base_http::fields::Field>>::grow_one  (in server) + 60  [0x1028b2b58]
+    +                   !       : | + ! :   3 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 120  [0x1028b2bf8]
+    +                   !       : | + ! :   | 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + ! :   | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +                   !       : | + ! :   | 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + ! :   2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 68,140  [0x1028b2bc4,0x1028b2c0c]
+    +                   !       : | + ! :   1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 108  [0x1028b2bec]
+    +                   !       : | + ! :     1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | + ! 4 <base_http::fields::Fields>::append  (in server) + 36,220  [0x10286e180,0x10286e238]
+    +                   !       : | + 9 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 136  [0x102869744]
+    +                   !       : | + ! 9 base_http::syntax::is_token  (in server) + 56,24,...  [0x10286f2b0,0x10286f290,...]
+    +                   !       : | + 7 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 152,268,...  [0x102869754,0x1028697c8,...]
+    +                   !       : | + 4 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 220  [0x102869798]
+    +                   !       : | + ! 3 _platform_memmove  (in libsystem_platform.dylib) + 460,452  [0x1846d7f2c,0x1846d7f24]
+    +                   !       : | + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 96  [0x10286971c]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 116  [0x102869730]
+    +                   !       : | + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 200  [0x102869784]
+    +                   !       : | +   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | 23 base_http1::output::plan  (in server) + 2944  [0x102868200]
+    +                   !       : | + 9 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 140  [0x10286955c]
+    +                   !       : | + ! 9 base_http::syntax::is_token  (in server) + 56,0,...  [0x10286f2b0,0x10286f278,...]
+    +                   !       : | + 4 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 332  [0x10286961c]
+    +                   !       : | + ! 2 _free  (in libsystem_malloc.dylib) + 0,108  [0x1844f5110,0x1844f517c]
+    +                   !       : | + ! 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + ! 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 32  [0x1844f1898]
+    +                   !       : | + 3 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 100  [0x102869534]
+    +                   !       : | + ! 2 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360  [0x1844efaf8]
+    +                   !       : | + 2 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 120  [0x102869548]
+    +                   !       : | + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +                   !       : | + 2 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 292  [0x1028695f4]
+    +                   !       : | + ! 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 116,192  [0x1844efa04,0x1844efa50]
+    +                   !       : | + 1 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 84  [0x102869524]
+    +                   !       : | + ! 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | + 1 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 312  [0x102869608]
+    +                   !       : | + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + 1 <base_http::fields::Fields>::add::<&str, alloc::string::String>  (in server) + 16  [0x1028694e0]
+    +                   !       : | 19 base_http1::output::plan  (in server) + 120  [0x1028676f8]
+    +                   !       : | + 5 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x10286b020]
+    +                   !       : | + ! 2 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + ! 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,120  [0x1844f44fc,0x1844f4568]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 360  [0x1844efaf8]
+    +                   !       : | + 4 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x10286b034]
+    +                   !       : | + ! 4 _platform_memmove  (in libsystem_platform.dylib) + 420,428,...  [0x1846d7f04,0x1846d7f0c,...]
+    +                   !       : | + 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x10286afd8]
+    +                   !       : | + ! 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,120  [0x1844f44fc,0x1844f4568]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 260  [0x1844efa94]
+    +                   !       : | + 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x10286b000]
+    +                   !       : | + ! 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 20,68  [0x1028a1c24,0x1028a1c54]
+    +                   !       : | + ! 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + !   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 168  [0x10286b014]
+    +                   !       : | + ! 2 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | + 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 20,36  [0x10286af80,0x10286af90]
+    +                   !       : | 15 base_http1::output::plan  (in server) + 764  [0x10286797c]
+    +                   !       : | + 6 base_http1::wire::framing  (in server) + 84  [0x1028651a4]
+    +                   !       : | + ! 6 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0,268,...  [0x1028649cc,0x102864ad8,...]
+    +                   !       : | + 2 base_http1::wire::framing  (in server) + 40  [0x102865178]
+    +                   !       : | + ! 2 <base_http::fields::Fields>::headers  (in server) + 0,8  [0x10286e6c8,0x10286e6d0]
+    +                   !       : | + 2 base_http1::wire::framing  (in server) + 576  [0x102865390]
+    +                   !       : | + ! 2 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 252  [0x102864ac8]
+    +                   !       : | + 2 base_http1::wire::framing  (in server) + 244,668  [0x102865244,0x1028653ec]
+    +                   !       : | + 1 base_http1::wire::framing  (in server) + 216  [0x102865228]
+    +                   !       : | + ! 1 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 252  [0x102864ac8]
+    +                   !       : | + 1 base_http1::wire::framing  (in server) + 396  [0x1028652dc]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::headers  (in server) + 8  [0x10286e6d0]
+    +                   !       : | + 1 base_http1::wire::framing  (in server) + 440  [0x102865308]
+    +                   !       : | +   1 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0  [0x1028649cc]
+    +                   !       : | 12 base_http1::output::plan  (in server) + 2876  [0x1028681bc]
+    +                   !       : | + 10 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 156  [0x102867138]
+    +                   !       : | + ! 6 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,192,...  [0x1844ef9ec,0x1844efa50,...]
+    +                   !       : | + ! 4 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,120  [0x1844f44fc,0x1844f4568]
+    +                   !       : | + 2 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 40,84  [0x1028670c4,0x1028670f0]
+    +                   !       : | 11 base_http1::output::plan  (in server) + 2348,340,...  [0x102867fac,0x1028677d4,...]
+    +                   !       : | 9 base_http1::output::plan  (in server) + 584  [0x1028678c8]
+    +                   !       : | + 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x102866c1c]
+    +                   !       : | + ! 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 188,348  [0x1844f1934,0x1844f19d4]
+    +                   !       : | + ! 1 DYLD-STUB$$free  (in server) + 0  [0x1028b8d78]
+    +                   !       : | + 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x102866be8]
+    +                   !       : | + ! 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,84  [0x1844f1878,0x1844f18cc]
+    +                   !       : | + 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x102866bfc]
+    +                   !       : | + ! 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + ! 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +                   !       : | + 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x102866be8]
+    +                   !       : | + 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 20  [0x10286a864]
+    +                   !       : | 3 base_http1::output::plan  (in server) + 372  [0x1028677f4]
+    +                   !       : | + 2 base_http1::output::validate_trailers  (in server) + 44  [0x1028674c4]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::new  (in server) + 48  [0x10286e0dc]
+    +                   !       : | + ! : 1 _tlv_get_addr  (in libdyld.dylib) + 12  [0x1842a6e54]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::new  (in server) + 40  [0x10286e0d4]
+    +                   !       : | + 1 base_http1::output::validate_trailers  (in server) + 228  [0x10286757c]
+    +                   !       : | +   1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 24  [0x102866bbc]
+    +                   !       : | 3 base_http1::output::plan  (in server) + 436  [0x102867834]
+    +                   !       : | + 3 <base_http::fields::Fields>::new  (in server) + 40,92  [0x10286e0d4,0x10286e108]
+    +                   !       : | 2 base_http1::output::plan  (in server) + 1064  [0x102867aa8]
+    +                   !       : | + 1 <base_http1::input::Exchange>::is_persistent  (in server) + 32  [0x102868c80]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::headers  (in server) + 8  [0x10286e6d0]
+    +                   !       : | + 1 <base_http1::input::Exchange>::is_persistent  (in server) + 108  [0x102868ccc]
+    +                   !       : | +   1 <core::iter::adapters::map::Map<core::iter::adapters::filter::Filter<core::slice::iter::Iter<base_http::fields::Field>, base_http1::wire::has_token::{closure#0}>, base_http1::wire::has_token::{closure#1}> as core::iter::traits::iterator::Iterator>::try_fold::<(), <core::iter::adapters::flatten::FlattenCompat<_, _>>::iter_try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, <core::iter::adapters::flatten::FlattenCompat<_, _> as core::iter::traits::iterator::Iterator>::try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, core::iter::traits::iterator::Iterator::any::check<&[u8], base_http1::wire::has_token::{closure#2}>::{closure#0}>::{closure#0}>::{closure#0}, core::ops::control_flow::ControlFlow<()>>  (in server) + 104  [0x10286aab8]
+    +                   !       : | 2 base_http1::output::plan  (in server) + 1180  [0x102867b1c]
+    +                   !       : | + 1 base_http1::wire::has_token  (in server) + 40  [0x10286662c]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::headers  (in server) + 8  [0x10286e6d0]
+    +                   !       : | + 1 base_http1::wire::has_token  (in server) + 92  [0x102866660]
+    +                   !       : | +   1 <core::iter::adapters::map::Map<core::iter::adapters::filter::Filter<core::slice::iter::Iter<base_http::fields::Field>, base_http1::wire::has_token::{closure#0}>, base_http1::wire::has_token::{closure#1}> as core::iter::traits::iterator::Iterator>::try_fold::<(), <core::iter::adapters::flatten::FlattenCompat<_, _>>::iter_try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, <core::iter::adapters::flatten::FlattenCompat<_, _> as core::iter::traits::iterator::Iterator>::try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, core::iter::traits::iterator::Iterator::any::check<&[u8], base_http1::wire::has_token::{closure#2}>::{closure#0}>::{closure#0}>::{closure#0}, core::ops::control_flow::ControlFlow<()>>  (in server) + 36  [0x10286aa74]
+    +                   !       : | 2 base_http1::output::plan  (in server) + 2844  [0x10286819c]
+    +                   !       : | + 2 <u64>::_fmt  (in server) + 0,140  [0x1028a4c28,0x1028a4cb4]
+    +                   !       : | 1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 304  [0x1028697ec]
+    +                   !       : | 1 base_http1::wire::framing  (in server) + 960  [0x102865510]
+    +                   !       : | 1 base_http1::wire::has_token  (in server) + 264  [0x10286670c]
+    +                   !       : | 1 base_http1::output::plan  (in server) + 420  [0x102867824]
+    +                   !       : | + 1 <base_http::fields::Fields>::headers  (in server) + 8  [0x10286e6d0]
+    +                   !       : | 1 base_http1::output::plan  (in server) + 1264  [0x102867b70]
+    +                   !       : | + 1 <base_http::fields::Fields>::contains  (in server) + 256  [0x10286e804]
+    +                   !       : | 1 base_http1::output::plan  (in server) + 2372  [0x102867fc4]
+    +                   !       : |   1 <base_http::fields::Fields>::contains  (in server) + 0  [0x10286e704]
+    +                   !       : 109 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9144  [0x1027c5638]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 41 base_http1::wire::request  (in server) + 488  [0x102865800]
+    +                   !       : | + 41 base_http1::wire::fields  (in server) + 72  [0x102865054]
+    +                   !       : | +   15 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 288  [0x1028697dc]
+    +                   !       : | +   ! 12 <base_http::fields::Fields>::append  (in server) + 220  [0x10286e238]
+    +                   !       : | +   ! : 10 <alloc::raw_vec::RawVec<base_http::fields::Field>>::grow_one  (in server) + 60  [0x1028b2b58]
+    +                   !       : | +   ! : | 7 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 120  [0x1028b2bf8]
+    +                   !       : | +   ! : | + 4 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,192,...  [0x1844ef9ec,0x1844efa50,...]
+    +                   !       : | +   ! : | + 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80,120  [0x1844f4540,0x1844f4568]
+    +                   !       : | +   ! : | + 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | +   ! : | 2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 36,64  [0x1028b2ba4,0x1028b2bc0]
+    +                   !       : | +   ! : | 1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 108  [0x1028b2bec]
+    +                   !       : | +   ! : |   1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | +   ! : 2 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 168  [0x1028b2c28]
+    +                   !       : | +   ! 3 <base_http::fields::Fields>::append  (in server) + 220,204  [0x10286e238,0x10286e228]
+    +                   !       : | +   9 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 152,172  [0x102869754,0x102869768]
+    +                   !       : | +   6 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 96  [0x10286971c]
+    +                   !       : | +   ! 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | +   ! 1 DYLD-STUB$$malloc  (in server) + 4  [0x1028b8e24]
+    +                   !       : | +   ! 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | +   ! 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +                   !       : | +   4 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 136  [0x102869744]
+    +                   !       : | +   ! 4 base_http::syntax::is_token  (in server) + 24,56,...  [0x10286f290,0x10286f2b0,...]
+    +                   !       : | +   4 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 200  [0x102869784]
+    +                   !       : | +   ! 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44,64  [0x1844f451c,0x1844f4530]
+    +                   !       : | +   ! 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | +   ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | +   2 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 116  [0x102869730]
+    +                   !       : | +   ! 2 _platform_memmove  (in libsystem_platform.dylib) + 444,452  [0x1846d7f1c,0x1846d7f24]
+    +                   !       : | +   1 <base_http::fields::Fields>::add::<&str, &[u8]>  (in server) + 220  [0x102869798]
+    +                   !       : | +     1 _platform_memmove  (in libsystem_platform.dylib) + 444  [0x1846d7f1c]
+    +                   !       : | 17 base_http1::wire::request  (in server) + 876  [0x102865984]
+    +                   !       : | + 13 base_http1::wire::authority  (in server) + 932,124,...  [0x102866498,0x102866170,...]
+    +                   !       : | + 4 base_http1::wire::authority  (in server) + 1052  [0x102866510]
+    +                   !       : | +   4 <u16>::from_ascii_bytes_radix_impl  (in server) + 36,208,...  [0x102864ba4,0x102864c50,...]
+    +                   !       : | 6 base_http1::wire::request  (in server) + 748  [0x102865904]
+    +                   !       : | + 5 base_http1::wire::singleton  (in server) + 68  [0x10286675c]
+    +                   !       : | + ! 5 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0,352,...  [0x1028649cc,0x102864b2c,...]
+    +                   !       : | + 1 base_http1::wire::singleton  (in server) + 200  [0x1028667e0]
+    +                   !       : | +   1 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0  [0x1028649cc]
+    +                   !       : | 6 base_http1::wire::request  (in server) + 648,800,...  [0x1028658a0,0x102865938,...]
+    +                   !       : | 5 base_http1::wire::request  (in server) + 800  [0x102865938]
+    +                   !       : | + 5 core::str::converts::from_utf8  (in server) + 120,52,...  [0x1028a669c,0x1028a6658,...]
+    +                   !       : | 5 base_http1::wire::request  (in server) + 1084  [0x102865a54]
+    +                   !       : | + 5 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 156  [0x102867138]
+    +                   !       : | +   3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,308  [0x1844ef9ec,0x1844efac4]
+    +                   !       : | +   1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | +   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44  [0x1844f451c]
+    +                   !       : | 4 base_http1::wire::request  (in server) + 100  [0x10286567c]
+    +                   !       : | + 2 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 260,360  [0x1844efa94,0x1844efaf8]
+    +                   !       : | 4 base_http1::wire::request  (in server) + 960  [0x1028659d8]
+    +                   !       : | + 4 _platform_memmove  (in libsystem_platform.dylib) + 452,428,...  [0x1846d7f24,0x1846d7f0c,...]
+    +                   !       : | 3 base_http1::wire::request  (in server) + 140  [0x1028656a4]
+    +                   !       : | + 3 base_http::syntax::is_token  (in server) + 56,32  [0x10286f2b0,0x10286f298]
+    +                   !       : | 3 base_http1::wire::request  (in server) + 928  [0x1028659b8]
+    +                   !       : | + 2 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 40  [0x1028670c4]
+    +                   !       : | + 1 <alloc::raw_vec::RawVecInner>::try_allocate_in  (in server) + 156  [0x102867138]
+    +                   !       : | +   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    +                   !       : | 3 base_http1::wire::request  (in server) + 1620  [0x102865c6c]
+    +                   !       : | + 1 base_http1::wire::has_token  (in server) + 40  [0x10286662c]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::headers  (in server) + 28  [0x10286e6e4]
+    +                   !       : | + 1 base_http1::wire::has_token  (in server) + 92  [0x102866660]
+    +                   !       : | + ! 1 <core::iter::adapters::map::Map<core::iter::adapters::filter::Filter<core::slice::iter::Iter<base_http::fields::Field>, base_http1::wire::has_token::{closure#0}>, base_http1::wire::has_token::{closure#1}> as core::iter::traits::iterator::Iterator>::try_fold::<(), <core::iter::adapters::flatten::FlattenCompat<_, _>>::iter_try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, <core::iter::adapters::flatten::FlattenCompat<_, _> as core::iter::traits::iterator::Iterator>::try_fold::flatten<core::slice::iter::Split<u8, base_http1::wire::has_token::{closure#1}::{closure#0}>, (), core::ops::control_flow::ControlFlow<()>, core::iter::traits::iterator::Iterator::any::check<&[u8], base_http1::wire::has_token::{closure#2}>::{closure#0}>::{closure#0}>::{closure#0}, core::ops::control_flow::ControlFlow<()>>  (in server) + 124  [0x10286aacc]
+    +                   !       : | + 1 base_http1::wire::has_token  (in server) + 120  [0x10286667c]
+    +                   !       : | 3 base_http1::wire::request  (in server) + 1812  [0x102865d2c]
+    +                   !       : | + 3 _platform_memmove  (in libsystem_platform.dylib) + 0,168,...  [0x1846d7d60,0x1846d7e08,...]
+    +                   !       : | 2 base_http1::wire::request  (in server) + 192  [0x1028656d8]
+    +                   !       : | + 1 core::ptr::drop_glue::<base_http1::error::Error>  (in server) + 16  [0x10286462c]
+    +                   !       : | + 1 base_http1::wire::request  (in server) + 472  [0x1028657f0]
+    +                   !       : | +   1 <base_http::request::RequestHead>::new  (in server) + 0  [0x10286c718]
+    +                   !       : | 2 base_http1::wire::authority  (in server) + 236  [0x1028661e0]
+    +                   !       : | 1 base_http1::wire::request  (in server) + 88  [0x102865670]
+    +                   !       : | + 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | 1 base_http1::wire::request  (in server) + 472  [0x1028657f0]
+    +                   !       : | + 1 <base_http::request::RequestHead>::new  (in server) + 52  [0x10286c74c]
+    +                   !       : | +   1 <<std::hash::random::RandomState>::new::KEYS::{K#0}::{closure#1} as core::ops::function::FnOnce<(core::option::Option<&mut core::option::Option<core::cell::Cell<(u64, u64)>>>,)>>::call_once  (in server) + 28  [0x10286ee94]
+    +                   !       : | +     1 _tlv_get_addr  (in libdyld.dylib) + 0  [0x1842a6e48]
+    +                   !       : | 1 base_http1::wire::request  (in server) + 672  [0x1028658b8]
+    +                   !       : | + 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 20  [0x10286a864]
+    +                   !       : | 1 base_http1::wire::request  (in server) + 1116  [0x102865a74]
+    +                   !       : | + 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | 1 base_http1::wire::has_token  (in server) + 264  [0x10286670c]
+    +                   !       : 90 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7036  [0x1027c4dfc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +                   !       : | 82 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 72  [0x102809404]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+    +                   !       : | + 28 ???  (in server)  load address 0x1027b4000 + 0x2e8bc  [0x1027e28bc]
+    +                   !       : | + ! 12 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 136  [0x102805e54]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +                   !       : | + ! : 12 base_http::syntax::is_token  (in server) + 56,24,...  [0x10286f2b0,0x10286f290,...]
+    +                   !       : | + ! 5 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 320  [0x102805f0c]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +                   !       : | + ! : 5 <base_http::fields::Fields>::append  (in server) + 220  [0x10286e238]
+    +                   !       : | + ! :   5 <alloc::raw_vec::RawVec<base_http::fields::Field>>::grow_one  (in server) + 60  [0x1028b2b58]
+    +                   !       : | + ! :     3 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 120  [0x1028b2bf8]
+    +                   !       : | + ! :     | 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 144,260  [0x1844efa20,0x1844efa94]
+    +                   !       : | + ! :     | 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    +                   !       : | + ! :     1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 108  [0x1028b2bec]
+    +                   !       : | + ! :     | 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | + ! :     1 <alloc::raw_vec::RawVecInner>::finish_grow  (in server) + 36  [0x1028b2ba4]
+    +                   !       : | + ! 4 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 156,284  [0x102805e68,0x102805ee8]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +                   !       : | + ! 3 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 284  [0x102805ee8]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +                   !       : | + ! : 3 _platform_memmove  (in libsystem_platform.dylib) + 12,428,...  [0x1846d7d6c,0x1846d7f0c,...]
+    +                   !       : | + ! 2 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 264  [0x102805ed4]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +                   !       : | + ! : 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 116  [0x102805e40]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +                   !       : | + ! : 1 _platform_memmove  (in libsystem_platform.dylib) + 420  [0x1846d7f04]
+    +                   !       : | + ! 1 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 248  [0x102805ec4]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:316
+    +                   !       : | + !   1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | + 18 ???  (in server)  load address 0x1027b4000 + 0x2e914  [0x1027e2914]
+    +                   !       : | + ! 10 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1027e207c]
+    +                   !       : | + ! : 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1027e1fa8]
+    +                   !       : | + ! : | 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + ! : | 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | + ! : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 84  [0x1844f18cc]
+    +                   !       : | + ! : 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1027e1fdc]
+    +                   !       : | + ! : | 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,120  [0x1844f1878,0x1844f18f0]
+    +                   !       : | + ! : | 1 _free  (in libsystem_malloc.dylib) + 76  [0x1844f515c]
+    +                   !       : | + ! : 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1027e1fbc]
+    +                   !       : | + ! : | 1 _free  (in libsystem_malloc.dylib) + 76  [0x1844f515c]
+    +                   !       : | + ! : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 292  [0x1844f199c]
+    +                   !       : | + ! : 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 48,124  [0x1027e1f94,0x1027e1fe0]
+    +                   !       : | + ! 5 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1027e20f0]
+    +                   !       : | + ! : 3 _free  (in libsystem_malloc.dylib) + 0,76  [0x1844f5110,0x1844f515c]
+    +                   !       : | + ! : 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + ! : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 120  [0x1844f18f0]
+    +                   !       : | + ! 3 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1027e20b8]
+    +                   !       : | + !   2 _xzm_free_tc  (in libsystem_malloc.dylib) + 84,104  [0x1844f18cc,0x1844f18e0]
+    +                   !       : | + !   1 free  (in libsystem_malloc.dylib) + 0  [0x1844b66f0]
+    +                   !       : | + 18 ???  (in server)  load address 0x1027b4000 + 0x2e91c  [0x1027e291c]
+    +                   !       : | + ! 18 <deduplicated_symbol>  (in server) + 44  [0x1027e0e34]
+    +                   !       : | + !   8 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1027e207c]
+    +                   !       : | + !   : 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1027e1fa8]
+    +                   !       : | + !   : | 2 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + !   : | 1 _free  (in libsystem_malloc.dylib) + 76  [0x1844f515c]
+    +                   !       : | + !   : 2 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1027e1fdc]
+    +                   !       : | + !   : | 1 DYLD-STUB$$free  (in server) + 0  [0x1028b8d78]
+    +                   !       : | + !   : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 120  [0x1844f18f0]
+    +                   !       : | + !   : 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1027e1fbc]
+    +                   !       : | + !   : | 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + !   : 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 48  [0x1027e1f94]
+    +                   !       : | + !   : 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 4  [0x102805a88]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3486
+    +                   !       : | + !   4 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 92  [0x1027e2074]
+    +                   !       : | + !   : 2 _free  (in libsystem_malloc.dylib) + 0,108  [0x1844f5110,0x1844f517c]
+    +                   !       : | + !   : 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 84,160  [0x1844f18cc,0x1844f1918]
+    +                   !       : | + !   2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1027e20b8]
+    +                   !       : | + !   : 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 120,160  [0x1844f18f0,0x1844f1918]
+    +                   !       : | + !   2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1027e20f0]
+    +                   !       : | + !   : 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + !   : 1 _free  (in libsystem_malloc.dylib) + 76  [0x1844f515c]
+    +                   !       : | + !   2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 48,216  [0x1027e2048,0x1027e20f0]
+    +                   !       : | + 6 ???  (in server)  load address 0x1027b4000 + 0x2e80c  [0x1027e280c]
+    +                   !       : | + ! 6 _platform_memmove  (in libsystem_platform.dylib) + 180,0  [0x1846d7e14,0x1846d7d60]
+    +                   !       : | + 5 ???  (in server)  load address 0x1027b4000 + 0x2e81c  [0x1027e281c]
+    +                   !       : | + ! 4 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44,120  [0x1844f451c,0x1844f4568]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + 3 ???  (in server)  load address 0x1027b4000 + 0x2e840  [0x1027e2840]
+    +                   !       : | + ! 2 <base_http::response::ResponseHead>::new  (in server) + 44  [0x10286f1b0]
+    +                   !       : | + ! : 2 <<std::hash::random::RandomState>::new::KEYS::{K#0}::{closure#1} as core::ops::function::FnOnce<(core::option::Option<&mut core::option::Option<core::cell::Cell<(u64, u64)>>>,)>>::call_once  (in server) + 20,36  [0x10286ee8c,0x10286ee9c]
+    +                   !       : | + ! 1 <base_http::response::ResponseHead>::new  (in server) + 84  [0x10286f1d8]
+    +                   !       : | + 2 <base_http::fields::Fields>::add::<&str, &str>  (in server) + 336  [0x102805f1c]  /Users/samuel/Developer/base-rs/base-http/src/fields.rs:317
+    +                   !       : | + 1 ???  (in server)  load address 0x1027b4000 + 0x2e80c  [0x1027e280c]
+    +                   !       : | + 1 ???  (in server)  load address 0x1027b4000 + 0x2e880  [0x1027e2880]
+    +                   !       : | 5 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 28  [0x1028093d8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:111
+    +                   !       : | 1 ???  (in server)  load address 0x1027b4000 + 0x2e7d4  [0x1027e27d4]
+    +                   !       : | 1 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 72  [0x102809404]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:117
+    +                   !       : | 1 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 140  [0x102809448]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:118
+    +                   !       : 53 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9588  [0x1027c57f4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 23 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 368  [0x1027cbd2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +                   !       : | + 7 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x1027ef374]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 7 _platform_memmove  (in libsystem_platform.dylib) + 452,428  [0x1846d7f24,0x1846d7f0c]
+    +                   !       : | + 5 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x1027ef318]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 4 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,144,...  [0x1844ef9ec,0x1844efa20,...]
+    +                   !       : | + ! 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    +                   !       : | + 5 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x1027ef340]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! : 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 116,144,...  [0x1844efa04,0x1844efa20,...]
+    +                   !       : | + ! 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | + !   1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + !   1 _platform_memmove  (in libsystem_platform.dylib) + 444  [0x1846d7f1c]
+    +                   !       : | + 4 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x1027ef360]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0,260,...  [0x1844ef990,0x1844efa94,...]
+    +                   !       : | + ! 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148,200  [0x1027ef340,0x1027ef374]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | 13 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 224  [0x1027cbc9c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    +                   !       : | + 6 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! 3 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12,44,...  [0x1844f44fc,0x1844f451c,...]
+    +                   !       : | + ! 2 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + ! 1 __rustc::__rust_alloc  (in server) + 0  [0x10280dc64]
+    +                   !       : | + 6 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | + ! 5 _platform_memmove  (in libsystem_platform.dylib) + 452,0,...  [0x1846d7f24,0x1846d7d60,...]
+    +                   !       : | + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 20  [0x1028a1c24]
+    +                   !       : | 4 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 128  [0x1027cbc3c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | + 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,260,...  [0x1844ef9ec,0x1844efa94,...]
+    +                   !       : | + 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | 3 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 264  [0x1027cbcc4]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +                   !       : | + 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,192  [0x1844ef9ec,0x1844efa50]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | +   1 _platform_memmove  (in libsystem_platform.dylib) + 460  [0x1846d7f2c]
+    +                   !       : | 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 92  [0x1028a1c6c]
+    +                   !       : | 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 112  [0x1027cbc2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | + 2 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | 1 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 448  [0x1028058c8]  /rust/deps/hashbrown-0.17.1/src/map.rs:193
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 148  [0x1027cbc50]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | + 1 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 44  [0x1027cbbe8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 244  [0x1027cbcb0]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 456  [0x1027cbd84]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 492  [0x1027cbda8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    +                   !       : 47 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8084  [0x1027c5214]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 39 alloc::vec::from_elem::<httparse::Header>  (in server) + 144,180  [0x1027ec8a0,0x1027ec8c4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3773
+    +                   !       : | 8 alloc::vec::from_elem::<httparse::Header>  (in server) + 96  [0x1027ec870]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3773
+    +                   !       : |   6 _xzm_xzone_malloc_tiny  (in libsystem_malloc.dylib) + 244,0,...  [0x1844e8b40,0x1844e8a4c,...]
+    +                   !       : |   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    +                   !       : |   1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192  [0x1844efa50]
+    +                   !       : 42 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9612  [0x1027c580c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 19 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 368  [0x1027cbd2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +                   !       : | + 5 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x1027ef318]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,260,...  [0x1844ef9ec,0x1844efa94,...]
+    +                   !       : | + ! 2 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + 4 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x1027ef340]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! : 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 64  [0x1844f4530]
+    +                   !       : | + ! 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | + !   1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +                   !       : | + 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x1027ef360]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + ! 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 36,80,...  [0x1027ef2d0,0x1027ef2fc,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x1027ef374]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + ! 1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 92  [0x1028a1c6c]
+    +                   !       : | + 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 168  [0x1027ef354]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | +   1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | 5 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 224  [0x1027cbc9c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    +                   !       : | + 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! 1 DYLD-STUB$$malloc  (in server) + 4  [0x1028b8e24]
+    +                   !       : | + ! 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 56  [0x1844f4528]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308  [0x1844efac4]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | 5 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 264  [0x1027cbcc4]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +                   !       : | + 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 460  [0x1846d7f2c]
+    +                   !       : | + ! 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | +   1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | +   1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 80  [0x1844f4540]
+    +                   !       : | 4 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 128  [0x1027cbc3c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | + 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308,92  [0x1844efac4,0x1844ef9ec]
+    +                   !       : | + 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +                   !       : | 3 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 24,560,...  [0x1027cbbd4,0x1027cbdec,...]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:9
+    +                   !       : | 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 492  [0x1027cbda8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 148  [0x1027cbc50]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | + 1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 104  [0x1027cbc24]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 164  [0x1027cbc60]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:12
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 456  [0x1027cbd84]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +                   !       : 40 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9704  [0x1027c5868]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 13 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 368  [0x1027cbd2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +                   !       : | + 5 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 148  [0x1027ef340]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! : 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + ! : 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 120  [0x1844f4568]
+    +                   !       : | + ! : 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + ! 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | + !   1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | + !   1 _platform_memmove  (in libsystem_platform.dylib) + 444  [0x1846d7f1c]
+    +                   !       : | + 3 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 180  [0x1027ef360]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + ! 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 192  [0x1844efa50]
+    +                   !       : | + 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 108  [0x1027ef318]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + ! 1 DYLD-STUB$$malloc  (in server) + 4  [0x1028b8e24]
+    +                   !       : | + ! 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92  [0x1844ef9ec]
+    +                   !       : | + 2 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 36,248  [0x1027ef2d0,0x1027ef3a4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | + 1 <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server) + 200  [0x1027ef374]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3878
+    +                   !       : | +   1 _platform_memmove  (in libsystem_platform.dylib) + 452  [0x1846d7f24]
+    +                   !       : | 8 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 224  [0x1027cbc9c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:13
+    +                   !       : | + 4 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! 3 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,192,...  [0x1844ef9ec,0x1844efa50,...]
+    +                   !       : | + ! 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +                   !       : | + 2 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | + ! 2 _platform_memmove  (in libsystem_platform.dylib) + 428,452  [0x1846d7f0c,0x1846d7f24]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 36  [0x1028a1c34]
+    +                   !       : | + ! 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 20  [0x1028a1c24]
+    +                   !       : | 5 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 128  [0x1027cbc3c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | + 4 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,144,...  [0x1844ef9ec,0x1844efa20,...]
+    +                   !       : | + 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0  [0x1844f44f0]
+    +                   !       : | 4 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 264  [0x1027cbcc4]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:16
+    +                   !       : | + 3 <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+    +                   !       : | + ! 2 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 92,360  [0x1844ef9ec,0x1844efaf8]
+    +                   !       : | + ! 1 __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+    +                   !       : | + 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+    +                   !       : | 3 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 128,148  [0x1027cbc3c,0x1027cbc50]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | 2 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 448  [0x1028058c8]  /rust/deps/hashbrown-0.17.1/src/map.rs:193
+    +                   !       : | 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 428  [0x1027cbd68]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:18
+    +                   !       : | + 1 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 28  [0x102805724]  /rust/deps/hashbrown-0.17.1/src/map.rs:188
+    +                   !       : | + 1 <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server) + 420  [0x1028058ac]  /rust/deps/hashbrown-0.17.1/src/map.rs:189
+    +                   !       : | 1 <alloc::string::String as core::clone::Clone>::clone  (in server) + 92  [0x1028a1c6c]
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 112  [0x1027cbc2c]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:11
+    +                   !       : | + 1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : | 1 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 492  [0x1027cbda8]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:19
+    +                   !       : 39 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6792,8084,...  [0x1027c4d08,0x1027c5214,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : 28 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9920  [0x1027c5940]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 25 __xzm_xzone_free_to_freelist_chunk  (in libsystem_malloc.dylib) + 424  [0x1844ed82c]
+    +                   !       : | + 25 mach_absolute_time  (in libsystem_kernel.dylib) + 108,112,...  [0x1846890f8,0x1846890fc,...]
+    +                   !       : | 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 32  [0x1844f1898]
+    +                   !       : 28 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 2940,2848,...  [0x1027c3dfc,0x1027c3da0,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : 28 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12820  [0x1027c6494]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:235
+    +                   !       : | 19 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1027bbcdc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 6 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1027bbc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 4 _xzm_free_tc  (in libsystem_malloc.dylib) + 344,0,...  [0x1844f19d0,0x1844f1878,...]
+    +                   !       : | + ! 2 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | + 5 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1027bbc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,120,...  [0x1844f1878,0x1844f18f0,...]
+    +                   !       : | + ! 2 _free  (in libsystem_malloc.dylib) + 36,108  [0x1844f5134,0x1844f517c]
+    +                   !       : | + 4 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1027bbc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 3 _free  (in libsystem_malloc.dylib) + 0,76,...  [0x1844f5110,0x1844f515c,...]
+    +                   !       : | + ! 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 160  [0x1844f1918]
+    +                   !       : | + 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 48,92,...  [0x1027bbbf4,0x1027bbc20,...]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 20  [0x102805a98]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3496
+    +                   !       : | 4 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 92  [0x1027bbcd4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 2 _free  (in libsystem_malloc.dylib) + 0,76  [0x1844f5110,0x1844f515c]
+    +                   !       : | + 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,84  [0x1844f1878,0x1844f18cc]
+    +                   !       : | 3 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1027bbd18]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 2 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | + 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 84  [0x1844f18cc]
+    +                   !       : | 2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1027bbd50]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : |   2 _xzm_free_tc  (in libsystem_malloc.dylib) + 32,292  [0x1844f1898,0x1844f199c]
+    +                   !       : 27 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9652  [0x1027c5834]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 22 core::ptr::drop_glue::<core::option::Option<base_http1::input::Exchange>>  (in server) + 32  [0x1027b50d8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 13 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 100  [0x1027bbcdc]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 8 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1027bbc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! : 5 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,120,...  [0x1844f1878,0x1844f18f0,...]
+    +                   !       : | + ! : 2 _free  (in libsystem_malloc.dylib) + 0,108  [0x1844f5110,0x1844f517c]
+    +                   !       : | + ! : 1 DYLD-STUB$$free  (in server) + 0  [0x1028b8d78]
+    +                   !       : | + ! 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1027bbc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! : 2 DYLD-STUB$$free  (in server) + 0  [0x1028b8d78]
+    +                   !       : | + ! : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 204  [0x1844f1944]
+    +                   !       : | + ! 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1027bbc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! : 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+    +                   !       : | + ! 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 20  [0x102805a98]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3496
+    +                   !       : | + 5 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 160  [0x1027bbd18]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 32,84,...  [0x1844f1898,0x1844f18cc,...]
+    +                   !       : | + ! 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + ! 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | + 2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 92  [0x1027bbcd4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 1 __rustc::__rdl_dealloc  (in server) + 0  [0x10287daa4]
+    +                   !       : | + ! 1 _free  (in libsystem_malloc.dylib) + 36  [0x1844f5134]
+    +                   !       : | + 2 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 216  [0x1027bbd50]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | +   2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,292  [0x1844f1878,0x1844f199c]
+    +                   !       : | 2 _free  (in libsystem_malloc.dylib) + 0,36  [0x1844f5110,0x1844f5134]
+    +                   !       : | 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 160,312  [0x1844f1918,0x1844f19b0]
+    +                   !       : | 1 core::ptr::drop_glue::<core::option::Option<base_http1::input::Exchange>>  (in server) + 12  [0x1027b50c4]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : 27 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12528  [0x1027c6370]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 10 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1027bbc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 5 _free  (in libsystem_malloc.dylib) + 0,36,...  [0x1844f5110,0x1844f5134,...]
+    +                   !       : | + 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 104,156,...  [0x1844f18e0,0x1844f1914,...]
+    +                   !       : | + 2 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | 8 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1027bbc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 6 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,120,...  [0x1844f1878,0x1844f18f0,...]
+    +                   !       : | + 2 DYLD-STUB$$free  (in server) + 0,4  [0x1028b8d78,0x1028b8d7c]
+    +                   !       : | 7 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1027bbc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 7 _xzm_free_tc  (in libsystem_malloc.dylib) + 32,84,...  [0x1844f1898,0x1844f18cc,...]
+    +                   !       : | 1 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1027bbc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | 1 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 20  [0x102805a98]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3496
+    +                   !       : 24 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12728  [0x1027c6438]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:230
+    +                   !       : | 18 core::ptr::drop_glue::<base_http::response::Response<base_http::body::buffered::BufferedBody<&[u8]>>>  (in server) + 20  [0x1027b6998]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 5 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 68  [0x1027bbc08]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 2 DYLD-STUB$$free  (in server) + 0,4  [0x1028b8d78,0x1028b8d7c]
+    +                   !       : | + ! 2 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,104  [0x1844f1878,0x1844f18e0]
+    +                   !       : | + ! 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | + 5 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 120  [0x1027bbc3c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 4 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,84,...  [0x1844f1878,0x1844f18cc,...]
+    +                   !       : | + ! 1 _free  (in libsystem_malloc.dylib) + 108  [0x1844f517c]
+    +                   !       : | + 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 88  [0x1027bbc1c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + ! 2 _free  (in libsystem_malloc.dylib) + 0,96  [0x1844f5110,0x1844f5170]
+    +                   !       : | + ! 1 DYLD-STUB$$free  (in server) + 4  [0x1028b8d7c]
+    +                   !       : | + 3 core::ptr::drop_glue::<base_http::fields::Fields>  (in server) + 20  [0x1027bbbd8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : | + 2 <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server) + 20  [0x102805a98]  /rust/deps/hashbrown-0.17.1/src/raw.rs:3496
+    +                   !       : | 3 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | 3 _xzm_free_tc  (in libsystem_malloc.dylib) + 0,84  [0x1844f1878,0x1844f18cc]
+    +                   !       : 16 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7516  [0x1027c4fdc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 16 base_http1::wire::strict_lines  (in server) + 92,120,...  [0x102864d04,0x102864d20,...]
+    +                   !       : 16 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8136  [0x1027c5248]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 14 <httparse::Request>::parse  (in server) + 80  [0x10286c3c8]
+    +                   !       : | + 7 <httparse::Request>::parse_with_config_and_uninit_headers  (in server) + 1644  [0x10286c2fc]
+    +                   !       : | + ! 7 httparse::parse_headers_iter_uninit  (in server) + 1072,1192,...  [0x10286b770,0x10286b7e8,...]
+    +                   !       : | + 4 <httparse::Request>::parse_with_config_and_uninit_headers  (in server) + 500,128,...  [0x10286be84,0x10286bd10,...]
+    +                   !       : | + 2 <httparse::Request>::parse_with_config_and_uninit_headers  (in server) + 1236  [0x10286c164]
+    +                   !       : | + ! 2 core::str::converts::from_utf8  (in server) + 0,44  [0x1028a6624,0x1028a6650]
+    +                   !       : | + 1 httparse::parse_headers_iter_uninit  (in server) + 2184  [0x10286bbc8]
+    +                   !       : | 1 <httparse::Request>::parse_with_config_and_uninit_headers  (in server) + 468  [0x10286be64]
+    +                   !       : | 1 <httparse::Request>::parse  (in server) + 0  [0x10286c378]
+    +                   !       : 12 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8032  [0x1027c51e0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 7 ???  (in server)  load address 0x1027b4000 + 0x54e7c  [0x102808e7c]
+    +                   !       : | + 4 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308,0,...  [0x1844efac4,0x1844ef990,...]
+    +                   !       : | + 2 xzm_malloc_zone_malloc_type_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef3cc]
+    +                   !       : | + 1 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 12  [0x1844f44fc]
+    +                   !       : | 4 ???  (in server)  load address 0x1027b4000 + 0x54e90  [0x102808e90]
+    +                   !       : | + 3 _platform_memmove  (in libsystem_platform.dylib) + 428,420  [0x1846d7f0c,0x1846d7f04]
+    +                   !       : | + 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : | 1 ???  (in server)  load address 0x1027b4000 + 0x54e58  [0x102808e58]
+    +                   !       : 11 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12520  [0x1027c6368]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 6 _xzm_free_tc  (in libsystem_malloc.dylib) + 208,32,...  [0x1844f1948,0x1844f1898,...]
+    +                   !       : | 2 DYLD-STUB$$free  (in server) + 0,4  [0x1028b8d78,0x1028b8d7c]
+    +                   !       : | 1 __rustc::__rdl_dealloc  (in server) + 0  [0x10287daa4]
+    +                   !       : | 1 _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+    +                   !       : | 1 free  (in libsystem_malloc.dylib) + 0  [0x1844b66f0]
+    +                   !       : 9 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9600  [0x1027c5800]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 5 <base_http1::input::Exchange>::new  (in server) + 84  [0x102868ec4]
+    +                   !       : | + 5 _platform_memmove  (in libsystem_platform.dylib) + 180,204  [0x1846d7e14,0x1846d7e2c]
+    +                   !       : | 3 <base_http1::input::Exchange>::new  (in server) + 40  [0x102868e98]
+    +                   !       : | + 2 _malloc_zone_malloc  (in libsystem_malloc.dylib) + 44,120  [0x1844f451c,0x1844f4568]
+    +                   !       : | + 1 _xzm_malloc_tc  (in libsystem_malloc.dylib) + 308  [0x1844efac4]
+    +                   !       : | 1 <base_http1::input::Exchange>::new  (in server) + 28  [0x102868e8c]
+    +                   !       : |   1 __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+    +                   !       : 7 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6564  [0x1027c4c24]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +                   !       : | 7 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +                   !       : 7 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10912  [0x1027c5d20]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 2 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 124  [0x1027c67f8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:25
+    +                   !       : | + 2 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 28  [0x1027dbb04]
+    +                   !       : | 2 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 272  [0x1027c688c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:26
+    +                   !       : | 1 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 28  [0x1027c6798]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:16
+    +                   !       : | 1 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 80  [0x1027c67cc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:18
+    +                   !       : | 1 <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server) + 376  [0x1027dbc60]
+    +                   !       : 6 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9364  [0x1027c5714]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 2 base_http1::wire::framing  (in server) + 396  [0x1028652dc]
+    +                   !       : | + 2 <base_http::fields::Fields>::headers  (in server) + 8,28  [0x10286e6d0,0x10286e6e4]
+    +                   !       : | 2 base_http1::wire::framing  (in server) + 244,636  [0x102865244,0x1028653cc]
+    +                   !       : | 1 base_http1::wire::framing  (in server) + 40  [0x102865178]
+    +                   !       : | + 1 <base_http::fields::Fields>::headers  (in server) + 28  [0x10286e6e4]
+    +                   !       : | 1 base_http1::wire::framing  (in server) + 216  [0x102865228]
+    +                   !       : |   1 <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0  [0x1028649cc]
+    +                   !       : 6 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8496,8532,...  [0x1027c53b0,0x1027c53d4,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:210
+    +                   !       : 6 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7000  [0x1027c4dd8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +                   !       : | 5 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +                   !       : | 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : 6 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12632,12664  [0x1027c63d8,0x1027c63f8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:230
+    +                   !       : 5 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9896  [0x1027c5928]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 5 _platform_memmove  (in libsystem_platform.dylib) + 180,12  [0x1846d7e14,0x1846d7d6c]
+    +                   !       : 5 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6508  [0x1027c4bec]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:210
+    +                   !       : | 5 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +                   !       : 5 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7200,6548,...  [0x1027c4ea0,0x1027c4c14,...]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +                   !       : 4 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6428  [0x1027c4b9c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 4 _platform_memmove  (in libsystem_platform.dylib) + 180,188  [0x1846d7e14,0x1846d7e1c]
+    +                   !       : 4 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9672  [0x1027c5848]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 4 _platform_memmove  (in libsystem_platform.dylib) + 180,0,...  [0x1846d7e14,0x1846d7d60,...]
+    +                   !       : 4 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6448  [0x1027c4bb0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:209
+    +                   !       : 4 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8592  [0x1027c5410]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:214
+    +                   !       : | 4 core::ptr::drop_glue::<base_http_server::cancellable<<base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>::{closure#0}>  (in server) + 20,296  [0x1027b6ea4,0x1027b6fb8]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:93
+    +                   !       : 3 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6304  [0x1027c4b20]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 3 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +                   !       : 3 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9740  [0x1027c588c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 2 _platform_memmove  (in libsystem_platform.dylib) + 180,188  [0x1846d7e14,0x1846d7e1c]
+    +                   !       : | 1 DYLD-STUB$$memcpy  (in server) + 4  [0x1028b8e3c]
+    +                   !       : 3 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 10844  [0x1027c5cdc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 3 _platform_memmove  (in libsystem_platform.dylib) + 428,444,...  [0x1846d7f0c,0x1846d7f1c,...]
+    +                   !       : 3 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12328  [0x1027c62a8]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 3 core::ptr::drop_glue::<<base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::write_body<base_http::body::buffered::BufferedBody<&[u8]>>::{closure#0}>  (in server) + 64,48  [0x1027b8258,0x1027b8248]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:192
+    +                   !       : 2 ???  (in server)  load address 0x1027b4000 + 0x54ebc  [0x102808ebc]
+    +                   !       : 2 alloc::vec::from_elem::<httparse::Header>  (in server) + 200,208  [0x1027ec8d8,0x1027ec8e0]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs:3774
+    +                   !       : 2 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6716  [0x1027c4cbc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 2 _platform_memmove  (in libsystem_platform.dylib) + 428  [0x1846d7f0c]
+    +                   !       : 2 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9076  [0x1027c55f4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 2 core::ptr::drop_glue::<core::pin::PinMacroHelper<<base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>>  (in server) + 0,148  [0x1027b48c0,0x1027b4954]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : 2 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9940  [0x1027c5954]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 1 _free  (in libsystem_malloc.dylib) + 72  [0x1844f5158]
+    +                   !       : | 1 _xzm_free_tc  (in libsystem_malloc.dylib) + 156  [0x1844f1914]
+    +                   !       : 2 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8660,8700  [0x1027c5454,0x1027c547c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:218
+    +                   !       : 2 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12596  [0x1027c63b4]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 2 core::ptr::drop_glue::<<base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::write_response_inner<base_http::body::buffered::BufferedBody<&[u8]>>::{closure#0}>  (in server) + 36,128  [0x1027b83e0,0x1027b843c]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:127
+    +                   !       : 2 base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server) + 476  [0x1027c6958]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:0
+    +                   !       : 2 base_http1::wire::request  (in server) + 356,360  [0x10286577c,0x102865780]
+    +                   !       : 2 base_http1::output::head_bytes  (in server) + 284  [0x102867298]
+    +                   !       : 2 <base_http::request::RequestHead as core::clone::Clone>::clone  (in server) + 648  [0x1027cbe44]  /Users/samuel/Developer/base-rs/base-http/src/request.rs:9
+    +                   !       : 1 core::ptr::drop_glue::<base_http::request::RequestHead>  (in server) + 140  [0x1027bbd04]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 7708  [0x1027c509c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:0
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 2776  [0x1027c3d58]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 1 <base_http1::input::Exchange>::is_tunnel  (in server) + 8  [0x102868f08]
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 2796  [0x1027c3d6c]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 1 <base_http1::input::Exchange>::is_abandoned  (in server) + 8  [0x102868c54]
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6152  [0x1027c4a88]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 1 core::ptr::drop_glue::<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}>  (in server) + 192  [0x1027b8558]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:59
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6388  [0x1027c4b74]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 1 _platform_memmove  (in libsystem_platform.dylib) + 188  [0x1846d7e1c]
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 9880  [0x1027c5918]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:191
+    +                   !       : | 1 _platform_memmove  (in libsystem_platform.dylib) + 180  [0x1846d7e14]
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 6444  [0x1027c4bac]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:206
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8736  [0x1027c54a0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:227
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 8720  [0x1027c5490]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:228
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 11372  [0x1027c5eec]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:229
+    +                   !       : | 1 core::ptr::drop_glue::<base_http1::error::Error>  (in server) + 16  [0x1027bba30]  /opt/homebrew/Cellar/rust/1.99.1/lib/rustlib/src/rust/library/core/src/ptr/mod.rs:847
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12792  [0x1027c6478]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:232
+    +                   !       : | 1 <base_http1::input::Exchange>::is_tunnel  (in server) + 0  [0x102868f00]
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12792  [0x1027c6478]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:232
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 12832  [0x1027c64a0]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:235
+    +                   !       : 1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 1116  [0x1027c36dc]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http1/src/output.rs:0
+    +                   !       : 1 <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server) + 220  [0x102809498]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/future/select.rs:122
+    +                   !       6 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin  (in server) + 136,244,...  [0x1027d04a8,0x1027d0514,...]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/stream/mod.rs:1637
+    +                   !       1 base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server) + 13048  [0x1027c6578]  /Users/samuel/Developer/base-rs/base-http/benchmarks/hello/target/profile-experiments/combined/base-http-server/src/lib.rs:0
+    +                   78 <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>  (in server) + 324  [0x102800bd8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+    +                   ! 78 <tokio::runtime::scheduler::current_thread::Context>::park  (in server) + 724  [0x1028333f0]
+    +                   !   78 <tokio::runtime::scheduler::current_thread::Context>::park_internal  (in server) + 168  [0x102832fa4]
+    +                   !     76 <tokio::runtime::time::Driver>::park_internal  (in server) + 556  [0x10282e62c]
+    +                   !     : 61 <tokio::runtime::io::driver::Driver>::turn  (in server) + 176  [0x10283bf7c]
+    +                   !     : | 61 <mio::poll::Poll>::poll  (in server) + 108  [0x10283ee2c]
+    +                   !     : |   61 kevent  (in libsystem_kernel.dylib) + 8  [0x18468efcc]
+    +                   !     : 12 <tokio::runtime::io::driver::Driver>::turn  (in server) + 528  [0x10283c0dc]
+    +                   !     : | 6 <tokio::runtime::io::scheduled_io::ScheduledIo>::wake  (in server) + 672  [0x10282f2b8]
+    +                   !     : | + 4 futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 32  [0x10280d430]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:258
+    +                   !     : | + ! 2 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 132  [0x1027eb5b8]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:125
+    +                   !     : | + ! : 1 tokio::util::wake::wake_arc_raw::<tokio::runtime::scheduler::current_thread::Handle>  (in server) + 40  [0x102830850]
+    +                   !     : | + ! : 1 <futures_core::task::__internal::atomic_waker::AtomicWaker>::wake  (in server) + 12  [0x102864044]
+    +                   !     : | + ! 1 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 36  [0x1027eb558]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:103
+    +                   !     : | + ! 1 <futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref  (in server) + 92  [0x1027eb590]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:123
+    +                   !     : | + 2 futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}>>  (in server) + 40  [0x10280d438]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/futures-util-0.3.34/src/stream/futures_unordered/task.rs:258
+    +                   !     : | 4 <tokio::runtime::io::scheduled_io::ScheduledIo>::wake  (in server) + 56  [0x10282f050]
+    +                   !     : | + 4 <std::sys::pal::unix::sync::mutex::Mutex>::lock  (in server) + 12  [0x10287f0cc]
+    +                   !     : | +   4 pthread_mutex_lock  (in libsystem_pthread.dylib) + 112,20,...  [0x1846c8548,0x1846c84ec,...]
+    +                   !     : | 1 <tokio::runtime::io::scheduled_io::ScheduledIo>::wake  (in server) + 632  [0x10282f290]
+    +                   !     : | + 1 pthread_mutex_unlock  (in libsystem_pthread.dylib) + 32  [0x1846c8a3c]
+    +                   !     : | 1 <tokio::runtime::io::scheduled_io::ScheduledIo>::wake  (in server) + 664  [0x10282f2b0]
+    +                   !     : 3 <tokio::runtime::io::driver::Driver>::turn  (in server) + 328,432,...  [0x10283c014,0x10283c07c,...]
+    +                   !     1 <tokio::runtime::time::Driver>::park_internal  (in server) + 560  [0x10282e630]
+    +                   !     : 1 <std::sys::pal::unix::time::Timespec>::now  (in server) + 24  [0x10287ea7c]
+    +                   !     :   1 clock_gettime  (in libsystem_c.dylib) + 60  [0x184564100]
+    +                   !     :     1 clock_gettime_nsec_np  (in libsystem_c.dylib) + 240  [0x18455611c]
+    +                   !     1 <tokio::runtime::time::Driver>::park_internal  (in server) + 648  [0x10282e688]
+    +                   !       1 <tokio::runtime::time::handle::Handle>::process_at_time  (in server) + 388  [0x10283c740]
+    +                   !         1 <tokio::runtime::time::wheel::Wheel>::next_expiration  (in server) + 256  [0x10283e3f4]
+    +                   !           1 <tokio::runtime::time::wheel::level::Level>::next_expiration  (in server) + 104  [0x10282d764]
+    +                   15 <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>  (in server) + 304  [0x102800bc4]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+    +                   ! 15 <tokio::runtime::scheduler::current_thread::Context>::park_yield  (in server) + 112  [0x102832dc8]
+    +                   !   15 <tokio::runtime::scheduler::current_thread::Context>::park_internal  (in server) + 128  [0x102832f7c]
+    +                   !     15 <tokio::runtime::time::Driver>::park_internal  (in server) + 556  [0x10282e62c]
+    +                   !       15 <tokio::runtime::io::driver::Driver>::turn  (in server) + 176  [0x10283bf7c]
+    +                   !         15 <mio::poll::Poll>::poll  (in server) + 108  [0x10283ee2c]
+    +                   !           15 kevent  (in libsystem_kernel.dylib) + 8  [0x18468efcc]
+    +                   2 <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>  (in server) + 268  [0x102800ba0]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+    +                   ! 2 <tokio::runtime::metrics::batch::MetricsBatch>::end_processing_scheduled_tasks  (in server) + 52  [0x10283dea8]
+    +                   !   2 <std::time::Instant>::elapsed  (in server) + 28  [0x10287dddc]
+    +                   !     2 <std::sys::pal::unix::time::Timespec>::now  (in server) + 24  [0x10287ea7c]
+    +                   !       1 DYLD-STUB$$clock_gettime  (in server) + 0  [0x1028b8cf4]
+    +                   !       1 clock_gettime  (in libsystem_c.dylib) + 60  [0x184564100]
+    +                   !         1 clock_gettime_nsec_np  (in libsystem_c.dylib) + 384  [0x1845561ac]
+    +                   !           1 mach_absolute_time  (in libsystem_kernel.dylib) + 108  [0x1846890f8]
+    +                   1 <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>  (in server) + 184  [0x102800b4c]  /Users/samuel/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.54.1/src/runtime/context/scoped.rs:40
+    +                     1 <tokio::runtime::scheduler::current_thread::Core>::next_task  (in server) + 164  [0x102832c3c]
+    5993 Thread_48853474: base-tokio-0
+      5993 thread_start  (in libsystem_pthread.dylib) + 8  [0x1846c8cec]
+        5993 _pthread_start  (in libsystem_pthread.dylib) + 136  [0x1846cdd00]
+          5993 <std::sys::thread::unix::Thread>::new::thread_start  (in server) + 392  [0x1028927c8]
+            5993 <std::thread::lifecycle::spawn_unchecked<<base_scheduler_tokio::blocking_pool::BlockingPool>::start::{closure#0}::{closure#0}, ()>::{closure#1} as core::ops::function::FnOnce<()>>::call_once::{shim:vtable#0}  (in server) + 84  [0x10282accc]
+              5993 std::sys::backtrace::__rust_begin_short_backtrace::<<base_scheduler_tokio::blocking_pool::BlockingPool>::start::{closure#0}::{closure#0}, ()>  (in server) + 12  [0x10282b2e4]
+                5993 base_scheduler_tokio::blocking_pool::work  (in server) + 208  [0x102828374]
+                  5993 _pthread_cond_wait  (in libsystem_pthread.dylib) + 980  [0x1846ce1d0]
+                    5993 __psynch_cvwait  (in libsystem_kernel.dylib) + 8  [0x18468c50c]
+
+Total number in stack (recursive counted multiple, when >=5):
+        44       _platform_memmove  (in libsystem_platform.dylib) + 0  [0x1846d7d60]
+        37       _xzm_malloc_tc  (in libsystem_malloc.dylib) + 0  [0x1844ef990]
+        32       _xzm_free_tc  (in libsystem_malloc.dylib) + 0  [0x1844f1878]
+        26       _free  (in libsystem_malloc.dylib) + 0  [0x1844f5110]
+        26       _malloc_zone_malloc  (in libsystem_malloc.dylib) + 0  [0x1844f44f0]
+        18       DYLD-STUB$$free  (in server) + 0  [0x1028b8d78]
+        17       __rustc::__rdl_alloc  (in server) + 0  [0x10287da30]
+        15       DYLD-STUB$$memcpy  (in server) + 0  [0x1028b8e38]
+        13       __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server) + 0  [0x10280dc74]
+        10       <alloc::string::String as core::clone::Clone>::clone  (in server) + 48  [0x1028a1c40]
+        8       <base_http::fields::Fields>::headers  (in server) + 0  [0x10286e6c8]
+        8       <alloc::string::String as core::clone::Clone>::clone  (in server) + 0  [0x1028a1c10]
+        8       <alloc::string::String as core::clone::Clone>::clone  (in server) + 68  [0x1028a1c54]
+        7       <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server) + 0  [0x1028649cc]
+        5       base_http::syntax::is_token  (in server) + 0  [0x10286f278]
+
+Sort by top of stack, same collapsed (when >= 5):
+        __psynch_cvwait  (in libsystem_kernel.dylib)        5993
+        __sendto  (in libsystem_kernel.dylib)        3320
+        __recvfrom  (in libsystem_kernel.dylib)        1384
+        _platform_memmove  (in libsystem_platform.dylib)        123
+        base_http_server::exchanges::<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader, base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>, base_http_hello_benchmark::Hello>::{closure#0}  (in server)        98
+        _xzm_malloc_tc  (in libsystem_malloc.dylib)        78
+        _xzm_free_tc  (in libsystem_malloc.dylib)        77
+        kevent  (in libsystem_kernel.dylib)        76
+        _free  (in libsystem_malloc.dylib)        45
+        alloc::vec::from_elem::<httparse::Header>  (in server)        41
+        _malloc_zone_malloc  (in libsystem_malloc.dylib)        41
+        base_http::syntax::is_token  (in server)        37
+        mach_absolute_time  (in libsystem_kernel.dylib)        26
+        <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&mut [u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_recv_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server)        25
+        DYLD-STUB$$free  (in server)        24
+        DYLD-STUB$$memcpy  (in server)        23
+        <base_http1::output::ResponseWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::flush::{closure#0}  (in server)        22
+        __rustc::__rdl_alloc  (in server)        22
+        <base_http::request::RequestHead as core::clone::Clone>::clone  (in server)        18
+        <base_http::fields::Fields>::add::<&str, &[u8]>  (in server)        17
+        <core::slice::iter::Iter<base_http::fields::Field> as core::iter::traits::iterator::Iterator>::find::<&mut base_http1::wire::singleton::{closure#0}>  (in server)        17
+        __rustc::__rust_no_alloc_shim_is_unstable_v2  (in server)        16
+        base_http1::wire::strict_lines  (in server)        16
+        base_http1::wire::authority  (in server)        15
+        xzm_malloc_zone_malloc_type_realloc  (in libsystem_malloc.dylib)        14
+        xzm_malloc_zone_size  (in libsystem_malloc.dylib)        12
+        base_http1::output::plan  (in server)        11
+        core::ptr::drop_glue::<base_http::fields::Fields>  (in server)        10
+        <base_http::fields::Fields>::headers  (in server)        10
+        <core::future::poll_fn::PollFn<<base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_result<usize, <base_scheduler_tokio::tokio_socket::TokioSocket>::io_with<usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_operation_with<&[u8], usize, <base_scheduler_tokio::tokio_scheduler::TokioScheduler>::socket_send_poll::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll  (in server)        10
+        <alloc::string::String as core::clone::Clone>::clone  (in server)        10
+        _realloc  (in libsystem_malloc.dylib)        10
+        httparse::parse_headers_iter_uninit  (in server)        8
+        base_http1::wire::request  (in server)        8
+        <futures_util::future::select::Select<core::pin::Pin<&mut <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}>, core::pin::Pin<&mut <base_http_hello_benchmark::Hello as base_http_server::Handler>::call<base_http1::input::IncomingBody<base_scheduler_tokio::tokio_socket_stream_reader::TokioSocketStreamReader>, base_http1::output::InterimWriter<base_scheduler_tokio::tokio_stream_writer::TokioStreamWriter<base_scheduler::buffer_lease::BufferLease>>>::{closure#0}>> as core::future::future::Future>::poll  (in server)        8
+        _xzm_free  (in libsystem_malloc.dylib)        8
+        _xzm_malloc  (in libsystem_malloc.dylib)        8
+        pthread_mutex_lock  (in libsystem_pthread.dylib)        8
+        <alloc::raw_vec::RawVecInner<_>>::reserve::do_reserve_and_handle::<alloc::alloc::Global>  (in server)        7
+        <base_http::fields::Fields>::append  (in server)        7
+        <alloc::raw_vec::RawVecInner>::finish_grow  (in server)        7
+        core::fmt::write  (in server)        7
+        core::str::converts::from_utf8  (in server)        7
+        <alloc::string::String as core::fmt::Write>::write_str  (in server)        7
+        <alloc::vec::Vec<base_http::fields::Field> as core::clone::Clone>::clone  (in server)        7
+        <base_http::fields::Fields>::add::<&str, &str>  (in server)        6
+        base_http1::output::wait::<<base_http::body::buffered::BufferedBody<&[u8]> as base_http::body::ReadableBody>::read::{closure#0}>::{closure#0}  (in server)        6
+        base_http1::wire::append_fields  (in server)        6
+        alloc::fmt::format::format_inner  (in server)        6
+        <base_scheduler_tokio::tokio_socket::PollWaiter as core::ops::drop::Drop>::drop  (in server)        6
+        <hashbrown::raw::RawTable<(alloc::string::String, base_http::fields::FieldPolicy)> as core::ops::drop::Drop>::drop  (in server)        6
+        <futures_util::stream::futures_unordered::FuturesUnordered<base_http_server::serve_connection<base_scheduler_tokio::tokio_scheduler::TokioScheduler, base_http_hello_benchmark::Hello>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin  (in server)        6
+        _xzm_xzone_malloc_tiny  (in libsystem_malloc.dylib)        6
+        <base_scheduler::cancellation::Cancellation>::cancelled::{closure#0}  (in server)        5
+        <base_scheduler_tokio::socket_write_state::SocketWriteState<base_scheduler_tokio::tokio_task::TokioTask<core::result::Result<(), base_scheduler::operation_error::OperationError>>>>::flush::{closure#0}  (in server)        5
+        __rustc::__rdl_realloc  (in server)        5
+        <tokio::runtime::io::registration::Registration>::poll_ready  (in server)        5
+        <httparse::Request>::parse_with_config_and_uninit_headers  (in server)        5
+        base_http1::wire::framing  (in server)        5
+        <hashbrown::map::HashMap<alloc::string::String, base_http::fields::FieldPolicy, std::hash::random::RandomState> as core::clone::Clone>::clone  (in server)        5
+
+Binary Images:
+       0x1027b4000 -        0x102917e7b +server (0) <84FEEA6E-5CCB-3510-BC2F-052125D35964> /Users/*/server
+       0x184244000 -        0x1842935f7  libobjc.A.dylib (973.1) <C0680DF6-9900-3C29-A071-95A031686EF8> /usr/lib/libobjc.A.dylib
+       0x184294000 -        0x18429e23f  libsharedcache.dylib (0) <BBF95357-BEBF-3D89-8900-2BBB14A667C5> /usr/lib/libsharedcache.dylib
+       0x18429f000 -        0x1842c5d3b  libdyld.dylib (27062) <62863BCA-DD60-3D32-A9DB-89099BA6F3D7> /usr/lib/system/libdyld.dylib
+       0x1842c6000 -        0x1843856e3  dyld (1.0.0 - 27062) <D341DDCB-7969-3A9C-8E03-0CF4751398A9> /usr/lib/dyld
+       0x184386000 -        0x18438901f  libsystem_blocks.dylib (98.1) <6F304731-D95D-3501-B4AD-F2934F7F2446> /usr/lib/system/libsystem_blocks.dylib
+       0x18438a000 -        0x1843df0df  libxpc.dylib (3298.1.1) <0791121F-B5FC-3F84-BF04-115E86D2D882> /usr/lib/system/libxpc.dylib
+       0x1843e0000 -        0x1843ffc13  libsystem_trace.dylib (1966.1.1) <B48A8E3E-A12A-3342-8321-428B555E965E> /usr/lib/system/libsystem_trace.dylib
+       0x184400000 -        0x1844b4f27  libcorecrypto.dylib (2109.0.22) <807AA6C9-5D8A-3CA5-B4CE-FACE5296EF6A> /usr/lib/system/libcorecrypto.dylib
+       0x1844b5000 -        0x18450ac5f  libsystem_malloc.dylib (886.0.8) <2339CB57-FE5A-3154-A206-A76059C749EB> /usr/lib/system/libsystem_malloc.dylib
+       0x18450b000 -        0x18455119f  libdispatch.dylib (1605.0.2) <022BF08F-0B3A-3225-9E65-16D1553CE90D> /usr/lib/system/libdispatch.dylib
+       0x184552000 -        0x184554d2b  libsystem_featureflags.dylib (108) <20C1CAB2-1F13-3426-8146-9CAE9FF2A33D> /usr/lib/system/libsystem_featureflags.dylib
+       0x184555000 -        0x1845d7ca3  libsystem_c.dylib (1786.0.3) <FBA7B23E-AA60-3A90-9AA4-A7A2E0AD63EE> /usr/lib/system/libsystem_c.dylib
+       0x1845d8000 -        0x18466d033  libc++.1.dylib (2200.27) <1E9BA4AA-B5DA-3CF3-80AC-4B880049573F> /usr/lib/libc++.1.dylib
+       0x18466e000 -        0x184687eff  libc++abi.dylib (2200.27) <A21743EE-6E1C-3E74-97EA-7AF793DE4BDF> /usr/lib/libc++abi.dylib
+       0x184688000 -        0x1846c69ab  libsystem_kernel.dylib (13432.1.9) <F63BF418-8F75-34A4-AAF1-8CAF2B9B6A05> /usr/lib/system/libsystem_kernel.dylib
+       0x1846c7000 -        0x1846d391b  libsystem_pthread.dylib (553.0.1) <5A1828C3-CBC2-3B85-BD07-C8ED10021A41> /usr/lib/system/libsystem_pthread.dylib
+       0x1846d4000 -        0x1846dd4f3  libsystem_platform.dylib (402.0.1.0.1) <080E4444-A0FB-3913-9756-4E470015F32F> /usr/lib/system/libsystem_platform.dylib
+       0x1846de000 -        0x18470c903  libsystem_info.dylib (603) <BC387AEB-1CEF-3513-92D7-D7F913596711> /usr/lib/system/libsystem_info.dylib
+       0x188836000 -        0x18883fb13  libsystem_darwin.dylib (1786.0.3) <4E66C888-993C-3E6A-A8DA-A949C01C5B67> /usr/lib/system/libsystem_darwin.dylib
+       0x188c90000 -        0x188ca1b8b  libsystem_notify.dylib (368) <58FD36D8-37A7-311C-80F2-8E64DD8710CF> /usr/lib/system/libsystem_notify.dylib
+       0x18aded000 -        0x18ae07d93  libsystem_networkextension.dylib (2340.1.2) <22E1D190-486F-324F-ABA4-F36AB841BFE9> /usr/lib/system/libsystem_networkextension.dylib
+       0x18ae95000 -        0x18aeac247  libsystem_asl.dylib (409) <B4D449B7-A821-3A9A-8019-E917B291F10A> /usr/lib/system/libsystem_asl.dylib
+       0x18be40000 -        0x18be40f2f  libobjcMsgSend.dylib (973.1) <41179EDE-DC97-3BBE-8848-6400D12C1436> /usr/lib/objc/libobjcMsgSend.dylib
+       0x18cf8c000 -        0x18cf93edf  libsystem_symptoms.dylib (2394.0.4) <60EE7884-9F4E-3184-A6AC-FA40A7A0297D> /usr/lib/system/libsystem_symptoms.dylib
+       0x191324000 -        0x19135eaeb  libsystem_containermanager.dylib (833.0.8.0.1) <08A57205-555D-3792-8931-9D5B585AF326> /usr/lib/system/libsystem_containermanager.dylib
+       0x192977000 -        0x19297b317  libsystem_configuration.dylib (1446) <F3EB66A7-7A24-3AE5-B6E8-9A37BB00F119> /usr/lib/system/libsystem_configuration.dylib
+       0x19297c000 -        0x192982e03  libsystem_sandbox.dylib (3051.0.52) <1E892B56-092E-3832-BDE3-DCE356D7A4FA> /usr/lib/system/libsystem_sandbox.dylib
+       0x193e40000 -        0x193e40f2f  libobjcMsgSend1.dylib (973.1) <B40D9B2A-E1EE-37ED-8004-711A1F263DE1> /usr/lib/objc/libobjcMsgSend1.dylib
+       0x194560000 -        0x194562f93  libquarantine.dylib (217.0.4) <7FD4AE22-86EF-382B-83F5-ADF9336C1160> /usr/lib/system/libquarantine.dylib
+       0x194c72000 -        0x194c781e7  libsystem_coreservices.dylib (203) <57248E07-11A5-3857-918E-4A3A63B69FE8> /usr/lib/system/libsystem_coreservices.dylib
+       0x19523a000 -        0x195277b27  libsystem_m.dylib (3326.0.1) <A3FB340F-3ED5-30F4-8B64-9D5860F64D35> /usr/lib/system/libsystem_m.dylib
+       0x195278000 -        0x195278b47  libcharset.1.dylib (121) <3C9B584E-740A-3664-A1B0-52E561EA4B0B> /usr/lib/libcharset.1.dylib
+       0x195279000 -        0x19527c4f7  libmacho.dylib (27062) <50DEADEC-3E99-3519-AFC3-4A3FEB3F14C3> /usr/lib/system/libmacho.dylib
+       0x195296000 -        0x1952a2707  libcommonCrypto.dylib (600041) <41C99F45-C5E6-39DB-B1F2-A1BEA9D242A4> /usr/lib/system/libcommonCrypto.dylib
+       0x1952a3000 -        0x1952acc87  libunwind.dylib (2200.5) <3070AB81-B082-39E8-8A00-EF88DDE9AC47> /usr/lib/system/libunwind.dylib
+       0x1952b4000 -        0x1952be7eb  libcopyfile.dylib (260.0.3) <72D95AF9-BF5E-3A84-81A6-BCC5BDB99857> /usr/lib/system/libcopyfile.dylib
+       0x1952bf000 -        0x1952c28bf  libcompiler_rt.dylib (103.4) <DFB5CE7F-A36E-36AA-BECE-1392D3D43607> /usr/lib/system/libcompiler_rt.dylib
+       0x1952c3000 -        0x1952c8077  libsystem_collections.dylib (1786.0.3) <1E8022D4-5A37-3A7A-8936-603E6FA88358> /usr/lib/system/libsystem_collections.dylib
+       0x1952c9000 -        0x1952cbf1f  libsystem_secinit.dylib (182) <DE037464-4C5D-3E96-A33F-2A4557CC6A20> /usr/lib/system/libsystem_secinit.dylib
+       0x1952cc000 -        0x1952ce97f  libremovefile.dylib (96) <E6E6DFCF-6B2C-3F30-A59D-816CAB1190CE> /usr/lib/system/libremovefile.dylib
+       0x1952cf000 -        0x1952cfe27  libkeymgr.dylib (31) <5EC997EF-3ADA-360B-9FCD-5F940C83FA4E> /usr/lib/system/libkeymgr.dylib
+       0x1952d0000 -        0x1952d8af7  libsystem_dnssd.dylib (3111.0.5.0.1) <DE22096F-1E5B-3D6E-8164-771582DD6391> /usr/lib/system/libsystem_dnssd.dylib
+       0x1952d9000 -        0x1952ddf1b  libcache.dylib (95) <80BAE197-E285-3F6E-A1EE-B77FE37D7E5D> /usr/lib/system/libcache.dylib
+       0x1952de000 -        0x1952df8f3  libSystem.B.dylib (1359) <4FDC9AA6-B344-37FE-B8C6-A4C94A038F57> /usr/lib/libSystem.B.dylib
+       0x195318000 -        0x19531f0a3  libiconv.2.dylib (121) <C343D6F7-6932-30E8-8E8F-F756946D8413> /usr/lib/libiconv.2.dylib
+       0x19be40000 -        0x19be40f2f  libobjcMsgSend2.dylib (973.1) <BD27A84B-C9AE-3282-BBEA-3B6119837B5A> /usr/lib/objc/libobjcMsgSend2.dylib
+       0x1a3e40000 -        0x1a3e40f2f  libobjcMsgSend3.dylib (973.1) <C0860D68-DDFC-3BD7-8B06-DB0645CBBED4> /usr/lib/objc/libobjcMsgSend3.dylib
+       0x1abe40000 -        0x1abe40f2f  libobjcMsgSend4.dylib (973.1) <A6153BF5-622B-3B01-81B6-F64A365EF613> /usr/lib/objc/libobjcMsgSend4.dylib
+       0x1b3e40000 -        0x1b3e40f2f  libobjcMsgSend5.dylib (973.1) <3913A71C-B29A-3AEA-820B-BEC40AC1861A> /usr/lib/objc/libobjcMsgSend5.dylib
+       0x1bbe40000 -        0x1bbe40f2f  libobjcMsgSend6.dylib (973.1) <9BC523A3-E167-3F6C-8CAE-0F3EBA671791> /usr/lib/objc/libobjcMsgSend6.dylib
+       0x1c3e40000 -        0x1c3e40f2f  libobjcMsgSend7.dylib (973.1) <248B7BCE-5B4C-34C7-A340-43D5228628C5> /usr/lib/objc/libobjcMsgSend7.dylib
+       0x1cbe40000 -        0x1cbe40f2f  libobjcMsgSend8.dylib (973.1) <3E041BAD-A8E8-3069-B741-78CD1A45B176> /usr/lib/objc/libobjcMsgSend8.dylib
+       0x1d3e40000 -        0x1d3e40f2f  libobjcMsgSend9.dylib (973.1) <34A67969-21A0-39D6-BB81-8FDA5A2409DB> /usr/lib/objc/libobjcMsgSend9.dylib
+       0x1dbe40000 -        0x1dbe40f2f  libobjcMsgSend10.dylib (973.1) <678186C0-8EAD-3B35-8CBB-00285B41E4A0> /usr/lib/objc/libobjcMsgSend10.dylib
+       0x1e3e40000 -        0x1e3e40f2f  libobjcMsgSend11.dylib (973.1) <E05CB08C-E956-36FA-8967-AE8E346A8D2C> /usr/lib/objc/libobjcMsgSend11.dylib
+       0x20be40000 -        0x20be40f2f  libobjcMsgSend12.dylib (973.1) <10AB03AA-FF1F-3FDC-9DFB-BFC40042C501> /usr/lib/objc/libobjcMsgSend12.dylib
+       0x213e40000 -        0x213e40f2f  libobjcMsgSend13.dylib (973.1) <ABF53427-FA6F-3D0D-8F9D-7AD795CA5C92> /usr/lib/objc/libobjcMsgSend13.dylib
+       0x21be40000 -        0x21be40f2f  libobjcMsgSend14.dylib (973.1) <9A844C46-A6DA-34D4-8EBF-2AD775C30684> /usr/lib/objc/libobjcMsgSend14.dylib
+       0x223e40000 -        0x223e40f2f  libobjcMsgSend15.dylib (973.1) <7C995666-2B2D-3284-AA0A-EBF7C922838E> /usr/lib/objc/libobjcMsgSend15.dylib
+       0x22be40000 -        0x22be40f2f  libobjcMsgSend16.dylib (973.1) <B6C0E14B-53AE-3E22-9ED5-1729C49F46F2> /usr/lib/objc/libobjcMsgSend16.dylib
+       0x233e40000 -        0x233e40f2f  libobjcMsgSend17.dylib (973.1) <07B4CF85-251B-301B-832B-20B315A59E19> /usr/lib/objc/libobjcMsgSend17.dylib
+       0x23be40000 -        0x23be40f2f  libobjcMsgSend18.dylib (973.1) <43E575B7-04DB-3999-A633-1A3B638BA6E3> /usr/lib/objc/libobjcMsgSend18.dylib
+       0x243e40000 -        0x243e40f2f  libobjcMsgSend19.dylib (973.1) <736F4D85-76F7-3B28-8D87-C07E8F7A0EF4> /usr/lib/objc/libobjcMsgSend19.dylib
+       0x24be40000 -        0x24be40f2f  libobjcMsgSend20.dylib (973.1) <74E67C8B-6BCA-3184-A18E-A97F370052C6> /usr/lib/objc/libobjcMsgSend20.dylib
+       0x253e40000 -        0x253e40f2f  libobjcMsgSend21.dylib (973.1) <CC0D732F-98E7-3888-9E15-70984DA2FB04> /usr/lib/objc/libobjcMsgSend21.dylib
+       0x25be40000 -        0x25be40f2f  libobjcMsgSend22.dylib (973.1) <85A60286-5DE3-32BA-B18C-2A498B065C88> /usr/lib/objc/libobjcMsgSend22.dylib
+       0x263e40000 -        0x263e40f2f  libobjcMsgSend23.dylib (973.1) <5452A0D2-6B19-39BE-ADDD-80B7BCDE3A98> /usr/lib/objc/libobjcMsgSend23.dylib
+       0x26be40000 -        0x26be40f2f  libobjcMsgSend24.dylib (973.1) <94BBF2D6-722B-350D-8557-4D25A8E8D53A> /usr/lib/objc/libobjcMsgSend24.dylib
+       0x273e40000 -        0x273e40f2f  libobjcMsgSend25.dylib (973.1) <35481387-5A8E-3AE4-86A6-94CEB3CC8726> /usr/lib/objc/libobjcMsgSend25.dylib
+       0x28be40000 -        0x28be40f2f  libobjcMsgSend26.dylib (973.1) <9E0C8664-E7F4-39D1-AAFC-BD92B255E4E8> /usr/lib/objc/libobjcMsgSend26.dylib
+       0x293e40000 -        0x293e40f2f  libobjcMsgSend27.dylib (973.1) <FD424935-55A9-3650-955A-EED3441A1D19> /usr/lib/objc/libobjcMsgSend27.dylib
+       0x29be40000 -        0x29be40f2f  libobjcMsgSend28.dylib (973.1) <09BA7B97-7DF7-3C7F-932A-B6847662FC49> /usr/lib/objc/libobjcMsgSend28.dylib
+       0x2a3e40000 -        0x2a3e40f2f  libobjcMsgSend29.dylib (973.1) <36D5BA3F-2139-30B0-8558-556764BE9813> /usr/lib/objc/libobjcMsgSend29.dylib
+       0x2abe40000 -        0x2abe40f2f  libobjcMsgSend30.dylib (973.1) <9F05564A-9D12-372C-98FC-E9F0E6BE4F04> /usr/lib/objc/libobjcMsgSend30.dylib
+       0x2b0b5a000 -        0x2b0b60fe5  libRosetta.dylib (385) <E359944B-D230-33F9-A04E-0C3B17C3326E> /usr/lib/libRosetta.dylib
+       0x2b1549000 -        0x2b154c75b  libsystem_darwindirectory.dylib (129.0.1) <61264923-2AA5-3658-B8C4-550C71E9D4B3> /usr/lib/system/libsystem_darwindirectory.dylib
+       0x2b154d000 -        0x2b1557d9b  libsystem_eligibility.dylib (446.1.3) <EDDE8E9C-A2CF-3931-BBB3-321CB852EB30> /usr/lib/system/libsystem_eligibility.dylib
+       0x2b1558000 -        0x2b156142b  libsystem_sanitizers.dylib (32) <7138ED99-7AA0-34EA-B35B-20EF6ADB1EED> /usr/lib/system/libsystem_sanitizers.dylib
+       0x2b1562000 -        0x2b1562a13  libsystem_trial.dylib (511) <6AE48824-EC44-3A8C-B501-BE57DBE892E7> /usr/lib/system/libsystem_trial.dylib
+       0x2b3e40000 -        0x2b3e40f2f  libobjcMsgSend31.dylib (973.1) <0985E20F-78C3-3466-A2B2-DBB95F7104A3> /usr/lib/objc/libobjcMsgSend31.dylib
+       0x2bbe40000 -        0x2bbe40f2f  libobjcMsgSend32.dylib (973.1) <0D309D58-D576-3E5D-AD4B-6D55AB491702> /usr/lib/objc/libobjcMsgSend32.dylib
+       0x2c3e40000 -        0x2c3e40f2f  libobjcMsgSend33.dylib (973.1) <346E0484-48FA-369B-8A64-93B5F5341CFE> /usr/lib/objc/libobjcMsgSend33.dylib
+       0x2cbe40000 -        0x2cbe40f2f  libobjcMsgSend34.dylib (973.1) <6A31F809-BCBE-3E01-A367-E91FDACCE324> /usr/lib/objc/libobjcMsgSend34.dylib

@@ -1,0 +1,2774 @@
+{
+  "diagnostic-baseline-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 118784,
+        "payload_batches": 118176,
+        "payload_requests": 1169796,
+        "deferred_batches": 605,
+        "deferred_requests": 38713,
+        "submits": 1,
+        "waits": 118177,
+        "delays": 605,
+        "delay_sum_ns": 326673,
+        "max_delay_ns": 5572,
+        "delay_buckets_le_us": [
+          544,
+          59,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1169745,
+        "samples": 9138,
+        "sum_ns": 205100792,
+        "max_ns": 306778,
+        "buckets_le_us": [
+          53,
+          784,
+          90,
+          1530,
+          2118,
+          2992,
+          1074,
+          330,
+          152,
+          15,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1169809,
+        "samples": 9139,
+        "sum_ns": 181621261,
+        "max_ns": 277345,
+        "buckets_le_us": [
+          676,
+          138,
+          669,
+          1088,
+          2536,
+          2730,
+          884,
+          358,
+          58,
+          2,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.5119482805307338,
+    "deferred_requests_percent": 3.3093804389825237,
+    "stage_to_entry_attempt": {
+      "samples": 605,
+      "mean_us": 0.5399553719008264,
+      "max_us": 5.572,
+      "buckets_le_us": [
+        [
+          1,
+          544
+        ],
+        [
+          2,
+          59
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          8,
+          1
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9138,
+      "mean_us": 22.444822937185382,
+      "max_us": 306.778,
+      "buckets_le_us": [
+        [
+          1,
+          53
+        ],
+        [
+          2,
+          784
+        ],
+        [
+          4,
+          90
+        ],
+        [
+          8,
+          1530
+        ],
+        [
+          16,
+          2118
+        ],
+        [
+          32,
+          2992
+        ],
+        [
+          64,
+          1074
+        ],
+        [
+          128,
+          330
+        ],
+        [
+          256,
+          152
+        ],
+        [
+          512,
+          15
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9139,
+      "mean_us": 19.87320943210417,
+      "max_us": 277.345,
+      "buckets_le_us": [
+        [
+          1,
+          676
+        ],
+        [
+          2,
+          138
+        ],
+        [
+          4,
+          669
+        ],
+        [
+          8,
+          1088
+        ],
+        [
+          16,
+          2536
+        ],
+        [
+          32,
+          2730
+        ],
+        [
+          64,
+          884
+        ],
+        [
+          128,
+          358
+        ],
+        [
+          256,
+          58
+        ],
+        [
+          512,
+          2
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-baseline-base-iouring-raw": {
+    "raw": {
+      "counter": {
+        "turns": 180224,
+        "payload_batches": 0,
+        "payload_requests": 0,
+        "deferred_batches": 0,
+        "deferred_requests": 0,
+        "submits": 1,
+        "waits": 180221,
+        "delays": 0,
+        "delay_sum_ns": 0,
+        "max_delay_ns": 0,
+        "delay_buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 0,
+        "samples": 0,
+        "sum_ns": 0,
+        "max_ns": 0,
+        "buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 0,
+        "samples": 0,
+        "sum_ns": 0,
+        "max_ns": 0,
+        "buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": null,
+    "deferred_requests_percent": null,
+    "stage_to_entry_attempt": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-baseline-r2-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 94208,
+        "payload_batches": 93781,
+        "payload_requests": 1197878,
+        "deferred_batches": 433,
+        "deferred_requests": 27705,
+        "submits": 10,
+        "waits": 93773,
+        "delays": 433,
+        "delay_sum_ns": 254647,
+        "max_delay_ns": 17258,
+        "delay_buckets_le_us": [
+          378,
+          54,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1197838,
+        "samples": 9358,
+        "sum_ns": 232175454,
+        "max_ns": 250301,
+        "buckets_le_us": [
+          0,
+          568,
+          156,
+          988,
+          1954,
+          3393,
+          1858,
+          338,
+          103,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1197902,
+        "samples": 9358,
+        "sum_ns": 241411072,
+        "max_ns": 336816,
+        "buckets_le_us": [
+          375,
+          280,
+          283,
+          1124,
+          1688,
+          3352,
+          1724,
+          367,
+          144,
+          21,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.4617139932395688,
+    "deferred_requests_percent": 2.312839871840037,
+    "stage_to_entry_attempt": {
+      "samples": 433,
+      "mean_us": 0.5880993071593533,
+      "max_us": 17.258,
+      "buckets_le_us": [
+        [
+          1,
+          378
+        ],
+        [
+          2,
+          54
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9358,
+      "mean_us": 24.81037123316948,
+      "max_us": 250.301,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          568
+        ],
+        [
+          4,
+          156
+        ],
+        [
+          8,
+          988
+        ],
+        [
+          16,
+          1954
+        ],
+        [
+          32,
+          3393
+        ],
+        [
+          64,
+          1858
+        ],
+        [
+          128,
+          338
+        ],
+        [
+          256,
+          103
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9358,
+      "mean_us": 25.797293438768968,
+      "max_us": 336.816,
+      "buckets_le_us": [
+        [
+          1,
+          375
+        ],
+        [
+          2,
+          280
+        ],
+        [
+          4,
+          283
+        ],
+        [
+          8,
+          1124
+        ],
+        [
+          16,
+          1688
+        ],
+        [
+          32,
+          3352
+        ],
+        [
+          64,
+          1724
+        ],
+        [
+          128,
+          367
+        ],
+        [
+          256,
+          144
+        ],
+        [
+          512,
+          21
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-baseline-r3-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 110592,
+        "payload_batches": 110339,
+        "payload_requests": 1185310,
+        "deferred_batches": 250,
+        "deferred_requests": 15929,
+        "submits": 2,
+        "waits": 110339,
+        "delays": 250,
+        "delay_sum_ns": 181578,
+        "max_delay_ns": 22016,
+        "delay_buckets_le_us": [
+          223,
+          26,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1185254,
+        "samples": 9259,
+        "sum_ns": 199435883,
+        "max_ns": 234136,
+        "buckets_le_us": [
+          9,
+          710,
+          114,
+          1373,
+          2030,
+          3226,
+          1452,
+          287,
+          58,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1185318,
+        "samples": 9260,
+        "sum_ns": 192073771,
+        "max_ns": 286529,
+        "buckets_le_us": [
+          588,
+          181,
+          569,
+          1146,
+          2370,
+          2895,
+          1156,
+          268,
+          86,
+          1,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.22657446596398373,
+    "deferred_requests_percent": 1.343867848917161,
+    "stage_to_entry_attempt": {
+      "samples": 250,
+      "mean_us": 0.726312,
+      "max_us": 22.016,
+      "buckets_le_us": [
+        [
+          1,
+          223
+        ],
+        [
+          2,
+          26
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9259,
+      "mean_us": 21.539678474997302,
+      "max_us": 234.136,
+      "buckets_le_us": [
+        [
+          1,
+          9
+        ],
+        [
+          2,
+          710
+        ],
+        [
+          4,
+          114
+        ],
+        [
+          8,
+          1373
+        ],
+        [
+          16,
+          2030
+        ],
+        [
+          32,
+          3226
+        ],
+        [
+          64,
+          1452
+        ],
+        [
+          128,
+          287
+        ],
+        [
+          256,
+          58
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9260,
+      "mean_us": 20.742307883369328,
+      "max_us": 286.529,
+      "buckets_le_us": [
+        [
+          1,
+          588
+        ],
+        [
+          2,
+          181
+        ],
+        [
+          4,
+          569
+        ],
+        [
+          8,
+          1146
+        ],
+        [
+          16,
+          2370
+        ],
+        [
+          32,
+          2895
+        ],
+        [
+          64,
+          1156
+        ],
+        [
+          128,
+          268
+        ],
+        [
+          256,
+          86
+        ],
+        [
+          512,
+          1
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-candidate-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 90112,
+        "payload_batches": 90107,
+        "payload_requests": 1153285,
+        "deferred_batches": 0,
+        "deferred_requests": 0,
+        "submits": 475,
+        "waits": 89635,
+        "delays": 0,
+        "delay_sum_ns": 0,
+        "max_delay_ns": 0,
+        "delay_buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1153231,
+        "samples": 9009,
+        "sum_ns": 236964794,
+        "max_ns": 344747,
+        "buckets_le_us": [
+          0,
+          464,
+          162,
+          851,
+          1929,
+          3410,
+          1738,
+          290,
+          153,
+          12,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1153295,
+        "samples": 9010,
+        "sum_ns": 227744548,
+        "max_ns": 3888194,
+        "buckets_le_us": [
+          359,
+          230,
+          306,
+          1082,
+          1603,
+          3479,
+          1503,
+          297,
+          150,
+          0,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.0,
+    "deferred_requests_percent": 0.0,
+    "stage_to_entry_attempt": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9009,
+      "mean_us": 26.303118437118435,
+      "max_us": 344.747,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          464
+        ],
+        [
+          4,
+          162
+        ],
+        [
+          8,
+          851
+        ],
+        [
+          16,
+          1929
+        ],
+        [
+          32,
+          3410
+        ],
+        [
+          64,
+          1738
+        ],
+        [
+          128,
+          290
+        ],
+        [
+          256,
+          153
+        ],
+        [
+          512,
+          12
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9010,
+      "mean_us": 25.27686437291898,
+      "max_us": 3888.194,
+      "buckets_le_us": [
+        [
+          1,
+          359
+        ],
+        [
+          2,
+          230
+        ],
+        [
+          4,
+          306
+        ],
+        [
+          8,
+          1082
+        ],
+        [
+          16,
+          1603
+        ],
+        [
+          32,
+          3479
+        ],
+        [
+          64,
+          1503
+        ],
+        [
+          128,
+          297
+        ],
+        [
+          256,
+          150
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          1
+        ]
+      ]
+    }
+  },
+  "diagnostic-candidate-base-iouring-raw": {
+    "raw": {
+      "counter": {
+        "turns": 184320,
+        "payload_batches": 0,
+        "payload_requests": 0,
+        "deferred_batches": 0,
+        "deferred_requests": 0,
+        "submits": 1,
+        "waits": 184317,
+        "delays": 0,
+        "delay_sum_ns": 0,
+        "max_delay_ns": 0,
+        "delay_buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 0,
+        "samples": 0,
+        "sum_ns": 0,
+        "max_ns": 0,
+        "buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 0,
+        "samples": 0,
+        "sum_ns": 0,
+        "max_ns": 0,
+        "buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": null,
+    "deferred_requests_percent": null,
+    "stage_to_entry_attempt": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-candidate-r2-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 86016,
+        "payload_batches": 86011,
+        "payload_requests": 1188460,
+        "deferred_batches": 0,
+        "deferred_requests": 0,
+        "submits": 334,
+        "waits": 85680,
+        "delays": 0,
+        "delay_sum_ns": 0,
+        "max_delay_ns": 0,
+        "delay_buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1188417,
+        "samples": 9284,
+        "sum_ns": 241495645,
+        "max_ns": 209459,
+        "buckets_le_us": [
+          2,
+          442,
+          211,
+          737,
+          1890,
+          3341,
+          2166,
+          457,
+          38,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1188481,
+        "samples": 9284,
+        "sum_ns": 257514749,
+        "max_ns": 343529,
+        "buckets_le_us": [
+          247,
+          327,
+          106,
+          1200,
+          1363,
+          3452,
+          2003,
+          399,
+          177,
+          10,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.0,
+    "deferred_requests_percent": 0.0,
+    "stage_to_entry_attempt": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9284,
+      "mean_us": 26.012025527789746,
+      "max_us": 209.459,
+      "buckets_le_us": [
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          442
+        ],
+        [
+          4,
+          211
+        ],
+        [
+          8,
+          737
+        ],
+        [
+          16,
+          1890
+        ],
+        [
+          32,
+          3341
+        ],
+        [
+          64,
+          2166
+        ],
+        [
+          128,
+          457
+        ],
+        [
+          256,
+          38
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9284,
+      "mean_us": 27.737478349849205,
+      "max_us": 343.529,
+      "buckets_le_us": [
+        [
+          1,
+          247
+        ],
+        [
+          2,
+          327
+        ],
+        [
+          4,
+          106
+        ],
+        [
+          8,
+          1200
+        ],
+        [
+          16,
+          1363
+        ],
+        [
+          32,
+          3452
+        ],
+        [
+          64,
+          2003
+        ],
+        [
+          128,
+          399
+        ],
+        [
+          256,
+          177
+        ],
+        [
+          512,
+          10
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-candidate-r3-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 86016,
+        "payload_batches": 86011,
+        "payload_requests": 1178473,
+        "deferred_batches": 0,
+        "deferred_requests": 0,
+        "submits": 573,
+        "waits": 85441,
+        "delays": 0,
+        "delay_sum_ns": 0,
+        "max_delay_ns": 0,
+        "delay_buckets_le_us": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1178420,
+        "samples": 9206,
+        "sum_ns": 273697329,
+        "max_ns": 362341,
+        "buckets_le_us": [
+          0,
+          432,
+          207,
+          853,
+          1844,
+          3185,
+          1973,
+          450,
+          244,
+          18,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1178484,
+        "samples": 9206,
+        "sum_ns": 252993077,
+        "max_ns": 253287,
+        "buckets_le_us": [
+          341,
+          267,
+          171,
+          1066,
+          1467,
+          3465,
+          1796,
+          449,
+          184,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.0,
+    "deferred_requests_percent": 0.0,
+    "stage_to_entry_attempt": {
+      "samples": 0,
+      "mean_us": null,
+      "max_us": 0.0,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          32,
+          0
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9206,
+      "mean_us": 29.730320334564414,
+      "max_us": 362.341,
+      "buckets_le_us": [
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          432
+        ],
+        [
+          4,
+          207
+        ],
+        [
+          8,
+          853
+        ],
+        [
+          16,
+          1844
+        ],
+        [
+          32,
+          3185
+        ],
+        [
+          64,
+          1973
+        ],
+        [
+          128,
+          450
+        ],
+        [
+          256,
+          244
+        ],
+        [
+          512,
+          18
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9206,
+      "mean_us": 27.48132489680643,
+      "max_us": 253.287,
+      "buckets_le_us": [
+        [
+          1,
+          341
+        ],
+        [
+          2,
+          267
+        ],
+        [
+          4,
+          171
+        ],
+        [
+          8,
+          1066
+        ],
+        [
+          16,
+          1467
+        ],
+        [
+          32,
+          3465
+        ],
+        [
+          64,
+          1796
+        ],
+        [
+          128,
+          449
+        ],
+        [
+          256,
+          184
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-random-baseline-r1-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 77824,
+        "payload_batches": 77389,
+        "payload_requests": 1162357,
+        "deferred_batches": 437,
+        "deferred_requests": 27897,
+        "submits": 7,
+        "waits": 77384,
+        "delays": 437,
+        "delay_sum_ns": 309235,
+        "max_delay_ns": 21633,
+        "delay_buckets_le_us": [
+          387,
+          46,
+          0,
+          2,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1162304,
+        "samples": 9041,
+        "sum_ns": 274836880,
+        "max_ns": 328736,
+        "buckets_le_us": [
+          4,
+          343,
+          223,
+          628,
+          1678,
+          2962,
+          2487,
+          568,
+          140,
+          8,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1162368,
+        "samples": 9041,
+        "sum_ns": 258521239,
+        "max_ns": 332201,
+        "buckets_le_us": [
+          172,
+          422,
+          39,
+          1093,
+          1229,
+          3176,
+          2261,
+          534,
+          110,
+          5,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.5646797348460375,
+    "deferred_requests_percent": 2.4000371658621233,
+    "stage_to_entry_attempt": {
+      "samples": 437,
+      "mean_us": 0.7076315789473684,
+      "max_us": 21.633,
+      "buckets_le_us": [
+        [
+          1,
+          387
+        ],
+        [
+          2,
+          46
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          2
+        ],
+        [
+          16,
+          1
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9041,
+      "mean_us": 30.39894701913505,
+      "max_us": 328.736,
+      "buckets_le_us": [
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          343
+        ],
+        [
+          4,
+          223
+        ],
+        [
+          8,
+          628
+        ],
+        [
+          16,
+          1678
+        ],
+        [
+          32,
+          2962
+        ],
+        [
+          64,
+          2487
+        ],
+        [
+          128,
+          568
+        ],
+        [
+          256,
+          140
+        ],
+        [
+          512,
+          8
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9041,
+      "mean_us": 28.594319101869264,
+      "max_us": 332.201,
+      "buckets_le_us": [
+        [
+          1,
+          172
+        ],
+        [
+          2,
+          422
+        ],
+        [
+          4,
+          39
+        ],
+        [
+          8,
+          1093
+        ],
+        [
+          16,
+          1229
+        ],
+        [
+          32,
+          3176
+        ],
+        [
+          64,
+          2261
+        ],
+        [
+          128,
+          534
+        ],
+        [
+          256,
+          110
+        ],
+        [
+          512,
+          5
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-random-baseline-r2-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 65536,
+        "payload_batches": 64867,
+        "payload_requests": 1170862,
+        "deferred_batches": 669,
+        "deferred_requests": 42745,
+        "submits": 5,
+        "waits": 64864,
+        "delays": 669,
+        "delay_sum_ns": 452446,
+        "max_delay_ns": 21651,
+        "delay_buckets_le_us": [
+          620,
+          46,
+          0,
+          0,
+          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1170815,
+        "samples": 9096,
+        "sum_ns": 326767635,
+        "max_ns": 353727,
+        "buckets_le_us": [
+          1,
+          169,
+          268,
+          529,
+          1390,
+          2557,
+          3062,
+          932,
+          184,
+          4,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1170879,
+        "samples": 9097,
+        "sum_ns": 317540028,
+        "max_ns": 282608,
+        "buckets_le_us": [
+          48,
+          420,
+          46,
+          945,
+          1083,
+          2491,
+          3020,
+          825,
+          215,
+          4,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 1.0313410516903818,
+    "deferred_requests_percent": 3.650729120938249,
+    "stage_to_entry_attempt": {
+      "samples": 669,
+      "mean_us": 0.6763019431988042,
+      "max_us": 21.651,
+      "buckets_le_us": [
+        [
+          1,
+          620
+        ],
+        [
+          2,
+          46
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          2
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 9096,
+      "mean_us": 35.92432222955145,
+      "max_us": 353.727,
+      "buckets_le_us": [
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          169
+        ],
+        [
+          4,
+          268
+        ],
+        [
+          8,
+          529
+        ],
+        [
+          16,
+          1390
+        ],
+        [
+          32,
+          2557
+        ],
+        [
+          64,
+          3062
+        ],
+        [
+          128,
+          932
+        ],
+        [
+          256,
+          184
+        ],
+        [
+          512,
+          4
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 9097,
+      "mean_us": 34.906016049247,
+      "max_us": 282.608,
+      "buckets_le_us": [
+        [
+          1,
+          48
+        ],
+        [
+          2,
+          420
+        ],
+        [
+          4,
+          46
+        ],
+        [
+          8,
+          945
+        ],
+        [
+          16,
+          1083
+        ],
+        [
+          32,
+          2491
+        ],
+        [
+          64,
+          3020
+        ],
+        [
+          128,
+          825
+        ],
+        [
+          256,
+          215
+        ],
+        [
+          512,
+          4
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  },
+  "diagnostic-random-baseline-r3-base-iouring-owned-raw": {
+    "raw": {
+      "counter": {
+        "turns": 65536,
+        "payload_batches": 64902,
+        "payload_requests": 1152907,
+        "deferred_batches": 633,
+        "deferred_requests": 40441,
+        "submits": 4,
+        "waits": 64900,
+        "delays": 633,
+        "delay_sum_ns": 398688,
+        "max_delay_ns": 21546,
+        "delay_buckets_le_us": [
+          592,
+          39,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "poll": {
+        "publications": 1152859,
+        "samples": 8976,
+        "sum_ns": 312965795,
+        "max_ns": 337869,
+        "buckets_le_us": [
+          5,
+          191,
+          279,
+          477,
+          1423,
+          2549,
+          3074,
+          827,
+          145,
+          6,
+          0,
+          0,
+          0
+        ]
+      },
+      "queue": {
+        "admissions": 1152923,
+        "samples": 8976,
+        "sum_ns": 307822157,
+        "max_ns": 346316,
+        "buckets_le_us": [
+          35,
+          419,
+          43,
+          871,
+          1147,
+          2483,
+          3001,
+          799,
+          173,
+          5,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "deferred_batches_percent": 0.9753166312286217,
+    "deferred_requests_percent": 3.5077417345891733,
+    "stage_to_entry_attempt": {
+      "samples": 633,
+      "mean_us": 0.6298388625592417,
+      "max_us": 21.546,
+      "buckets_le_us": [
+        [
+          1,
+          592
+        ],
+        [
+          2,
+          39
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          8,
+          0
+        ],
+        [
+          16,
+          1
+        ],
+        [
+          32,
+          1
+        ],
+        [
+          64,
+          0
+        ],
+        [
+          128,
+          0
+        ],
+        [
+          256,
+          0
+        ],
+        [
+          512,
+          0
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "publication_to_consumption": {
+      "samples": 8976,
+      "mean_us": 34.86695577094474,
+      "max_us": 337.869,
+      "buckets_le_us": [
+        [
+          1,
+          5
+        ],
+        [
+          2,
+          191
+        ],
+        [
+          4,
+          279
+        ],
+        [
+          8,
+          477
+        ],
+        [
+          16,
+          1423
+        ],
+        [
+          32,
+          2549
+        ],
+        [
+          64,
+          3074
+        ],
+        [
+          128,
+          827
+        ],
+        [
+          256,
+          145
+        ],
+        [
+          512,
+          6
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    },
+    "queue_to_preparation": {
+      "samples": 8976,
+      "mean_us": 34.29391232174688,
+      "max_us": 346.316,
+      "buckets_le_us": [
+        [
+          1,
+          35
+        ],
+        [
+          2,
+          419
+        ],
+        [
+          4,
+          43
+        ],
+        [
+          8,
+          871
+        ],
+        [
+          16,
+          1147
+        ],
+        [
+          32,
+          2483
+        ],
+        [
+          64,
+          3001
+        ],
+        [
+          128,
+          799
+        ],
+        [
+          256,
+          173
+        ],
+        [
+          512,
+          5
+        ],
+        [
+          1024,
+          0
+        ],
+        [
+          2048,
+          0
+        ],
+        [
+          null,
+          0
+        ]
+      ]
+    }
+  }
+}

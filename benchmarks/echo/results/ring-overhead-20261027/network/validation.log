@@ -1,0 +1,1401 @@
+{
+  "samples": 48,
+  "complete_matrix": true,
+  "payload_validation_succeeded": true,
+  "stderr_empty": true,
+  "results": [
+    {
+      "workers": 1,
+      "connections": 64,
+      "medians": {
+        "epoll": {
+          "requests_per_second": 10022.0,
+          "rtt_mean_us": 6376.428654826042,
+          "rtt_p99_us": 9658.367,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.14359187847076188,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.40548075279424495
+        },
+        "before": {
+          "requests_per_second": 10128.333333333334,
+          "rtt_mean_us": 6303.68812400856,
+          "rtt_p99_us": 11165.695,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.09726029451760998,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.3919284242419563
+        },
+        "after": {
+          "requests_per_second": 10141.0,
+          "rtt_mean_us": 6296.904475692732,
+          "rtt_p99_us": 9723.903,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.0941568510531564,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.39875290292032806
+        },
+        "tokio": {
+          "requests_per_second": 9754.0,
+          "rtt_mean_us": 6543.195422322465,
+          "rtt_p99_us": 10043.391,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.15924370833276752,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.3916351943047154
+        }
+      },
+      "paired": {
+        "epoll_vs_before": {
+          "requests_per_second": {
+            "median_percent": -0.6878393944380612,
+            "values_percent": [
+              52.13453416781153,
+              -0.6878393944380612,
+              -3.609899974352404
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 0.7083256778352753,
+            "values_percent": [
+              -34.15834860381256,
+              0.7083256778352753,
+              3.7717686552763308
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -13.499634371169911,
+            "values_percent": [
+              -55.03703952532912,
+              -13.499634371169911,
+              1.6608393380587172
+            ]
+          }
+        },
+        "epoll_vs_after": {
+          "requests_per_second": {
+            "median_percent": -0.81188574433817,
+            "values_percent": [
+              28.316381271190096,
+              -0.81188574433817,
+              -3.8841469262491657
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 0.8168186471206651,
+            "values_percent": [
+              -21.615419211147348,
+              0.8168186471206651,
+              4.108208658034873
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.6739680558310757,
+            "values_percent": [
+              -42.78982338518714,
+              -0.6739680558310757,
+              3.194321552734536
+            ]
+          }
+        },
+        "epoll_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 2.747590732007388,
+            "values_percent": [
+              18.397814121094534,
+              2.409556777302657,
+              2.747590732007388
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -2.5487052843858105,
+            "values_percent": [
+              -15.38246606203807,
+              -2.2740697496733575,
+              -2.5487052843858105
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -3.8336056019326437,
+            "values_percent": [
+              -49.584720121603944,
+              -3.8336056019326437,
+              -3.6454021913797763
+            ]
+          }
+        },
+        "before_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": 0.6926033934252507,
+            "values_percent": [
+              -34.26870463895114,
+              0.6926033934252507,
+              3.745094126255588
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -0.7033437137076493,
+            "values_percent": [
+              51.87954414793203,
+              -0.7033437137076493,
+              -3.6346770457444166
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 15.60644775664457,
+            "values_percent": [
+              122.40528413678034,
+              15.60644775664457,
+              -1.6337061044084278
+            ]
+          }
+        },
+        "before_vs_after": {
+          "requests_per_second": {
+            "median_percent": -0.2845177583836733,
+            "values_percent": [
+              -15.655980430024464,
+              -0.12490549912894666,
+              -0.2845177583836733
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 0.3242114952055841,
+            "values_percent": [
+              19.050143984376923,
+              0.1077298908060964,
+              0.3242114952055841
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 14.827297228283731,
+            "values_percent": [
+              27.238455855328404,
+              14.827297228283731,
+              1.5084296221246518
+            ]
+          }
+        },
+        "before_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 3.118848842734012,
+            "values_percent": [
+              -22.17558309903773,
+              3.118848842734012,
+              6.595584717380909
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -2.961418936751359,
+            "values_percent": [
+              28.51672481419825,
+              -2.961418936751359,
+              -6.090745124194974
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 11.1745524992505,
+            "values_percent": [
+              12.126246461899793,
+              11.1745524992505,
+              -5.219553137657396
+            ]
+          }
+        },
+        "after_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": 0.8185312831389346,
+            "values_percent": [
+              -22.067627679855516,
+              0.8185312831389346,
+              4.041109558970257
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -0.8102007761023433,
+            "values_percent": [
+              27.576111262715774,
+              -0.8102007761023433,
+              -3.9460948478415747
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.6785412068106345,
+            "values_percent": [
+              74.79407671345659,
+              0.6785412068106345,
+              -3.0954431451949427
+            ]
+          }
+        },
+        "after_vs_before": {
+          "requests_per_second": {
+            "median_percent": 0.2853295716850335,
+            "values_percent": [
+              18.5620515951763,
+              0.12506170807964345,
+              0.2853295716850335
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -0.3231637611436189,
+            "values_percent": [
+              -16.001781557590466,
+              -0.10761395840621635,
+              -0.3231637611436189
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -12.912693746336434,
+            "values_percent": [
+              -21.407408375262616,
+              -12.912693746336434,
+              -1.4860141445788622
+            ]
+          }
+        },
+        "after_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 3.2478110364487778,
+            "values_percent": [
+              -7.729774680236002,
+              3.2478110364487778,
+              6.89973344269017
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -3.0658459950147376,
+            "values_percent": [
+              7.951759244460588,
+              -3.0658459950147376,
+              -6.394225804313569
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -6.6280039843268685,
+            "values_percent": [
+              -11.877077014052539,
+              -3.1810769888377277,
+              -6.6280039843268685
+            ]
+          }
+        },
+        "tokio_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": -2.6741169427260014,
+            "values_percent": [
+              -15.538981236830674,
+              -2.3528632025450635,
+              -2.6741169427260014
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 2.6153631840639235,
+            "values_percent": [
+              18.178816311659297,
+              2.32698705844836,
+              2.6153631840639235
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 3.9864295900124747,
+            "values_percent": [
+              98.3525634315718,
+              3.9864295900124747,
+              3.7833193996827053
+            ]
+          }
+        },
+        "tokio_vs_before": {
+          "requests_per_second": {
+            "median_percent": -3.0245186769787824,
+            "values_percent": [
+              28.494377448735552,
+              -3.0245186769787824,
+              -6.1874839702487865
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 3.0517953831385336,
+            "values_percent": [
+              -22.189115739936582,
+              3.0517953831385336,
+              6.485777288138417
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -10.051358200273253,
+            "values_percent": [
+              -10.81481530376589,
+              -10.051358200273253,
+              5.50699359461575
+            ]
+          }
+        },
+        "tokio_vs_after": {
+          "requests_per_second": {
+            "median_percent": -3.1456463859579897,
+            "values_percent": [
+              8.377322861679758,
+              -3.1456463859579897,
+              -6.454397237939968
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 3.1628129697784946,
+            "values_percent": [
+              -7.366030252877631,
+              3.1628129697784946,
+              6.831016418865565
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 7.098492339410112,
+            "values_percent": [
+              13.477851859210933,
+              3.2855942721764952,
+              7.098492339410112
+            ]
+          }
+        }
+      }
+    },
+    {
+      "workers": 1,
+      "connections": 256,
+      "medians": {
+        "epoll": {
+          "requests_per_second": 22577.0,
+          "rtt_mean_us": 11081.138146609374,
+          "rtt_p99_us": 121110.527,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.12950800438541094,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.5778827384406042
+        },
+        "before": {
+          "requests_per_second": 22832.333333333332,
+          "rtt_mean_us": 11013.354588492937,
+          "rtt_p99_us": 121569.279,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.1352310324991044,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.6100643722196819
+        },
+        "after": {
+          "requests_per_second": 22377.0,
+          "rtt_mean_us": 11208.644312046597,
+          "rtt_p99_us": 121503.743,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.12993278589980725,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.5934798685639627
+        },
+        "tokio": {
+          "requests_per_second": 21775.666666666668,
+          "rtt_mean_us": 11593.684627305716,
+          "rtt_p99_us": 122028.031,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.12089841470829467,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.5157935163266107
+        }
+      },
+      "paired": {
+        "epoll_vs_before": {
+          "requests_per_second": {
+            "median_percent": -1.118297151700065,
+            "values_percent": [
+              -1.118297151700065,
+              8.149852637551414,
+              -7.0032266932904985
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 0.6154669548845693,
+            "values_percent": [
+              0.6154669548845693,
+              -7.438572459703341,
+              7.0811887834155485
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.5929919186244303,
+            "values_percent": [
+              -0.5929919186244303,
+              -1.0706638203089036,
+              0.8676789659651574
+            ]
+          }
+        },
+        "epoll_vs_after": {
+          "requests_per_second": {
+            "median_percent": 1.7617748250088994,
+            "values_percent": [
+              0.8937748581132388,
+              1.7617748250088994,
+              3.0991834966874743
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -1.1375699137868622,
+            "values_percent": [
+              -1.1375699137868622,
+              -0.5713757987103274,
+              -2.560058309965907
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.42826552812356145,
+            "values_percent": [
+              -0.5393743302212539,
+              -0.32362459813275457,
+              -0.42826552812356145
+            ]
+          }
+        },
+        "epoll_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 5.040794770921653,
+            "values_percent": [
+              1.4134487250512917,
+              5.040794770921653,
+              8.608074082836236
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -4.6971945427914275,
+            "values_percent": [
+              -0.7720931196660841,
+              -4.6971945427914275,
+              -7.561988046127777
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.7518797054096527,
+            "values_percent": [
+              -0.5929919186244303,
+              -0.7518797054096527,
+              -2.566788915225815
+            ]
+          }
+        },
+        "before_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": 1.1309444715122963,
+            "values_percent": [
+              1.1309444715122963,
+              -7.535703876420863,
+              7.5306125624309495
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -0.6117021304095638,
+            "values_percent": [
+              -0.6117021304095638,
+              8.036363156202352,
+              -6.612915736057145
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.5965292891010332,
+            "values_percent": [
+              0.5965292891010332,
+              1.0822510911871364,
+              -0.8602150608203463
+            ]
+          }
+        },
+        "before_vs_after": {
+          "requests_per_second": {
+            "median_percent": 2.034827426971142,
+            "values_percent": [
+              2.034827426971142,
+              -5.906691185193957,
+              10.86318356085274
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -1.742313504798887,
+            "values_percent": [
+              -1.742313504798887,
+              7.419069523321009,
+              -9.003679547191068
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.05393743302211096,
+            "values_percent": [
+              0.05393743302211096,
+              0.7551240623097533,
+              -1.2847965843706843
+            ]
+          }
+        },
+        "before_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 2.5603785167772175,
+            "values_percent": [
+              2.5603785167772175,
+              -2.874768472453959,
+              16.786927353532622
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -1.3790723400139093,
+            "values_percent": [
+              -1.3790723400139093,
+              2.961685001798897,
+              -13.67483588472378
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.0,
+            "values_percent": [
+              0.0,
+              0.32223415946128764,
+              -3.4049240712179185
+            ]
+          }
+        },
+        "after_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": -1.73127368114252,
+            "values_percent": [
+              -0.8858572883908455,
+              -1.73127368114252,
+              -3.0060213782265754
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 1.1506594697245909,
+            "values_percent": [
+              1.1506594697245909,
+              0.5746592626622249,
+              2.6273192138288604
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.43010753041017313,
+            "values_percent": [
+              0.5422993537282261,
+              0.3246753273561387,
+              0.43010753041017313
+            ]
+          }
+        },
+        "after_vs_before": {
+          "requests_per_second": {
+            "median_percent": -1.994247923266712,
+            "values_percent": [
+              -1.994247923266712,
+              6.277482702643056,
+              -9.798729579951093
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 1.7732083534085508,
+            "values_percent": [
+              1.7732083534085508,
+              -6.906659642690638,
+              9.894553430718567
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.053908356238574484,
+            "values_percent": [
+              -0.053908356238574484,
+              -0.7494646742162381,
+              1.301518448947725
+            ]
+          }
+        },
+        "after_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 3.22225113658976,
+            "values_percent": [
+              0.5150702981119082,
+              3.22225113658976,
+              5.343292157426016
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -4.149528143654613,
+            "values_percent": [
+              0.3696821874619616,
+              -4.149528143654613,
+              -5.133346397182271
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.4296455459483761,
+            "values_percent": [
+              -0.053908356238574484,
+              -0.4296455459483761,
+              -2.1477213372297688
+            ]
+          }
+        },
+        "tokio_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": -4.798892451180404,
+            "values_percent": [
+              -1.3937488004015952,
+              -4.798892451180404,
+              -7.925814130789933
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 4.9287054250469975,
+            "values_percent": [
+              0.7781007822700747,
+              4.9287054250469975,
+              8.180604370744483
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.7575757638309977,
+            "values_percent": [
+              0.5965292891010332,
+              0.7575757638309977,
+              2.6344086237622966
+            ]
+          }
+        },
+        "tokio_vs_before": {
+          "requests_per_second": {
+            "median_percent": -2.4964596989649146,
+            "values_percent": [
+              -2.4964596989649146,
+              2.959857523365228,
+              -14.373978093212358
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 1.3983566903452038,
+            "values_percent": [
+              1.3983566903452038,
+              -2.8764923590237856,
+              15.841077193276787
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.0,
+            "values_percent": [
+              0.0,
+              -0.32119914609267664,
+              3.5249457992334143
+            ]
+          }
+        },
+        "tokio_vs_after": {
+          "requests_per_second": {
+            "median_percent": -3.121663305255651,
+            "values_percent": [
+              -0.5124309186515963,
+              -3.121663305255651,
+              -5.07226615762203
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 4.329168196348232,
+            "values_percent": [
+              -0.36832057191483747,
+              4.329168196348232,
+              5.411117818779898
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.4314994641769987,
+            "values_percent": [
+              0.05393743302211096,
+              0.4314994641769987,
+              2.1948608316332496
+            ]
+          }
+        }
+      }
+    },
+    {
+      "workers": 4,
+      "connections": 64,
+      "medians": {
+        "epoll": {
+          "requests_per_second": 9893.0,
+          "rtt_mean_us": 6429.103764412549,
+          "rtt_p99_us": 10313.727,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.3940753764634035,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.39627016001938303
+        },
+        "before": {
+          "requests_per_second": 10308.0,
+          "rtt_mean_us": 6193.937417669118,
+          "rtt_p99_us": 9773.055,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.19601839690849848,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.40927714111280655
+        },
+        "after": {
+          "requests_per_second": 10199.666666666666,
+          "rtt_mean_us": 6262.538432759237,
+          "rtt_p99_us": 9879.551,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.17747568774299927,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.40176482477791264
+        },
+        "tokio": {
+          "requests_per_second": 10035.666666666666,
+          "rtt_mean_us": 6367.938327697881,
+          "rtt_p99_us": 9691.135,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.3248531959481727,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.38696296630500254
+        }
+      },
+      "paired": {
+        "epoll_vs_before": {
+          "requests_per_second": {
+            "median_percent": -4.0259992239037645,
+            "values_percent": [
+              -4.0259992239037645,
+              -3.132668345071543,
+              -8.698377094603504
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 3.7967181598022703,
+            "values_percent": [
+              3.7967181598022703,
+              3.2033611868009126,
+              9.484769082580158
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 5.532272150315332,
+            "values_percent": [
+              5.326461039693098,
+              5.532272150315332,
+              34.51900098120066
+            ]
+          }
+        },
+        "epoll_vs_after": {
+          "requests_per_second": {
+            "median_percent": -2.819873393439476,
+            "values_percent": [
+              -1.3429511684339923,
+              -2.819873393439476,
+              -9.542795516193326
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 2.8529005421290554,
+            "values_percent": [
+              0.9821201123386913,
+              2.8529005421290554,
+              10.49181435491542
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 10.2451849830411,
+            "values_percent": [
+              -0.0814996006101798,
+              10.2451849830411,
+              37.97678659688077
+            ]
+          }
+        },
+        "epoll_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 0.9599096555618303,
+            "values_percent": [
+              5.364243112752054,
+              0.9599096555618303,
+              -8.707411194300608
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -1.0162082673991213,
+            "values_percent": [
+              -5.246361840862557,
+              -1.0162082673991213,
+              9.55866192019521
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 6.424345548792787,
+            "values_percent": [
+              -13.540198626837995,
+              6.424345548792787,
+              43.448280434263076
+            ]
+          }
+        },
+        "before_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": 4.194885272414828,
+            "values_percent": [
+              4.194885272414828,
+              3.2339781550204005,
+              9.52707829040067
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -3.657840273867763,
+            "values_percent": [
+              -3.657840273867763,
+              -3.1039310638369066,
+              -8.663094567451813
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -5.242256266818002,
+            "values_percent": [
+              -5.057096751485634,
+              -5.242256266818002,
+              -25.6610595747918
+            ]
+          }
+        },
+        "before_vs_after": {
+          "requests_per_second": {
+            "median_percent": 0.32291067203784607,
+            "values_percent": [
+              2.7955988432004863,
+              0.32291067203784607,
+              -0.9248668257132442
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -0.3395825878553582,
+            "values_percent": [
+              -2.7116445465359518,
+              -0.3395825878553582,
+              0.9198039880558007
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 2.570481188871865,
+            "values_percent": [
+              -5.134474838440884,
+              4.465849864402527,
+              2.570481188871865
+            ]
+          }
+        },
+        "before_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 4.224931079151029,
+            "values_percent": [
+              9.78415222948026,
+              4.224931079151029,
+              -0.00989478544807243
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -4.088596927150956,
+            "values_percent": [
+              -8.712298578402422,
+              -4.088596927150956,
+              0.06749143121389523
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.8453086248411568,
+            "values_percent": [
+              -17.9125544334211,
+              0.8453086248411568,
+              6.6379317330124366
+            ]
+          }
+        },
+        "after_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": 2.901697591788399,
+            "values_percent": [
+              1.3612318474341967,
+              2.901697591788399,
+              10.549514072040168
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -2.773767708145969,
+            "values_percent": [
+              -0.9725683232300164,
+              -2.773767708145969,
+              -9.495558034022523
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -9.29309065481373,
+            "values_percent": [
+              0.08156607663687421,
+              -9.29309065481373,
+              -27.524040480690037
+            ]
+          }
+        },
+        "after_vs_before": {
+          "requests_per_second": {
+            "median_percent": -0.3218713152108088,
+            "values_percent": [
+              -2.7195705600827846,
+              -0.3218713152108088,
+              0.933500461802339
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 0.3407396804801843,
+            "values_percent": [
+              2.7872241584276924,
+              0.3407396804801843,
+              -0.911420704071797
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -2.506063303084838,
+            "values_percent": [
+              5.412371701623653,
+              -4.274937570698201,
+              -2.506063303084838
+            ]
+          }
+        },
+        "after_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 3.8894609227090093,
+            "values_percent": [
+              6.798494745810846,
+              3.8894609227090093,
+              0.9235133084864122
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -3.76178871877646,
+            "values_percent": [
+              -6.167905710706312,
+              -3.76178871877646,
+              -0.8445444037354588
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -3.4657653618487383,
+            "values_percent": [
+              -13.469676758989868,
+              -3.4657653618487383,
+              3.965517658682738
+            ]
+          }
+        },
+        "tokio_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": -0.9507829977628668,
+            "values_percent": [
+              -5.091141884834394,
+              -0.9507829977628668,
+              9.537916832255512
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 1.02664107891961,
+            "values_percent": [
+              5.536844751070524,
+              1.02664107891961,
+              -8.724697575402974
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -6.036537519366181,
+            "values_percent": [
+              15.660686714278071,
+              -6.036537519366181,
+              -30.28846376041
+            ]
+          }
+        },
+        "tokio_vs_before": {
+          "requests_per_second": {
+            "median_percent": -4.053666464833173,
+            "values_percent": [
+              -8.912171775966883,
+              -4.053666464833173,
+              0.009895764612743996
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 4.262889287570393,
+            "values_percent": [
+              9.54378130101674,
+              4.262889287570393,
+              -0.06744591100326103
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.8382230530780799,
+            "values_percent": [
+              21.82130813035559,
+              -0.8382230530780799,
+              -6.2247378818558685
+            ]
+          }
+        },
+        "tokio_vs_after": {
+          "requests_per_second": {
+            "median_percent": -3.7438455144190863,
+            "values_percent": [
+              -6.365721503839361,
+              -3.7438455144190863,
+              -0.9150625837445525
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 3.9088306699549102,
+            "values_percent": [
+              6.573343329298442,
+              3.9088306699549102,
+              0.8517377068733678
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 3.59019302824517,
+            "values_percent": [
+              15.566423716542932,
+              3.59019302824517,
+              -3.8142624092937005
+            ]
+          }
+        }
+      }
+    },
+    {
+      "workers": 4,
+      "connections": 256,
+      "medians": {
+        "epoll": {
+          "requests_per_second": 23133.666666666668,
+          "rtt_mean_us": 10861.475767553755,
+          "rtt_p99_us": 121110.527,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.710042621734894,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.6087707327551622
+        },
+        "before": {
+          "requests_per_second": 21129.666666666668,
+          "rtt_mean_us": 11781.445265630442,
+          "rtt_p99_us": 122486.783,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.2742379966809149,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.5405972663983512
+        },
+        "after": {
+          "requests_per_second": 22906.333333333332,
+          "rtt_mean_us": 10940.403706456727,
+          "rtt_p99_us": 121176.063,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.2410950433747358,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.6720236655927417
+        },
+        "tokio": {
+          "requests_per_second": 21448.333333333332,
+          "rtt_mean_us": 11730.120485223524,
+          "rtt_p99_us": 122224.639,
+          "server_cpu_equivalent_cores_whole_lifetime": 0.5196477415978963,
+          "client_cpu_equivalent_cores_whole_lifetime": 0.6385816693060852
+        }
+      },
+      "paired": {
+        "epoll_vs_before": {
+          "requests_per_second": {
+            "median_percent": 9.484295382479612,
+            "values_percent": [
+              9.484295382479612,
+              3.590640129101663,
+              10.490993700338747
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -8.125577459803567,
+            "values_percent": [
+              -8.70314071108812,
+              -3.7745041206586505,
+              -8.125577459803567
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.7543103510290194,
+            "values_percent": [
+              -1.7543859791439687,
+              -0.7543103510290194,
+              -0.6420545798806687
+            ]
+          }
+        },
+        "epoll_vs_after": {
+          "requests_per_second": {
+            "median_percent": 0.8847625838559914,
+            "values_percent": [
+              0.12840489381349407,
+              0.8847625838559914,
+              5.817972350230427
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -0.4130263010936108,
+            "values_percent": [
+              1.3338164813152087,
+              -0.4130263010936108,
+              -5.657864085988907
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.054083288710238264,
+            "values_percent": [
+              -0.054083288710238264,
+              0.4909983674260987,
+              -0.42895442710204623
+            ]
+          }
+        },
+        "epoll_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 7.742637345559111,
+            "values_percent": [
+              2.1759934042960394,
+              7.742637345559111,
+              11.33155771040335
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -7.322696593688304,
+            "values_percent": [
+              -1.9481933036092025,
+              -7.322696593688304,
+              -7.723583757536989
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.5888651011698998,
+            "values_percent": [
+              -0.4846526695719944,
+              -1.2332439779183968,
+              -0.5888651011698998
+            ]
+          }
+        },
+        "before_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": -8.662699384735095,
+            "values_percent": [
+              -8.662699384735095,
+              -3.4661820070102545,
+              -9.494885826433263
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 8.84422153102351,
+            "values_percent": [
+              9.53279310906716,
+              3.9225613608596666,
+              8.84422153102351
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.760043437349256,
+            "values_percent": [
+              1.7857143004587739,
+              0.760043437349256,
+              0.646203559429348
+            ]
+          }
+        },
+        "before_vs_after": {
+          "requests_per_second": {
+            "median_percent": -4.229323308270672,
+            "values_percent": [
+              -8.54541782086795,
+              -2.6120869046406314,
+              -4.229323308270672
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 3.493333849669167,
+            "values_percent": [
+              10.993759556000771,
+              3.493333849669167,
+              2.6859634113455266
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 1.254773605644477,
+            "values_percent": [
+              1.730665238727891,
+              1.254773605644477,
+              0.21447721355103422
+            ]
+          }
+        },
+        "before_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 0.7607534170108954,
+            "values_percent": [
+              -6.675205747684876,
+              4.0080814360090145,
+              0.7607534170108954
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 0.43754691583579586,
+            "values_percent": [
+              7.3988825684601744,
+              -3.6873724999856528,
+              0.43754691583579586
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.053533191015442405,
+            "values_percent": [
+              1.2924071188586739,
+              -0.48257373048979924,
+              0.053533191015442405
+            ]
+          }
+        },
+        "after_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": -0.8770031877912032,
+            "values_percent": [
+              -0.12824022708607385,
+              -0.8770031877912032,
+              -5.498094719651614
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 0.4147392834150665,
+            "values_percent": [
+              -1.3162599886496373,
+              0.4147392834150665,
+              5.9971761622461095
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.05411255455936015,
+            "values_percent": [
+              0.05411255455936015,
+              -0.48859935258167564,
+              0.4308023729528987
+            ]
+          }
+        },
+        "after_vs_before": {
+          "requests_per_second": {
+            "median_percent": 4.416094210009813,
+            "values_percent": [
+              9.343892473457526,
+              2.682146912916128,
+              4.416094210009813
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -3.3754191885860707,
+            "values_percent": [
+              -9.904844740801833,
+              -3.3754191885860707,
+              -2.61570649202163
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -1.2392241481191113,
+            "values_percent": [
+              -1.7012227676547642,
+              -1.2392241481191113,
+              -0.21401819329355254
+            ]
+          }
+        },
+        "after_vs_tokio": {
+          "requests_per_second": {
+            "median_percent": 5.210443214621785,
+            "values_percent": [
+              2.0449626783269226,
+              6.7977309814282405,
+              5.210443214621785
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -3.238810003301884,
+            "values_percent": [
+              -3.238810003301884,
+              -6.9383274096525565,
+              -2.189604519268995
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.4308023729528987,
+            "values_percent": [
+              -0.4308023729528987,
+              -1.7158177084082071,
+              -0.16059957304633832
+            ]
+          }
+        },
+        "tokio_vs_epoll": {
+          "requests_per_second": {
+            "median_percent": -7.18623335785481,
+            "values_percent": [
+              -2.1296523104854415,
+              -7.18623335785481,
+              -10.178208176947546
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 7.901283620202526,
+            "values_percent": [
+              1.9869019952295508,
+              7.901283620202526,
+              8.370051712067706
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.5923532628102413,
+            "values_percent": [
+              0.48701299103421913,
+              1.2486427899309316,
+              0.5923532628102413
+            ]
+          }
+        },
+        "tokio_vs_before": {
+          "requests_per_second": {
+            "median_percent": -0.7550096552597418,
+            "values_percent": [
+              7.152660556247925,
+              -3.853625007471162,
+              -0.7550096552597418
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": -0.4356407830255371,
+            "values_percent": [
+              -6.8891615922948235,
+              3.828545223714408,
+              -0.4356407830255371
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": -0.05350454832337981,
+            "values_percent": [
+              -1.2759170757410732,
+              0.48491379709008076,
+              -0.05350454832337981
+            ]
+          }
+        },
+        "tokio_vs_after": {
+          "requests_per_second": {
+            "median_percent": -4.952401164200825,
+            "values_percent": [
+              -2.003981994459836,
+              -6.365051877937688,
+              -4.952401164200825
+            ]
+          },
+          "rtt_mean_us": {
+            "median_percent": 3.3472201028247106,
+            "values_percent": [
+              3.3472201028247106,
+              7.455622939633488,
+              2.2386214762830203
+            ]
+          },
+          "rtt_p99_us": {
+            "median_percent": 0.4326663096819727,
+            "values_percent": [
+              0.4326663096819727,
+              1.7457719730705756,
+              0.1608579101632701
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "scope": "Whole-lifetime CPU estimates; direct network can limit throughput independently of server."
+}

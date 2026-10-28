@@ -1,0 +1,89 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 883872,
+    "allocations_per_response": 8.00028964518465,
+    "deallocations": 883872,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 11
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 15
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 29
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 128
+      }
+    ],
+    "reallocations": 0,
+    "reallocations_per_response": 0.0,
+    "requested_bytes": 54252848,
+    "requested_bytes_per_response": 491.0648805213613,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.996291,
+  "client_cpu_us_per_request": 9.017840333091963,
+  "concurrency": 32,
+  "elapsed_seconds": 1.00045975,
+  "fresh": false,
+  "implementation": "base-connection",
+  "latency_us": {
+    "max": 673.279,
+    "mean": 289.49827516292567,
+    "p50": 268.287,
+    "p90": 351.231,
+    "p99": 378.623
+  },
+  "requests": 110480,
+  "requests_per_second": 110429.23016143327,
+  "tls": true,
+  "warmup_requests": 34964,
+  "client_command": [
+    "/private/tmp/base-http-orchestration-final-allocation-20261029",
+    "client",
+    "--implementation",
+    "base-connection",
+    "--address",
+    "127.0.0.1:56390",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qei6ixto",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-orchestration-final-allocation-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qei6ixto",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 145444
+  },
+  "server_cpu_seconds_including_warmup": 1.7373279999999998
+}

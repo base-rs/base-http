@@ -1,0 +1,24 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "logical_cpus": 12,
+  "started": "2026-10-28T20:18:41Z",
+  "binary_sha256": "e3271de4b82e0c5a556d5ab70c9a10b6187b2549e31ef322374889ddfa6dd5b6",
+  "arguments": {
+    "binary": "/tmp/base-http-exchange-reuse-atomic-20261029",
+    "output": "benchmarks/client/results/exchange-reuse-atomic-repeat-20261029",
+    "baseline_binary": "/tmp/base-http-exchange-compact-20261029",
+    "baseline_sources": "benchmarks/client/results/exchange-compact-repeat-20261029/sources.tar.gz",
+    "repeats": 5,
+    "seconds": 4.0,
+    "warmup": 0.5,
+    "concurrency": "32",
+    "modes": "reuse",
+    "transports": "tcp,tls",
+    "fresh_seconds": 2,
+    "fresh_cooldown": 10,
+    "implementations": "before-open,base-open"
+  },
+  "cpu": "Apple M4 Pro",
+  "rustc": "rustc 1.87.0 (17067e9ac 2025-05-09)\nbinary: rustc\ncommit-hash: 17067e9ac6d7ecb70e50f92c1944e545188d2359\ncommit-date: 2025-05-09\nhost: aarch64-apple-darwin\nrelease: 1.87.0\nLLVM version: 20.1.1\n"
+}

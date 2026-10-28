@@ -1,0 +1,50 @@
+{
+  "utc": "2026-10-28T00:37:41.272214+00:00",
+  "configuration": {
+    "variants": [
+      "owned:binaries/control:base-iouring-owned-connections-raw",
+      "poll-first:binaries/poll-first:base-iouring-owned-connections-raw",
+      "tokio:binaries/control:tokio-connections-raw"
+    ],
+    "client": "/tmp/base-http-receive-lifecycle-20261028/binaries/client",
+    "output": "fixed",
+    "rates": [
+      200000,
+      240000
+    ],
+    "repetitions": 5,
+    "warmup": 2,
+    "seconds": 6,
+    "connections": 64,
+    "client_cpus": "2,3,6,7"
+  },
+  "binaries": {
+    "owned": {
+      "path": "/tmp/base-http-receive-lifecycle-20261028/binaries/control",
+      "sha256": "b6a4772a3a7f6f6210141733dd6eebaedcd23f09fb8eb8fc3d61904e0cf87dbb"
+    },
+    "poll-first": {
+      "path": "/tmp/base-http-receive-lifecycle-20261028/binaries/poll-first",
+      "sha256": "bd146f50d16f4a3c4fce60f986209d4f3da72af974e425ea846f781c29a2a78c"
+    },
+    "tokio": {
+      "path": "/tmp/base-http-receive-lifecycle-20261028/binaries/control",
+      "sha256": "b6a4772a3a7f6f6210141733dd6eebaedcd23f09fb8eb8fc3d61904e0cf87dbb"
+    },
+    "client": {
+      "path": "/tmp/base-http-receive-lifecycle-20261028/binaries/client",
+      "sha256": "45ff7d7ef8a0bd4cdd2280aae1706506b1ac7c0d180ca036a7bdbf5df9ef19c5"
+    }
+  },
+  "uname": [
+    "Linux",
+    "hana.oriontransfer.co.nz",
+    "7.2.11-arch1-1",
+    "#1 SMP PREEMPT_DYNAMIC Fri, 16 Oct 2026 00:28:58 +0000",
+    "x86_64"
+  ],
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  8\nOn-line CPU(s) list:                     0-7\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Xeon(R) CPU E3-1240 v6 @ 3.70GHz\nCPU family:                              6\nModel:                                   158\nThread(s) per core:                      2\nCore(s) per socket:                      4\nSocket(s):                               1\nStepping:                                9\nMicrocode version:                       0xf8\nCPU(s) scaling MHz:                      49%\nCPU max MHz:                             4100.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                7399.70\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust sgx bmi1 avx2 smep bmi2 erms invpcid mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp vnmi md_clear flush_l1d arch_capabilities\nVirtualization:                          VT-x\nL1d cache:                               128 KiB (4 instances)\nL1i cache:                               128 KiB (4 instances)\nL2 cache:                                1 MiB (4 instances)\nL3 cache:                                8 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-7\nVulnerability Gather data sampling:      Mitigation; Microcode\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             KVM: Mitigation: Split huge pages\nVulnerability L1tf:                      Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable\nVulnerability Mds:                       Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Meltdown:                  Mitigation; PTI\nVulnerability Mmio stale data:           Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; IBRS\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; IBRS; IBPB conditional; STIBP conditional; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Mitigation; Microcode\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Mitigation; TSX disabled\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace\n",
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13) (Arch Linux rust 1:1.99.1-1)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.3\n",
+  "initial_load": "2.73 2.66 1.93 1/548 397031\n",
+  "initial_proc_stat": "cpu  2294627 1042 2466555 59041879 1035869 113800 800982 0 0 0\ncpu0 376961 98 622631 6772244 157779 13088 258650 0 0 0\ncpu1 178990 251 88282 7758076 134216 16082 29478 0 0 0\ncpu2 354334 39 406079 7209898 121067 14079 117122 0 0 0\ncpu3 352412 5 409791 7205588 126766 13834 114727 0 0 0\ncpu4 157186 179 73795 7819079 135025 14688 27960 0 0 0\ncpu5 168223 109 72833 7822080 139814 10644 9967 0 0 0\ncpu6 345076 221 386195 7256490 115462 13231 105641 0 0 0\ncpu7 361442 137 406947 7198421 105737 18148 137434 0 0 0\nintr 308403270 37 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 47 0 0 0 0 0 0 0 1 1 1 1 1 0 3126405 81511 0 0 0 0 0 0 0 359664 371151 297086 289725 300840 307442 272263 366045 0 0 0 0 0 0 0 0 0 0 1 20930616 6959309 4384579 8169335 1 10734289 2946775 5123486 17854665 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\nctxt 1985452337\nbtime 1793065818\nprocesses 397034\nprocs_running 1\nprocs_blocked 2\nsoftirq 4097216532 11 13968054 158619 3993464375 5237348 0 4420331 57444752 20475 22502567\n"
+}

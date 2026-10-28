@@ -1,0 +1,17 @@
+Independent review by /root/deferred_ring_review of the scheduler diff against587e746:
+- Fresh worker ring creation and !Send ownership satisfy single-issuer/thread-bound deferred processing requirements.
+- Deferred→cooperative→original-ring fallback is preserved.
+- Nonblocking turns already inspect SQ_TASKRUN. io-uring0.7.15 adds GETEVENTS on taskrun-only submits.
+- Reviewer identified that the previous manifest minimum0.7.11 allowed submitters without that fix (published0.7.11–0.7.14). Fixed by raising minimum to0.7.15; measured dependency selection unchanged.
+- New regression covers pending owned receive, remote write, cancellation, abandonment and close using only zero-timeout turns.
+- Updated context/design.md explains the mechanism and dependency requirement.
+- No further correctness blockers found after the minimum-version fix; diff whitespace check passes.
+- Reviewer ran no builds or benchmarks. Final coverage is recorded separately.
+- Existing design/socket-stream-oob.md text claiming conservative io_uring scalar reads disagrees with inherited587e746. This patch changes completion scheduling, not that receive policy; the pre-existing inconsistency remains outside this patch.
+
+Coordinator validation after review:
+- Linux package tests/conformance pass; shared coverage gate7543/7543 measured regions,3 unreachable regions excluded.
+- Workspace formatting and relevant all-target Clippy with warnings denied pass.
+- Ring traces confirm flags0x3200 on the bound candidate ring and persistent socket poll lifetime; fallback and nonblocking-only regression tests pass.
+- Requirement scope: ownership/cancellation preservation for this completion-policy change is satisfied by unchanged payload-storage paths, review and regression/conformance tests. Public const-generic OOB selection and platform readiness algorithms are not changed by this patch.
+- The whole inherited OOB document is not certified: its conservative-io_uring sentence remains contradicted by the base short-read change. Other unchanged target/feature configurations are not newly tested here.

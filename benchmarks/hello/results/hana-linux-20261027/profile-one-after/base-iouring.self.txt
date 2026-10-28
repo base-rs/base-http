@@ -1,0 +1,446 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 2K of event 'cpu/cycles/P'
+# Event count (approx.): 19678997441
+#
+# Overhead  Command          Shared Object      Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+# ........  ...............  .................  .........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+     5.11%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSRETQ_unsafe_stack
+            |          
+             --4.72%--entry_SYSRETQ_unsafe_stack
+                       |          
+                       |--3.46%--0x7fcde13688f2
+                       |          |          
+                       |          |--2.31%--recv
+                       |          |          
+                       |           --1.14%--send
+                       |          
+                        --1.27%--syscall
+
+     5.08%  base-native-tas  [kernel.kallsyms]  [k] syscall_return_via_sysret
+            |          
+             --5.04%--syscall_return_via_sysret
+                       |          
+                       |--3.96%--0x7fcde13688f2
+                       |          |          
+                       |          |--2.42%--recv
+                       |          |          
+                       |           --1.54%--send
+                       |          
+                        --1.05%--syscall
+
+     2.65%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64_after_hwframe
+            |          
+             --2.56%--entry_SYSCALL_64_after_hwframe
+                       |          
+                       |--1.67%--0x7fcde13688f2
+                       |          |          
+                       |           --1.29%--recv
+                       |          
+                        --0.81%--syscall
+
+     2.33%  base-native-tas  final              [.] base_http_server::exchanges::<base_scheduler_iouring::io_uring_socket_stream_reader::IoUringSocketStreamReader, base_scheduler_iouring::io_uring_socket_stream_writer::IoUringSocketStreamWriter<base_scheduler_iouring::io_uring_buffer::IoUringBuffer>, base_http_hello_benchmark::Hello>::{closure#0}
+     2.25%  base-native-tas  [kernel.kallsyms]  [k] entry_SYSCALL_64
+            |          
+             --2.02%--entry_SYSCALL_64
+                       |          
+                       |--1.34%--0x7fcde13688f2
+                       |          |          
+                       |           --0.54%--send
+                       |          
+                        --0.68%--syscall
+
+     1.54%  base-native-tas  [kernel.kallsyms]  [k] tcp_ack
+            |          
+             --1.45%--tcp_ack
+                       tcp_rcv_established
+                       tcp_v4_do_rcv
+                       tcp_v4_rcv
+                       ip_protocol_deliver_rcu
+                       ip_local_deliver_finish
+                       __netif_receive_skb_one_core
+                       process_backlog
+                       __napi_poll
+                       net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fcde13688f2
+                       send
+
+     1.33%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock_irqsave
+            |
+            ---_raw_spin_lock_irqsave
+
+     1.12%  base-native-tas  [kernel.kallsyms]  [k] __tcp_transmit_skb
+            |          
+             --1.04%--__tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fcde13688f2
+                       send
+
+     0.94%  base-native-tas  [kernel.kallsyms]  [k] __schedule
+            |
+            ---__schedule
+               schedule
+               io_cqring_wait
+               __do_sys_io_uring_enter
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               syscall
+
+     0.90%  base-native-tas  [kernel.kallsyms]  [k] dequeue_entities
+            |          
+             --0.83%--dequeue_entities
+                       dequeue_task_fair
+                       __schedule
+                       schedule
+                       io_cqring_wait
+                       __do_sys_io_uring_enter
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       syscall
+
+     0.89%  base-native-tas  [kernel.kallsyms]  [k] tcp_sendmsg_locked
+            |
+            ---tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fcde13688f2
+               send
+
+     0.86%  base-native-tas  [kernel.kallsyms]  [k] do_syscall_64
+            |
+            ---do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+
+     0.83%  base-native-tas  [kernel.kallsyms]  [k] _raw_spin_lock
+            |          
+             --0.80%--_raw_spin_lock
+
+     0.81%  base-native-tas  [kernel.kallsyms]  [k] skb_defer_free_flush
+            |
+            ---skb_defer_free_flush
+               net_rx_action
+               handle_softirqs
+               do_softirq.part.0
+               __local_bh_enable_ip
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fcde13688f2
+               send
+
+     0.79%  base-native-tas  [kernel.kallsyms]  [k] __netif_receive_skb_core.constprop.0
+            |          
+             --0.75%--__netif_receive_skb_core.constprop.0
+                       __netif_receive_skb_one_core
+                       process_backlog
+                       __napi_poll
+                       net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fcde13688f2
+                       send
+
+     0.78%  base-native-tas  [kernel.kallsyms]  [k] __inet_lookup_established
+            |
+            ---__inet_lookup_established
+               tcp_v4_rcv
+               ip_protocol_deliver_rcu
+               ip_local_deliver_finish
+               __netif_receive_skb_one_core
+               process_backlog
+               __napi_poll
+               net_rx_action
+               handle_softirqs
+               do_softirq.part.0
+               __local_bh_enable_ip
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fcde13688f2
+               send
+
+     0.78%  base-native-tas  final              [.] httparse::parse_headers_iter_uninit
+     0.76%  base-native-tas  [kernel.kallsyms]  [k] tcp_rcv_established
+            |          
+             --0.73%--tcp_rcv_established
+                       tcp_v4_do_rcv
+                       tcp_v4_rcv
+                       ip_protocol_deliver_rcu
+                       ip_local_deliver_finish
+                       __netif_receive_skb_one_core
+                       process_backlog
+                       __napi_poll
+                       net_rx_action
+                       handle_softirqs
+                       do_softirq.part.0
+                       __local_bh_enable_ip
+                       __dev_queue_xmit
+                       ip_finish_output2
+                       ip_output
+                       __ip_queue_xmit
+                       __tcp_transmit_skb
+                       tcp_write_xmit
+                       __tcp_push_pending_frames
+                       tcp_sendmsg_locked
+                       tcp_sendmsg
+                       __sys_sendto
+                       __x64_sys_sendto
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fcde13688f2
+                       send
+
+     0.73%  base-native-tas  final              [.] <base_scheduler_iouring::io_uring_selector::Reactor>::turn
+     0.70%  base-native-tas  final              [.] base_http1::wire::authority
+     0.68%  base-native-tas  [kernel.kallsyms]  [k] io_cqring_wait
+            |          
+             --0.65%--io_cqring_wait
+                       __do_sys_io_uring_enter
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       syscall
+
+     0.67%  base-native-tas  final              [.] base_http1::output::plan
+     0.66%  base-native-tas  [kernel.kallsyms]  [k] memset_orig
+            |
+            ---memset_orig
+               kmem_cache_alloc_node_noprof
+
+     0.65%  base-native-tas  final              [.] <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_io<(base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector>::socket_operation<(), (base_scheduler_selector::native_socket::NativeSocket, core::net::socket_addr::SocketAddr), <base_scheduler_selector::readiness_selector::ReadinessSelector as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}::{closure#0}>::{closure#0}::{closure#0}::{closure#0}>::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+     0.64%  base-native-tas  [kernel.kallsyms]  [k] ep_poll_callback
+            |
+            ---ep_poll_callback
+               __wake_up_common
+               __wake_up_sync_key
+               sock_def_readable
+               tcp_rcv_established
+               tcp_v4_do_rcv
+               tcp_v4_rcv
+               ip_protocol_deliver_rcu
+               ip_local_deliver_finish
+               __netif_receive_skb_one_core
+               process_backlog
+               __napi_poll
+               net_rx_action
+               handle_softirqs
+               do_softirq.part.0
+               __local_bh_enable_ip
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fcde13688f2
+               send
+
+     0.62%  base-native-tas  [kernel.kallsyms]  [k] tcp_recvmsg_locked
+            |          
+             --0.55%--tcp_recvmsg_locked
+                       tcp_recvmsg
+                       sock_recvmsg
+                       __sys_recvfrom
+                       __x64_sys_recvfrom
+                       do_syscall_64
+                       entry_SYSCALL_64_after_hwframe
+                       0x7fcde13688f2
+                       recv
+
+     0.59%  base-native-tas  [kernel.kallsyms]  [k] fdget
+            |
+            ---fdget
+
+     0.59%  base-native-tas  final              [.] <event_listener::Inner<()>>::with_inner::<event_listener::RegisterResult<()>, <event_listener::Inner<()>>::register::{closure#0}>
+     0.59%  base-native-tas  final              [.] core::str::converts::from_utf8
+     0.58%  base-native-tas  [kernel.kallsyms]  [k] __rcu_read_unlock
+            |          
+             --0.55%--__rcu_read_unlock
+
+     0.58%  base-native-tas  final              [.] <base_scheduler_iouring::io_uring_socket_stream_reader::IoUringSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}
+     0.58%  base-native-tas  final              [.] <base_http::fields::Fields>::add::<&str, &[u8]>
+     0.56%  base-native-tas  [kernel.kallsyms]  [k] __sys_recvfrom
+     0.56%  base-native-tas  final              [.] base_scheduler_native::worker::run_loop
+     0.56%  base-native-tas  [kernel.kallsyms]  [k] tcp_ack_update_rtt
+            |
+            ---tcp_ack_update_rtt
+               tcp_ack
+               tcp_rcv_established
+               tcp_v4_do_rcv
+               tcp_v4_rcv
+               ip_protocol_deliver_rcu
+               ip_local_deliver_finish
+               __netif_receive_skb_one_core
+               process_backlog
+               __napi_poll
+               net_rx_action
+               handle_softirqs
+               do_softirq.part.0
+               __local_bh_enable_ip
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fcde13688f2
+               send
+
+     0.52%  base-native-tas  libc.so.6          [.] malloc
+            |
+            ---malloc
+
+     0.52%  base-native-tas  [kernel.kallsyms]  [k] update_curr
+            |
+            ---update_curr
+               dequeue_entities
+               dequeue_task_fair
+               __schedule
+               schedule
+               io_cqring_wait
+               __do_sys_io_uring_enter
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               syscall
+
+     0.52%  base-native-tas  [kernel.kallsyms]  [k] handle_softirqs
+            |
+            ---handle_softirqs
+               do_softirq.part.0
+               __local_bh_enable_ip
+               __dev_queue_xmit
+               ip_finish_output2
+               ip_output
+               __ip_queue_xmit
+               __tcp_transmit_skb
+               tcp_write_xmit
+               __tcp_push_pending_frames
+               tcp_sendmsg_locked
+               tcp_sendmsg
+               __sys_sendto
+               __x64_sys_sendto
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fcde13688f2
+               send
+
+     0.51%  base-native-tas  [kernel.kallsyms]  [k] kmem_cache_alloc_node_noprof
+            |
+            ---kmem_cache_alloc_node_noprof
+
+     0.51%  base-native-tas  [kernel.kallsyms]  [k] perf_ctx_disable
+            |
+            ---perf_ctx_disable
+               __perf_event_task_sched_out
+               __schedule
+               schedule
+               io_cqring_wait
+               __do_sys_io_uring_enter
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               syscall
+
+     0.50%  base-native-tas  [kernel.kallsyms]  [k] fput
+            |
+            ---fput
+
+     0.50%  base-native-tas  final              [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#4}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#4}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::run
+     0.50%  base-native-tas  [kernel.kallsyms]  [k] ktime_get
+            |
+            ---ktime_get
+
+     0.50%  base-native-tas  [kernel.kallsyms]  [k] tcp_rcv_space_adjust
+            |
+            ---tcp_rcv_space_adjust
+               tcp_recvmsg_locked
+               tcp_recvmsg
+               sock_recvmsg
+               __sys_recvfrom
+               __x64_sys_recvfrom
+               do_syscall_64
+               entry_SYSCALL_64_after_hwframe
+               0x7fcde13688f2
+               recv
+
+
+
+#
+# (Tip: To trace calls using Processor Trace use perf record -e intel_pt// ... ; perf script --call-trace. Then use perf script --time A-B --insn-trace to look at region of interest.)
+#

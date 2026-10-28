@@ -1,0 +1,22 @@
+base-native-raw 6000 {'send syscalls': 74.2, 'receive syscalls': 21.9, 'waiting/readiness syscalls': 2.1, 'remaining user-space code': 1.2, 'cancellation/event/mutex work': 0.6}
+  4452 __sendto
+  1289 __recvfrom
+   126 kevent
+    18 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}> a
+    13 core::ptr::drop_glue::<<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_st
+    12 <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}
+    11 pthread_mutex_lock
+    10 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_stream_writer::SocketStre
+     6 core::ptr::drop_glue::<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_re
+     6 <base_scheduler_selector::readiness_driver::ReadinessWorker as base_scheduler_selector::selector_worker::SelectorWorker>::turn
+tokio-task-raw 5878 {'send syscalls': 73.4, 'receive syscalls': 22.7, 'waiting/readiness syscalls': 2.5, 'remaining user-space code': 1.2, 'cancellation/event/mutex work': 0.2}
+  4314 __sendto
+  1330 __recvfrom
+   146 kevent
+    10 <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_read
+     9 <tokio::runtime::io::scheduled_io::ScheduledIo>::wake
+     7 <&std::net::tcp::TcpStream as core::io::write::Write>::write
+     7 <&mio::net::tcp::stream::TcpStream as alloc::io::read::Read>::read
+     6 <tokio::net::tcp::stream::TcpStream as tokio::io::async_write::AsyncWrite>::poll_write
+     6 <tokio::runtime::io::registration::Registration>::poll_ready
+     6 <tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness

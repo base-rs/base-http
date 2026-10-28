@@ -1,0 +1,59 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+   Compiling smallvec v1.16.4
+   Compiling arrayvec v0.7.8
+   Compiling base-http v0.0.0 (/Users/samuel/Developer/base-rs/base-http)
+   Compiling base-http1 v0.0.0 (/Users/samuel/Developer/base-rs/base-http1)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.03s
+     Running unittests src/lib.rs (target/debug/deps/base_http1-146a12b15f65a55a)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/codec.rs (target/debug/deps/codec-1ec27a41fb7d0eab)
+
+running 33 tests
+test abandoning_started_output_prevents_further_responses ... ok
+test actual_body_suspension_flushes_ready_data_and_keeps_the_started_read ... ok
+test client_truncated_invalid_and_abandoned_response_bodies_disable_reuse ... ok
+test client_cancellation_closes_request_body_and_poisons_started_response_input ... ok
+test client_close_delimited_responses_and_close_fields_disable_reuse ... ok
+test conflicting_declared_length_is_rejected_before_any_wire_output ... ok
+test client_rejects_invalid_heads_before_sending_and_bad_lengths_after_progress ... ok
+test client_requests_frame_streams_and_static_trailers ... ok
+test early_response_allows_active_upload_but_reuse_requires_its_completion ... ok
+test every_short_write_is_retried_in_order ... ok
+test client_rejects_malformed_and_ambiguous_response_heads ... ok
+test custom_field_policy_cannot_allow_framing_fields_in_wire_trailers ... ok
+test failed_batched_write_is_never_replayed_on_close_or_next_response ... ok
+test client_requests_retry_short_writes_and_preserve_boundaries ... ok
+test failed_body_reads_prevent_reuse_even_if_the_body_is_dropped ... ok
+test generated_framing_does_not_mutate_the_semantic_head_or_truncate_large_lengths ... ok
+test every_successful_connect_uses_raw_framing_including_204_and_205 ... ok
+test client_switch_responses_are_final_and_never_reusable ... ok
+test output_cancels_an_uncooperative_body_and_closes_it ... ok
+test precancelled_input_does_not_consume_the_request ... ok
+test reset_content_never_emits_nonempty_data_even_with_unknown_length ... ok
+test request_target_forms_reconstruct_semantic_components ... ok
+test static_response_head_and_body_share_one_transport_write ... ok
+test static_trailers_select_chunked_framing_and_stay_after_the_split ... ok
+test large_heads_chunks_and_trailers_preserve_every_byte_across_batch_boundaries ... ok
+test upgrade_advertisement_can_appear_in_a_normal_response ... ok
+test switching_with_expect_sends_continue_before_101 ... ok
+test zero_write_progress_is_an_error ... ok
+test too_short_and_too_long_bodies_poison_output ... ok
+test configured_field_limits_work_below_and_above_stack_capacity_in_both_directions ... ok
+test incoming_fixed_and_chunked_bodies_leave_the_next_request_intact_at_every_fragment_size ... ok
+test many_ready_chunks_are_sent_in_bounded_batches_before_body_completion ... ok
+test client_responses_preserve_interims_trailers_and_boundaries_at_every_fragment_size ... ok
+
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests base_http1
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

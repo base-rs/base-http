@@ -1,0 +1,47 @@
+--- a/base-http1/src/input.rs
++++ b/base-http1/src/input.rs
+@@ -397,7 +397,8 @@
+     complete: bool,
+     closed: bool,
+     raw: bool,
+-    trailers: Option<Fields>,
++    trailers: Option<Box<Fields>>,
++    trailers_pending: bool,
+     forbid_content: bool,
+ }
+ 
+@@ -421,6 +422,7 @@
+             closed: false,
+             raw,
+             trailers: None,
++            trailers_pending: false,
+             forbid_content,
+         }
+     }
+@@ -479,7 +481,9 @@
+                         .await?;
+                     let size = chunk_size(&line)?;
+                     if size == 0 {
+-                        self.trailers = Some(self.input.trailers(cancellation).await?);
++                        let trailers = self.input.trailers(cancellation).await?;
++                        self.trailers = (!trailers.is_empty()).then(|| Box::new(trailers));
++                        self.trailers_pending = true;
+                         self.complete = true;
+                         return Ok(None);
+                     }
+@@ -517,10 +521,12 @@
+         if !self.complete {
+             return Err(Error::Invalid("body has not reached EOF"));
+         }
+-        if let Some(trailers) = self.trailers.take() {
++        if std::mem::take(&mut self.trailers_pending) {
+             fields.mark_trailers();
+-            for field in trailers.pairs() {
+-                fields.append(field.clone())?;
++            if let Some(trailers) = self.trailers.take() {
++                for field in trailers.pairs() {
++                    fields.append(field.clone())?;
++                }
+             }
+         }
+         Ok(())

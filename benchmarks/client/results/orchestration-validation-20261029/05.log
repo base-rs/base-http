@@ -1,0 +1,88 @@
+
+running 6 tests
+test reuse::tests::retained_operations_never_share_storage_and_surplus_is_discarded ... ok
+test reuse::tests::pinned_state_is_dropped_in_place_before_storage_is_reused ... ok
+test reuse::tests::dropping_unpolled_operation_clears_its_owners ... ok
+test driver::tests::pending_completion_wakes_supervisor_only_when_closed_and_drained ... ok
+test driver::tests::checked_prioritizes_existing_cancellation_and_wakes_blocked_work ... ok
+test reuse::tests::storage_can_be_taken_and_returned_from_different_threads ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 13 tests
+test dropping_driver_wakes_queued_calls_and_rejects_new_submissions ... ok
+test failed_construction_releases_capacity_and_preserves_client_admission ... ok
+test lifetime_cancellation_stops_an_uncooperative_upload_and_joins_cleanup ... ok
+test known_empty_responses_are_ready_and_reusable_without_body_reads ... ok
+test interim_responses_and_trailers_preserve_order ... ok
+test post_then_get_reuses_one_connection_with_heterogeneous_bodies ... ok
+test response_finishes_before_upload_and_use_remains_charged ... ok
+test busy_and_closed_clients_close_rejected_bodies ... ok
+test cancelled_pool_waiter_does_not_cancel_occupied_connection ... ok
+test cancelling_a_waiting_call_disconnects_and_allows_replacement ... ok
+test abandoned_partial_response_disconnects_and_replaces_connection ... ok
+test dropped_call_retires_an_exchange_waiting_for_final_metadata ... ok
+test upload_keeps_progressing_while_response_queue_is_full ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 2 tests
+test proxy_continues_upload_after_downstream_response_completion ... ok
+test proxy_forwards_upload_when_downstream_response_reads_are_paused ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+
+running 22 tests
+test completed_direct_response_releases_use_before_next_driver_poll ... ok
+test deferred_close_survives_dropped_and_cancelled_completion_waits ... ok
+test dropping_a_cold_open_retires_construction_before_replacement ... ok
+test direct_writes_reach_peer_before_finish_and_observe_interims ... ok
+test cancelled_and_dropped_open_waiters_do_not_abandon_active_exchange ... ok
+test aborting_output_wakes_a_response_blocked_in_an_interim_observer ... ok
+test deferred_close_preserves_framing_errors_and_retires_the_connection ... ok
+test cancellation_wakes_direct_input_and_retains_cleanup_accounting ... ok
+test completed_adapters_release_observers_while_old_handles_remain_alive ... ok
+test dropping_a_pending_direct_write_retires_the_connection ... ok
+test normal_close_write_finalizes_without_a_body_queue ... ok
+test old_completed_handles_cannot_cancel_the_next_exchange ... ok
+test established_http1_runs_without_polling_client_driver ... ok
+test precancelled_writes_leave_output_usable ... ok
+test producer_error_is_observable_and_retires_direct_output ... ok
+test dropped_input_reads_preserve_decoder_state_but_cancelled_reads_retire ... ok
+test partial_input_and_unfinished_output_both_retire_connections ... ok
+test fixed_length_errors_retire_instead_of_replaying_partial_writes ... ok
+test sequential_writes_flush_without_reading_and_share_pool_with_call ... ok
+test early_empty_response_does_not_finish_upload_or_release_pool_use ... ok
+test direct_upload_progresses_while_response_consumption_is_paused ... ok
+test direct_http_split_echo_under_backpressure ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+
+running 1 test
+test src/lib.rs - (line 31) ... ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling base-endpoint v0.0.0 (/Users/samuel/Developer/base-rs/base-endpoint)
+   Compiling rustls-pki-types v1.15.1
+   Compiling base-http1 v0.0.0 (/Users/samuel/Developer/base-rs/base-http1)
+   Compiling rcgen v0.14.7
+   Compiling base-http-protocol v0.0.0 (/Users/samuel/Developer/base-rs/base-http-protocol)
+   Compiling base-http-server v0.0.0 (/Users/samuel/Developer/base-rs/base-http-server)
+   Compiling base-http-client v0.0.0 (/Users/samuel/Developer/base-rs/base-http-client)
+    Finished `test` profile [unoptimized] target(s) in 1.32s
+     Running unittests src/lib.rs (/tmp/base-http-validation-target/debug/deps/base_http_client-888ae1ffcaf64bb1)
+     Running tests/client.rs (/tmp/base-http-validation-target/debug/deps/client-54f4160741e24e21)
+     Running tests/https.rs (/tmp/base-http-validation-target/debug/deps/https-bd0e55f5f53c584d)
+     Running tests/proxy.rs (/tmp/base-http-validation-target/debug/deps/proxy-8094c67d4540606e)
+     Running tests/writable.rs (/tmp/base-http-validation-target/debug/deps/writable-25191eb31dfcd143)
+   Doc-tests base_http_client

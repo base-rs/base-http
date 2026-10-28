@@ -1,0 +1,47 @@
+[
+  {
+    "variant": "combined",
+    "backend": "hyper-tokio",
+    "requests_per_second_min": 129605.11,
+    "requests_per_second_max": 132652.88,
+    "requests_per_second": 131463.41,
+    "latency_p99_ms": 0.6940000000000001,
+    "server_cpu_percent_one_core": 99.42745381656529
+  },
+  {
+    "variant": "lean",
+    "backend": "base-owned",
+    "requests_per_second_min": 117843.63,
+    "requests_per_second_max": 119932.49,
+    "requests_per_second": 118327.68,
+    "latency_p99_ms": 0.756,
+    "server_cpu_percent_one_core": 99.53755278559225
+  },
+  {
+    "variant": "lean",
+    "backend": "base-tokio",
+    "requests_per_second_min": 118008.04,
+    "requests_per_second_max": 120574.76,
+    "requests_per_second": 120126.88,
+    "latency_p99_ms": 0.751,
+    "server_cpu_percent_one_core": 99.53984971138489
+  },
+  {
+    "variant": "shared-exchange",
+    "backend": "base-owned",
+    "requests_per_second_min": 115898.84,
+    "requests_per_second_max": 118092.42,
+    "requests_per_second": 117488.67,
+    "latency_p99_ms": 0.763,
+    "server_cpu_percent_one_core": 99.5404103924597
+  },
+  {
+    "variant": "writev",
+    "backend": "base-native",
+    "requests_per_second_min": 92658.58,
+    "requests_per_second_max": 94308.12,
+    "requests_per_second": 93341.91,
+    "latency_p99_ms": 1.57,
+    "server_cpu_percent_one_core": 127.65859232808057
+  }
+]

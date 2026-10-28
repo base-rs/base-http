@@ -1,0 +1,27 @@
+[package]
+name = "base-scheduler-iouring"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/base-rs/base-scheduler"
+description = "Independently driven io_uring file and socket operations for Base schedulers"
+readme = "readme.md"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+base-scheduler = { path = "../..", version = "0.1.0" }
+base-scheduler-selector = { path = "../selector", version = "0.1.0" }
+io-uring = { version = "0.7.11", features = ["io_safety"] }
+libc = "0.2"
+async-io = "2.6.0"
+socket2 = { version = "0.6.3", features = ["all"] }
+event-listener = "5.4.2"
+futures-channel = "0.3.31"
+atomic-waker = "1.1.2"
+
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+base-scheduler-native = { path = "../native", version = "0.1.0" }
+base-scheduler-conformance = { path = "../conformance", version = "0.1.0" }
+futures-lite = "2.6.1"
+tempfile = "3"
+allocation-counter = "0.8.1"

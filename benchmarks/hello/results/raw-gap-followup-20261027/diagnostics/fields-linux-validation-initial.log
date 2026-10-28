@@ -1,0 +1,10 @@
+base-http lock passed
+base-http test passed
+Traceback (most recent call last):
+  File "/tmp/base-http-linux-gap-vohfc1rh/raw-followup-tools/validate.py", line 17, in <module>
+    subprocess.run(command,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['cargo', '--config', 'patch.crates-io.base-scheduler.path="/tmp/base-http-linux-gap-vohfc1rh/base-scheduler"', '--config', 'patch.crates-io.base-scheduler-direct.path="/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/direct"', '--config', 'patch.crates-io.base-scheduler-selector.path="/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/selector"', '--config', 'patch.crates-io.base-scheduler-native.path="/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/native"', '--config', 'patch.crates-io.base-scheduler-tokio.path="/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/tokio"', '--config', 'patch.crates-io.base-scheduler-timers.path="/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/timers"', '--config', 'patch.crates-io.base-scheduler-iouring.path="/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/iouring"', 'clippy', '--all-targets', '--locked', '--', '-D', 'warnings']' returned non-zero exit status 101.

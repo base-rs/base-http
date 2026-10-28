@@ -1,0 +1,12 @@
+tokio-task-raw 16 1 {"task-clock": 0.006164439752271184, "cycles:u": 2190.8848185406596, "cycles:k": 19531.52577818722, "instructions:u": 1973.4979776210234, "instructions:k": 13191.58940999657, "context-switches": 0.20001042290079415, "cpu-migrations": 0.0}
+base-native-raw 16 1 {"task-clock": 0.0062885865677617565, "cycles:u": 2540.4318763956667, "cycles:k": 19579.642329090006, "instructions:u": 2138.1891037077617, "instructions:k": 13260.253958122885, "context-switches": 0.17991848386010584, "cpu-migrations": 0.0}
+tokio-task-raw 64 1 {"task-clock": 0.006100666736796758, "cycles:u": 1890.1238180157525, "cycles:k": 19626.32074331218, "instructions:u": 1992.5981629255602, "instructions:k": 13452.910368734001, "context-switches": 0.21778398930015178, "cpu-migrations": 0.0}
+base-native-raw 64 1 {"task-clock": 0.0062194624522315355, "cycles:u": 2337.9803509874655, "cycles:k": 19845.677215570766, "instructions:u": 2136.1402913416628, "instructions:k": 13489.410534639033, "context-switches": 0.1911457410422636, "cpu-migrations": 0.0}
+Traceback (most recent call last):
+  File "/tmp/base-http-linux-gap-vohfc1rh/raw-followup-tools/measure.py", line 61, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/tmp/base-http-linux-gap-vohfc1rh/raw-followup-tools/measure.py", line 38, in main
+    result=json.loads(measured.stdout);assert result['requests']==result['sent'];assert result['requests']>=a.rate*a.duration*.99,result
+                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'requests': 591919, 'sent': 591919, 'missed': 8081, 'target_rate': 100000, 'duration': 6}

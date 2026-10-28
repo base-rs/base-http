@@ -1,0 +1,168 @@
+--- before/crates/selector/src/readiness_driver/kqueue.rs
++++ after/crates/selector/src/readiness_driver/kqueue.rs
+@@ -192,20 +192,24 @@
+             }
+         }
+     }
++    /// Append native events, returning this wait's count including interrupts.
+     pub(super) fn wait(&self, events: &mut Events, timeout: Option<Duration>) -> io::Result<usize> {
+         let timeout = timeout.map(|duration| libc::timespec {
+             tv_sec: duration.as_secs().min(libc::time_t::MAX as u64) as libc::time_t,
+             tv_nsec: duration.subsec_nanos() as libc::c_long,
+         });
++        events.raw.reserve(BATCH);
++        let length = events.raw.len();
+         // SAFETY: kevent writes only into this exclusively borrowed result
+-        // array, synchronously. No borrowed output storage access survives the call;
+-        // opaque registration tokens follow the owning driver's lifetime rules.
++        // vector's spare capacity, synchronously. No borrowed output-storage
++        // access survives the call; opaque registration tokens follow the
++        // owning driver's lifetime rules.
+         let count = unsafe {
+             self.kevent(
+                 self.queue.as_raw_fd(),
+                 ptr::null(),
+                 0,
+-                events.raw.as_mut_ptr().cast(),
++                events.raw.as_mut_ptr().add(length),
+                 BATCH as i32,
+                 timeout.as_ref().map_or(ptr::null(), |value| value),
+             )
+@@ -213,23 +217,10 @@
+         if count < 0 {
+             return Err(io::Error::last_os_error());
+         }
+-        for raw in &events.raw[..count as usize] {
+-            // SAFETY: kevent initialized this returned prefix.
+-            let raw = unsafe { raw.assume_init_ref() };
+-            if raw.filter == libc::EVFILT_USER {
+-                continue;
+-            }
+-            let error = raw.flags & libc::EV_ERROR != 0;
+-            let mut ready = Event::none(raw.udata as usize);
+-            ready.readable = raw.filter == libc::EVFILT_READ || error;
+-            ready.writable = raw.filter == libc::EVFILT_WRITE || error;
+-            events.ready.push(ReadyEvent {
+-                readiness: ready,
+-                available: raw.data.max(0) as usize,
+-                read_closed: raw.filter == libc::EVFILT_READ && raw.flags & libc::EV_EOF != 0,
+-            });
+-        }
+-        Ok(events.ready.len())
++        // SAFETY: kevent initialized exactly this many entries in the reserved
++        // tail. On failure the initialized prefix and its length stay unchanged.
++        unsafe { events.raw.set_len(length + count as usize) };
++        Ok(count as usize)
+     }
+ }
+ fn check_receipt(receipt: &libc::kevent, change: &libc::kevent) -> io::Result<()> {
+@@ -261,8 +252,7 @@
+ }
+ 
+ pub(super) struct Events {
+-    raw: Box<[MaybeUninit<libc::kevent>; BATCH]>,
+-    ready: Vec<ReadyEvent>,
++    raw: Vec<libc::kevent>,
+ }
+ #[derive(Clone, Copy)]
+ pub(super) struct ReadyEvent {
+@@ -270,22 +260,34 @@
+     pub(super) available: usize,
+     pub(super) read_closed: bool,
+ }
+-// SAFETY: udata contains opaque address tokens. This array only transports
++// SAFETY: udata contains opaque address tokens. This vector only transports
+ // them; the owning readiness driver controls all dereference and retirement.
+-// The raw result array has one owner and is accessed only by a synchronous wait.
++// The raw result vector has one owner and is written only by a synchronous wait.
+ unsafe impl Send for Events {}
+ impl Events {
+     pub(super) fn new() -> Self {
+         Self {
+-            raw: Box::new([MaybeUninit::uninit(); BATCH]),
+-            ready: Vec::with_capacity(BATCH),
++            raw: Vec::with_capacity(BATCH),
+         }
+     }
+     pub(super) fn clear(&mut self) {
+-        self.ready.clear();
++        self.raw.clear();
+     }
+     pub(super) fn iter(&self) -> impl Iterator<Item = ReadyEvent> + '_ {
+-        self.ready.iter().copied()
++        self.raw.iter().filter_map(|raw| {
++            if raw.filter == libc::EVFILT_USER {
++                return None;
++            }
++            let error = raw.flags & libc::EV_ERROR != 0;
++            let mut readiness = Event::none(raw.udata as usize);
++            readiness.readable = raw.filter == libc::EVFILT_READ || error;
++            readiness.writable = raw.filter == libc::EVFILT_WRITE || error;
++            Some(ReadyEvent {
++                readiness,
++                available: raw.data.max(0) as usize,
++                read_closed: raw.filter == libc::EVFILT_READ && raw.flags & libc::EV_EOF != 0,
++            })
++        })
+     }
+ }
+ 
+--- before/crates/selector/src/readiness_driver/kqueue/tests.rs
++++ after/crates/selector/src/readiness_driver/kqueue/tests.rs
+@@ -66,7 +66,8 @@
+     );
+     poller.failure.store(libc::EINTR, Ordering::Relaxed);
+     poller.notify().unwrap();
+-    assert_eq!(poller.wait(&mut events, None).unwrap(), 0);
++    assert_eq!(poller.wait(&mut events, None).unwrap(), 1);
++    assert!(events.iter().next().is_none());
+     events.clear();
+     assert_eq!(
+         poller
+@@ -74,6 +75,46 @@
+             .unwrap(),
+         0
+     );
++}
++
++#[test]
++fn collected_events_survive_wait_errors_and_append_until_clear() {
++    let poller = Poller::new().unwrap();
++    let receiver = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
++    let address = receiver.local_addr().unwrap();
++    let socket: socket2::Socket = receiver.into();
++    // SAFETY: The token is opaque in this poller test, and deletion precedes
++    // destruction of the native socket.
++    unsafe { poller.add_with_mode(&socket, Event::all(42), PollMode::Edge) }.unwrap();
++    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
++    sender.send_to(b"native", address).unwrap();
++    let mut events = Events::new();
++    let deadline = std::time::Instant::now() + Duration::from_secs(3);
++    let readable = loop {
++        poller
++            .wait(&mut events, Some(Duration::from_millis(10)))
++            .unwrap();
++        if let Some(readable) = events.iter().find(|event| event.readiness.readable) {
++            break readable;
++        }
++        assert!(std::time::Instant::now() < deadline, "read event missing");
++    };
++    assert_eq!(readable.readiness.key, 42);
++    assert_eq!(readable.available, 6);
++    assert!(!readable.read_closed);
++    let collected = events.iter().count();
++
++    poller.failure.store(libc::EINTR, Ordering::Relaxed);
++    assert!(poller.wait(&mut events, Some(Duration::ZERO)).is_err());
++    assert_eq!(events.iter().count(), collected);
++    poller.notify().unwrap();
++    assert!(poller.wait(&mut events, None).unwrap() > 0);
++    assert!(events.iter().any(|event| event.readiness.readable
++        && event.readiness.key == 42
++        && event.available == 6));
++    events.clear();
++    assert!(events.iter().next().is_none());
++    poller.delete(&socket).unwrap();
+ }
+ 
+ #[test]

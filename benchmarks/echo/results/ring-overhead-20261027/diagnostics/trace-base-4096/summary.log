@@ -1,0 +1,96 @@
+{
+  "ring_creation": [
+    {
+      "comm": "after-final",
+      "tid": 203776,
+      "ring": "0xffff8e6e50159000",
+      "flags": 0
+    },
+    {
+      "comm": "base-native-tas",
+      "tid": 203778,
+      "ring": "0xffff8e6e20804000",
+      "flags": 768
+    }
+  ],
+  "ring_events": {
+    "io_uring:io_uring_create": 2,
+    "io_uring:io_uring_submit_req": 177,
+    "io_uring:io_uring_task_add": 81743,
+    "io_uring:io_uring_complete": 81812
+  },
+  "creator_thread_syscalls": {
+    "syscalls:sys_enter_epoll_ctl": 202,
+    "syscalls:sys_enter_io_uring_enter": 962
+  },
+  "creator_thread_task_work": {
+    "batches": 68052,
+    "tasks": 81743
+  },
+  "ring_local_work": {},
+  "submissions": [
+    {
+      "opcode": "ASYNC_CANCEL",
+      "category": "cancel",
+      "count": 64
+    },
+    {
+      "opcode": "POLL_ADD",
+      "category": "monitor",
+      "count": 64
+    },
+    {
+      "opcode": "POLL_ADD",
+      "category": "notifier",
+      "count": 49
+    }
+  ],
+  "completions": [
+    {
+      "category": "cancel",
+      "result": 0,
+      "flags": 0,
+      "more": false,
+      "count": 64
+    },
+    {
+      "category": "monitor",
+      "result": -125,
+      "flags": 0,
+      "more": false,
+      "count": 64
+    },
+    {
+      "category": "monitor",
+      "result": 3,
+      "flags": 2,
+      "more": true,
+      "count": 81566
+    },
+    {
+      "category": "monitor",
+      "result": 8193,
+      "flags": 2,
+      "more": true,
+      "count": 69
+    },
+    {
+      "category": "notifier",
+      "result": 1,
+      "flags": 0,
+      "more": false,
+      "count": 49
+    }
+  ],
+  "instrumented_throughput_excluded": true,
+  "scalar_ring_payload_bytes": {},
+  "echoes_including_warmup_and_boundaries": 81564,
+  "receive_calls_per_echo": 1.00156931979795,
+  "send_calls_per_echo": 1.0,
+  "ring_events_per_echo": {
+    "io_uring:io_uring_create": 2.4520621842969938e-05,
+    "io_uring:io_uring_submit_req": 0.0021700750331028395,
+    "io_uring:io_uring_task_add": 1.0021945956549458,
+    "io_uring:io_uring_complete": 1.0030405571085284
+  }
+}

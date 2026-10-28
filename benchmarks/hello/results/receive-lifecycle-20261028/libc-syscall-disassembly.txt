@@ -1,0 +1,22 @@
+
+/usr/lib/libc.so.6:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+00000000000a08c0 <sem_trywait@@GLIBC_2.34+0x40>:
+   a08c0:	f3 0f 1e fa          	endbr64
+   a08c4:	8b 07                	mov    (%rdi),%eax
+   a08c6:	f6 07 08             	testb  $0x8,(%rdi)
+   a08c9:	0f 85 c1 3f ff ff    	jne    94890 <__libc_alloca_cutoff@@GLIBC_PRIVATE+0x30>
+   a08cf:	49 89 fb             	mov    %rdi,%r11
+   a08d2:	48 89 f0             	mov    %rsi,%rax
+   a08d5:	48 89 d7             	mov    %rdx,%rdi
+   a08d8:	48 89 ce             	mov    %rcx,%rsi
+   a08db:	4c 89 c2             	mov    %r8,%rdx
+   a08de:	4d 89 ca             	mov    %r9,%r10
+   a08e1:	4c 8b 44 24 08       	mov    0x8(%rsp),%r8
+   a08e6:	4c 8b 4c 24 10       	mov    0x10(%rsp),%r9
+   a08eb:	4c 89 5c 24 08       	mov    %r11,0x8(%rsp)
+   a08f0:	0f 05                	syscall
+   a08f2:	c3                   	ret

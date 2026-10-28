@@ -1,0 +1,18 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (target/debug/deps/base_scheduler_iouring-3509ad254f791c8a)
+
+running 1 test
+
+thread 'io_uring_selector::tests::nonblocking_submission_publishes_immediate_completions_before_returning' (291265) panicked at crates/iouring/src/io_uring_selector/tests.rs:489:5:
+assertion failed: completed.load(Ordering::SeqCst)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test io_uring_selector::tests::nonblocking_submission_publishes_immediate_completions_before_returning ... FAILED
+
+failures:
+
+failures:
+    io_uring_selector::tests::nonblocking_submission_publishes_immediate_completions_before_returning
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p base-scheduler-iouring --lib`

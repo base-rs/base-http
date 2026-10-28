@@ -1,0 +1,836 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 79500b3..340d633 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -362,6 +362,7 @@ dependencies = [
+  "futures-channel",
+  "futures-lite",
+  "libc",
++ "polling",
+  "signal-hook",
+  "socket2",
+  "tempfile",
+diff --git a/context/design.md b/context/design.md
+index 0f5ab82..b6e0535 100644
+--- a/context/design.md
++++ b/context/design.md
+@@ -38,6 +38,8 @@ Cancellable operations construct lazy futures. Constructing an unpolled future s
+ 
+ Optimize ordinary progress without cancellation: checking existing cancellation state is an atomic read, and waiting retains pinned listener storage inline in the future rather than allocating a separate listener. Shared event state is initialized during token construction. Direct also uses inline capacity and drain listeners and avoids capacity registration when admission can complete immediately. Setup, child registration, actual cancellation propagation, and executor-specific waker behavior may still allocate; this does not impose a zero-allocation requirement on every backend. Pinning preserves listener addresses without tying a `Send` future to a polling thread.
+ 
++Worker-owned readiness operations with `Cancellation::never()` await the operation directly after the usual admission checks. Direction waits already wake and report driver closure, so neither a cancellation listener nor a separate closure listener contributes on that path. Independently driven selectors and cancellable tokens retain their existing wait logic.
++
+ `IoBuf` and `IoBufMut` are unsafe contracts for stable, owned initialized storage. Their exposed allocation, range, and length stay stable while an operation owns them. Inline storage which moves with the owner cannot implement the traits safely. `BufferSlice` retains the owner and exposes a validated subrange without copying. Single-transfer buffer operations return that owner, including errors and cancellation. A stream writer's `submit` instead accepts ownership of a complete logical write and releases that owner independently when backend access ends.
+ 
+ Dropping an I/O future forfeits the buffer to backend retirement; it does not establish that kernel or worker access ended. Cancellation and future abandonment do not undo transferred bytes, changed file state, connection attempts, or cursor changes. A protocol must define when continuation is valid, rather than treating cancellation as rollback. Explicit offsets follow the documented platform cursor rules; protocol code requiring portable cursor ordering serializes related operations.
+@@ -144,7 +146,13 @@ The adapter adopts Base's owning task handles, guarded user destructors, lazy ca
+ 
+ New Native tasks select a preferred worker round-robin under the existing admission lock, including tasks spawned by another worker. Their initial runnable goes to that worker's queue before the first poll can attach persistent I/O state. There is no global unassigned-task queue or per-operation load counter. Subsequent wakes prefer the last worker to poll the task; idle workers can still steal queued tasks, including their initial runnable. This spreads initial placement rather than promising equal CPU or I/O load, pinning tasks, or migrating active ring resources. `block_on` continues polling its root on the caller's thread.
+ 
+-Sockets retain `async-io` registrations on Unix and Windows, without scheduler-instance affinity. Every payload access is a synchronous nonblocking syscall; readiness waits retain no kernel payload pointers. Prepared message buffers reach native calls without rebuilding vectors. Reactor registration and operating-system readiness changes may allocate independently of payload preparation (notably the upstream kqueue change path). Files and other synchronous services use bounded native pools independent of task workers. The separate io\_uring selector described below provides a completion-based alternative for owned file and socket transfers.
++Sockets retain compatible `async-io` native owners on Unix and Windows, without scheduler-instance affinity. The default Native scheduler composes one readiness driver per task worker. On macOS this driver calls kqueue directly, using persistent `EV_CLEAR` read/write filters, stack-based change receipts, and `EVFILT_USER` interruption. Other platforms with edge support use `polling`; platforms without it retain independent `async-io` progress. There is no separate socket reactor handoff on the worker-driven paths. Files and other synchronous services still use bounded native pools independent of task workers. The separate io\_uring selector described below provides a completion-based alternative for owned file and socket transfers.
++
++Ready socket operations attempt their nonblocking syscall before routing or registration lookup. On `WouldBlock`, a socket lazily obtains one persistent registration in the explicitly selected selector group. Its first compatible worker owns that registration for the socket's use of that group; root and external callers select workers round-robin. Pending futures and later operations can move between threads without changing that registration's owner. Using a compatible socket with another selector creates an independent registration. Retired groups are pruned on later registration lookup. Event keys are never reused within a driver, and its table stores only live weak records, so delayed events cannot target a recycled descriptor and connection churn does not grow the table indefinitely.
++
++Readability and writability each retain advisory readiness and a notification generation. A `WouldBlock` clears only the generation observed before its syscall. Independent inline listeners support concurrent waits in the same direction; abandoning one wait cannot replace or remove another's waker. Bound scalar stream readers retain their registration and, after establishing progress, wait first when readiness is clear. On macOS, kqueue also supplies the readable byte count and directional EOF. A positive short receive may clear its observed readiness only when it consumed at least the reported byte count and that event did not report EOF. An urgent-data boundary can stop a short receive before already-queued ordinary bytes, including when another alias consumed the urgent byte; the byte-count comparison preserves progress in that case. Publishing the count precedes advancing the notification generation, so a concurrent event either supplies a conservative byte hint or prevents the old generation from being cleared. Other edge backends retain readiness until `WouldBlock`, and message receives preserve their first-poll syscall contract. EOF remains readable through the final data read. All payload access finishes inside the polling future; neither kqueue nor a readiness registration retains borrowed payload pointers. Registration owners retain no native-socket owner. The final socket alias synchronously deregisters its filters before releasing its descriptor, including on another thread, so an event batch temporarily retaining a record cannot prevent exclusive close. Closing or dropping a driver closes readiness admission across its group and wakes pending waits. Readiness-only records need no asynchronous kernel memory retirement.
++
++Bound borrowed stream writers attempt ready progress without a registration-table lookup. Their first `WouldBlock` acquires and retains the shared registration, retries across registration and then clears only the generation observed before a blocked send. Subsequent blocked operations reuse that registration. Immediate errors, short counts, cancellation and closure retain the same contract; owned output submission remains separately managed.
+ 
+ `base-scheduler-timers` is extracted as runtime-independent support with no dependency on the scheduler interface. It retains batched queues, stable slots, constant-time cancellation, optional sharded assistance and deadline notifications, and the optional bounded producer driver. Its `local` feature exposes the same queue engine with exclusive ownership and no synchronization or reference counting.
+ 
+@@ -156,7 +164,7 @@ A sleep first polled on the explicitly selected scheduler's worker registers dir
+ 
+ ## Selector composition
+ 
+-`base-scheduler-selector` separates native I/O services from task execution. Its `ReadinessSelector` owns bounded blocking and cleanup pools, socket readiness operations, native resolution, and platform-supported signals; it creates no task executor or clock. The existing `async-io` reactor drives readiness independently. `Selector` specifies only nonblocking admission closure and asynchronous retirement. Each selector implements the existing operation-level capabilities it supplies, preserving its associated resource types. Selectors do not need a second I/O interface or a universal set of capabilities.
++`base-scheduler-selector` separates native I/O services from task execution. Its `ReadinessSelector` owns bounded blocking and cleanup pools, socket readiness operations, native resolution, and platform-supported signals; it creates no task executor or clock. `new` and `with_options` keep independent `async-io` reactor progress. `ReadinessSelector::with_workers` returns caller-owned readiness drivers; those drivers must continue progressing through shutdown. `Selector` specifies only nonblocking admission closure and asynchronous retirement. Each selector implements the existing operation-level capabilities it supplies, preserving its associated resource types. Selectors do not need a second I/O interface or a universal set of capabilities.
+ 
+ `NativeScheduler<S = ReadinessSelector>` adds task workers and timers and forwards only the selected capabilities through static dispatch. Existing `new` and `with_options` construction selects readiness. `with_selector` accepts an owned selector and `NativeExecutorOptions`; I/O limits are configured separately when constructing the selector. Failed composition closes the supplied selector. Application shutdown coordinates tasks first, then closes admission and waits for selector, task, and timer retirement. A caller-owned driver must keep progressing during that wait.
+ 
+diff --git a/crates/native/readme.md b/crates/native/readme.md
+index 02e559f..41701a1 100644
+--- a/crates/native/readme.md
++++ b/crates/native/readme.md
+@@ -2,7 +2,7 @@
+ 
+ A work-stealing executor composed with native I/O selectors for Base's explicit scheduler capabilities. Applications select this implementation; libraries depend only on `base-scheduler`.
+ 
+-Tasks run on worker-local queues with remote inboxes and work stealing. The default `ReadinessSelector` supplies I/O independently of those workers. Nonblocking sockets use `async-io` readiness. Files, address resolution, and blocking closures use a separate bounded pool; accepted cleanup has an independent pool. Monotonic sleeps use reserved timer storage from `base-scheduler-timers`.
++Tasks run on worker-local queues with remote inboxes and work stealing. The default `ReadinessSelector` supplies one socket readiness driver per task worker. On macOS, workers own kqueues directly; other edge-capable platforms use `polling`, with independent `async-io` progress retained where edge polling is unavailable. Files, address resolution, and blocking closures use a separate bounded pool; accepted cleanup has an independent pool. Monotonic sleeps use reserved timer storage from `base-scheduler-timers`.
+ 
+ ## Usage
+ 
+diff --git a/crates/native/src/native_scheduler.rs b/crates/native/src/native_scheduler.rs
+index 789cb73..0028f53 100644
+--- a/crates/native/src/native_scheduler.rs
++++ b/crates/native/src/native_scheduler.rs
+@@ -22,12 +22,16 @@ impl NativeScheduler {
+ 
+     /// Configure task workers, timer capacity, and the default selector's blocking services.
+     pub fn with_options(options: NativeOptions) -> io::Result<Self> {
+-        let selector = ReadinessSelector::with_options(SelectorOptions {
+-            threads: options.threads,
+-            capacity: options.capacity,
+-        })?;
+-        Self::with_selector(
++        let (selector, drivers) = ReadinessSelector::with_workers(
++            SelectorOptions {
++                threads: options.threads,
++                capacity: options.capacity,
++            },
++            options.workers,
++        )?;
++        Self::with_drivers(
+             selector,
++            drivers,
+             NativeExecutorOptions {
+                 workers: options.workers,
+                 timer_capacity: options.timer_capacity,
+diff --git a/crates/native/src/task_service/tests.rs b/crates/native/src/task_service/tests.rs
+index 705be8f..13ead27 100644
+--- a/crates/native/src/task_service/tests.rs
++++ b/crates/native/src/task_service/tests.rs
+@@ -629,3 +629,12 @@ mod pinned_tasks {
+         }
+     }
+ }
++
++#[test]
++fn independently_driven_selectors_also_report_worker_startup_failures() {
++    for fail_after in [0, 1] {
++        thread::FAIL_AFTER.set(Some(fail_after));
++        assert!(TaskService::new(2, 8).is_err());
++        thread::FAIL_AFTER.set(None);
++    }
++}
+diff --git a/crates/native/src/worker/tests.rs b/crates/native/src/worker/tests.rs
+index 6edacc0..c1c6d55 100644
+--- a/crates/native/src/worker/tests.rs
++++ b/crates/native/src/worker/tests.rs
+@@ -498,3 +498,8 @@ fn idle_wake_prefers_the_requested_sleeping_worker() {
+     assert!(!shared.workers[1].sleeping.load(Ordering::SeqCst));
+     shared.wake_all();
+ }
++
++#[test]
++fn a_nonblocking_turn_without_a_driver_does_not_park() {
++    super::drive(&mut None, Some(std::time::Duration::ZERO));
++}
+diff --git a/crates/selector/Cargo.toml b/crates/selector/Cargo.toml
+index 3769182..47f3f3f 100644
+--- a/crates/selector/Cargo.toml
++++ b/crates/selector/Cargo.toml
+@@ -15,6 +15,7 @@ futures-channel = "0.3.31"
+ futures-lite = "2.6.1"
+ socket2 = { version = "0.6.3", features = ["all"] }
+ async-io = "2.6.0"
++polling = "3.11.0"
+ 
+ [target.'cfg(unix)'.dependencies]
+ libc = "0.2"
+diff --git a/crates/selector/readme.md b/crates/selector/readme.md
+index 1bd94cd..3e17132 100644
+--- a/crates/selector/readme.md
++++ b/crates/selector/readme.md
+@@ -1,6 +1,6 @@
+ # `base-scheduler-selector`
+ 
+-I/O capabilities independent of an executor. `ReadinessSelector` supplies socket operations through `async-io`, file and resolver operations through bounded native workers, and platform-supported signals. It can be polled from any executor while its services remain alive.
++I/O capabilities independent of an executor. `ReadinessSelector` supplies independently driven or worker-owned socket readiness, file and resolver operations through bounded native workers, and platform-supported signals. It can be polled from any executor while its services remain alive.
+ 
+ ## Usage
+ 
+@@ -26,7 +26,15 @@ selector.shutdown().await;
+ 
+ Call `shutdown().await` after coordinating application cancellation and cleanup. Dropping a selector closes admission without synchronously waiting; backend workers retain accepted I/O until access ends.
+ 
+-`SelectorDriver` and `SelectorWorker` support executor-owned event loops. A movable driver enters one worker, consuming itself into a possibly thread-bound owner. That owner provides interruptible waits and bounded completion batches. Completion processing wakes tasks; the executor polls its ready queue only after the driver returns. Selectors with independent progress, such as `ReadinessSelector`, do not need to implement this optional driving contract.
++`SelectorDriver` and `SelectorWorker` support executor-owned event loops. A movable driver enters one worker, consuming itself into a possibly thread-bound owner. That owner provides interruptible waits and bounded completion batches. Completion processing wakes tasks; the executor polls its ready queue only after the driver returns. `ReadinessSelector::new` and `with_options` retain independent `async-io` progress. `with_workers(options, workers)` returns the selector and one `ReadinessDriver` per worker, suitable for `NativeScheduler::with_drivers`. On macOS these drivers own kqueues directly, using persistent `EV_CLEAR` filters and `EVFILT_USER` interruption. Other edge-capable platforms use `polling`; platforms without edge support retain independent progress and return retired drivers.
++
++Worker-driven sockets register lazily after `WouldBlock`. Routing uses the explicitly selected selector's current worker, or round-robin for root and external callers. Each socket keeps its first owner within that selector group even when a future moves. Independent listeners support concurrent waits in either direction. Event generations prevent a racing `WouldBlock` from clearing a newer notification. The final socket alias deregisters synchronously before releasing its descriptor, including on another thread. Driver closure wakes pending operations; it never retains application payload pointers.
++
++For registered sockets, the generation is observed before the syscall, so `WouldBlock` leads directly to a wait rather than a redundant immediate retry. Initial registration still retries to cover the registration boundary. Worker-owned direction waits already receive closure notifications and do not register a second shutdown listener; independently driven I/O retains its separate shutdown wait.
++
++Bound scalar stream readers retain their worker registration and, after establishing stream progress, wait before another receive when readiness is clear. On macOS, a short successful receive clears only its observed generation and only after consuming at least the byte count reported by kqueue. A short receive at an urgent-data boundary can leave more bytes queued, so it retains readiness when it falls short of that count. Readable EOF is preserved through the final data read. Other readiness backends retain readiness until `WouldBlock` because their event wrappers do not expose the same byte-count and directional EOF information. Message receives keep their syscall-first contract. Borrowed scalar reads still allocate no receive pool.
++
++Bound borrowed stream writes attempt the syscall before looking up a worker registration. Successful writes need no table lookup. On backpressure, the writer retains the shared registration and retries across lazy registration; later retries snapshot the notification generation before sending. Cancellation and scheduler closure retain their existing behavior. Owned submissions keep their independent progress and retirement contracts.
+ 
+ The readiness selector supplies bound stream, packet, and file readers and writers. Ready stream submissions complete inline; stalled owned output progresses through the existing bounded worker service, with cancellation and retirement independent of the caller polling its completion. Operations take cancellation without another scheduler argument. Borrowed-only readers allocate no payload pool; owned reads use lazy default storage or an explicit shared pool. Close and drop handles before exclusively closing their underlying resources. See the [I/O usage guide](../../context/io.md).
+ 
+diff --git a/crates/selector/src/lib.rs b/crates/selector/src/lib.rs
+index 5757789..ecee97e 100644
+--- a/crates/selector/src/lib.rs
++++ b/crates/selector/src/lib.rs
+@@ -41,6 +41,9 @@ pub use system_address_info::SystemAddressInfo;
+ pub use system_addresses::SystemAddresses;
+ pub use system_file_metadata::SystemFileMetadata;
+ 
++mod readiness_driver;
++pub use readiness_driver::{ReadinessDriver, ReadinessWorker};
++
+ mod readiness_selector;
+ mod selector;
+ mod selector_options;
+diff --git a/crates/selector/src/native_socket.rs b/crates/selector/src/native_socket.rs
+index 8d6bf73..a8764b2 100644
+--- a/crates/selector/src/native_socket.rs
++++ b/crates/selector/src/native_socket.rs
+@@ -11,6 +11,8 @@ type RegisteredSocket = async_io::Async<socket2::Socket>;
+ /// Usable by any native scheduler instance. Readiness operations retain their buffers in the waiting future without leaving payload pointers in the reactor. Completion backends retain the socket and buffers independently until their operations retire. Finish outstanding operations before exclusive close. Imported TCP resources must remain nonblocking through external aliases.
+ #[derive(Debug)]
+ pub struct NativeSocket {
++    // Drop registrations before the final native owner. They hold only a weak native reference.
++    pub(crate) registrations: Arc<crate::readiness_driver::SocketRegistrations>,
+     pub(crate) inner: Arc<RegisteredSocket>,
+ }
+ impl NativeSocket {
+@@ -29,16 +31,20 @@ impl NativeSocket {
+         socket: socket2::Socket,
+         register: impl FnOnce(socket2::Socket) -> io::Result<RegisteredSocket>,
+     ) -> io::Result<Self> {
++        let inner = Arc::new(register(socket)?);
+         Ok(Self {
+-            inner: Arc::new(register(socket)?),
++            registrations: Arc::new(crate::readiness_driver::SocketRegistrations::new(&inner)),
++            inner,
+         })
+     }
+     pub(crate) fn retain(&self) -> Self {
+         Self {
++            registrations: Arc::clone(&self.registrations),
+             inner: Arc::clone(&self.inner),
+         }
+     }
+     pub(crate) fn into_close(self) -> impl FnOnce() -> io::Result<()> + Send + 'static {
++        drop(self.registrations);
+         let inner = Arc::try_unwrap(self.inner)
+             .expect("cannot close a socket with outstanding operations; await them first");
+         move || inner.into_inner().and_then(crate::socket_io::close)
+diff --git a/crates/selector/src/readiness_selector.rs b/crates/selector/src/readiness_selector.rs
+index a998af7..96fb912 100644
+--- a/crates/selector/src/readiness_selector.rs
++++ b/crates/selector/src/readiness_selector.rs
+@@ -17,13 +17,14 @@ use std::{
+     path::Path,
+ };
+ 
+-/// Native I/O capabilities independent of task execution. Sockets use `async-io` readiness; files, resolution, and blocking work use bounded worker pools.
++/// Native I/O capabilities independent of task execution. Sockets use worker-owned or independently driven readiness; files, resolution, and blocking work use bounded worker pools.
+ ///
+-/// Compatible instances accept the same file and socket types. The readiness reactor progresses independently of the executor polling operation futures.
++/// Compatible instances accept the same file and socket types. `new` and `with_options` provide independent reactor progress; `with_workers` supplies caller-owned drivers.
+ pub struct ReadinessSelector {
+     pub(crate) work: BlockingPool,
+     pub(crate) cleanup: BlockingPool,
+     pub(crate) closed: Cancellation,
++    pub(crate) readiness: Option<std::sync::Arc<crate::readiness_driver::DriverGroup>>,
+     #[cfg(test)]
+     pub(crate) option_probe: std::sync::Arc<crate::socket_options::Probe>,
+     #[cfg(test)]
+@@ -69,6 +70,7 @@ impl ReadinessSelector {
+             #[cfg(unix)]
+             signals: crate::signal_service::SignalService::new(),
+             closed: Cancellation::new(),
++            readiness: None,
+             work: BlockingPool::new(options),
+             cleanup: BlockingPool::new(SelectorOptions {
+                 threads: 1,
+@@ -84,6 +86,9 @@ impl ReadinessSelector {
+         self.work.close();
+         self.cleanup.close();
+         self.closed.cancel();
++        if let Some(group) = &self.readiness {
++            group.close();
++        }
+         #[cfg(unix)]
+         self.signals.close();
+     }
+@@ -99,6 +104,28 @@ impl ReadinessSelector {
+         self.signals.drain().await;
+     }
+ 
++    /// Compose readiness with one caller-driven poller per task worker.
++    ///
++    /// The returned drivers must keep progressing through shutdown. Operations
++    /// on this selector use its current entered worker, or an external route;
++    /// pending operations keep that owner across task migration. Platforms
++    /// without edge polling retain independent `async-io` progress instead.
++    pub fn with_workers(
++        options: SelectorOptions,
++        workers: usize,
++    ) -> io::Result<(Self, Vec<crate::ReadinessDriver>)> {
++        if workers == 0 {
++            return Err(io::Error::new(
++                io::ErrorKind::InvalidInput,
++                "worker count must be nonzero",
++            ));
++        }
++        let mut selector = Self::with_options(options)?;
++        let (group, drivers) = crate::readiness_driver::create(workers, selector.closed.clone())?;
++        selector.readiness = group;
++        Ok((selector, drivers))
++    }
++
+     pub(crate) async fn buffer_operation<B: IoBuf>(
+         &self,
+         file: &NativeFile,
+diff --git a/crates/selector/src/readiness_socket_packet_reader.rs b/crates/selector/src/readiness_socket_packet_reader.rs
+index 8393307..7ffb5b1 100644
+--- a/crates/selector/src/readiness_socket_packet_reader.rs
++++ b/crates/selector/src/readiness_socket_packet_reader.rs
+@@ -33,9 +33,7 @@ impl<'a> ReadinessSocketPacketReader<'a> {
+         }
+         Ok(Self {
+             scheduler,
+-            socket: NativeSocket {
+-                inner: std::sync::Arc::clone(&socket.inner),
+-            },
++            socket: socket.retain(),
+             pool: None,
+             closing: false,
+         })
+diff --git a/crates/selector/src/readiness_socket_packet_writer.rs b/crates/selector/src/readiness_socket_packet_writer.rs
+index a5cedf4..2374936 100644
+--- a/crates/selector/src/readiness_socket_packet_writer.rs
++++ b/crates/selector/src/readiness_socket_packet_writer.rs
+@@ -26,9 +26,7 @@ impl<'a> ReadinessSocketPacketWriter<'a> {
+         }
+         Ok(Self {
+             scheduler,
+-            socket: NativeSocket {
+-                inner: std::sync::Arc::clone(&socket.inner),
+-            },
++            socket: socket.retain(),
+             closing: false,
+         })
+     }
+diff --git a/crates/selector/src/readiness_socket_stream_reader.rs b/crates/selector/src/readiness_socket_stream_reader.rs
+index 5ff527f..99d855f 100644
+--- a/crates/selector/src/readiness_socket_stream_reader.rs
++++ b/crates/selector/src/readiness_socket_stream_reader.rs
+@@ -3,6 +3,7 @@
+ 
+ use crate::Interest;
+ use crate::{NativeSocket, ReadinessSelector};
++use crate::{readiness_driver::Registration, socket_io};
+ use base_scheduler::{
+     BufferPool, BufferPoolOptions, BufferPooling, Cancellation, OperationResult, SocketRecvFlags,
+     SocketStreamReader,
+@@ -11,6 +12,7 @@ use std::{
+     future::{Future, poll_fn},
+     io::{self, IoSliceMut},
+     pin::pin,
++    sync::Arc,
+     task::Poll,
+ };
+ 
+@@ -18,6 +20,8 @@ use std::{
+ pub(crate) struct ReadinessSocketStreamReader<'a> {
+     scheduler: &'a ReadinessSelector,
+     socket: NativeSocket,
++    registration: Option<Arc<Registration>>,
++    established: bool,
+     pool: Option<base_scheduler::HeapBufferPool>,
+     eof: bool,
+     closed: bool,
+@@ -34,9 +38,9 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+         }
+         Ok(Self {
+             scheduler,
+-            socket: NativeSocket {
+-                inner: std::sync::Arc::clone(&socket.inner),
+-            },
++            socket: socket.retain(),
++            registration: None,
++            established: false,
+             pool: None,
+             eof: false,
+             closed: false,
+@@ -59,6 +63,69 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+             Ok(())
+         }
+     }
++
++    // Scalar consuming stream reads may use readiness before their syscall.
++    // Message receives retain their separate syscall-first contract.
++    async fn read_with(
++        &mut self,
++        capacity: usize,
++        cancellation: &Cancellation,
++        mut receive: impl FnMut(&socket2::Socket) -> io::Result<usize> + Send,
++    ) -> OperationResult<usize> {
++        let result = {
++            let scheduler = self.scheduler;
++            let operation = pin!(async {
++                let Some(group) = &self.scheduler.readiness else {
++                    return self.socket.io(Interest::Readable, receive).await;
++                };
++                let mut probe = !self.established;
++                if self.registration.is_none() {
++                    // Preserve immediate errors and retry across registration.
++                    let result = receive(self.socket.get_ref());
++                    if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                        return result;
++                    }
++                    self.registration = Some(
++                        self.socket
++                            .registrations
++                            .get(group, self.socket.get_ref())?,
++                    );
++                    probe = true;
++                }
++                let direction = self
++                    .registration
++                    .as_ref()
++                    .expect("a waiting stream retains its registration")
++                    .direction(Interest::Readable);
++                loop {
++                    let observed = direction.snapshot();
++                    if !probe && observed & 1 == 0 {
++                        direction.wait(group).await?;
++                        continue;
++                    }
++                    probe = false;
++                    match receive(self.socket.get_ref()) {
++                        Ok(count) => {
++                            // A short read must consume the event's reported
++                            // bytes before clearing. An urgent-data boundary can
++                            // leave bytes queued even after a short receive.
++                            direction.clear_after_read(observed, count, capacity);
++                            return Ok(count);
++                        }
++                        Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
++                            direction.clear(observed);
++                        }
++                        Err(error) => return Err(error),
++                    }
++                }
++            });
++            scheduler.cancellable(cancellation, operation).await
++        };
++        if matches!(result, Ok(count) if count != 0) {
++            self.established = true;
++        }
++        result
++    }
+ }
+ 
+ impl SocketStreamReader for ReadinessSocketStreamReader<'_> {
+@@ -119,13 +186,9 @@ impl SocketStreamReader for ReadinessSocketStreamReader<'_> {
+             return Ok(0);
+         }
+         let count = self
+-            .scheduler
+-            .socket_recv_poll(
+-                &self.socket,
+-                buffer,
+-                SocketRecvFlags::default(),
+-                cancellation,
+-            )
++            .read_with(buffer.len(), cancellation, |socket| {
++                socket_io::recv_poll(socket, buffer, SocketRecvFlags::default())
++            })
+             .await?;
+         if count == 0 {
+             self.eof = true;
+@@ -232,3 +295,6 @@ impl SocketStreamReader for ReadinessSocketStreamReader<'_> {
+         Ok(())
+     }
+ }
++
++#[cfg(all(test, target_os = "macos"))]
++mod tests;
+diff --git a/crates/selector/src/readiness_socket_stream_writer.rs b/crates/selector/src/readiness_socket_stream_writer.rs
+index f13ba14..8752967 100644
+--- a/crates/selector/src/readiness_socket_stream_writer.rs
++++ b/crates/selector/src/readiness_socket_stream_writer.rs
+@@ -1,7 +1,7 @@
+ // Released under the MIT License.
+ // Copyright, 2026, by Samuel Williams.
+ 
+-use crate::{NativeSocket, ReadinessSelector, socket_io};
++use crate::{Interest, NativeSocket, ReadinessSelector, readiness_driver::Registration, socket_io};
+ use base_scheduler::{
+     BufferPool, Cancellation, IoBuf, OperationError, OperationResult, SocketSendFlags,
+     SocketStreamWriter, SocketStreamWriting,
+@@ -11,6 +11,7 @@ use std::{
+     io::{self, IoSlice},
+     marker::PhantomData,
+     pin::{Pin, pin},
++    sync::Arc,
+     task::Poll,
+ };
+ 
+@@ -20,6 +21,7 @@ type Completion = Pin<Box<dyn Future<Output = OperationResult<()>> + Send>>;
+ pub(crate) struct ReadinessSocketStreamWriter<'scheduler, B> {
+     scheduler: &'scheduler ReadinessSelector,
+     socket: NativeSocket,
++    registration: Option<Arc<Registration>>,
+     pending: Option<Completion>,
+     stopping: Cancellation,
+     error: Option<OperationError>,
+@@ -39,6 +41,7 @@ impl<'scheduler, B> ReadinessSocketStreamWriter<'scheduler, B> {
+         Ok(Self {
+             scheduler,
+             socket: socket.retain(),
++            registration: None,
+             pending: None,
+             stopping: Cancellation::new(),
+             error: None,
+@@ -83,6 +86,48 @@ impl<'scheduler, B> ReadinessSocketStreamWriter<'scheduler, B> {
+         }
+         self.result()
+     }
++
++    async fn write_with(
++        &mut self,
++        cancellation: &Cancellation,
++        mut send: impl FnMut(&socket2::Socket) -> io::Result<usize> + Send,
++    ) -> OperationResult<usize> {
++        let scheduler = self.scheduler;
++        let operation = pin!(async {
++            let Some(group) = &self.scheduler.readiness else {
++                return self.socket.io(Interest::Writable, send).await;
++            };
++            if self.registration.is_none() {
++                // Ready writes need neither a registration nor a table lookup.
++                let result = send(self.socket.get_ref());
++                if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                    return result;
++                }
++                self.registration = Some(
++                    self.socket
++                        .registrations
++                        .get(group, self.socket.get_ref())?,
++                );
++            }
++            let direction = self
++                .registration
++                .as_ref()
++                .unwrap()
++                .direction(Interest::Writable);
++            loop {
++                // Retry across lazy registration, and never clear a newer edge.
++                let observed = direction.snapshot();
++                match send(self.socket.get_ref()) {
++                    Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
++                        direction.clear(observed);
++                        direction.wait(group).await?;
++                    }
++                    result => return result,
++                }
++            }
++        });
++        scheduler.cancellable(cancellation, operation).await
++    }
+ }
+ impl SocketStreamWriting for ReadinessSelector {
+     fn socket_stream_writer<'scheduler>(
+@@ -110,14 +155,10 @@ impl<B: IoBuf> SocketStreamWriter for ReadinessSocketStreamWriter<'_, B> {
+         if self.pending.is_some() {
+             self.wait(cancellation).await?;
+         }
+-        self.scheduler
+-            .socket_send_poll(
+-                &self.socket,
+-                buffer,
+-                SocketSendFlags::default(),
+-                cancellation,
+-            )
+-            .await
++        self.write_with(cancellation, |socket| {
++            socket_io::send_poll(socket, buffer, SocketSendFlags::default())
++        })
++        .await
+     }
+     async fn write_vectored(
+         &mut self,
+@@ -137,9 +178,10 @@ impl<B: IoBuf> SocketStreamWriter for ReadinessSocketStreamWriter<'_, B> {
+         if self.pending.is_some() {
+             self.wait(cancellation).await?;
+         }
+-        self.scheduler
+-            .socket_sendmsg_poll(&self.socket, buffers, None, flags, cancellation)
+-            .await
++        self.write_with(cancellation, |socket| {
++            socket_io::sendmsg_poll(socket, buffers, None, flags)
++        })
++        .await
+     }
+     async fn write_owned_vectored<Buffers: base_scheduler::IoBufSequence>(
+         &mut self,
+@@ -303,6 +345,10 @@ impl<B> Drop for ReadinessSocketStreamWriter<'_, B> {
+     }
+ }
+ 
++#[cfg(all(test, target_os = "macos"))]
++#[path = "readiness_socket_stream_writer/tests.rs"]
++mod readiness_tests;
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+diff --git a/crates/selector/src/socket_operations.rs b/crates/selector/src/socket_operations.rs
+index e8afdc5..91e1f86 100644
+--- a/crates/selector/src/socket_operations.rs
++++ b/crates/selector/src/socket_operations.rs
+@@ -27,14 +27,50 @@ impl ReadinessSelector {
+             self.check_open()?;
+             self.cancellable(
+                 cancellation,
+-                socket.io(interest, |socket| operation(socket, &mut input)),
++                self.socket_io(socket, interest, |socket| operation(socket, &mut input)),
+             )
+             .await
+         }
+         .await;
+         (result, input)
+     }
+-    async fn cancellable<T>(
++    async fn socket_io<T>(
++        &self,
++        socket: &NativeSocket,
++        interest: Interest,
++        mut operation: impl FnMut(&Socket) -> io::Result<T> + Send,
++    ) -> io::Result<T> {
++        if let Some(group) = &self.readiness {
++            let registration = if let Some(registration) = socket.registrations.existing(group) {
++                // Snapshot an existing edge generation before the syscall. A
++                // WouldBlock then clears only the observation that preceded it,
++                // without an immediate redundant retry on an already registered socket.
++                registration
++            } else {
++                // Unregistered sockets still attempt ready progress before
++                // registration. Retry after registration to cover that boundary.
++                let result = operation(socket.get_ref());
++                if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                    return result;
++                }
++                socket.registrations.get(group, socket.get_ref())?
++            };
++            let direction = registration.direction(interest);
++            loop {
++                let tick = direction.snapshot();
++                let result = operation(socket.get_ref());
++                if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
++                    return result;
++                }
++                direction.clear(tick);
++                direction.wait(group).await?;
++            }
++        } else {
++            socket.io(interest, operation).await
++        }
++    }
++
++    pub(crate) async fn cancellable<T>(
+         &self,
+         cancellation: &Cancellation,
+         operation: impl std::future::Future<Output = io::Result<T>> + Send,
+@@ -46,6 +82,11 @@ impl ReadinessSelector {
+         };
+         cancellation.check()?;
+         self.check_open()?;
++        if cancellation.is_never() && self.readiness.is_some() {
++            // Worker direction waits already wake and report driver closure.
++            // Neither cancellation listener can contribute on this path.
++            return operation.await.map_err(Into::into);
++        }
+         let mut operation = pin!(operation);
+         let mut cancelled = pin!(cancellation.cancelled());
+         let mut closed = pin!(self.closed.cancelled());
+@@ -57,7 +98,10 @@ impl ReadinessSelector {
+             if cancelled.as_mut().poll(context).is_ready() {
+                 return Poll::Ready(Err(Cancelled.into()));
+             }
+-            if closed.as_mut().poll(context).is_ready() {
++            // Worker-owned readiness wakes every direction when the group
++            // closes, and its wait checks this same closure signal. Register a
++            // separate shutdown listener only for independently driven I/O.
++            if self.readiness.is_none() && closed.as_mut().poll(context).is_ready() {
+                 return Poll::Ready(Err(io::Error::new(
+                     io::ErrorKind::BrokenPipe,
+                     "scheduler is closed",
+@@ -231,26 +275,6 @@ impl ReadinessSelector {
+     }
+ }
+ 
+-impl ReadinessSelector {
+-    pub(crate) async fn socket_send_poll(
+-        &self,
+-        socket: &NativeSocket,
+-        buffer: &[u8],
+-        flags: SocketSendFlags,
+-        cancellation: &Cancellation,
+-    ) -> OperationResult<usize> {
+-        self.socket_operation(
+-            socket,
+-            buffer,
+-            cancellation,
+-            Interest::Writable,
+-            |socket, buffer| socket_io::send_poll(socket, buffer, flags),
+-        )
+-        .await
+-        .0
+-    }
+-}
+-
+ impl ReadinessSelector {
+     pub(crate) async fn socket_recvmsg_poll(
+         &self,
+diff --git a/crates/selector/src/socket_operations/tests.rs b/crates/selector/src/socket_operations/tests.rs
+index 05d4304..77570c4 100644
+--- a/crates/selector/src/socket_operations/tests.rs
++++ b/crates/selector/src/socket_operations/tests.rs
+@@ -408,10 +408,6 @@ fn borrowed_operations_reject_closed_schedulers_and_preserve_storage_on_errors()
+     let never = Cancellation::never();
+     let mut target = [0x5a; 4];
+     // An unconnected datagram send must report the immediate native error.
+-    assert!(matches!(
+-        block_on(scheduler.socket_send_poll(&socket, b"x", SocketSendFlags::default(), &never)),
+-        Err(OperationError::Io(_))
+-    ));
+     assert!(matches!(
+         block_on(scheduler.socket_sendmsg_poll(
+             &socket,
+@@ -456,12 +452,6 @@ fn borrowed_operations_reject_closed_schedulers_and_preserve_storage_on_errors()
+         .kind(),
+         io::ErrorKind::BrokenPipe
+     );
+-    assert_eq!(
+-        block_on(scheduler.socket_send_poll(&socket, b"x", SocketSendFlags::default(), &never))
+-            .unwrap_err()
+-            .kind(),
+-        io::ErrorKind::BrokenPipe
+-    );
+     assert_eq!(
+         block_on(scheduler.socket_sendmsg_poll(
+             &socket,
+@@ -494,6 +484,7 @@ fn borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full()
+         server_socket.set_recv_buffer_size(4096).unwrap();
+         let payload = vec![7; 4 * 1024 * 1024];
+         let never = Cancellation::never();
++        let mut writer = scheduler.socket_stream_writer(&client).unwrap();
+         let count = if message {
+             block_on(scheduler.socket_sendmsg_poll(
+                 &client,
+@@ -504,13 +495,7 @@ fn borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full()
+             ))
+             .unwrap()
+         } else {
+-            block_on(scheduler.socket_send_poll(
+-                &client,
+-                &payload,
+-                SocketSendFlags::default(),
+-                &never,
+-            ))
+-            .unwrap()
++            block_on(writer.write(&payload, &never)).unwrap()
+         };
+         assert!(
+             count > 0 && count < payload.len(),
+@@ -539,15 +524,7 @@ fn borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full()
+                         &token,
+                     )
+                 } else {
+-                    cancel_pending_send(
+-                        scheduler.socket_send_poll(
+-                            &client,
+-                            &payload,
+-                            SocketSendFlags::default(),
+-                            &token,
+-                        ),
+-                        &token,
+-                    )
++                    cancel_pending_send(writer.write(&payload, &token), &token)
+                 };
+                 if cancelled {
+                     break;
+@@ -557,6 +534,8 @@ fn borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full()
+             assert!(result.unwrap() > 0);
+         }
+         assert!(payload.iter().all(|byte| *byte == 7));
++        block_on(writer.close()).unwrap();
++        drop(writer);
+         block_on(scheduler.shutdown());
+     }
+ }
+@@ -605,3 +584,78 @@ fn directional_handle_factories_validate_transport_and_closed_admission() {
+     );
+     block_on(scheduler.shutdown());
+ }
++
++#[test]
++fn registered_would_block_attempts_once_before_waiting() {
++    let (selector, drivers) =
++        ReadinessSelector::with_workers(crate::SelectorOptions::default(), 1).unwrap();
++    let worker = crate::SelectorDriver::enter(drivers.into_iter().next().unwrap());
++    let socket = socket();
++    let Some(group) = selector.readiness.as_ref() else {
++        return;
++    };
++    socket.registrations.get(group, socket.get_ref()).unwrap();
++    let calls = std::sync::atomic::AtomicUsize::new(0);
++    let mut operation = Box::pin(selector.socket_io(&socket, Interest::Readable, |_| {
++        calls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
++        Err::<(), _>(io::Error::from(io::ErrorKind::WouldBlock))
++    }));
++    assert!(block_on(poll_once(&mut operation)).is_none());
++    assert_eq!(calls.load(std::sync::atomic::Ordering::SeqCst), 1);
++    drop(operation);
++    drop(worker);
++    block_on(selector.shutdown());
++}
++
++#[test]
++fn readiness_published_during_a_registered_syscall_is_not_cleared() {
++    use crate::{SelectorDriver, SelectorWorker};
++    let (selector, drivers) =
++        ReadinessSelector::with_workers(crate::SelectorOptions::default(), 1).unwrap();
++    let socket =
++        NativeSocket::new(std::net::UdpSocket::bind("127.0.0.1:0").unwrap().into()).unwrap();
++    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
++    let address = socket.local_addr().unwrap();
++    let Some(group) = selector.readiness.as_ref() else {
++        return;
++    };
++    let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
++    let (turn, turns) = mpsc::channel();
++    let (done, completed) = mpsc::channel();
++    let (stop, stopping) = mpsc::channel();
++    let driver = drivers.into_iter().next().unwrap();
++    let driving = std::thread::spawn(move || {
++        let mut worker = driver.enter();
++        turns.recv_timeout(TIMEOUT).unwrap();
++        // The first batch can contain only the socket's initial writable
++        // edge. Synchronize on the readable edge this test actually needs.
++        let deadline = std::time::Instant::now() + TIMEOUT;
++        while registration.direction(Interest::Readable).snapshot() & 1 == 0 {
++            assert!(
++                std::time::Instant::now() < deadline,
++                "readable edge was not delivered"
++            );
++            worker.turn(Some(Duration::from_millis(100))).unwrap();
++        }
++        done.send(()).unwrap();
++        stopping.recv_timeout(TIMEOUT).unwrap();
++    });
++    let calls = Arc::new(std::sync::atomic::AtomicUsize::new(0));
++    let called = calls.clone();
++    let mut operation = Box::pin(selector.socket_io(&socket, Interest::Readable, move |_| {
++        if called.fetch_add(1, std::sync::atomic::Ordering::SeqCst) == 0 {
++            sender.send_to(b"x", address).unwrap();
++            turn.send(()).unwrap();
++            completed.recv_timeout(TIMEOUT).unwrap();
++            Err(io::Error::from(io::ErrorKind::WouldBlock))
++        } else {
++            Ok(7)
++        }
++    }));
++    assert_eq!(block_on(poll_once(&mut operation)).unwrap().unwrap(), 7);
++    drop(operation);
++    assert_eq!(calls.load(std::sync::atomic::Ordering::SeqCst), 2);
++    stop.send(()).unwrap();
++    driving.join().unwrap();
++    block_on(selector.shutdown());
++}

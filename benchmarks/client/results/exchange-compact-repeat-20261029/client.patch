@@ -1,0 +1,732 @@
+--- a/base-http-client/src/writable.rs
++++ b/base-http-client/src/writable.rs
+@@ -15,8 +15,7 @@
+ };
+ use base_http1::{RequestWriter, ResponseReader};
+ use base_scheduler::Cancellation;
+-use futures_channel::oneshot;
+-use futures_util::{Sink, SinkExt, Stream, StreamExt, sink::unfold};
++use futures_util::{Sink, SinkExt, Stream, StreamExt, sink::unfold, task::AtomicWaker};
+ use std::{
+     convert::Infallible,
+     future::Future,
+@@ -168,9 +167,7 @@
+ #[must_use = "finish request output or explicitly abort it"]
+ pub struct RequestBodyWriter<'scope> {
+     sink: Option<PushSink<'scope>>,
+-    mode: Arc<AtomicU8>,
+-    cancellation: Cancellation,
+-    finished: Option<oneshot::Receiver<Result<(), Error>>>,
++    exchange: Arc<ExchangeCompletion<'scope>>,
+     ended: bool,
+     completion: Option<Result<(), Error>>,
+ }
+@@ -207,7 +204,7 @@
+         frame: BodyFrame<Vec<u8>>,
+         cancellation: &Cancellation,
+     ) -> Result<(), Error> {
+-        if cancellation.is_cancelled() || self.cancellation.is_cancelled() {
++        if cancellation.is_cancelled() || self.exchange.cancellation.is_cancelled() {
+             return Err(Error::Cancelled);
+         }
+         if self.ended {
+@@ -216,7 +213,7 @@
+         let end = frame.is_end();
+         let mut guard = Writing {
+             sink: &mut self.sink,
+-            cancellation: self.cancellation.clone(),
++            cancellation: self.exchange.cancellation.clone(),
+             armed: true,
+         };
+         checked(
+@@ -234,7 +231,6 @@
+             self.ended = true;
+             self.sink.take();
+             self.completion = Some(Ok(()));
+-            self.finished.take();
+         }
+         Ok(())
+     }
+@@ -248,7 +244,7 @@
+         if let Some(result) = &self.completion {
+             return result.clone();
+         }
+-        if self.cancellation.is_cancelled() {
++        if self.exchange.cancellation.is_cancelled() {
+             return Err(Error::Cancelled);
+         }
+         if self.ended {
+@@ -261,15 +257,12 @@
+         if let Some(result) = &self.completion {
+             return result.clone();
+         }
+-        // Borrow the receiver so cancellation of this wait does not discard the
+-        // completion receipt; a subsequent flush may still observe the result.
+-        let completion = self.finished.as_mut().ok_or(Error::Closed)?;
+-        let result = checked(
+-            async { Ok(completion.await.unwrap_or(Err(Error::Closed))) },
+-            cancellation,
+-        )
+-        .await?;
+-        self.finished.take();
++        // The result belongs to the exchange, so a cancelled or dropped wait
++        // cannot consume it before a later flush.
++        let result = self.exchange.wait_output(cancellation).await;
++        if matches!(result, Err(Error::Cancelled)) {
++            return result;
++        }
+         self.completion = Some(result.clone());
+         result
+     }
+@@ -285,16 +278,16 @@
+         if !self.ended {
+             if let Some(error) = error {
+                 self.completion = Some(Err(error));
+-                self.cancellation.cancel();
++                self.exchange.cancellation.cancel();
+             } else {
+-                self.mode.store(FINALIZE, Ordering::Release);
++                self.exchange.output_mode.store(FINALIZE, Ordering::Release);
+             }
+             self.sink.take();
+             self.ended = true;
+         }
+     }
+     pub fn abort(&mut self) {
+-        self.cancellation.cancel();
++        self.exchange.cancellation.cancel();
+         self.sink.take();
+         self.ended = true;
+     }
+@@ -324,12 +317,56 @@
+ /// an early response. Dropping it retires unfinished HTTP/1 input.
+ #[must_use = "poll the response or drop it to abandon input"]
+ pub struct PendingResponse<'scope> {
+-    work: crate::driver::Work<'scope, Result<Response<StreamingResponseBody<'scope>>, Error>>,
++    stream: Option<ResponseStream<'scope>>,
++    cancellation: Cancellation,
+ }
+ impl<'scope> Future for PendingResponse<'scope> {
+     type Output = Result<Response<StreamingResponseBody<'scope>>, Error>;
+     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+-        self.work.as_mut().poll(cx)
++        let event = if self.cancellation.is_cancelled() {
++            Err(Error::Cancelled)
++        } else {
++            match self
++                .stream
++                .as_mut()
++                .expect("response already polled")
++                .as_mut()
++                .poll_next(cx)
++            {
++                Poll::Pending => return Poll::Pending,
++                Poll::Ready(event) => event
++                    .transpose()
++                    .and_then(|event| event.ok_or(Error::Closed)),
++            }
++        };
++        match event {
++            Ok(ResponseEvent::Metadata(metadata, length, trailers, empty)) => {
++                let stream = self.stream.take();
++                Poll::Ready(Ok(Response::from_parts(
++                    metadata,
++                    StreamingResponseBody {
++                        stream,
++                        cancellation: self.cancellation.clone(),
++                        length,
++                        trailers,
++                        empty,
++                    },
++                )))
++            }
++            Ok(ResponseEvent::Frame(_)) => unreachable!("first response event is metadata"),
++            Err(error) => {
++                self.cancellation.cancel();
++                self.stream.take();
++                Poll::Ready(Err(error))
++            }
++        }
++    }
++}
++impl Drop for PendingResponse<'_> {
++    fn drop(&mut self) {
++        if self.stream.is_some() {
++            self.cancellation.cancel();
++        }
+     }
+ }
+ enum ResponseEvent {
+@@ -417,12 +454,15 @@
+     state: Mutex<CompletionState<'scope>>,
+     cancellation: Cancellation,
+     registration: base_pool::MultiplexResource<crate::Connection<'scope>>,
++    output_mode: AtomicU8,
++    output_finished: AtomicWaker,
+ }
+ struct CompletionState<'scope> {
+     active: Option<base_pool::MultiplexUse<crate::Connection<'scope>>>,
+     pending: Option<Pending<'scope>>,
+     directions: u8,
+     reusable: bool,
++    output_result: Option<Result<(), Error>>,
+ }
+ impl<'scope> ExchangeCompletion<'scope> {
+     pub(crate) fn new(
+@@ -437,24 +477,70 @@
+                 pending: Some(pending),
+                 directions: 0,
+                 reusable: true,
++                output_result: None,
+             }),
+             cancellation,
+             registration,
++            output_mode: AtomicU8::new(ABANDONED),
++            output_finished: AtomicWaker::new(),
+         })
+     }
+     pub(crate) fn cancellation(&self) -> &Cancellation {
+         &self.cancellation
+     }
+-    pub(crate) fn returned(&self, direction: u8, reusable: bool) {
++    async fn wait_output(&self, cancellation: &Cancellation) -> Result<(), Error> {
++        // Only the request writer waits for output completion. Unregister its
++        // task even if this particular flush future is dropped or cancelled.
++        struct Waiting<'a>(&'a AtomicWaker);
++        impl Drop for Waiting<'_> {
++            fn drop(&mut self) {
++                self.0.take();
++            }
++        }
++        let _waiting = Waiting(&self.output_finished);
++        checked(
++            std::future::poll_fn(|cx| {
++                self.output_finished.register(cx.waker());
++                match lock(&self.state).output_result.clone() {
++                    Some(result) => Poll::Ready(result),
++                    None => Poll::Pending,
++                }
++            }),
++            cancellation,
++        )
++        .await
++    }
++    pub(crate) fn returned(
++        &self,
++        direction: u8,
++        reusable: bool,
++        output: Option<Result<(), Error>>,
++    ) {
+         let mut state = lock(&self.state);
+         state.directions |= direction;
+         state.reusable &= reusable;
+-        if state.directions == 3 {
+-            if !state.reusable || self.cancellation.is_cancelled() {
++        if let Some(output) = output {
++            state.output_result.get_or_insert(output);
++        }
++        let completed = if state.directions == 3 {
++            Some((
++                state.pending.take(),
++                state.active.take().unwrap(),
++                !state.reusable || self.cancellation.is_cancelled(),
++            ))
++        } else {
++            None
++        };
++        drop(state);
++        if let Some((pending, active, retire)) = completed {
++            if retire {
+                 self.registration.retire();
+             }
+-            state.pending.take();
+-            state.active.take().unwrap().complete();
++            drop(pending);
++            active.complete();
++        }
++        if direction == 2 {
++            self.output_finished.wake();
+         }
+     }
+ }
+@@ -463,60 +549,56 @@
+ pub(crate) const COMPLETE: u8 = 1;
+ pub(crate) const FINALIZE: u8 = 2;
+ pub(crate) trait ReturnTo<'scope, T>: Send + Sync {
+-    fn give_back(
+-        self: Arc<Self>,
+-        value: T,
+-        mode: u8,
+-        completion: Arc<ExchangeCompletion<'scope>>,
+-        receipt: Option<oneshot::Sender<Result<(), Error>>>,
+-    );
++    fn give_back(self: Arc<Self>, value: T, mode: u8, completion: Arc<ExchangeCompletion<'scope>>);
+ }
+ pub(crate) struct Return<'scope, T> {
+     pub value: Option<T>,
+     return_to: Arc<dyn ReturnTo<'scope, T> + 'scope>,
+-    pub mode: Arc<AtomicU8>,
+-    cancellation: Cancellation,
++    mode: u8,
++    output: bool,
+     completion: Arc<ExchangeCompletion<'scope>>,
+-    receipt: Option<oneshot::Sender<Result<(), Error>>>,
+ }
+ impl<'scope, T> Return<'scope, T> {
+     pub(crate) fn new(
+         value: T,
+-        cancellation: &Cancellation,
+         completion: Arc<ExchangeCompletion<'scope>>,
+         return_to: Arc<dyn ReturnTo<'scope, T> + 'scope>,
+-        receipt: Option<oneshot::Sender<Result<(), Error>>>,
++        output: bool,
+     ) -> Self {
+         Self {
+             value: Some(value),
+             return_to,
+-            mode: Arc::new(AtomicU8::new(ABANDONED)),
+-            cancellation: cancellation.clone(),
++            mode: ABANDONED,
++            output,
+             completion,
+-            receipt,
+         }
+     }
+     pub(crate) fn complete(&mut self) {
+-        self.mode.store(COMPLETE, Ordering::Release);
++        self.mode = COMPLETE;
+         self.release();
+     }
+     pub(crate) fn report_error(&mut self, error: Error) {
+-        if let Some(receipt) = self.receipt.take() {
+-            let _ = receipt.send(Err(error));
+-        }
++        lock(&self.completion.state)
++            .output_result
++            .get_or_insert(Err(error));
+     }
+     fn release(&mut self) {
+         if let Some(value) = self.value.take() {
+-            let mode = self.mode.load(Ordering::Acquire);
++            let mode = if self.output && self.mode == ABANDONED {
++                // Consume FINALIZE once. A dropped deferred-finalization guard
++                // must abandon output rather than enqueue another finalizer.
++                self.completion
++                    .output_mode
++                    .swap(ABANDONED, Ordering::AcqRel)
++            } else {
++                self.mode
++            };
+             if mode == ABANDONED {
+-                self.cancellation.cancel();
+-            }
+-            self.return_to.clone().give_back(
+-                value,
+-                mode,
+-                self.completion.clone(),
+-                self.receipt.take(),
+-            );
++                self.completion.cancellation.cancel();
++            }
++            self.return_to
++                .clone()
++                .give_back(value, mode, self.completion.clone());
+         }
+     }
+ }
+@@ -534,13 +616,13 @@
+     metadata: RequestMetadata,
+     observer: Box<dyn Observer + 'scope>,
+     lifetime: Cancellation,
+-    receipt: oneshot::Receiver<Result<(), Error>>,
+ ) -> Result<WritableRequest<'scope>, Error>
+ where
+     R: ReadableStream + 'scope,
+     W: WritableStream + 'scope,
+ {
+-    let local = output.cancellation.clone();
++    let exchange = output.completion.clone();
++    let local = exchange.cancellation.clone();
+     checked(
+         async {
+             output
+@@ -554,7 +636,6 @@
+         &lifetime,
+     )
+     .await?;
+-    let mode = output.mode.clone();
+     let writing_lifetime = lifetime.clone();
+     let writing = unfold(
+         output,
+@@ -569,7 +650,7 @@
+                                 .value
+                                 .as_mut()
+                                 .ok_or(Error::Closed)?
+-                                .write_frame(frame, &owner.cancellation)
++                                .write_frame(frame, &owner.completion.cancellation)
+                                 .await
+                                 .map_err(Error::from)
+                         },
+@@ -589,6 +670,8 @@
+     let receiving = async_stream::try_stream! {
+         let mut observer = observer;
+         let mut interim = InterimResponses::new(Interim(observer.as_mut()));
++        // Socket reads and interim callbacks already observe receive_cancel.
++        // Keep only the separate caller-lifetime check around that operation.
+         let response = checked(
+             async {
+                 input.value.as_mut().unwrap()
+@@ -621,38 +704,14 @@
+             }
+         }
+     };
+-    let mut receiving: ResponseStream<'scope> = Box::pin(receiving);
+-    let pending_cancel = local.clone();
+     let response = PendingResponse {
+-        work: Box::pin(async move {
+-            let mut guard = CancelOnDrop(pending_cancel.clone(), true);
+-            let event = checked(
+-                async { receiving.next().await.transpose()?.ok_or(Error::Closed) },
+-                &pending_cancel,
+-            )
+-            .await?;
+-            let ResponseEvent::Metadata(metadata, length, trailers, empty) = event else {
+-                unreachable!("first response event is metadata")
+-            };
+-            guard.1 = false;
+-            Ok(Response::from_parts(
+-                metadata,
+-                StreamingResponseBody {
+-                    stream: Some(receiving),
+-                    cancellation: pending_cancel,
+-                    length,
+-                    trailers,
+-                    empty,
+-                },
+-            ))
+-        }),
++        stream: Some(Box::pin(receiving)),
++        cancellation: local.clone(),
+     };
+     let request = WritableRequest {
+         output: RequestBodyWriter {
+             sink: Some(Box::pin(writing)),
+-            mode,
+-            cancellation: local.clone(),
+-            finished: Some(receipt),
++            exchange,
+             ended: false,
+             completion: None,
+         },
+--- a/base-http-client/src/connection.rs
++++ b/base-http-client/src/connection.rs
+@@ -323,28 +323,14 @@
+         );
+         // Construct guards before the future: even dropping an unpolled open
+         // returns both directions and acknowledges their retirement obligation.
+-        let input = Return::new(
+-            input,
+-            &opening.cancellation,
+-            completion.clone(),
+-            self.clone(),
+-            None,
+-        );
+-        let (finished, receipt) = oneshot::channel();
+-        let output = Return::new(
+-            output,
+-            &opening.cancellation,
+-            completion,
+-            self,
+-            Some(finished),
+-        );
++        let input = Return::new(input, completion.clone(), self.clone(), false);
++        let output = Return::new(output, completion, self, true);
+         Box::pin(crate::writable::open(
+             input,
+             output,
+             opening.metadata,
+             opening.interim,
+             opening.lifetime,
+-            receipt,
+         ))
+     }
+ }
+@@ -356,12 +342,11 @@
+         input: ResponseReader<R>,
+         mode: u8,
+         completion: Arc<ExchangeCompletion<'scope>>,
+-        _: Option<oneshot::Sender<Result<(), Error>>>,
+     ) {
+         let reusable = mode == COMPLETE && input.is_reusable();
+         lock(&self.codecs).input = Some(input);
+         self.returned();
+-        completion.returned(1, reusable);
++        completion.returned(1, reusable, None);
+     }
+ }
+ impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope>
+@@ -372,12 +357,11 @@
+         output: RequestWriter<W>,
+         mode: u8,
+         completion: Arc<ExchangeCompletion<'scope>>,
+-        receipt: Option<oneshot::Sender<Result<(), Error>>>,
+     ) {
+         if mode == FINALIZE {
+             let queue = self.queue.upgrade();
+             let cancellation = completion.cancellation().clone();
+-            let mut owner = Return::new(output, &cancellation, completion, self, receipt);
++            let mut owner = Return::new(output, completion, self, true);
+             let work = Box::pin(async move {
+                 let result = owner
+                     .value
+@@ -399,14 +383,15 @@
+         let reusable = mode == COMPLETE && output.is_reusable();
+         lock(&self.codecs).output = Some(output);
+         self.returned();
+-        if let Some(receipt) = receipt {
+-            let _ = receipt.send(if mode == COMPLETE {
++        completion.returned(
++            2,
++            reusable,
++            Some(if mode == COMPLETE {
+                 Ok(())
+             } else {
+                 Err(Error::Abandoned)
+-            });
+-        }
+-        completion.returned(2, reusable);
++            }),
++        );
+     }
+ }
+ 
+--- a/base-http-client/tests/writable.rs
++++ b/base-http-client/tests/writable.rs
+@@ -333,6 +333,227 @@
+         output.finish(&cancel).await.unwrap();
+         let mut response = response.await.unwrap();
+         assert_eq!(payload(&mut response.body).await, b"ok");
++        client.begin_close();
++    });
++    peer.join().unwrap();
++}
++
++#[test]
++fn deferred_close_survives_dropped_and_cancelled_completion_waits() {
++    let (address, peer) = peer(|listener| {
++        let mut stream = accept(&listener);
++        head(&mut stream);
++        assert_eq!(chunks(&mut stream).0, b"hello");
++        stream
++            .get_mut()
++            .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
++            .unwrap();
++    });
++    run(address, async |client| {
++        let cancel = Cancellation::never();
++        let (mut output, response) = client
++            .open(Method::POST, "/", &cancel)
++            .await
++            .unwrap()
++            .split();
++        output.write(b"hello", &cancel).await.unwrap();
++        output.close_write(None);
++        // No supervisor poll occurs between enqueueing finalization and these
++        // waits. Losing either wait must leave the final result observable.
++        let mut flushing = Box::pin(output.flush(&cancel));
++        assert!(poll_once(&mut flushing).await.is_none());
++        drop(flushing);
++        let stopped = Cancellation::new();
++        let mut flushing = Box::pin(output.flush(&stopped));
++        assert!(poll_once(&mut flushing).await.is_none());
++        stopped.cancel();
++        assert!(matches!(flushing.await, Err(Error::Cancelled)));
++        output.flush(&cancel).await.unwrap();
++        output.flush(&cancel).await.unwrap();
++        assert_eq!(client.pool_stats().uses, 1);
++        output.finish(&cancel).await.unwrap();
++        assert!(response.await.unwrap().body.is_empty());
++        assert_eq!(client.pool_stats().uses, 0);
++        client.begin_close();
++    });
++    peer.join().unwrap();
++}
++
++#[test]
++fn deferred_close_preserves_framing_errors_and_retires_the_connection() {
++    let (address, peer) = peer(|listener| {
++        let mut stream = accept(&listener);
++        head(&mut stream);
++        let mut bytes = Vec::new();
++        stream.read_to_end(&mut bytes).unwrap();
++        assert_eq!(bytes, b"x");
++        let mut replacement = accept(&listener);
++        assert!(head(&mut replacement).starts_with("GET /next HTTP/1.1\r\n"));
++        replacement
++            .get_mut()
++            .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
++            .unwrap();
++    });
++    run(address, async |client| {
++        let cancel = Cancellation::never();
++        let mut metadata = RequestMetadata::new(Method::POST);
++        metadata.path = Some("/".into());
++        metadata.content_length = Some(2);
++        let (mut output, response) = client
++            .open_request(metadata, &cancel)
++            .await
++            .unwrap()
++            .split();
++        output.write(b"x", &cancel).await.unwrap();
++        output.close_write(None);
++        assert!(matches!(
++            output.flush(&cancel).await,
++            Err(Error::Protocol(_))
++        ));
++        assert!(matches!(
++            output.flush(&cancel).await,
++            Err(Error::Protocol(_))
++        ));
++        assert!(matches!(
++            output.finish(&cancel).await,
++            Err(Error::Protocol(_))
++        ));
++        drop(response);
++        assert!(
++            client
++                .open(Method::GET, "/next", &cancel)
++                .await
++                .unwrap()
++                .finish(&cancel)
++                .await
++                .unwrap()
++                .body
++                .is_empty()
++        );
++        client.begin_close();
++    });
++    peer.join().unwrap();
++}
++
++#[test]
++fn old_completed_handles_cannot_cancel_the_next_exchange() {
++    let (address, peer) = peer(|listener| {
++        let mut stream = accept(&listener);
++        assert!(head(&mut stream).starts_with("GET /first HTTP/1.1\r\n"));
++        stream
++            .get_mut()
++            .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
++            .unwrap();
++        assert!(head(&mut stream).starts_with("POST /next HTTP/1.1\r\n"));
++        assert_eq!(chunks(&mut stream).0, b"kept");
++        stream
++            .get_mut()
++            .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
++            .unwrap();
++    });
++    run(address, async |client| {
++        let cancel = Cancellation::new();
++        let mut metadata = RequestMetadata::new(Method::GET);
++        metadata.path = Some("/first".into());
++        metadata.content_length = Some(0);
++        let (mut old_output, pending) = client
++            .open_request(metadata, &cancel)
++            .await
++            .unwrap()
++            .split();
++        old_output
++            .write_frame(BodyFrame::End, &cancel)
++            .await
++            .unwrap();
++        let old_response = pending.await.unwrap();
++        assert!(old_response.body.is_empty());
++        assert_eq!(client.pool_stats().uses, 0);
++        let mut next = client
++            .open(Method::POST, "/next", &Cancellation::never())
++            .await
++            .unwrap();
++        assert_eq!(client.pool_stats().uses, 1);
++        old_output.abort();
++        cancel.cancel();
++        drop(old_output);
++        drop(old_response);
++        next.write(b"kept", &Cancellation::never()).await.unwrap();
++        assert!(
++            next.finish(&Cancellation::never())
++                .await
++                .unwrap()
++                .body
++                .is_empty()
++        );
++        assert_eq!(client.pool_stats().uses, 0);
++        client.begin_close();
++    });
++    peer.join().unwrap();
++}
++
++#[test]
++fn aborting_output_wakes_a_response_blocked_in_an_interim_observer() {
++    use std::sync::{
++        Arc,
++        atomic::{AtomicBool, Ordering},
++    };
++    let (address, peer) = peer(|listener| {
++        let mut stream = accept(&listener);
++        head(&mut stream);
++        stream
++            .get_mut()
++            .write_all(b"HTTP/1.1 103 Early Hints\r\n\r\n")
++            .unwrap();
++        assert_eq!(stream.read(&mut [0]).unwrap(), 0);
++        let mut replacement = accept(&listener);
++        head(&mut replacement);
++        replacement
++            .get_mut()
++            .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
++            .unwrap();
++    });
++    run(address, async |client| {
++        let started = Arc::new(AtomicBool::new(false));
++        let observer_started = started.clone();
++        let cancel = Cancellation::never();
++        let mut metadata = RequestMetadata::new(Method::POST);
++        metadata.path = Some("/".into());
++        let (mut output, pending) = client
++            .open_request_with_interim(
++                metadata,
++                move |_: base_http::ResponseMetadata| {
++                    observer_started.store(true, Ordering::SeqCst);
++                    std::future::pending::<Result<(), std::convert::Infallible>>()
++                },
++                &cancel,
++            )
++            .await
++            .unwrap()
++            .split();
++        let (response, ()) = zip(pending, async {
++            std::future::poll_fn(|_| {
++                if started.load(Ordering::SeqCst) {
++                    std::task::Poll::Ready(())
++                } else {
++                    std::task::Poll::Pending
++                }
++            })
++            .await;
++            // The observer itself never completes. Only exchange cancellation
++            // can wake the other direction and let the joined futures finish.
++            output.abort();
++            drop(output);
++        })
++        .await;
++        assert!(matches!(response, Err(Error::Cancelled)));
++        assert!(
++            client
++                .call(Request::get("/next"), &cancel)
++                .await
++                .unwrap()
++                .body
++                .is_empty()
++        );
+         client.begin_close();
+     });
+     peer.join().unwrap();

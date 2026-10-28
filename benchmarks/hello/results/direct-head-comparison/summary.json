@@ -1,0 +1,38 @@
+[
+  {
+    "variant": "combined",
+    "backend": "hyper-tokio",
+    "requests_per_second_min": 105233.57,
+    "requests_per_second_max": 130476.35,
+    "requests_per_second": 126528.25,
+    "latency_p99_ms": 0.6980000000000001,
+    "server_cpu_percent_one_core": 99.26950436190592
+  },
+  {
+    "variant": "direct-head",
+    "backend": "base-owned",
+    "requests_per_second_min": 117590.23,
+    "requests_per_second_max": 120749.8,
+    "requests_per_second": 118644.64,
+    "latency_p99_ms": 0.753,
+    "server_cpu_percent_one_core": 99.48174189505563
+  },
+  {
+    "variant": "direct-head",
+    "backend": "base-tokio",
+    "requests_per_second_min": 112768.74,
+    "requests_per_second_max": 123475.07,
+    "requests_per_second": 121061.51,
+    "latency_p99_ms": 0.746,
+    "server_cpu_percent_one_core": 99.46754270535068
+  },
+  {
+    "variant": "lean",
+    "backend": "base-owned",
+    "requests_per_second_min": 101294.54,
+    "requests_per_second_max": 118377.18,
+    "requests_per_second": 118123.85,
+    "latency_p99_ms": 0.762,
+    "server_cpu_percent_one_core": 99.4633158012656
+  }
+]

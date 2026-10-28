@@ -1,0 +1,22 @@
+base-native-raw 9047 {'send syscalls': 74.0, 'receive syscalls': 21.1, 'waiting/readiness syscalls': 1.9, 'cancellation/event/mutex work': 1.5, 'remaining user-space code': 1.5}
+  6697 __sendto
+  1858 __recvfrom
+   174 kevent
+    37 <base_scheduler_selector::readiness_driver::ReadinessWorker as base_scheduler_selector::selector_worker::SelectorWorker>::turn
+    27 <core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>::read_with<<base_scheduler_selector::readiness_socket_stream_reader::Rea
+    21 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}> a
+    19 <core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::write_with<<base_scheduler_s
+    18 <event_listener::sys::Inner<()>>::remove
+    18 pthread_mutex_unlock
+    17 pthread_mutex_lock
+tokio-task-raw 8835 {'send syscalls': 73.9, 'receive syscalls': 22.5, 'waiting/readiness syscalls': 2.0, 'remaining user-space code': 1.4, 'cancellation/event/mutex work': 0.2}
+  6532 __sendto
+  1973 __recvfrom
+   180 kevent
+    21 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unp
+    21 <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_read
+    20 <tokio::runtime::io::scheduled_io::ScheduledIo>::wake
+     8 <tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness
+     7 <&mio::net::tcp::stream::TcpStream as alloc::io::read::Read>::read
+     7 pthread_mutex_lock
+     7 <tokio::net::tcp::stream::TcpStream as tokio::io::async_read::AsyncRead>::poll_read

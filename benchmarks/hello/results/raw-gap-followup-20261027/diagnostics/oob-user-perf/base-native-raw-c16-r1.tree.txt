@@ -1,0 +1,108 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 19K of event 'cycles:u'
+# Event count (approx.): 6490716796
+#
+# Children      Self  Command          Shared Object     Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+# ........  ........  ...............  ................  ...............................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    10.57%    10.57%  base-native-tas  oob-default       [.] <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin
+     9.48%     9.48%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_driver::notification::Notification>::notify
+     7.67%     7.67%  base-native-tas  oob-default       [.] <futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref
+     7.61%     5.21%  base-native-tas  libc.so.6         [.] send
+            |          
+             --7.60%--send
+                       |          
+                       |--1.74%--recv
+                       |          0x7febe28ab8f2
+                       |          0xffffffff9f600080
+                       |          
+                        --0.36%--0x7febe28ab8f2
+
+     6.70%     6.70%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_driver::ReadinessWorker as base_scheduler_selector::selector_worker::SelectorWorker>::turn
+     6.27%     6.27%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_driver::notification::Listener>::poll
+     5.24%     5.23%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}
+     5.24%     5.24%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_stream_writer::SocketStreamWriter>::write::{closure#0}
+     5.20%     2.68%  base-native-tas  libc.so.6         [.] recv
+            |
+            ---recv
+               |          
+                --2.16%--0x7febe28ab8f2
+                          |          
+                           --1.74%--0xffffffff9f600080
+
+     4.41%     4.41%  base-native-tas  oob-default       [.] <core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>::read_with<<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+     4.33%     0.00%  base-native-tas  libc.so.6         [.] 0x00007febe28ab8f2
+            |
+            ---0x7febe28ab8f2
+               |          
+                --3.51%--0xffffffff9f600080
+
+     4.12%     4.12%  base-native-tas  oob-default       [.] <futures_core::task::__internal::atomic_waker::AtomicWaker>::wake
+     3.64%     3.64%  base-native-tas  oob-default       [.] futures_util::stream::futures_unordered::task::waker_ref::clone_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}>>
+     3.51%     3.51%  base-native-tas  [unknown]         [k] 0xffffffff9f600080
+            |          
+            |--1.77%--0x7febe28ab8f2
+            |          0xffffffff9f600080
+            |          
+             --1.74%--0x4155415641574154
+                       send
+                       recv
+                       0x7febe28ab8f2
+                       0xffffffff9f600080
+
+     2.78%     2.78%  base-native-tas  oob-default       [.] <core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_driver::Direction>::wait::{closure#0}::{closure#0}> as core::future::future::Future>::poll
+     2.52%     2.52%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_selector::ReadinessSelector>::check_open
+     1.74%     0.00%  base-native-tas  [unknown]         [k] 0x4155415641574154
+            |
+            ---0x4155415641574154
+               send
+               recv
+               0x7febe28ab8f2
+               0xffffffff9f600080
+
+     1.69%     1.69%  base-native-tas  oob-default       [.] futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}>>
+     1.61%     1.61%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_driver::Direction>::snapshot
+     1.60%     1.60%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_driver::Direction>::clear
+     1.59%     1.59%  base-native-tas  oob-default       [.] <base_scheduler_selector::native_socket::NativeSocket>::get_ref
+     1.53%     1.53%  base-native-tas  oob-default       [.] base_scheduler_native::worker::run_loop
+     1.31%     1.31%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_selector::ReadinessSelector as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}
+     0.98%     0.98%  base-native-tas  oob-default       [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::run
+     0.77%     0.77%  base-native-tas  libc.so.6         [.] 0x00000000000a08f2
+            |          
+            |--0.41%--recv
+            |          0x7febe28ab8f2
+            |          
+             --0.34%--send
+                       0x7febe28ab8f2
+
+     0.68%     0.68%  base-native-tas  oob-default       [.] <core::pin::Pin<&mut <base_scheduler_native::native_scheduler::NativeScheduler as base_scheduler::socket_accept::SocketAccept>::socket_accept::{closure#0}> as futures_util::future::future::FutureExt>::poll_unpin
+     0.54%     0.54%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_driver::notification::Listener as core::ops::drop::Drop>::drop
+     0.50%     0.50%  base-native-tas  oob-default       [.] core::ptr::drop_glue::<<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_stream_writer::SocketStreamWriter>::write::{closure#0}>
+     0.47%     0.47%  base-native-tas  oob-default       [.] base_scheduler_native::worker_timers::turn
+     0.45%     0.43%  base-native-tas  oob-default       [.] <socket2::socket::Socket>::send_with_flags
+     0.44%     0.44%  base-native-tas  oob-default       [.] base_scheduler_native::worker::search
+     0.40%     0.40%  base-native-tas  oob-default       [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::drop_waker
+     0.39%     0.39%  base-native-tas  oob-default       [.] core::ptr::drop_glue::<<futures_util::stream::futures_unordered::FuturesUnordered<_> as futures_core::stream::Stream>::poll_next::Bomb<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}>>
+     0.36%     0.36%  base-native-tas  oob-default       [.] <socket2::socket::Socket>::recv_with_flags
+     0.35%     0.35%  base-native-tas  oob-default       [.] <crossbeam_deque::deque::Worker<async_task::runnable::Runnable<base_scheduler_native::task_service::TaskState>>>::pop
+     0.34%     0.28%  base-native-tas  libc.so.6         [.] epoll_pwait
+            |
+            ---epoll_pwait
+
+     0.33%     0.33%  base-native-tas  oob-default       [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::wake
+     0.31%     0.31%  base-native-tas  oob-default       [.] core::ptr::drop_glue::<core::pin::PinMacroHelper<<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>::read_with<<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>>
+     0.30%     0.30%  base-native-tas  oob-default       [.] core::ptr::drop_glue::<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>::read_with<<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>>::{closure#0}>
+     0.29%     0.29%  base-native-tas  oob-default       [.] <base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}> as core::future::future::Future>::poll
+     0.29%     0.29%  base-native-tas  oob-default       [.] <futures_core::task::__internal::atomic_waker::AtomicWaker>::register
+     0.25%     0.25%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result
+     0.24%     0.24%  base-native-tas  oob-default       [.] <base_scheduler_selector::readiness_driver::epoll::Poller>::wait
+     0.24%     0.24%  base-native-tas  oob-default       [.] <async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::clone_waker
+
+
+#
+# (Tip: When collecting LBR backtraces use --stitch-lbr to handle more than 32 deep entries: perf record --call-graph lbr ; perf report --stitch-lbr)
+#

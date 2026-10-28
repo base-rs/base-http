@@ -1,0 +1,105 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 1182773,
+    "allocations_per_response": 14.000793096509192,
+    "deallocations": 1182772,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 5
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 11
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 15
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 29
+      },
+      {
+        "allocations_per_response": 3.000011837261331,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 80
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 112
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 128
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 176
+      }
+    ],
+    "reallocations": 0,
+    "reallocations_per_response": 0.0,
+    "requested_bytes": 85799664,
+    "requested_bytes_per_response": 1015.6330448987322,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.9948429999999999,
+  "client_cpu_us_per_request": 11.776216574533315,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000485042,
+  "fresh": false,
+  "implementation": "base-open",
+  "latency_us": {
+    "max": 633.343,
+    "mean": 378.65773789935974,
+    "p50": 401.919,
+    "p90": 425.727,
+    "p99": 481.023
+  },
+  "requests": 84479,
+  "requests_per_second": 84438.04400226106,
+  "tls": true,
+  "warmup_requests": 24457,
+  "client_command": [
+    "/private/tmp/base-http-exchange-reuse-final-allocation-20261029",
+    "client",
+    "--implementation",
+    "base-open",
+    "--address",
+    "127.0.0.1:60157",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-2miwhet2",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-reuse-final-allocation-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-2miwhet2",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 108936
+  },
+  "server_cpu_seconds_including_warmup": 1.2487639999999995
+}

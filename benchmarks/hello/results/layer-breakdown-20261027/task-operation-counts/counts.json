@@ -1,0 +1,2162 @@
+[
+  {
+    "backend": "base",
+    "kind": "tasks",
+    "width": 1,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 1000003,
+        "positive": 1,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 1,
+        "zero": 1000002
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 2,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 2
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 1.000003,
+      "positive": 1e-06,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 1e-06,
+      "zero": 1.000002
+    }
+  },
+  {
+    "backend": "base-noio",
+    "kind": "tasks",
+    "width": 1,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "iouring",
+    "kind": "tasks",
+    "width": 1,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "tokio",
+    "kind": "tasks",
+    "width": 1,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 16394,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 16394
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 1,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 1
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.016394,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.016394
+    }
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "tasks",
+    "width": 1,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "base",
+    "kind": "tasks",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 15628,
+        "positive": 1,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 1,
+        "zero": 15627
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 2,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 2
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.015628,
+      "positive": 1e-06,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 1e-06,
+      "zero": 0.015627
+    }
+  },
+  {
+    "backend": "base-noio",
+    "kind": "tasks",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "iouring",
+    "kind": "tasks",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "tokio",
+    "kind": "tasks",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 16395,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 16395
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 1,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 1
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.016395,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.016395
+    }
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "tasks",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "base",
+    "kind": "supervisor",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 500001,
+        "positive": 1,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 1,
+        "zero": 500000
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 2,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 2
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.500001,
+      "positive": 1e-06,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 1e-06,
+      "zero": 0.5
+    }
+  },
+  {
+    "backend": "base-noio",
+    "kind": "supervisor",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "iouring",
+    "kind": "supervisor",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  },
+  {
+    "backend": "tokio",
+    "kind": "supervisor",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 8197,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 8197
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 1,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 1
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.008197,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.008197
+    }
+  },
+  {
+    "backend": "tokio-noio",
+    "kind": "supervisor",
+    "width": 64,
+    "operations": 1000000,
+    "counts": {
+      "read": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "readv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recv": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvfrom": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "recvmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "write": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "writev": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "send": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendto": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "sendmsg": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_wait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_pwait2": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "epoll_ctl": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      },
+      "accept4": {
+        "calls": 0,
+        "positive": 0,
+        "would_block": 0,
+        "errors": 0,
+        "bytes_or_events": 0,
+        "zero": 0
+      }
+    },
+    "epoll_per_operation": {
+      "calls": 0.0,
+      "positive": 0.0,
+      "would_block": 0.0,
+      "errors": 0.0,
+      "bytes_or_events": 0.0,
+      "zero": 0.0
+    }
+  }
+]

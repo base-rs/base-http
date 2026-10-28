@@ -1,0 +1,18 @@
+[package]
+name = "base-http1"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.87"
+license = "MIT"
+repository = "https://github.com/base-rs/base-http"
+description = "Native HTTP/1 framing over Base scheduler stream capabilities"
+readme = "readme.md"
+
+[dependencies]
+base-endpoint = { version = "0.0.0", path = "../../../base-endpoint" }
+base-http = { version = "0.0.0", path = "../.." }
+base-scheduler = "0.2.0"
+httparse = "1.10.1"
+
+[dev-dependencies]
+futures-lite = "2.6.1"

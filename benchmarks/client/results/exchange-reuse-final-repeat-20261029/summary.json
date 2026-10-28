@@ -1,0 +1,106 @@
+[
+  {
+    "tls": false,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "base-open",
+    "runs": 5,
+    "requests_per_second": {
+      "median": 87967.52850678176,
+      "min": 86960.2269314162,
+      "max": 102258.78489275475
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.285132562302861,
+      "min": 9.742037601539067,
+      "max": 11.422329538921467
+    },
+    "p50_us_median": 382.719,
+    "p99_us_median": 461.823,
+    "accepted_connections": [
+      32,
+      32,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "tls": false,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "before-open",
+    "runs": 5,
+    "requests_per_second": {
+      "median": 86577.33941909127,
+      "min": 82960.45089951955,
+      "max": 98279.8507632911
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.47015140841004,
+      "min": 10.124284962140191,
+      "max": 11.818955646619258
+    },
+    "p50_us_median": 391.423,
+    "p99_us_median": 470.015,
+    "accepted_connections": [
+      32,
+      32,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "tls": true,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "base-open",
+    "runs": 5,
+    "requests_per_second": {
+      "median": 83180.58152513935,
+      "min": 81729.44816718047,
+      "max": 92550.23155919007
+    },
+    "client_cpu_us_per_request": {
+      "median": 11.943902512321193,
+      "min": 10.744799516007928,
+      "max": 12.139355568809163
+    },
+    "p50_us_median": 404.735,
+    "p99_us_median": 496.639,
+    "accepted_connections": [
+      32,
+      32,
+      32,
+      32,
+      32
+    ]
+  },
+  {
+    "tls": true,
+    "fresh": false,
+    "concurrency": 32,
+    "implementation": "before-open",
+    "runs": 5,
+    "requests_per_second": {
+      "median": 81976.28621382879,
+      "min": 79232.00964290583,
+      "max": 89489.2464433785
+    },
+    "client_cpu_us_per_request": {
+      "median": 12.092733028448164,
+      "min": 11.107766868252352,
+      "max": 12.460604358854633
+    },
+    "p50_us_median": 410.623,
+    "p99_us_median": 500.991,
+    "accepted_connections": [
+      32,
+      32,
+      32,
+      32,
+      32
+    ]
+  }
+]

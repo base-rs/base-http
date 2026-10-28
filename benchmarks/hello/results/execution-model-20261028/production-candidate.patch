@@ -1,0 +1,36 @@
+diff --git a/crates/iouring/src/io_uring_selector.rs b/crates/iouring/src/io_uring_selector.rs
+index 4d66414..01f4bb8 100644
+--- a/crates/iouring/src/io_uring_selector.rs
++++ b/crates/iouring/src/io_uring_selector.rs
+@@ -1053,6 +1053,7 @@ impl Reactor {
+             let (submitter, mut submissions, _) = self.ring.split();
+             let had_submissions = !submissions.is_empty();
+             let mut prepared = false;
++            let mut readiness_only = true;
+             while let Some(&identifier) = self.cancellations.front() {
+                 let entry = opcode::AsyncCancel::new(identifier)
+                     .build()
+@@ -1062,6 +1063,7 @@ impl Reactor {
+                     break;
+                 }
+                 self.cancellations.pop_front();
++                readiness_only = false;
+             }
+             while !submissions.is_full() {
+                 let Some(mut request) = self.pending.pop_front() else {
+@@ -1080,6 +1082,7 @@ impl Reactor {
+                 let entry = request.entry();
+                 progressed |= request.entry_may_wake();
+                 prepared = true;
++                readiness_only &= entry.get_opcode() == u32::from(opcode::PollAdd::CODE);
+                 // SAFETY: InFlight owns the buffer allocation and descriptor before publication. Neither is released or accessed until the original CQE, even when cancellation completes first. A failed push does not publish the entry.
+                 unsafe { submissions.push(&entry) }
+                     .expect("submission capacity was checked and the local queue has not changed");
+@@ -1118,6 +1121,7 @@ impl Reactor {
+             }
+             // A readiness-only batch can join the next idle wait. Existing SQ entries must be submitted on this turn, even if tasks stay busy.
+             defer_submission = prepared
++                && readiness_only
+                 && !progressed
+                 && !command_batch_full
+                 && !had_submissions

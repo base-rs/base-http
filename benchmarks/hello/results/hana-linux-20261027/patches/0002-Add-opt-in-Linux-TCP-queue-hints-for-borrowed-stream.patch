@@ -1,0 +1,728 @@
+From e0331232dc9eeed26aec954979f87d07ec38aab0 Mon Sep 17 00:00:00 2001
+From: Samuel Williams <samuel.williams@shopify.com>
+Date: Tue, 27 Oct 2026 15:25:34 +1300
+Subject: [PATCH 2/2] Add opt-in Linux TCP queue hints for borrowed stream
+ readers
+
+---
+ context/design.md                             |   2 +
+ crates/iouring/readme.md                      |   8 ++
+ crates/iouring/src/io_uring_selector.rs       |  12 ++
+ .../iouring/src/io_uring_selector/monitor.rs  |  39 +++++-
+ .../src/io_uring_selector/monitor/tests.rs    |  81 ++++++++++++
+ .../src/io_uring_socket_stream_reader.rs      |  41 ++++--
+ crates/selector/readme.md                     |   8 ++
+ crates/selector/src/lib.rs                    |   4 +
+ crates/selector/src/linux_tcp.rs              |  70 +++++++++++
+ crates/selector/src/readiness_selector.rs     |  15 +++
+ .../src/readiness_socket_stream_reader.rs     |  57 ++++++++-
+ .../readiness_socket_stream_reader/tests.rs   | 119 +++++++++++++++++-
+ 12 files changed, 435 insertions(+), 21 deletions(-)
+ create mode 100644 crates/selector/src/linux_tcp.rs
+
+diff --git a/context/design.md b/context/design.md
+index 89b1889..24ecb54 100644
+--- a/context/design.md
++++ b/context/design.md
+@@ -158,6 +158,8 @@ Readability and writability each retain advisory readiness and a notification ge
+ 
+ Independent `async-io` socket fallback operations also attempt immediate progress first. After `WouldBlock`, they await descriptor readiness before another attempt. Repeated polling because a containing task wakes for another descriptor must not retry the blocked syscall. This matters for the io\_uring selector's fallback listener, which can share one supervisor task with active connections.
+ 
++On Linux, `ReadinessSelector::with_tcp_read_hints()` and `IoUringSelector::with_tcp_read_hints()` explicitly opt borrowed scalar stream readers into socket-wide `TCP_INQ` ancillary messages. Reader construction tries to enable the option; unsupported sockets retain ordinary receives. A synchronous nonblocking `recvmsg` can clear its observed readiness generation only when an intact kernel hint reports zero queued bytes. Missing or truncated hints retain readiness, and positive hints preserve queued data and FIN. Newer notifications survive the generation-aware clear. This avoids treating a short read at an urgent-data boundary as proof of exhaustion. Worker-owned readiness is required for the readiness selector's hint optimization; io\_uring uses its existing persistent poll monitor. Owned completion transfers and message receives retain their existing paths. Other message-oriented APIs and external aliases on an opted-in socket can observe the added control message or control truncation. The option is disabled by default, and applications must measure its ancillary-processing cost against the avoided `WouldBlock` receive.
++
+ Bound borrowed stream writers attempt ready progress without a registration-table lookup. Their first `WouldBlock` acquires and retains the shared registration, retries across registration and then clears only the generation observed before a blocked send. Subsequent blocked operations reuse that registration. After writer/output-lane and operation admission checks, a successful send returns before constructing cancellation or readiness wait futures. Immediate errors and short counts also return directly. Cancellation and closure retain the same contract; owned output submission remains separately managed.
+ 
+ `base-scheduler-timers` is extracted as runtime-independent support with no dependency on the scheduler interface. It retains batched queues, stable slots, constant-time cancellation, optional sharded assistance and deadline notifications, and the optional bounded producer driver. Its `local` feature exposes the same queue engine with exclusive ownership and no synchronization or reference counting.
+diff --git a/crates/iouring/readme.md b/crates/iouring/readme.md
+index 954740d..42e334b 100644
+--- a/crates/iouring/readme.md
++++ b/crates/iouring/readme.md
+@@ -96,3 +96,11 @@ The [workspace overview](../../readme.md) describes the interface and companion
+ ## Contributing
+ 
+ Please open an issue or pull request on [GitHub](https://github.com/base-rs/base-scheduler).
++
++## Linux TCP queue hints
++
++`selector.with_tcp_read_hints()` opts borrowed scalar stream readers into `TCP_INQ`. On supported TCP sockets, one `recvmsg` returns both payload and the remaining queue size. A zero hint can clear the observed readiness generation without a second receive returning `WouldBlock`; queued bytes, FIN and a newer event keep the reader ready. Missing or truncated hints keep the ordinary conservative behavior, and unsupported sockets use ordinary receives.
++
++This is useful for throughput-sensitive Linux workloads and should be benchmarked for the application: ancillary processing can increase low-concurrency latency. The readiness selector's optimization requires worker-owned drivers. For io_uring, hints apply to borrowed scalar reads; owned payload transfers still use their completion path.
++
++Enabling the hints changes the socket's ancillary-message settings when a stream reader is created. Other message-oriented receive APIs or external aliases on that socket can observe `TCP_INQ` control messages or control truncation. Use this opt-in when that socket-wide behavior fits the application.
+diff --git a/crates/iouring/src/io_uring_selector.rs b/crates/iouring/src/io_uring_selector.rs
+index 60d2822..e980aa3 100644
+--- a/crates/iouring/src/io_uring_selector.rs
++++ b/crates/iouring/src/io_uring_selector.rs
+@@ -464,6 +464,7 @@ pub struct IoUringSelector {
+     controllers: Vec<Arc<Controller>>,
+     group: Arc<DriverGroup>,
+     external_next: AtomicUsize,
++    pub(crate) tcp_read_hints: bool,
+     pub(crate) fallback: Arc<ReadinessSelector>,
+ }
+ impl IoUringSelector {
+@@ -512,6 +513,7 @@ impl IoUringSelector {
+                 controllers,
+                 group,
+                 external_next: AtomicUsize::new(0),
++                tcp_read_hints: false,
+                 fallback,
+             },
+             drivers,
+@@ -578,6 +580,16 @@ impl IoUringSelector {
+         })
+     }
+ 
++    /// Use TCP_INQ hints for borrowed scalar stream reads.
++    ///
++    /// Stream reader construction enables socket-wide ancillary queue hints.
++    /// Message receives on the same socket may then report control truncation.
++    /// Unsupported sockets retain the ordinary monitor path.
++    pub fn with_tcp_read_hints(mut self) -> Self {
++        self.tcp_read_hints = true;
++        self
++    }
++
+     /// Stop admission and request cancellation of accepted ring work. This does not wait for retirement.
+     pub fn close(&self) {
+         self.group.close();
+diff --git a/crates/iouring/src/io_uring_selector/monitor.rs b/crates/iouring/src/io_uring_selector/monitor.rs
+index ade182c..1bd0f42 100644
+--- a/crates/iouring/src/io_uring_selector/monitor.rs
++++ b/crates/iouring/src/io_uring_selector/monitor.rs
+@@ -243,6 +243,19 @@ impl IoUringSelector {
+         interest: Interest,
+         cancellation: &Cancellation,
+         mut operation: impl FnMut(&RegisteredSocket) -> io::Result<T> + Send,
++    ) -> OperationResult<T> {
++        self.monitor_io_hinted(monitor, interest, cancellation, |socket| {
++            operation(socket).map(|value| (value, false))
++        })
++        .await
++    }
++
++    async fn monitor_io_hinted<T>(
++        &self,
++        monitor: &mut Storage,
++        interest: Interest,
++        cancellation: &Cancellation,
++        mut operation: impl FnMut(&RegisteredSocket) -> io::Result<(T, bool)> + Send,
+     ) -> OperationResult<T> {
+         let state = monitor.as_ref();
+         let registration = state.registration();
+@@ -268,7 +281,18 @@ impl IoUringSelector {
+                         )?;
+                     }
+                     Err(error) if error.kind() == io::ErrorKind::Interrupted => {}
+-                    result => return Poll::Ready(result.map_err(Into::into)),
++                    result => {
++                        return Poll::Ready(
++                            result
++                                .map(|(value, drained)| {
++                                    if drained {
++                                        registration.clear_readiness(readiness);
++                                    }
++                                    value
++                                })
++                                .map_err(Into::into),
++                        );
++                    }
+                 }
+             }
+         })
+@@ -330,6 +354,19 @@ impl IoUringSelector {
+         })
+         .await
+     }
++    pub(crate) async fn socket_monitor_recv_hint(
++        &self,
++        monitor: &mut Storage,
++        buffer: &mut [u8],
++        cancellation: &Cancellation,
++    ) -> OperationResult<(usize, bool)> {
++        self.monitor_io_hinted(monitor, Interest::Readable, cancellation, |socket| {
++            base_scheduler_selector::linux_tcp::recv(socket.get_ref(), buffer)
++                .map(|result| (result, result.1))
++        })
++        .await
++    }
++
+     pub(crate) async fn socket_monitor_send_poll(
+         &self,
+         monitor: &mut Storage,
+diff --git a/crates/iouring/src/io_uring_selector/monitor/tests.rs b/crates/iouring/src/io_uring_selector/monitor/tests.rs
+index 20fc362..3bdb243 100644
+--- a/crates/iouring/src/io_uring_selector/monitor/tests.rs
++++ b/crates/iouring/src/io_uring_selector/monitor/tests.rs
+@@ -60,6 +60,87 @@ fn until(driver: &mut impl SelectorWorker, mut condition: impl FnMut() -> bool)
+     }
+ }
+ 
++#[test]
++fn tcp_queue_hinted_stream_preserves_urgent_suffix_and_fin() {
++    use base_scheduler::SocketStreamReader;
++    for consume_urgent in [false, true] {
++        let (selector, driver) = IoUringSelector::new(options()).unwrap();
++        let selector = selector.with_tcp_read_hints();
++        let mut worker = driver.enter();
++        let wake = worker.waker();
++        let mut context = Context::from_waker(&wake);
++        let (socket, mut peer) = sockets(&selector);
++        peer.set_nodelay(true).unwrap();
++        let never = Cancellation::never();
++        let mut reader = crate::io_uring_socket_stream_reader::IoUringSocketStreamReader::new(
++            &selector, &socket,
++        )
++        .unwrap();
++        let mut bytes = [0; 64];
++        {
++            let mut read = pin!(reader.read_into(&mut bytes, &never));
++            assert!(read.as_mut().poll(&mut context).is_pending());
++            worker.turn(Some(Duration::ZERO)).unwrap();
++            peer.write_all(b"x").unwrap();
++            assert_eq!(drive(&mut worker, &mut context, read.as_mut()).unwrap(), 1);
++        }
++        peer.write_all(b"before").unwrap();
++        socket2::SockRef::from(&peer)
++            .send_with_flags(b"!", libc::MSG_OOB)
++            .unwrap();
++        peer.write_all(b"after").unwrap();
++        std::thread::sleep(Duration::from_millis(10));
++        if consume_urgent {
++            // The independent native owner models a pre-existing socket alias.
++            let owner = unsafe { socket.retain_native() };
++            let mut byte = [std::mem::MaybeUninit::<u8>::uninit(); 1];
++            assert_eq!(
++                owner
++                    .get_ref()
++                    .recv_with_flags(&mut byte, libc::MSG_OOB | libc::MSG_DONTWAIT)
++                    .unwrap(),
++                1
++            );
++        }
++        {
++            let mut read = pin!(reader.read_into(&mut bytes, &never));
++            assert_eq!(drive(&mut worker, &mut context, read.as_mut()).unwrap(), 6);
++        }
++        assert_eq!(&bytes[..6], b"before");
++        assert_eq!(block_on(reader.read_into(&mut bytes, &never)).unwrap(), 5);
++        assert_eq!(&bytes[..5], b"after");
++        // A cancelled wait must not consume readiness for a subsequent caller.
++        let cancelled = Cancellation::new();
++        {
++            let mut read = pin!(reader.read_into(&mut bytes, &cancelled));
++            assert!(read.as_mut().poll(&mut context).is_pending());
++            cancelled.cancel();
++            assert!(matches!(
++                read.as_mut().poll(&mut context),
++                Poll::Ready(Err(OperationError::Cancelled(_)))
++            ));
++        }
++        peer.write_all(b"bye").unwrap();
++        peer.shutdown(std::net::Shutdown::Write).unwrap();
++        std::thread::sleep(Duration::from_millis(10));
++        {
++            let mut read = pin!(reader.read_into(&mut bytes, &never));
++            assert_eq!(drive(&mut worker, &mut context, read.as_mut()).unwrap(), 3);
++        }
++        assert_eq!(&bytes[..3], b"bye");
++        assert_eq!(block_on(reader.read_into(&mut bytes, &never)).unwrap(), 0);
++        {
++            let mut close = pin!(reader.close());
++            drive(&mut worker, &mut context, close.as_mut()).unwrap();
++        }
++        drop(reader);
++        block_on(selector.socket_close(socket)).unwrap();
++        selector.close();
++        while !worker.turn(Some(Duration::ZERO)).unwrap() {}
++        block_on(selector.shutdown());
++    }
++}
++
+ #[test]
+ fn repeated_notifications_retain_one_registration_without_allocations() {
+     let (selector, driver) = IoUringSelector::new(options()).unwrap();
+diff --git a/crates/iouring/src/io_uring_socket_stream_reader.rs b/crates/iouring/src/io_uring_socket_stream_reader.rs
+index 7bf1299..12c18b8 100644
+--- a/crates/iouring/src/io_uring_socket_stream_reader.rs
++++ b/crates/iouring/src/io_uring_socket_stream_reader.rs
+@@ -22,6 +22,8 @@ pub(crate) struct IoUringSocketStreamReader<'a> {
+     owned: Option<crate::io_uring_selector::socket_read::State>,
+     monitor: MonitorStorage,
+     pool: Option<IoUringBufferPool>,
++    tcp_read_hint: bool,
++    drained: bool,
+     eof: bool,
+     closed: bool,
+ }
+@@ -35,12 +37,17 @@ impl<'a> IoUringSocketStreamReader<'a> {
+                 "stream readers require a stream socket",
+             ));
+         }
++        let monitor = scheduler.socket_monitor(socket, Interest::Readable);
++        let tcp_read_hint = scheduler.tcp_read_hints
++            && base_scheduler_selector::linux_tcp::enable(monitor.socket().get_ref());
+         Ok(Self {
+             scheduler,
+             operations: Default::default(),
+             owned: None,
+-            monitor: scheduler.socket_monitor(socket, Interest::Readable),
++            monitor,
+             pool: None,
++            tcp_read_hint,
++            drained: false,
+             eof: false,
+             closed: false,
+         })
+@@ -121,15 +128,29 @@ impl SocketStreamReader for IoUringSocketStreamReader<'_> {
+             cancellation.check()?;
+             return Ok(0);
+         }
+-        let count = self
+-            .scheduler
+-            .socket_monitor_recv_poll(
+-                &mut self.monitor,
+-                buffer,
+-                SocketRecvFlags::default(),
+-                cancellation,
+-            )
+-            .await?;
++        let count = if self.tcp_read_hint {
++            if self.drained {
++                self.scheduler
++                    .socket_monitor_wait(&mut self.monitor, cancellation)
++                    .await?;
++                self.drained = false;
++            }
++            let (count, drained) = self
++                .scheduler
++                .socket_monitor_recv_hint(&mut self.monitor, buffer, cancellation)
++                .await?;
++            self.drained = drained;
++            count
++        } else {
++            self.scheduler
++                .socket_monitor_recv_poll(
++                    &mut self.monitor,
++                    buffer,
++                    SocketRecvFlags::default(),
++                    cancellation,
++                )
++                .await?
++        };
+         if count == 0 {
+             self.eof = true;
+         }
+diff --git a/crates/selector/readme.md b/crates/selector/readme.md
+index c59da30..792cb6f 100644
+--- a/crates/selector/readme.md
++++ b/crates/selector/readme.md
+@@ -59,3 +59,11 @@ The [workspace overview](../../readme.md) describes the interface and companion
+ ## Contributing
+ 
+ Please open an issue or pull request on [GitHub](https://github.com/base-rs/base-scheduler).
++
++## Linux TCP queue hints
++
++`selector.with_tcp_read_hints()` opts borrowed scalar stream readers into `TCP_INQ`. On supported TCP sockets, one `recvmsg` returns both payload and the remaining queue size. A zero hint can clear the observed readiness generation without a second receive returning `WouldBlock`; queued bytes, FIN and a newer event keep the reader ready. Missing or truncated hints keep the ordinary conservative behavior, and unsupported sockets use ordinary receives.
++
++This is useful for throughput-sensitive Linux workloads and should be benchmarked for the application: ancillary processing can increase low-concurrency latency. The readiness selector's optimization requires worker-owned drivers. For io_uring, hints apply to borrowed scalar reads; owned payload transfers still use their completion path.
++
++Enabling the hints changes the socket's ancillary-message settings when a stream reader is created. Other message-oriented receive APIs or external aliases on that socket can observe `TCP_INQ` control messages or control truncation. Use this opt-in when that socket-wide behavior fits the application.
+diff --git a/crates/selector/src/lib.rs b/crates/selector/src/lib.rs
+index 04895d3..3c81bb7 100644
+--- a/crates/selector/src/lib.rs
++++ b/crates/selector/src/lib.rs
+@@ -93,3 +93,7 @@ mod process_wait;
+ fn process_child_fixture() {
+     base_scheduler_conformance::process_wait::child();
+ }
++
++#[cfg(target_os = "linux")]
++#[doc(hidden)]
++pub mod linux_tcp;
+diff --git a/crates/selector/src/linux_tcp.rs b/crates/selector/src/linux_tcp.rs
+new file mode 100644
+index 0000000..88b8ce7
+--- /dev/null
++++ b/crates/selector/src/linux_tcp.rs
+@@ -0,0 +1,70 @@
++// Released under the MIT License.
++// Copyright, 2026, by Samuel Williams.
++
++//! Shared Linux TCP queue hints for borrowed stream readers.
++
++use socket2::Socket;
++use std::{io, mem, os::fd::AsRawFd};
++
++/// Enable receive queue hints. Unsupported socket kinds/kernels keep the ordinary read path.
++pub fn enable(socket: &Socket) -> bool {
++    let enabled: libc::c_int = 1;
++    // SAFETY: setsockopt synchronously borrows one initialized integer.
++    unsafe {
++        libc::setsockopt(
++            socket.as_raw_fd(),
++            libc::IPPROTO_TCP,
++            libc::TCP_INQ,
++            (&enabled as *const libc::c_int).cast(),
++            mem::size_of_val(&enabled) as _,
++        ) == 0
++    }
++}
++
++/// Receive bytes and report whether the kernel's queue hint proves exhaustion.
++/// Missing/truncated hints retain readiness. A positive hint includes queued FIN.
++pub fn recv(socket: &Socket, buffer: &mut [u8]) -> io::Result<(usize, bool)> {
++    let mut vector = libc::iovec {
++        iov_base: buffer.as_mut_ptr().cast(),
++        iov_len: buffer.len(),
++    };
++    // usize alignment is sufficient for cmsghdr on all supported Linux targets.
++    let mut control = [0usize; 8];
++    // SAFETY: zero is a valid empty msghdr before installing the borrowed buffers.
++    let mut header: libc::msghdr = unsafe { mem::zeroed() };
++    header.msg_iov = &mut vector;
++    header.msg_iovlen = 1;
++    header.msg_control = control.as_mut_ptr().cast();
++    header.msg_controllen = mem::size_of_val(&control);
++    // SAFETY: all output ranges are exclusive and live until this synchronous nonblocking call returns.
++    let count = unsafe { libc::recvmsg(socket.as_raw_fd(), &mut header, libc::MSG_DONTWAIT) };
++    if count < 0 {
++        return Err(io::Error::last_os_error());
++    }
++    let mut drained = false;
++    if header.msg_flags & libc::MSG_CTRUNC == 0 {
++        // SAFETY: recvmsg initialized the indicated control prefix; the libc iterators stay inside it.
++        let mut message = unsafe { libc::CMSG_FIRSTHDR(&header) };
++        while !message.is_null() {
++            // SAFETY: the iterator points to a complete aligned cmsghdr in the live control range.
++            let cmsg = unsafe { &*message };
++            if cmsg.cmsg_level == libc::IPPROTO_TCP
++                && cmsg.cmsg_type == libc::TCP_INQ
++                && cmsg.cmsg_len
++                    >= unsafe { libc::CMSG_LEN(mem::size_of::<libc::c_int>() as _) } as usize
++            {
++                // SAFETY: checked payload length; unaligned reads also cover 32-bit ancillary ABIs.
++                let remaining = unsafe {
++                    libc::CMSG_DATA(message)
++                        .cast::<libc::c_int>()
++                        .read_unaligned()
++                };
++                drained = remaining == 0;
++                break;
++            }
++            // SAFETY: header and current message belong to this initialized ancillary range.
++            message = unsafe { libc::CMSG_NXTHDR(&header, message) };
++        }
++    }
++    Ok((count as usize, drained))
++}
+diff --git a/crates/selector/src/readiness_selector.rs b/crates/selector/src/readiness_selector.rs
+index 057a13f..225fb33 100644
+--- a/crates/selector/src/readiness_selector.rs
++++ b/crates/selector/src/readiness_selector.rs
+@@ -24,6 +24,8 @@ pub struct ReadinessSelector {
+     pub(crate) work: BlockingPool,
+     pub(crate) cleanup: BlockingPool,
+     pub(crate) closed: Cancellation,
++    #[cfg(target_os = "linux")]
++    pub(crate) tcp_read_hints: bool,
+     #[cfg(unix)]
+     pub(crate) readiness: Option<std::sync::Arc<crate::readiness_driver::DriverGroup>>,
+     #[cfg(test)]
+@@ -71,6 +73,8 @@ impl ReadinessSelector {
+             #[cfg(unix)]
+             signals: crate::signal_service::SignalService::new(),
+             closed: Cancellation::new(),
++            #[cfg(target_os = "linux")]
++            tcp_read_hints: false,
+             #[cfg(unix)]
+             readiness: None,
+             work: BlockingPool::new(options),
+@@ -81,6 +85,17 @@ impl ReadinessSelector {
+         })
+     }
+ 
++    /// Use TCP_INQ for borrowed scalar stream reads on Linux.
++    ///
++    /// This enables socket-wide ancillary queue hints when a stream reader is
++    /// created. Message-oriented receives on the same socket may then report
++    /// control truncation. Unsupported sockets retain ordinary receives.
++    #[cfg(target_os = "linux")]
++    pub fn with_tcp_read_hints(mut self) -> Self {
++        self.tcp_read_hints = true;
++        self
++    }
++
+     /// Stop admission. Queued general blocking jobs are discarded; accepted I/O and cleanup retire normally. Running closures cannot be interrupted.
+     ///
+     /// Dropping the scheduler also closes admission without blocking the dropping thread. Workers retain outstanding resources until access ends.
+diff --git a/crates/selector/src/readiness_socket_stream_reader.rs b/crates/selector/src/readiness_socket_stream_reader.rs
+index ff772f8..df8df44 100644
+--- a/crates/selector/src/readiness_socket_stream_reader.rs
++++ b/crates/selector/src/readiness_socket_stream_reader.rs
+@@ -19,6 +19,27 @@ use std::{
+     task::Poll,
+ };
+ 
++#[cfg(unix)]
++struct ReadResult {
++    count: usize,
++    drained: bool,
++}
++#[cfg(unix)]
++impl From<usize> for ReadResult {
++    fn from(count: usize) -> Self {
++        Self {
++            count,
++            drained: false,
++        }
++    }
++}
++#[cfg(unix)]
++impl From<(usize, bool)> for ReadResult {
++    fn from((count, drained): (usize, bool)) -> Self {
++        Self { count, drained }
++    }
++}
++
+ /// Scheduler-bound stream reader; registration remains private to this backend.
+ pub(crate) struct ReadinessSocketStreamReader<'a> {
+     scheduler: &'a ReadinessSelector,
+@@ -27,6 +48,8 @@ pub(crate) struct ReadinessSocketStreamReader<'a> {
+     registration: Option<Arc<Registration>>,
+     #[cfg(unix)]
+     established: bool,
++    #[cfg(target_os = "linux")]
++    tcp_read_hint: bool,
+     pool: Option<base_scheduler::HeapBufferPool>,
+     eof: bool,
+     closed: bool,
+@@ -48,6 +71,8 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+             registration: None,
+             #[cfg(unix)]
+             established: false,
++            #[cfg(target_os = "linux")]
++            tcp_read_hint: scheduler.tcp_read_hints && crate::linux_tcp::enable(socket.get_ref()),
+             pool: None,
+             eof: false,
+             closed: false,
+@@ -74,24 +99,29 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+     // Scalar consuming stream reads may use readiness before their syscall.
+     // Message receives retain their separate syscall-first contract.
+     #[cfg(unix)]
+-    async fn read_with(
++    async fn read_with<R: Into<ReadResult>>(
+         &mut self,
+         capacity: usize,
+         cancellation: &Cancellation,
+-        mut receive: impl FnMut(&socket2::Socket) -> io::Result<usize> + Send,
++        mut receive: impl FnMut(&socket2::Socket) -> io::Result<R> + Send,
+     ) -> OperationResult<usize> {
+         let result = {
+             let scheduler = self.scheduler;
+             let operation = pin!(async {
+                 let Some(group) = &self.scheduler.readiness else {
+-                    return self.socket.io(Interest::Readable, receive).await;
++                    return self
++                        .socket
++                        .io(Interest::Readable, |socket| {
++                            receive(socket).map(|value| value.into().count)
++                        })
++                        .await;
+                 };
+                 let mut probe = !self.established;
+                 if self.registration.is_none() {
+                     // Preserve immediate errors and retry across registration.
+                     let result = receive(self.socket.get_ref());
+                     if !matches!(&result, Err(error) if error.kind() == io::ErrorKind::WouldBlock) {
+-                        return result;
++                        return result.map(|value| value.into().count);
+                     }
+                     self.registration = Some(
+                         self.socket
+@@ -113,11 +143,16 @@ impl<'a> ReadinessSocketStreamReader<'a> {
+                     }
+                     probe = false;
+                     match receive(self.socket.get_ref()) {
+-                        Ok(count) => {
++                        Ok(value) => {
++                            let ReadResult { count, drained } = value.into();
+                             // A short read must consume the event's reported
+                             // bytes before clearing. An urgent-data boundary can
+                             // leave bytes queued even after a short receive.
+-                            direction.clear_after_read(observed, count, capacity);
++                            if drained {
++                                direction.clear(observed);
++                            } else {
++                                direction.clear_after_read(observed, count, capacity);
++                            }
+                             return Ok(count);
+                         }
+                         Err(error) if error.kind() == io::ErrorKind::WouldBlock => {
+@@ -204,8 +239,18 @@ impl SocketStreamReader for ReadinessSocketStreamReader<'_> {
+             cancellation.check()?;
+             return Ok(0);
+         }
++        #[cfg(target_os = "linux")]
++        let tcp_read_hint = self.tcp_read_hint;
+         let count = self
+             .read_with(buffer.len(), cancellation, |socket| {
++                #[cfg(target_os = "linux")]
++                if tcp_read_hint {
++                    return crate::linux_tcp::recv(socket, buffer);
++                }
++                #[cfg(target_os = "linux")]
++                return socket_io::recv_poll(socket, buffer, SocketRecvFlags::default())
++                    .map(|count| (count, false));
++                #[cfg(not(target_os = "linux"))]
+                 socket_io::recv_poll(socket, buffer, SocketRecvFlags::default())
+             })
+             .await?;
+diff --git a/crates/selector/src/readiness_socket_stream_reader/tests.rs b/crates/selector/src/readiness_socket_stream_reader/tests.rs
+index 946dd60..82fa57a 100644
+--- a/crates/selector/src/readiness_socket_stream_reader/tests.rs
++++ b/crates/selector/src/readiness_socket_stream_reader/tests.rs
+@@ -58,6 +58,115 @@ fn prime(
+     assert_eq!(buffer[0], b'x');
+ }
+ 
++#[cfg(target_os = "linux")]
++#[test]
++fn tcp_queue_hints_skip_empty_receives_and_preserve_queued_data_and_fin() {
++    let (selector, mut worker, socket, mut peer) = setup();
++    let selector = selector.with_tcp_read_hints();
++    let never = Cancellation::never();
++    let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++    assert!(reader.tcp_read_hint);
++    prime(&mut reader, &mut peer, &mut worker);
++    let registration = reader.registration.as_ref().unwrap().clone();
++    let direction = registration.direction(Interest::Readable);
++    assert_eq!(direction.snapshot() & 1, 0);
++    let calls = std::sync::atomic::AtomicUsize::new(0);
++    let mut bytes = [0; 4];
++    {
++        let mut reading = Box::pin(reader.read_with(bytes.len(), &never, |socket| {
++            calls.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
++            crate::linux_tcp::recv(socket, &mut bytes)
++        }));
++        assert!(block_on(poll_once(&mut reading)).is_none());
++        assert_eq!(calls.load(std::sync::atomic::Ordering::Relaxed), 0);
++        peer.write_all(b"abcdefgh").unwrap();
++        assert_eq!(drive(reading, &mut worker).unwrap(), 4);
++    }
++    assert_eq!(&bytes, b"abcd");
++    assert_ne!(direction.snapshot() & 1, 0);
++    assert_eq!(block_on(reader.read_into(&mut bytes, &never)).unwrap(), 4);
++    assert_eq!(&bytes, b"efgh");
++    // Even a full read can prove exhaustion when the same receive reports it.
++    assert_eq!(direction.snapshot() & 1, 0);
++    peer.write_all(b"bye").unwrap();
++    peer.shutdown(std::net::Shutdown::Write).unwrap();
++    std::thread::sleep(Duration::from_millis(10));
++    assert_eq!(
++        drive(reader.read_into(&mut bytes, &never), &mut worker).unwrap(),
++        3
++    );
++    assert_eq!(&bytes[..3], b"bye");
++    assert_ne!(direction.snapshot() & 1, 0);
++    assert_eq!(block_on(reader.read_into(&mut bytes, &never)).unwrap(), 0);
++}
++
++#[cfg(target_os = "linux")]
++#[test]
++fn tcp_queue_hints_preserve_urgent_suffixes_after_alias_consumes_urgent_data() {
++    for consume_urgent in [false, true] {
++        let (selector, mut worker, socket, mut peer) = setup();
++        let selector = selector.with_tcp_read_hints();
++        let never = Cancellation::never();
++        let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++        prime(&mut reader, &mut peer, &mut worker);
++        peer.write_all(b"before").unwrap();
++        socket2::SockRef::from(&peer)
++            .send_with_flags(b"!", libc::MSG_OOB)
++            .unwrap();
++        peer.write_all(b"after").unwrap();
++        std::thread::sleep(Duration::from_millis(10));
++        if consume_urgent {
++            let mut byte = [std::mem::MaybeUninit::<u8>::uninit(); 1];
++            assert_eq!(
++                socket
++                    .get_ref()
++                    .recv_with_flags(&mut byte, libc::MSG_OOB | libc::MSG_DONTWAIT)
++                    .unwrap(),
++                1
++            );
++        }
++        let mut bytes = [0; 64];
++        assert_eq!(
++            drive(reader.read_into(&mut bytes, &never), &mut worker).unwrap(),
++            6
++        );
++        assert_eq!(&bytes[..6], b"before");
++        assert_eq!(block_on(reader.read_into(&mut bytes, &never)).unwrap(), 5);
++        assert_eq!(&bytes[..5], b"after");
++    }
++}
++
++#[cfg(target_os = "linux")]
++#[test]
++fn tcp_queue_hint_clear_does_not_erase_a_newer_edge() {
++    let (selector, mut worker, socket, mut peer) = setup();
++    let selector = selector.with_tcp_read_hints();
++    let never = Cancellation::never();
++    let mut reader = ReadinessSocketStreamReader::new(&selector, &socket).unwrap();
++    prime(&mut reader, &mut peer, &mut worker);
++    let registration = reader.registration.as_ref().unwrap().clone();
++    let direction = registration.direction(Interest::Readable);
++    peer.write_all(b"a").unwrap();
++    while direction.snapshot() & 1 == 0 {
++        worker.turn(Some(Duration::from_millis(10))).unwrap();
++    }
++    let mut bytes = [0; 8];
++    assert_eq!(
++        block_on(reader.read_with(bytes.len(), &never, |socket| {
++            let result = crate::linux_tcp::recv(socket, &mut bytes);
++            assert!(result.as_ref().unwrap().1);
++            peer.write_all(b"b").unwrap();
++            direction.publish();
++            result
++        }))
++        .unwrap(),
++        1
++    );
++    assert_ne!(direction.snapshot() & 1, 0);
++    assert_eq!(block_on(reader.read_into(&mut bytes, &never)).unwrap(), 1);
++    assert_eq!(bytes[0], b'b');
++}
++
+ #[cfg(target_os = "macos")]
+ #[test]
+ fn short_reads_wait_without_a_syscall_and_full_reads_keep_ready() {
+@@ -192,9 +301,11 @@ fn cancellation_shutdown_and_immediate_errors_preserve_stream_state() {
+         .direction(Interest::Readable)
+         .publish();
+     assert_eq!(
+-        block_on(reader.read_with(8, &Cancellation::never(), |_| Err(
+-            io::ErrorKind::PermissionDenied.into()
+-        )))
++        block_on(
++            reader.read_with(8, &Cancellation::never(), |_| Err::<usize, _>(
++                io::ErrorKind::PermissionDenied.into()
++            ))
++        )
+         .unwrap_err()
+         .kind(),
+         io::ErrorKind::PermissionDenied
+@@ -226,7 +337,7 @@ fn cancellation_shutdown_and_immediate_errors_preserve_stream_state() {
+     // Closure between the initial attempt and lazy registration is propagated.
+     let error = block_on(reader.read_with(8, &never, |_| {
+         selector.close();
+-        Err(io::ErrorKind::WouldBlock.into())
++        Err::<usize, _>(io::ErrorKind::WouldBlock.into())
+     }))
+     .unwrap_err();
+     assert_eq!(error.kind(), io::ErrorKind::BrokenPipe);
+-- 
+2.55.0-shop-a6ff2433
+

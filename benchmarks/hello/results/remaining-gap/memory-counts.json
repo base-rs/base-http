@@ -1,0 +1,55 @@
+{
+  "diagnostic_only": true,
+  "limitations": "Counts exported libc memcpy/memmove calls, not inlined loads/stores or kernel copies. Copy implementations may delegate internally; results are comparative diagnostic counts, not timings.",
+  "library_sha256": "8bd0d2b3d536518bcd0140b0ebe1280a05cacbe4cfe222113392cc41fa43af86",
+  "results": [
+    {
+      "variant": "before-native",
+      "requests": 10000,
+      "binary_sha256": "38dc83e4e00a104773b2a4e6e310d1057c045dfae3e2f74a803d3546135e77dd",
+      "memcpy_calls": 0,
+      "memcpy_bytes": 0,
+      "memmove_calls": 260000,
+      "memmove_bytes": 46710000,
+      "exported_copy_calls_per_request": 26.0,
+      "exported_copy_bytes_per_request": 4671.0,
+      "server_stderr": ""
+    },
+    {
+      "variant": "cancellable-native",
+      "requests": 10000,
+      "binary_sha256": "1c21f1520862f016cf18c15730404a79a4297371f4e622a1697441e2a095118b",
+      "memcpy_calls": 0,
+      "memcpy_bytes": 0,
+      "memmove_calls": 260000,
+      "memmove_bytes": 46710000,
+      "exported_copy_calls_per_request": 26.0,
+      "exported_copy_bytes_per_request": 4671.0,
+      "server_stderr": ""
+    },
+    {
+      "variant": "pinned-native",
+      "requests": 10000,
+      "binary_sha256": "4c35496db3d56b0d22ee5594e8cd89421b83632891a37640abfa8d0c3cfaae5d",
+      "memcpy_calls": 0,
+      "memcpy_bytes": 0,
+      "memmove_calls": 240000,
+      "memmove_bytes": 37750000,
+      "exported_copy_calls_per_request": 24.0,
+      "exported_copy_bytes_per_request": 3775.0,
+      "server_stderr": ""
+    },
+    {
+      "variant": "hyper-tokio",
+      "requests": 10000,
+      "binary_sha256": "4c35496db3d56b0d22ee5594e8cd89421b83632891a37640abfa8d0c3cfaae5d",
+      "memcpy_calls": 0,
+      "memcpy_bytes": 0,
+      "memmove_calls": 40000,
+      "memmove_bytes": 240000,
+      "exported_copy_calls_per_request": 4.0,
+      "exported_copy_bytes_per_request": 24.0,
+      "server_stderr": ""
+    }
+  ]
+}

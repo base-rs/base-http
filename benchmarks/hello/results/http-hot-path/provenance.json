@@ -1,0 +1,32 @@
+{
+  "utc": "2026-10-26T11:13:01.219360+00:00",
+  "build": "cargo build --release --locked --features profile-tools --bins",
+  "baseline": "Previous readiness fix (results/readiness/after-server)",
+  "scheduler_commit": "d68cea1b5f264e08a68025a426147446c635fe33",
+  "scheduler_host_coverage": {
+    "covered_regions": 28966,
+    "measured_regions": 28966,
+    "excluded_unreachable_regions": 3,
+    "all_features": true,
+    "all_targets": true
+  },
+  "http_tests": {
+    "base-http": 56,
+    "base-http1": 40,
+    "base-http-server": 28,
+    "toolchain": "1.85.1"
+  },
+  "body_completion_api_changed": false,
+  "scope": "macOS aarch64; no Linux/io_uring measurement",
+  "final_report": "../../http-hot-path.md",
+  "original_wrk_repeat": "parity-rerun",
+  "original_wrk_repeat_errors": 0,
+  "previous_aborted_cohorts": [
+    "confirmation",
+    "confirmation-retry",
+    "confirmation-final"
+  ],
+  "timeout_cause": "Unestablished. Both saved Native baseline and Hyper exhibit the same single-counter failure. Diagnostic reproductions and final original-wrk repeat completed error-free.",
+  "production_source_snapshots_match": true,
+  "final_report_sha256": "1ad6a20db866b15a32594cf02886ee0e5795144b5df0b90d0f0fc64b3710e7ee"
+}

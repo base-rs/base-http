@@ -1,0 +1,46 @@
+   Compiling base-scheduler-iouring v0.1.2 (/tmp/base-http-uring-readiness-20261027/scheduler/crates/iouring)
+   Compiling base-scheduler-echo-benchmark v0.0.0 (/tmp/base-http-uring-readiness-20261027/scheduler/benchmarks/echo)
+    Finished `release` profile [optimized] target(s) in 8.73s
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/release/deps/base_scheduler_echo_benchmark-49bb00693ad5096d)
+
+running 6 tests
+test server::tests::echo_reuses_the_allocation_and_completes_partial_writes ... ok
+test server::tests::monitor_echo_reuses_payload_storage_and_completes_partial_writes ... ok
+test server::tests::poll_zero_progress_is_an_error_instead_of_an_infinite_loop ... ok
+test server::tests::monitor_echo_rejects_zero_progress ... ok
+test server::tests::zero_progress_is_an_error_instead_of_an_infinite_loop ... ok
+test server::tests::poll_echo_reuses_the_allocation_and_completes_partial_writes ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/release/deps/base_scheduler_echo_benchmark-d0cb1024c792ebfc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/smoke.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/release/deps/smoke-2aa18aadbedcb530)
+
+running 13 tests
+test client_rejects_corrupt_echoes ... ok
+test client_rejects_an_empty_measurement ... ok
+test every_client_field_is_validated_and_server_connection_count_must_be_positive ... ok
+test invalid_configuration_fails_before_running_a_workload ... ok
+test native_iouring ... ok
+test native_iouring_monitor ... ok
+test native_iouring_multishot ... ok
+test native_epoll_poll ... ok
+test native_iouring_poll ... ok
+test pure_tokio ... ok
+test tokio_adapter ... ok
+test tokio_adapter_monitor ... ok
+test tokio_adapter_poll ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+   Doc-tests base_scheduler_echo_benchmark
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

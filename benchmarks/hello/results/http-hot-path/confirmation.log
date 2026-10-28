@@ -1,0 +1,35 @@
+response-native
+base-native  c= 64 r=1:     126620 req/s, p99 0.705 ms, CPU 100%
+hyper-tokio
+hyper-tokio  c= 64 r=1:     130054 req/s, p99 0.695 ms, CPU 99%
+before-native
+base-native  c= 64 r=1:     126550 req/s, p99 0.711 ms, CPU 100%
+response-native
+base-native  c= 64 r=2:     127188 req/s, p99 0.705 ms, CPU 100%
+before-native
+Traceback (most recent call last):
+  File "/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/compare_candidates.py", line 95, in <module>
+    main()
+    ~~~~^^
+  File "/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/compare_candidates.py", line 71, in main
+    result = sample(args, mode, options.concurrency, repetition)
+  File "/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/run.py", line 120, in sample
+    **parse_wrk(measured.stdout),
+      ~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/samuel/Developer/base-rs/base-http/benchmarks/hello/run.py", line 70, in parse_wrk
+    raise RuntimeError(output)
+RuntimeError: Running 8s test @ http://127.0.0.1:59091/
+  4 threads and 64 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   511.79us  102.73us   0.86ms   75.61%
+    Req/Sec    31.29k     1.53k   34.37k    69.75%
+  Latency Distribution
+     50%  456.00us
+     75%  582.00us
+     90%  693.00us
+     99%  712.00us
+  1008660 requests in 8.10s, 75.03MB read
+  Socket errors: connect 0, read 0, write 0, timeout 1
+Requests/sec: 124519.87
+Transfer/sec:      9.26MB
+

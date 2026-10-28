@@ -1,0 +1,1009 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
+use super::*;
+use crate::{NativeSocket, ReadinessSelector, SelectorOptions};
+use base_scheduler::*;
+use futures_lite::future::{block_on, poll_once};
+use std::{future::Future, pin::pin};
+
+fn setup(workers: usize) -> (ReadinessSelector, Vec<ReadinessWorker>) {
+    let (selector, drivers) =
+        ReadinessSelector::with_workers(SelectorOptions::default(), workers).unwrap();
+    (
+        selector,
+        drivers.into_iter().map(SelectorDriver::enter).collect(),
+    )
+}
+fn drive<F: Future>(future: F, worker: &mut ReadinessWorker) -> F::Output {
+    let mut future = pin!(future);
+    let deadline = std::time::Instant::now() + Duration::from_secs(3);
+    loop {
+        if let Some(output) = block_on(poll_once(future.as_mut())) {
+            return output;
+        }
+        assert!(
+            std::time::Instant::now() < deadline,
+            "readiness operation stalled"
+        );
+        worker.turn(Some(Duration::from_millis(10))).unwrap();
+    }
+}
+fn packet() -> NativeSocket {
+    NativeSocket::new(std::net::UdpSocket::bind("127.0.0.1:0").unwrap().into()).unwrap()
+}
+fn read<'a>(
+    selector: &'a ReadinessSelector,
+    socket: &NativeSocket,
+) -> impl Future<Output = (OperationResult<usize>, Vec<u8>)> + Send + 'a {
+    let socket = socket.retain();
+    async move {
+        selector
+            .socket_read(&socket, vec![0; 1], &Cancellation::never())
+            .await
+    }
+}
+
+#[test]
+fn notification_during_syscall_survives_would_block_clear() {
+    let direction = Direction::new();
+    assert_eq!(direction.snapshot(), 0);
+    direction.publish();
+    let before = direction.snapshot();
+    direction.publish();
+    direction.clear(before);
+    assert_eq!(direction.snapshot() & 1, 1);
+    direction.clear(direction.snapshot());
+    assert_eq!(direction.snapshot() & 1, 0);
+}
+
+#[test]
+fn concurrent_registration_of_the_same_socket_reuses_one_live_record() {
+    let (selector, _workers) = setup(2);
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    let socket = packet();
+    let barrier = std::sync::Barrier::new(2);
+    // Two operations can both observe no registration before either syscall
+    // returns WouldBlock. Their subsequent registration must be idempotent.
+    let (first, second) = std::thread::scope(|scope| {
+        let register = || {
+            barrier.wait();
+            socket.registrations.get(group, socket.get_ref()).unwrap()
+        };
+        let first = scope.spawn(register);
+        let second = scope.spawn(register);
+        (first.join().unwrap(), second.join().unwrap())
+    });
+    assert!(Arc::ptr_eq(&first, &second));
+    assert_eq!(socket.registrations.entries.lock().unwrap().len(), 1);
+    assert_eq!(
+        group
+            .controllers
+            .iter()
+            .map(|controller| { controller.table.lock().unwrap().registrations.len() })
+            .sum::<usize>(),
+        1
+    );
+    drop(socket);
+    assert!(
+        first
+            .owner
+            .upgrade()
+            .unwrap()
+            .table
+            .lock()
+            .unwrap()
+            .registrations
+            .is_empty()
+    );
+}
+
+#[test]
+fn worker_delivers_to_all_waiters_and_abandonment_only_removes_its_listener() {
+    let (selector, mut workers) = setup(1);
+    let socket = packet();
+    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+    let mut first = pin!(read(&selector, &socket));
+    let mut abandoned = Box::pin(read(&selector, &socket));
+    let mut second = pin!(read(&selector, &socket));
+    assert!(block_on(poll_once(first.as_mut())).is_none());
+    assert!(block_on(poll_once(abandoned.as_mut())).is_none());
+    assert!(block_on(poll_once(second.as_mut())).is_none());
+    // Dropping a distinct waiter cannot overwrite another waiter's waker.
+    drop(abandoned);
+    sender.send_to(b"a", socket.local_addr().unwrap()).unwrap();
+    sender.send_to(b"b", socket.local_addr().unwrap()).unwrap();
+    workers[0].turn(Some(Duration::from_secs(1))).unwrap();
+    assert_eq!(drive(first, &mut workers[0]).0.unwrap(), 1);
+    assert_eq!(drive(second, &mut workers[0]).0.unwrap(), 1);
+    drop(workers);
+    block_on(selector.shutdown());
+}
+
+#[test]
+fn routing_uses_the_selected_group_and_restores_nested_workers() {
+    let (first, first_drivers) =
+        ReadinessSelector::with_workers(SelectorOptions::default(), 2).unwrap();
+    let (second, second_drivers) =
+        ReadinessSelector::with_workers(SelectorOptions::default(), 1).unwrap();
+    let Some(first_group) = &first.readiness else {
+        return;
+    };
+    let second_group = second.readiness.as_ref().unwrap();
+    let mut drivers = first_drivers.into_iter();
+    let outer = drivers.next().unwrap().enter();
+    assert!(Arc::ptr_eq(
+        &first_group.route(),
+        &first_group.controllers[0]
+    ));
+    let inner = drivers.next().unwrap().enter();
+    let unrelated = second_drivers.into_iter().next().unwrap().enter();
+    assert!(Arc::ptr_eq(
+        &first_group.route(),
+        &first_group.controllers[1]
+    ));
+    assert!(Arc::ptr_eq(
+        &second_group.route(),
+        &second_group.controllers[0]
+    ));
+    drop(unrelated);
+    // Dropping another group doesn't change this group's routing.
+    assert!(Arc::ptr_eq(
+        &first_group.route(),
+        &first_group.controllers[1]
+    ));
+    drop(inner);
+    assert!(Arc::ptr_eq(
+        &first_group.route(),
+        &first_group.controllers[0]
+    ));
+    drop(outer);
+}
+
+#[test]
+fn a_pending_future_can_move_to_an_external_thread() {
+    let (selector, mut workers) = setup(1);
+    let socket = packet();
+    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+    std::thread::scope(|scope| {
+        let mut future = Box::pin(read(&selector, &socket));
+        assert!(block_on(poll_once(future.as_mut())).is_none());
+        let (tx, rx) = std::sync::mpsc::channel();
+        let waiting = scope.spawn(move || tx.send(block_on(future)).unwrap());
+        sender.send_to(b"a", socket.local_addr().unwrap()).unwrap();
+        workers[0].turn(Some(Duration::from_secs(1))).unwrap();
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        let output = loop {
+            if let Ok(output) = rx.try_recv() {
+                break output;
+            }
+            if std::time::Instant::now() >= deadline {
+                selector.close();
+                panic!("migrated operation stalled");
+            }
+            workers[0].turn(Some(Duration::from_millis(10))).unwrap();
+        };
+        assert_eq!(output.0.unwrap(), 1);
+        waiting.join().unwrap();
+    });
+}
+
+#[test]
+fn socket_can_be_used_by_different_selectors_and_exclusively_closed_remotely() {
+    let (first, mut first_workers) = setup(1);
+    let (second, mut second_workers) = setup(1);
+    let socket = packet();
+    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+    {
+        let mut one = pin!(read(&first, &socket));
+        let mut two = pin!(read(&second, &socket));
+        assert!(block_on(poll_once(one.as_mut())).is_none());
+        assert!(block_on(poll_once(two.as_mut())).is_none());
+        sender.send_to(b"a", socket.local_addr().unwrap()).unwrap();
+        sender.send_to(b"b", socket.local_addr().unwrap()).unwrap();
+        first_workers[0].turn(Some(Duration::from_secs(1))).unwrap();
+        second_workers[0]
+            .turn(Some(Duration::from_secs(1)))
+            .unwrap();
+        assert_eq!(drive(one, &mut first_workers[0]).0.unwrap(), 1);
+        assert_eq!(drive(two, &mut second_workers[0]).0.unwrap(), 1);
+    }
+    let group = first.readiness.clone();
+    std::thread::scope(|scope| {
+        scope
+            .spawn(|| block_on(first.socket_close(socket)).unwrap())
+            .join()
+            .unwrap();
+    });
+    if let Some(group) = group {
+        assert!(
+            group.controllers[0]
+                .table
+                .lock()
+                .unwrap()
+                .registrations
+                .is_empty()
+        );
+    }
+}
+
+#[test]
+fn shutdown_and_driver_drop_wake_pending_waits_and_preserve_immediate_errors() {
+    for drop_driver in [false, true] {
+        let (selector, mut workers) = setup(1);
+        let socket = packet();
+        let mut pending = pin!(read(&selector, &socket));
+        assert!(block_on(poll_once(pending.as_mut())).is_none());
+        let wake = workers[0].waker();
+        wake.wake_by_ref();
+        assert_eq!(
+            workers[0].turn(Some(Duration::ZERO)).unwrap(),
+            selector.readiness.is_none()
+        );
+        if drop_driver && selector.readiness.is_some() {
+            workers.clear();
+        } else {
+            selector.close();
+        }
+        assert_eq!(
+            block_on(pending).0.unwrap_err().kind(),
+            io::ErrorKind::BrokenPipe
+        );
+        // A retained wake remains harmless after driver retirement.
+        wake.wake_by_ref();
+        if let Some(worker) = workers.first_mut() {
+            assert!(worker.turn(None).unwrap());
+        }
+    }
+    let (selector, _workers) = setup(1);
+    let socket = NativeSocket::new(
+        socket2::Socket::new(socket2::Domain::IPV4, socket2::Type::STREAM, None).unwrap(),
+    )
+    .unwrap();
+    assert!(block_on(read(&selector, &socket)).0.is_err());
+}
+
+#[test]
+fn cancellation_releases_one_waiter_without_stopping_others() {
+    let (selector, mut workers) = setup(1);
+    let socket = packet();
+    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+    let cancellation = Cancellation::new();
+    {
+        let mut future = pin!(selector.socket_read(&socket, vec![0; 1], &cancellation));
+        assert!(block_on(poll_once(future.as_mut())).is_none());
+        cancellation.cancel();
+        assert!(matches!(
+            block_on(future).0,
+            Err(OperationError::Cancelled(_))
+        ));
+    }
+    let mut other = pin!(read(&selector, &socket));
+    assert!(block_on(poll_once(other.as_mut())).is_none());
+    sender.send_to(b"a", socket.local_addr().unwrap()).unwrap();
+    workers[0].turn(Some(Duration::from_secs(1))).unwrap();
+    assert_eq!(drive(other, &mut workers[0]).0.unwrap(), 1);
+}
+
+#[test]
+fn deregistered_keys_are_removed_and_never_reused() {
+    let (selector, mut workers) = setup(1);
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    let owner = &group.controllers[0];
+    for _ in 0..128 {
+        let socket = packet();
+        {
+            let mut future = pin!(read(&selector, &socket));
+            assert!(block_on(poll_once(future.as_mut())).is_none());
+        }
+        assert_eq!(owner.table.lock().unwrap().registrations.len(), 1);
+        block_on(selector.socket_close(socket)).unwrap();
+        assert!(owner.table.lock().unwrap().registrations.is_empty());
+        workers[0].turn(Some(Duration::ZERO)).unwrap();
+    }
+    assert_eq!(owner.table.lock().unwrap().next, 128);
+}
+
+#[test]
+fn fallback_drivers_retire_without_owning_an_event_queue() {
+    let (group, drivers) = create_with(2, Cancellation::new(), || Ok(None)).unwrap();
+    assert!(group.is_none());
+    assert_eq!(drivers.len(), 2);
+    for driver in drivers {
+        let mut worker = driver.enter();
+        worker.waker().wake_by_ref();
+        worker.waker().wake();
+        worker.close();
+        assert!(worker.turn(None).unwrap());
+    }
+    assert!(
+        create_with(1, Cancellation::new(), || Err(
+            io::ErrorKind::PermissionDenied.into()
+        ))
+        .is_err()
+    );
+    assert!(ReadinessSelector::with_workers(SelectorOptions::default(), 0).is_err());
+}
+
+#[test]
+fn external_routes_are_round_robin_and_stopped_groups_are_reclaimed() {
+    let (first, first_drivers) =
+        ReadinessSelector::with_workers(SelectorOptions::default(), 2).unwrap();
+    let (second, second_drivers) =
+        ReadinessSelector::with_workers(SelectorOptions::default(), 1).unwrap();
+    let Some(group) = &first.readiness else {
+        return;
+    };
+    assert!(Arc::ptr_eq(&group.route(), &group.controllers[0]));
+    assert!(Arc::ptr_eq(&group.route(), &group.controllers[1]));
+    let socket = packet();
+    let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
+    assert!(!format!("{socket:?}").is_empty());
+    registration.direction(Interest::Writable).publish();
+    block_on(registration.direction(Interest::Writable).wait(group)).unwrap();
+    drop(first_drivers);
+    assert_eq!(
+        block_on(registration.direction(Interest::Readable).wait(group))
+            .unwrap_err()
+            .kind(),
+        io::ErrorKind::BrokenPipe
+    );
+    assert!(socket.registrations.get(group, socket.get_ref()).is_err());
+    let replacement = socket
+        .registrations
+        .get(second.readiness.as_ref().unwrap(), socket.get_ref())
+        .unwrap();
+    assert_eq!(socket.registrations.entries.lock().unwrap().len(), 1);
+    drop(replacement);
+    drop(registration);
+    drop(second_drivers);
+    socket.into_close()().unwrap();
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn driver_interruption_is_retryable_but_failure_wakes_all_waiters() {
+    use std::sync::atomic::Ordering;
+    let (selector, mut workers) = setup(1);
+    let socket = packet();
+    let mut pending = pin!(read(&selector, &socket));
+    assert!(block_on(poll_once(pending.as_mut())).is_none());
+    let group = selector.readiness.as_ref().unwrap();
+    let controller = &group.controllers[0];
+    controller
+        .poller
+        .failure
+        .store(libc::EINTR, Ordering::Relaxed);
+    assert!(!workers[0].turn(None).unwrap());
+    assert!(!group.closed.is_cancelled());
+    controller
+        .poller
+        .failure
+        .store(libc::EBADF, Ordering::Relaxed);
+    assert_eq!(
+        workers[0].turn(None).unwrap_err().raw_os_error(),
+        Some(libc::EBADF)
+    );
+    assert_eq!(
+        block_on(pending).0.unwrap_err().kind(),
+        io::ErrorKind::BrokenPipe
+    );
+    assert!(workers[0].turn(None).unwrap());
+    workers[0].waker().wake();
+}
+
+#[test]
+fn explicit_worker_close_wakes_waits_and_key_exhaustion_never_reuses_a_key() {
+    let (selector, mut workers) = setup(1);
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    let socket = packet();
+    group.controllers[0].table.lock().unwrap().next = usize::MAX - 1;
+    assert!(socket.registrations.get(group, socket.get_ref()).is_err());
+    workers[0].close();
+    assert!(workers[0].turn(None).unwrap());
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn failed_driver_creation_and_registration_return_the_os_error() {
+    kqueue::INITIAL_FAILURE.set(libc::ENOMEM);
+    assert!(
+        matches!(create(1, Cancellation::new()), Err(error) if error.raw_os_error() == Some(libc::ENOMEM))
+    );
+    kqueue::INITIAL_FAILURE.set(libc::ENOMEM);
+    assert!(
+        matches!(ReadinessSelector::with_workers(SelectorOptions::default(), 1), Err(error) if error.raw_os_error() == Some(libc::ENOMEM))
+    );
+    let (selector, _workers) = setup(1);
+    let socket = packet();
+    selector.readiness.as_ref().unwrap().controllers[0]
+        .poller
+        .failure
+        .store(libc::ENOMEM, std::sync::atomic::Ordering::Relaxed);
+    assert_eq!(
+        block_on(read(&selector, &socket)).0.unwrap_err().kind(),
+        io::ErrorKind::OutOfMemory
+    );
+    // Failed admission retains no socket entry and permits a later attempt.
+    // Its possibly exposed pointer stays quarantined in the controller.
+    assert!(socket.registrations.entries.lock().unwrap().is_empty());
+}
+
+#[test]
+fn simultaneous_listeners_have_distinct_wakers_and_drop_unregisters_only_one() {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::task::{Context, Wake, Waker};
+    #[derive(Default)]
+    struct Count(AtomicUsize);
+    impl Wake for Count {
+        fn wake(self: Arc<Self>) {
+            self.0.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+    let (selector, _workers) = setup(1);
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    let direction = Direction::new();
+    let first = Arc::new(Count::default());
+    let second = Arc::new(Count::default());
+    let abandoned = Arc::new(Count::default());
+    let first_waker = Waker::from(Arc::clone(&first));
+    let second_waker = Waker::from(Arc::clone(&second));
+    let abandoned_waker = Waker::from(Arc::clone(&abandoned));
+    let mut one = Box::pin(direction.wait(group));
+    let mut two = Box::pin(direction.wait(group));
+    let mut three = Box::pin(direction.wait(group));
+    assert!(
+        one.as_mut()
+            .poll(&mut Context::from_waker(&first_waker))
+            .is_pending()
+    );
+    assert!(
+        two.as_mut()
+            .poll(&mut Context::from_waker(&second_waker))
+            .is_pending()
+    );
+    assert!(
+        three
+            .as_mut()
+            .poll(&mut Context::from_waker(&abandoned_waker))
+            .is_pending()
+    );
+    drop(three);
+    direction.publish();
+    assert_eq!(first.0.load(Ordering::Relaxed), 1);
+    assert_eq!(second.0.load(Ordering::Relaxed), 1);
+    assert_eq!(abandoned.0.load(Ordering::Relaxed), 0);
+    assert!(
+        one.as_mut()
+            .poll(&mut Context::from_waker(&first_waker))
+            .is_ready()
+    );
+    assert!(
+        two.as_mut()
+            .poll(&mut Context::from_waker(&second_waker))
+            .is_ready()
+    );
+}
+
+#[test]
+fn inactive_events_do_not_notify_the_old_registration() {
+    let (selector, mut workers) = setup(1);
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    let socket = packet();
+    let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
+    // A retiring source is marked inactive before kernel deletion. Its
+    // pointer remains controller-owned while a collected event is ignored.
+    registration.inactive.store(true, Ordering::Release);
+    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+    sender
+        .send_to(b"retired", socket.local_addr().unwrap())
+        .unwrap();
+    assert!(!workers[0].turn(Some(Duration::from_secs(1))).unwrap());
+    assert_eq!(registration.readable.snapshot(), 0);
+    assert_eq!(registration.writable.snapshot(), 0);
+    drop(registration);
+    block_on(selector.socket_close(socket)).unwrap();
+}
+
+#[test]
+fn publication_allows_remote_exclusive_close_during_a_live_batch() {
+    struct CloseOnWake {
+        selector: Arc<ReadinessSelector>,
+        socket: Mutex<Option<NativeSocket>>,
+    }
+    impl Wake for CloseOnWake {
+        fn wake(self: Arc<Self>) {
+            let socket = self.socket.lock().unwrap().take().unwrap();
+            let selector = Arc::clone(&self.selector);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let closing = std::thread::spawn(move || {
+                tx.send(block_on(selector.socket_close(socket))).unwrap();
+            });
+            rx.recv_timeout(Duration::from_secs(3))
+                .expect("event publication blocked exclusive close")
+                .unwrap();
+            closing.join().unwrap();
+        }
+    }
+    let (selector, mut workers) = setup(1);
+    let selector = Arc::new(selector);
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    let socket = packet();
+    let address = socket.local_addr().unwrap();
+    let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
+    let wake = Arc::new(CloseOnWake {
+        selector: Arc::clone(&selector),
+        socket: Mutex::new(Some(socket)),
+    });
+    let waker = Waker::from(Arc::clone(&wake));
+    {
+        let mut waiting = pin!(registration.direction(Interest::Readable).wait(group));
+        assert!(
+            waiting
+                .as_mut()
+                .poll(&mut std::task::Context::from_waker(&waker))
+                .is_pending()
+        );
+        let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        sender.send_to(b"close", address).unwrap();
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        while waiting
+            .as_mut()
+            .poll(&mut std::task::Context::from_waker(&waker))
+            .is_pending()
+        {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "readable event was not published"
+            );
+            workers[0].turn(Some(Duration::from_millis(10))).unwrap();
+        }
+    }
+    assert!(wake.socket.lock().unwrap().is_none());
+    assert!(
+        registration
+            .owner
+            .upgrade()
+            .unwrap()
+            .table
+            .lock()
+            .unwrap()
+            .registrations
+            .is_empty()
+    );
+    let replacement = packet();
+    let fresh = replacement
+        .registrations
+        .get(group, replacement.get_ref())
+        .unwrap();
+    assert_ne!(fresh.key, registration.key);
+    registration.direction(Interest::Readable).publish();
+    assert_eq!(fresh.direction(Interest::Readable).snapshot(), 0);
+    block_on(selector.socket_close(replacement)).unwrap();
+}
+
+#[test]
+fn collected_pointers_survive_remote_retirement_and_reclaim_at_the_next_boundary() {
+    for close in [false, true] {
+        let (selector, mut workers) = setup(1);
+        let Some(group) = &selector.readiness else {
+            return;
+        };
+        let socket = packet();
+        let address = socket.local_addr().unwrap();
+        let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
+        let weak = Arc::downgrade(&registration);
+        let token = registration.token();
+        let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        sender.send_to(b"old", address).unwrap();
+        let inner = workers[0].driver.inner.as_mut().unwrap();
+        inner.events.clear();
+        inner
+            .controller
+            .poller
+            .wait(&mut inner.events, Some(Duration::from_secs(1)))
+            .unwrap();
+        assert!(inner.events.iter().any(|event| {
+            #[cfg(target_os = "macos")]
+            let event = event.readiness;
+            event.key == token
+        }));
+        drop(registration);
+        // The last socket owner closes remotely while this batch is retained.
+        std::thread::spawn(move || drop(socket)).join().unwrap();
+        assert!(weak.upgrade().is_some());
+        if close {
+            selector.close();
+        }
+        // This dereferences the collected token after every external record
+        // owner has gone. Inactive records must stay alive and be skipped.
+        inner.dispatch();
+        assert_eq!(weak.upgrade().unwrap().readable.snapshot(), 0);
+        workers[0].turn(Some(Duration::ZERO)).unwrap();
+        assert!(weak.upgrade().is_none());
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+fn failed_deletion_and_partial_add_are_quarantined_until_the_driver_stops() {
+    for failure in 0..3 {
+        let failed_add = failure != 0;
+        let (selector, mut workers) = setup(1);
+        let group = selector.readiness.as_ref().unwrap();
+        let owner = &group.controllers[0];
+        let socket = packet();
+        let address = socket.local_addr().unwrap();
+        if failed_add {
+            owner
+                .poller
+                .partial_add_error
+                .store(libc::ENOMEM, Ordering::Relaxed);
+            if failure == 2 {
+                owner.poller.failure.store(libc::ENOMEM, Ordering::Relaxed);
+            }
+            assert!(socket.registrations.get(group, socket.get_ref()).is_err());
+            assert!(socket.registrations.entries.lock().unwrap().is_empty());
+        } else {
+            drop(socket.registrations.get(group, socket.get_ref()).unwrap());
+        }
+        let weak = Arc::downgrade(
+            owner
+                .table
+                .lock()
+                .unwrap()
+                .registrations
+                .values()
+                .next()
+                .unwrap(),
+        );
+        if failure == 1 {
+            // The real read filter survived failed rollback and returns the
+            // quarantined pointer. It is safe to inspect and ignored.
+            let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+            sender.send_to(b"orphan", address).unwrap();
+            workers[0].turn(Some(Duration::from_secs(1))).unwrap();
+            assert_eq!(weak.upgrade().unwrap().readable.snapshot(), 0);
+        } else if !failed_add {
+            owner.poller.failure.store(libc::ENOMEM, Ordering::Relaxed);
+        }
+        drop(socket);
+        workers[0].turn(Some(Duration::ZERO)).unwrap();
+        assert!(weak.upgrade().is_some());
+        drop(workers);
+        assert!(weak.upgrade().is_none());
+    }
+}
+
+#[test]
+fn retired_records_release_on_next_turn_or_driver_drop() {
+    for turn in [false, true] {
+        let (selector, mut workers) = setup(1);
+        let Some(group) = &selector.readiness else {
+            return;
+        };
+        let mut weak = Vec::new();
+        for _ in 0..16 {
+            let socket = packet();
+            let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
+            weak.push(Arc::downgrade(&registration));
+            drop(registration);
+            drop(socket);
+        }
+        assert!(weak.iter().all(|record| record.upgrade().is_some()));
+        if turn {
+            workers[0].turn(Some(Duration::from_secs(1))).unwrap();
+        } else {
+            drop(workers);
+        }
+        assert!(weak.iter().all(|record| record.upgrade().is_none()));
+    }
+}
+
+#[test]
+fn a_socket_can_outlive_its_driver_group_without_retaining_the_poller() {
+    let socket = packet();
+    let owner = {
+        let (selector, workers) = setup(1);
+        let Some(group) = &selector.readiness else {
+            return;
+        };
+        let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
+        let owner = registration.owner.clone();
+        drop(registration);
+        drop(workers);
+        drop(selector);
+        owner
+    };
+    assert!(owner.upgrade().is_none());
+    drop(socket);
+}
+
+#[test]
+fn closing_one_worker_preserves_another_workers_collected_batch() {
+    let (selector, mut workers) = setup(2);
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    // Both workers were entered here, so the last entry routes this source.
+    let socket = packet();
+    let registration = socket.registrations.get(group, socket.get_ref()).unwrap();
+    let weak = Arc::downgrade(&registration);
+    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+    sender
+        .send_to(b"closing", socket.local_addr().unwrap())
+        .unwrap();
+    let inner = workers[1].driver.inner.as_mut().unwrap();
+    inner
+        .controller
+        .poller
+        .wait(&mut inner.events, Some(Duration::from_secs(1)))
+        .unwrap();
+    assert!(inner.events.iter().next().is_some());
+    drop(registration);
+    drop(socket);
+    workers.remove(0); // Closes the whole group and reclaims only its own table.
+    assert!(weak.upgrade().is_some());
+    workers[0].driver.inner.as_ref().unwrap().dispatch();
+    drop(workers);
+    assert!(weak.upgrade().is_none());
+}
+
+#[test]
+fn retirement_interrupts_a_driver_already_waiting_without_socket_events() {
+    let (selector, mut drivers) =
+        ReadinessSelector::with_workers(SelectorOptions::default(), 1).unwrap();
+    let Some(group) = &selector.readiness else {
+        return;
+    };
+    let sockets = (0..16)
+        .map(|_| {
+            let socket = packet();
+            drop(socket.registrations.get(group, socket.get_ref()).unwrap());
+            socket
+        })
+        .collect::<Vec<_>>();
+    let driver = drivers.pop().unwrap();
+    let (ready, started) = std::sync::mpsc::channel();
+    let (done, finished) = std::sync::mpsc::channel();
+    let worker = std::thread::spawn(move || {
+        let mut worker = driver.enter();
+        // Drain initial writable edges before testing the idle interrupt.
+        worker.turn(Some(Duration::ZERO)).unwrap();
+        ready.send(()).unwrap();
+        worker.turn(Some(Duration::from_secs(3))).unwrap();
+        done.send(()).unwrap();
+    });
+    started.recv_timeout(Duration::from_secs(3)).unwrap();
+    drop(sockets);
+    finished
+        .recv_timeout(Duration::from_secs(1))
+        .expect("retirement did not interrupt the driver");
+    worker.join().unwrap();
+}
+
+#[test]
+fn the_first_callback_can_remotely_replace_sources_in_the_rest_of_the_batch() {
+    struct ReplaceOnWake {
+        selector: Arc<ReadinessSelector>,
+        sockets: Mutex<Vec<NativeSocket>>,
+        replacements: Mutex<Vec<NativeSocket>>,
+        close: bool,
+    }
+    impl Wake for ReplaceOnWake {
+        fn wake(self: Arc<Self>) {
+            let sockets = std::mem::take(&mut *self.sockets.lock().unwrap());
+            if sockets.is_empty() {
+                return;
+            }
+            let selector = Arc::clone(&self.selector);
+            let (tx, rx) = std::sync::mpsc::channel();
+            let remote = std::thread::spawn(move || {
+                for socket in sockets {
+                    block_on(selector.socket_close(socket)).unwrap();
+                }
+                let group = selector.readiness.as_ref().unwrap();
+                let replacements = (0..2)
+                    .map(|_| {
+                        let socket = packet();
+                        drop(socket.registrations.get(group, socket.get_ref()).unwrap());
+                        socket
+                    })
+                    .collect::<Vec<_>>();
+                tx.send(replacements).unwrap();
+            });
+            *self.replacements.lock().unwrap() = rx
+                .recv_timeout(Duration::from_secs(3))
+                .expect("callback held the routing lock or native owner");
+            remote.join().unwrap();
+            if self.close {
+                self.selector.close();
+            }
+        }
+    }
+    for close in [false, true] {
+        let (selector, mut workers) = setup(1);
+        let selector = Arc::new(selector);
+        let Some(group) = &selector.readiness else {
+            return;
+        };
+        let sockets = (0..2).map(|_| packet()).collect::<Vec<_>>();
+        let addresses = sockets
+            .iter()
+            .map(|socket| socket.local_addr().unwrap())
+            .collect::<Vec<_>>();
+        let registrations = sockets
+            .iter()
+            .map(|socket| socket.registrations.get(group, socket.get_ref()).unwrap())
+            .collect::<Vec<_>>();
+        workers[0].turn(Some(Duration::ZERO)).unwrap();
+        let wake = Arc::new(ReplaceOnWake {
+            selector: Arc::clone(&selector),
+            sockets: Mutex::new(sockets),
+            replacements: Mutex::new(Vec::new()),
+            close,
+        });
+        let waker = Waker::from(Arc::clone(&wake));
+        let mut waiting = registrations
+            .iter()
+            .map(|record| Box::pin(record.readable.wait(group)))
+            .collect::<Vec<_>>();
+        for wait in &mut waiting {
+            assert!(
+                wait.as_mut()
+                    .poll(&mut std::task::Context::from_waker(&waker))
+                    .is_pending()
+            );
+        }
+        let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+        for address in addresses {
+            sender.send_to(b"batch", address).unwrap();
+        }
+        let inner = workers[0].driver.inner.as_mut().unwrap();
+        inner.events.clear();
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        loop {
+            // A single OS wait need not return the entire ready set. Append
+            // until both sources are in the batch, without dispatching either.
+            inner
+                .controller
+                .poller
+                .wait(&mut inner.events, Some(Duration::from_millis(10)))
+                .unwrap();
+            let readable = inner
+                .events
+                .iter()
+                .filter_map(|event| {
+                    #[cfg(target_os = "macos")]
+                    let event = event.readiness;
+                    event.readable.then_some(event.key)
+                })
+                .collect::<std::collections::HashSet<_>>();
+            if readable.len() == 2 {
+                break;
+            }
+            assert!(
+                std::time::Instant::now() < deadline,
+                "both sources were not collected"
+            );
+        }
+        inner.dispatch();
+        assert_eq!(
+            registrations
+                .iter()
+                .filter(|record| record.readable.snapshot() != 0)
+                .count(),
+            1
+        );
+        for replacement in wake.replacements.lock().unwrap().iter() {
+            let record = replacement.registrations.existing(group).unwrap();
+            assert_eq!(record.readable.snapshot(), 0);
+            assert!(
+                registrations
+                    .iter()
+                    .all(|old| old.token() != record.token())
+            );
+        }
+        drop(waiting);
+        drop(std::mem::take(&mut *wake.replacements.lock().unwrap()));
+    }
+}
+
+// Diagnostic fixture appended temporarily to selector's private driver tests.
+// Real readiness publication overlaps remote registration/deregistration.
+#[test]
+#[ignore = "isolated performance diagnostic"]
+fn routing_churn_diagnostic() {
+    use std::sync::atomic::AtomicBool;
+    struct Churn {
+        start: std::sync::mpsc::Sender<()>,
+        done: Mutex<std::sync::mpsc::Receiver<()>>,
+        armed: AtomicBool,
+    }
+    impl Wake for Churn {
+        fn wake(self: Arc<Self>) {
+            if self.armed.swap(false, Ordering::AcqRel) {
+                self.start.send(()).unwrap();
+                self.done.lock().unwrap().recv_timeout(Duration::from_secs(3)).unwrap();
+            }
+        }
+    }
+    fn usage() -> libc::rusage {
+        let mut value = std::mem::MaybeUninit::uninit();
+        // SAFETY: getrusage initializes this local output on success.
+        assert_eq!(unsafe { libc::getrusage(libc::RUSAGE_SELF, value.as_mut_ptr()) }, 0);
+        // SAFETY: the call above succeeded.
+        unsafe { value.assume_init() }
+    }
+    fn seconds(value: libc::timeval) -> f64 {
+        value.tv_sec as f64 + value.tv_usec as f64 / 1_000_000.0
+    }
+    let idle_count: usize = std::env::var("BASE_HTTP_CHURN_IDLE").unwrap().parse().unwrap();
+    let rounds: usize = std::env::var("BASE_HTTP_CHURN_ROUNDS").unwrap().parse().unwrap();
+    let (selector, mut workers) = setup(1);
+    let group = selector.readiness.as_ref().unwrap().clone();
+    let idle = (0..idle_count).map(|_| {
+        let socket = packet();
+        socket.registrations.get(&group, socket.get_ref()).unwrap();
+        socket
+    }).collect::<Vec<_>>();
+    let hot = packet();
+    let sender = std::net::UdpSocket::bind("127.0.0.1:0").unwrap();
+    let (start, requests) = std::sync::mpsc::channel();
+    let (done, completions) = std::sync::mpsc::channel();
+    let wake = Arc::new(Churn { start, done: Mutex::new(completions), armed: AtomicBool::new(false) });
+    let remote = std::thread::spawn(move || {
+        for () in requests {
+            for _ in 0..8 {
+                let socket = packet();
+                socket.registrations.get(&group, socket.get_ref()).unwrap();
+                drop(socket);
+            }
+            done.send(()).unwrap();
+        }
+    });
+    let waker = Waker::from(wake.clone());
+    let mut before = usage();
+    let mut started = std::time::Instant::now();
+    for round in 0..rounds + 20 {
+        if round == 20 { before = usage(); started = std::time::Instant::now(); }
+        let mut reading = Box::pin(read(&selector, &hot));
+        let mut cx = std::task::Context::from_waker(&waker);
+        assert!(reading.as_mut().poll(&mut cx).is_pending());
+        wake.armed.store(true, Ordering::Release);
+        sender.send_to(b"x", hot.local_addr().unwrap()).unwrap();
+        let deadline = std::time::Instant::now() + Duration::from_secs(3);
+        loop {
+            if let Poll::Ready((result, bytes)) = reading.as_mut().poll(&mut cx) {
+                assert_eq!(result.unwrap(), 1);
+                assert_eq!(bytes, b"x");
+                break;
+            }
+            assert!(std::time::Instant::now() < deadline);
+            workers[0].turn(Some(Duration::from_millis(10))).unwrap();
+        }
+        assert!(!wake.armed.load(Ordering::Acquire));
+    }
+    let elapsed = started.elapsed().as_secs_f64();
+    let after = usage();
+    println!("{{\"idle\":{idle_count},\"rounds\":{rounds},\"seconds\":{elapsed},\"user_seconds\":{},\"system_seconds\":{}}}",
+        seconds(after.ru_utime) - seconds(before.ru_utime), seconds(after.ru_stime) - seconds(before.ru_stime));
+    drop(waker);
+    drop(wake);
+    remote.join().unwrap();
+    drop(idle);
+    drop(hot);
+    block_on(selector.shutdown());
+}

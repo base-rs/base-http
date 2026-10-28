@@ -1,0 +1,1917 @@
+[
+  {
+    "concurrency": 64,
+    "medians": {
+      "baseline": {
+        "requests_per_second": 161736.66,
+        "user_cpu_us_per_request": 1.8548539114043356,
+        "system_cpu_us_per_request": 2.9707822808671067,
+        "total_cpu_us_per_request": 4.825636192271443,
+        "latency_p99_ms": 0.462,
+        "server_cpu_percent_one_core": 77.75236990113069
+      },
+      "ceiling": {
+        "requests_per_second": 183524.47,
+        "user_cpu_us_per_request": 1.4911881338374342,
+        "system_cpu_us_per_request": 2.6229157187592005,
+        "total_cpu_us_per_request": 4.133302322490613,
+        "latency_p99_ms": 0.417,
+        "server_cpu_percent_one_core": 75.80615133923312
+      },
+      "raw": {
+        "requests_per_second": 206444.81,
+        "user_cpu_us_per_request": 0.9923775949492707,
+        "system_cpu_us_per_request": 2.6277632573002547,
+        "total_cpu_us_per_request": 3.6387178481473255,
+        "latency_p99_ms": 0.37,
+        "server_cpu_percent_one_core": 75.07238442135231
+      },
+      "raw-ceiling": {
+        "requests_per_second": 239037.27,
+        "user_cpu_us_per_request": 0.7052510540436949,
+        "system_cpu_us_per_request": 2.285905555362796,
+        "total_cpu_us_per_request": 2.990046105898657,
+        "latency_p99_ms": 0.315,
+        "server_cpu_percent_one_core": 71.42291782232407
+      },
+      "tokio-raw": {
+        "requests_per_second": 249012.64,
+        "user_cpu_us_per_request": 0.6366507079555872,
+        "system_cpu_us_per_request": 2.2135855384301957,
+        "total_cpu_us_per_request": 2.8402418038385524,
+        "latency_p99_ms": 0.299,
+        "server_cpu_percent_one_core": 70.43583194407422
+      },
+      "hyper": {
+        "requests_per_second": 187913.93,
+        "user_cpu_us_per_request": 1.298050354072151,
+        "system_cpu_us_per_request": 2.725662108753918,
+        "total_cpu_us_per_request": 4.010617102880765,
+        "latency_p99_ms": 0.41200000000000003,
+        "server_cpu_percent_one_core": 75.31530621328302
+      }
+    },
+    "paired": {
+      "baseline_vs_ceiling": {
+        "requests_per_second": {
+          "median_percent": -11.87188280669057,
+          "min_percent": -13.098223269740107,
+          "max_percent": -11.197329568240221,
+          "values_percent": [
+            -11.87188280669057,
+            -13.098223269740107,
+            -11.197329568240221
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 27.293616678966682,
+          "min_percent": 16.45908530868605,
+          "max_percent": 28.040225164074073,
+          "values_percent": [
+            28.040225164074073,
+            27.293616678966682,
+            16.45908530868605
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 12.74871373075992,
+          "min_percent": 10.65796325155608,
+          "max_percent": 13.75827164197252,
+          "values_percent": [
+            10.65796325155608,
+            12.74871373075992,
+            13.75827164197252
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 16.75013864854793,
+          "min_percent": 14.76784096786863,
+          "max_percent": 18.033517695863964,
+          "values_percent": [
+            16.75013864854793,
+            18.033517695863964,
+            14.76784096786863
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 12.408759124087588,
+          "min_percent": 10.526315789473696,
+          "max_percent": 18.225419664268582,
+          "values_percent": [
+            10.526315789473696,
+            18.225419664268582,
+            12.408759124087588
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 2.5726703010672036,
+          "min_percent": 1.9146044101759685,
+          "max_percent": 2.8899006461198473,
+          "values_percent": [
+            2.8899006461198473,
+            2.5726703010672036,
+            1.9146044101759685
+          ]
+        }
+      },
+      "baseline_vs_raw": {
+        "requests_per_second": {
+          "median_percent": -22.15622191909602,
+          "min_percent": -22.199861027654244,
+          "max_percent": -21.65622376266083,
+          "values_percent": [
+            -21.65622376266083,
+            -22.199861027654244,
+            -22.15622191909602
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 86.91009559714556,
+          "min_percent": 82.5754205037085,
+          "max_percent": 87.27128524435494,
+          "values_percent": [
+            86.91009559714556,
+            82.5754205037085,
+            87.27128524435494
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 13.342821048702259,
+          "min_percent": 12.260026928773415,
+          "max_percent": 13.548417270724954,
+          "values_percent": [
+            12.260026928773415,
+            13.342821048702259,
+            13.548417270724954
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 33.12356375013259,
+          "min_percent": 32.61913656560218,
+          "max_percent": 33.480006983465294,
+          "values_percent": [
+            32.61913656560218,
+            33.12356375013259,
+            33.480006983465294
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 30.14084507042254,
+          "min_percent": 24.193548387096776,
+          "max_percent": 33.243243243243235,
+          "values_percent": [
+            24.193548387096776,
+            33.243243243243235,
+            30.14084507042254
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 3.56986860139763,
+          "min_percent": 3.568718250581715,
+          "max_percent": 3.90758625147829,
+          "values_percent": [
+            3.90758625147829,
+            3.568718250581715,
+            3.56986860139763
+          ]
+        }
+      },
+      "baseline_vs_raw-ceiling": {
+        "requests_per_second": {
+          "median_percent": -32.33830858259048,
+          "min_percent": -32.89590706164465,
+          "max_percent": -32.176412544151134,
+          "values_percent": [
+            -32.33830858259048,
+            -32.89590706164465,
+            -32.176412544151134
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 162.35996377125053,
+          "min_percent": 158.54953260936725,
+          "max_percent": 163.42097610949477,
+          "values_percent": [
+            163.42097610949477,
+            162.35996377125053,
+            158.54953260936725
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 29.960849602800586,
+          "min_percent": 29.744856363973348,
+          "max_percent": 30.225086161629022,
+          "values_percent": [
+            29.960849602800586,
+            30.225086161629022,
+            29.744856363973348
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 61.390026152158605,
+          "min_percent": 59.97452527870863,
+          "max_percent": 62.24411793733935,
+          "values_percent": [
+            61.390026152158605,
+            62.24411793733935,
+            59.97452527870863
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 47.13375796178345,
+          "min_percent": 46.66666666666668,
+          "max_percent": 49.39393939393939,
+          "values_percent": [
+            47.13375796178345,
+            49.39393939393939,
+            46.66666666666668
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 8.871808573237328,
+          "min_percent": 8.499620162287469,
+          "max_percent": 9.204266886174972,
+          "values_percent": [
+            9.204266886174972,
+            8.871808573237328,
+            8.499620162287469
+          ]
+        }
+      },
+      "baseline_vs_tokio-raw": {
+        "requests_per_second": {
+          "median_percent": -35.27997227994436,
+          "min_percent": -35.33834706705533,
+          "max_percent": -35.00378535001275,
+          "values_percent": [
+            -35.33834706705533,
+            -35.27997227994436,
+            -35.00378535001275
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 186.40874519844425,
+          "min_percent": 184.03553683550834,
+          "max_percent": 217.0220471253534,
+          "values_percent": [
+            217.0220471253534,
+            184.03553683550834,
+            186.40874519844425
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 34.794139936516366,
+          "min_percent": 33.61862063263721,
+          "max_percent": 35.637893282679656,
+          "values_percent": [
+            33.61862063263721,
+            35.637893282679656,
+            34.794139936516366
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 70.55498588334521,
+          "min_percent": 68.65994523557242,
+          "max_percent": 71.82766781861976,
+          "values_percent": [
+            71.82766781861976,
+            70.55498588334521,
+            68.65994523557242
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 56.081081081081095,
+          "min_percent": 50.98039215686276,
+          "max_percent": 64.88294314381271,
+          "values_percent": [
+            56.081081081081095,
+            64.88294314381271,
+            50.98039215686276
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 10.387295080011793,
+          "min_percent": 9.621467189808408,
+          "max_percent": 11.10610880329428,
+          "values_percent": [
+            11.10610880329428,
+            10.387295080011793,
+            9.621467189808408
+          ]
+        }
+      },
+      "baseline_vs_hyper": {
+        "requests_per_second": {
+          "median_percent": -13.93045741739316,
+          "min_percent": -15.366875477338127,
+          "max_percent": -10.627988166030079,
+          "values_percent": [
+            -13.93045741739316,
+            -15.366875477338127,
+            -10.627988166030079
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 44.35166366778054,
+          "min_percent": 31.44775347972386,
+          "max_percent": 46.23371898435236,
+          "values_percent": [
+            44.35166366778054,
+            46.23371898435236,
+            31.44775347972386
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 8.993050581212692,
+          "min_percent": 6.0044084173153545,
+          "max_percent": 11.273921933180597,
+          "values_percent": [
+            8.993050581212692,
+            11.273921933180597,
+            6.0044084173153545
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 20.321538269142223,
+          "min_percent": 14.40397425522586,
+          "max_percent": 22.77535353633484,
+          "values_percent": [
+            20.321538269142223,
+            22.77535353633484,
+            14.40397425522586
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 13.235294117647056,
+          "min_percent": 10.79136690647482,
+          "max_percent": 19.66019417475726,
+          "values_percent": [
+            13.235294117647056,
+            19.66019417475726,
+            10.79136690647482
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 3.560454996634199,
+          "min_percent": 2.243658848483676,
+          "max_percent": 3.905854691057309,
+          "values_percent": [
+            3.560454996634199,
+            3.905854691057309,
+            2.243658848483676
+          ]
+        }
+      },
+      "ceiling_vs_baseline": {
+        "requests_per_second": {
+          "median_percent": 13.471163556858423,
+          "min_percent": 12.609226179571698,
+          "max_percent": 15.072445883812646,
+          "values_percent": [
+            13.471163556858423,
+            15.072445883812646,
+            12.609226179571698
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -21.441465323277708,
+          "min_percent": -21.899543778638787,
+          "max_percent": -14.132933695176852,
+          "values_percent": [
+            -21.899543778638787,
+            -21.441465323277708,
+            -14.132933695176852
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -11.307192170017489,
+          "min_percent": -12.094304390693855,
+          "max_percent": -9.631447153358131,
+          "values_percent": [
+            -9.631447153358131,
+            -11.307192170017489,
+            -12.094304390693855
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -14.346996793700384,
+          "min_percent": -15.278302339790296,
+          "max_percent": -12.867577575152922,
+          "values_percent": [
+            -14.346996793700384,
+            -15.278302339790296,
+            -12.867577575152922
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -11.038961038961038,
+          "min_percent": -15.415821501014204,
+          "max_percent": -9.523809523809534,
+          "values_percent": [
+            -9.523809523809534,
+            -15.415821501014204,
+            -11.038961038961038
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -2.508144024637371,
+          "min_percent": -2.8087311076909205,
+          "max_percent": -1.8786359631738914,
+          "values_percent": [
+            -2.8087311076909205,
+            -2.508144024637371,
+            -1.8786359631738914
+          ]
+        }
+      },
+      "ceiling_vs_raw": {
+        "requests_per_second": {
+          "median_percent": -11.102405529109694,
+          "min_percent": -12.340723874150983,
+          "max_percent": -10.4734771835164,
+          "values_percent": [
+            -11.102405529109694,
+            -10.4734771835164,
+            -12.340723874150983
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 45.97763738515304,
+          "min_percent": 43.428575027577374,
+          "max_percent": 60.80435867066474,
+          "values_percent": [
+            45.97763738515304,
+            43.428575027577374,
+            60.80435867066474
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 0.5269304618064519,
+          "min_percent": -0.18447394481170276,
+          "max_percent": 1.447761760782984,
+          "values_percent": [
+            1.447761760782984,
+            0.5269304618064519,
+            -0.18447394481170276
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 13.592273294702096,
+          "min_percent": 12.784543194883868,
+          "max_percent": 16.30436353754836,
+          "values_percent": [
+            13.592273294702096,
+            12.784543194883868,
+            16.30436353754836
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 12.702702702702705,
+          "min_percent": 12.365591397849451,
+          "max_percent": 15.774647887323967,
+          "values_percent": [
+            12.365591397849451,
+            12.702702702702705,
+            15.774647887323967
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 0.9891015531822589,
+          "min_percent": 0.9710656323862477,
+          "max_percent": 1.6241678028398265,
+          "values_percent": [
+            0.9891015531822589,
+            0.9710656323862477,
+            1.6241678028398265
+          ]
+        }
+      },
+      "ceiling_vs_raw-ceiling": {
+        "requests_per_second": {
+          "median_percent": -23.223491466414416,
+          "min_percent": -23.624382998743542,
+          "max_percent": -22.781678967687704,
+          "values_percent": [
+            -23.223491466414416,
+            -22.781678967687704,
+            -23.624382998743542
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 106.10614311707391,
+          "min_percent": 105.73298412427832,
+          "max_percent": 122.00889859649568,
+          "values_percent": [
+            105.73298412427832,
+            106.10614311707391,
+            122.00889859649568
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 15.500285415762782,
+          "min_percent": 14.05311850404589,
+          "max_percent": 17.443739053251626,
+          "values_percent": [
+            17.443739053251626,
+            15.500285415762782,
+            14.05311850404589
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 38.2354042747562,
+          "min_percent": 37.45597107034673,
+          "max_percent": 39.38967913798819,
+          "values_percent": [
+            38.2354042747562,
+            37.45597107034673,
+            39.38967913798819
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 30.476190476190478,
+          "min_percent": 26.363636363636346,
+          "max_percent": 33.12101910828025,
+          "values_percent": [
+            33.12101910828025,
+            26.363636363636346,
+            30.476190476190478
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 6.141146811993048,
+          "min_percent": 6.137012671217179,
+          "max_percent": 6.461307278011663,
+          "values_percent": [
+            6.137012671217179,
+            6.141146811993048,
+            6.461307278011663
+          ]
+        }
+      },
+      "ceiling_vs_tokio-raw": {
+        "requests_per_second": {
+          "median_percent": -26.627670041890216,
+          "min_percent": -26.80826563663595,
+          "max_percent": -25.525081125850434,
+          "values_percent": [
+            -26.627670041890216,
+            -25.525081125850434,
+            -26.80826563663595
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 145.9307871423601,
+          "min_percent": 123.13415569913712,
+          "max_percent": 147.59566512719977,
+          "values_percent": [
+            147.59566512719977,
+            123.13415569913712,
+            145.9307871423601
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 20.30105603384382,
+          "min_percent": 18.49172635177625,
+          "max_percent": 20.749213799358678,
+          "values_percent": [
+            20.749213799358678,
+            20.30105603384382,
+            18.49172635177625
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 46.95749594417471,
+          "min_percent": 44.49707948450108,
+          "max_percent": 47.17555782599223,
+          "values_percent": [
+            47.17555782599223,
+            44.49707948450108,
+            46.95749594417471
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 39.464882943143806,
+          "min_percent": 34.31372549019609,
+          "max_percent": 41.216216216216225,
+          "values_percent": [
+            41.216216216216225,
+            39.464882943143806,
+            34.31372549019609
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 7.618622734503666,
+          "min_percent": 7.56207888382181,
+          "max_percent": 7.985436962791237,
+          "values_percent": [
+            7.985436962791237,
+            7.618622734503666,
+            7.56207888382181
+          ]
+        }
+      },
+      "ceiling_vs_hyper": {
+        "requests_per_second": {
+          "median_percent": -2.3358885634502946,
+          "min_percent": -2.6105935838801497,
+          "max_percent": 0.641130947348767,
+          "values_percent": [
+            -2.3358885634502946,
+            -2.6105935838801497,
+            0.641130947348767
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 12.87032963663497,
+          "min_percent": 12.73930788766151,
+          "max_percent": 14.879066837383093,
+          "values_percent": [
+            12.73930788766151,
+            14.879066837383093,
+            12.87032963663497
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -1.504557486349689,
+          "min_percent": -6.816087404229054,
+          "max_percent": -1.3080342549193658,
+          "values_percent": [
+            -1.504557486349689,
+            -1.3080342549193658,
+            -6.816087404229054
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 3.0590110315374064,
+          "min_percent": -0.31704588112330123,
+          "max_percent": 4.017363824307174,
+          "values_percent": [
+            3.0590110315374064,
+            4.017363824307174,
+            -0.31704588112330123
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 1.213592233009697,
+          "min_percent": -1.4388489208633004,
+          "max_percent": 2.450980392156854,
+          "values_percent": [
+            2.450980392156854,
+            1.213592233009697,
+            -1.4388489208633004
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 0.6517202818774992,
+          "min_percent": 0.32287270329123263,
+          "max_percent": 1.299746205375163,
+          "values_percent": [
+            0.6517202818774992,
+            1.299746205375163,
+            0.32287270329123263
+          ]
+        }
+      },
+      "raw_vs_baseline": {
+        "requests_per_second": {
+          "median_percent": 28.462418532755173,
+          "min_percent": 27.642557970468772,
+          "max_percent": 28.534474772011965,
+          "values_percent": [
+            27.642557970468772,
+            28.534474772011965,
+            28.462418532755173
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -46.498342060915846,
+          "min_percent": -46.6015305712682,
+          "max_percent": -45.22811464757449,
+          "values_percent": [
+            -46.498342060915846,
+            -45.22811464757449,
+            -46.6015305712682
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -11.772091893644488,
+          "min_percent": -11.931841584742209,
+          "max_percent": -10.921097441524875,
+          "values_percent": [
+            -10.921097441524875,
+            -11.772091893644488,
+            -11.931841584742209
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -24.88181867809981,
+          "min_percent": -25.08241326928654,
+          "max_percent": -24.596100842103287,
+          "values_percent": [
+            -24.596100842103287,
+            -24.88181867809981,
+            -25.08241326928654
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -23.16017316017317,
+          "min_percent": -24.949290060851926,
+          "max_percent": -19.480519480519487,
+          "values_percent": [
+            -19.480519480519487,
+            -24.949290060851926,
+            -23.16017316017317
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -3.446821599375338,
+          "min_percent": -3.760636150301011,
+          "max_percent": -3.4457491710453536,
+          "values_percent": [
+            -3.760636150301011,
+            -3.4457491710453536,
+            -3.446821599375338
+          ]
+        }
+      },
+      "raw_vs_ceiling": {
+        "requests_per_second": {
+          "median_percent": 12.488983076752657,
+          "min_percent": 11.698742287786068,
+          "max_percent": 14.07805815831047,
+          "values_percent": [
+            12.488983076752657,
+            11.698742287786068,
+            14.07805815831047
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -31.496356708283933,
+          "min_percent": -37.812630934460586,
+          "max_percent": -30.278886211640366,
+          "values_percent": [
+            -31.496356708283933,
+            -30.278886211640366,
+            -37.812630934460586
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -0.5241684585272965,
+          "min_percent": -1.4271007419531467,
+          "max_percent": 0.18481488011163894,
+          "values_percent": [
+            -1.4271007419531467,
+            -0.5241684585272965,
+            0.18481488011163894
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -11.96584318674432,
+          "min_percent": -14.018703203929729,
+          "max_percent": -11.335368156603753,
+          "values_percent": [
+            -11.96584318674432,
+            -11.335368156603753,
+            -14.018703203929729
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -11.270983213429254,
+          "min_percent": -13.625304136253046,
+          "max_percent": -11.004784688995217,
+          "values_percent": [
+            -11.004784688995217,
+            -11.270983213429254,
+            -13.625304136253046
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -0.9794141525869327,
+          "min_percent": -1.5982101875519072,
+          "max_percent": -0.9617266355508969,
+          "values_percent": [
+            -0.9794141525869327,
+            -0.9617266355508969,
+            -1.5982101875519072
+          ]
+        }
+      },
+      "raw_vs_raw-ceiling": {
+        "requests_per_second": {
+          "median_percent": -13.634886308733362,
+          "min_percent": -13.748106591162179,
+          "max_percent": -12.872179218538204,
+          "values_percent": [
+            -13.634886308733362,
+            -13.748106591162179,
+            -12.872179218538204
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 40.934589577898485,
+          "min_percent": 38.061493128541926,
+          "max_percent": 43.69949856745448,
+          "values_percent": [
+            40.934589577898485,
+            43.69949856745448,
+            38.061493128541926
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 14.894869350104356,
+          "min_percent": 14.263905638272734,
+          "max_percent": 15.767698581845146,
+          "values_percent": [
+            15.767698581845146,
+            14.894869350104356,
+            14.263905638272734
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 21.694372570676812,
+          "min_percent": 19.849053722723674,
+          "max_percent": 21.87483069628817,
+          "values_percent": [
+            21.694372570676812,
+            21.87483069628817,
+            19.849053722723674
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 12.698412698412698,
+          "min_percent": 12.12121212121211,
+          "max_percent": 18.47133757961783,
+          "values_percent": [
+            18.47133757961783,
+            12.12121212121211,
+            12.698412698412698
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 5.097491747982286,
+          "min_percent": 4.759831819293536,
+          "max_percent": 5.120359131822916,
+          "values_percent": [
+            5.097491747982286,
+            5.120359131822916,
+            4.759831819293536
+          ]
+        }
+      },
+      "raw_vs_tokio-raw": {
+        "requests_per_second": {
+          "median_percent": -16.812452297725933,
+          "min_percent": -17.46421217040277,
+          "max_percent": -16.50429070588546,
+          "values_percent": [
+            -17.46421217040277,
+            -16.812452297725933,
+            -16.50429070588546
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 55.57161859569098,
+          "min_percent": 52.93788624600562,
+          "max_percent": 69.61205124448875,
+          "values_percent": [
+            69.61205124448875,
+            55.57161859569098,
+            52.93788624600562
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 19.026000873325444,
+          "min_percent": 18.71071669377551,
+          "max_percent": 19.670475842839164,
+          "values_percent": [
+            19.026000873325444,
+            19.670475842839164,
+            18.71071669377551
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 28.117803549392526,
+          "min_percent": 26.355960751833795,
+          "max_percent": 29.564761367317782,
+          "values_percent": [
+            29.564761367317782,
+            28.117803549392526,
+            26.355960751833795
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 23.745819397993316,
+          "min_percent": 16.013071895424822,
+          "max_percent": 25.67567567567568,
+          "values_percent": [
+            25.67567567567568,
+            23.745819397993316,
+            16.013071895424822
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 6.583625774852897,
+          "min_percent": 5.843010781157942,
+          "max_percent": 6.927812310444836,
+          "values_percent": [
+            6.927812310444836,
+            6.583625774852897,
+            5.843010781157942
+          ]
+        }
+      },
+      "raw_vs_hyper": {
+        "requests_per_second": {
+          "median_percent": 9.861365785921251,
+          "min_percent": 8.782742088346307,
+          "max_percent": 14.809447893297921,
+          "values_percent": [
+            9.861365785921251,
+            8.782742088346307,
+            14.809447893297921
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -22.769466675086836,
+          "min_percent": -29.808911543374915,
+          "max_percent": -19.905035091302416,
+          "values_percent": [
+            -22.769466675086836,
+            -19.905035091302416,
+            -29.808911543374915
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -2.9101866772520246,
+          "min_percent": -6.643869667881841,
+          "max_percent": -1.8253464104556416,
+          "values_percent": [
+            -2.9101866772520246,
+            -1.8253464104556416,
+            -6.643869667881841
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -9.272868618305896,
+          "min_percent": -14.291303363958063,
+          "max_percent": -7.773387311972002,
+          "values_percent": [
+            -9.272868618305896,
+            -7.773387311972002,
+            -14.291303363958063
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -10.19417475728156,
+          "min_percent": -14.868105515587526,
+          "max_percent": -8.823529411764708,
+          "values_percent": [
+            -8.823529411764708,
+            -10.19417475728156,
+            -14.868105515587526
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -0.33407691138542805,
+          "min_percent": -1.280497668697489,
+          "max_percent": 0.32551956437261165,
+          "values_percent": [
+            -0.33407691138542805,
+            0.32551956437261165,
+            -1.280497668697489
+          ]
+        }
+      },
+      "raw-ceiling_vs_baseline": {
+        "requests_per_second": {
+          "median_percent": 47.79411791983337,
+          "min_percent": 47.441330886687496,
+          "max_percent": 49.02220657667515,
+          "values_percent": [
+            47.79411791983337,
+            49.02220657667515,
+            47.441330886687496
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -61.88442833938292,
+          "min_percent": -62.03795101023635,
+          "max_percent": -61.32269163638897,
+          "values_percent": [
+            -62.03795101023635,
+            -61.88442833938292,
+            -61.32269163638897
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -23.05375018274346,
+          "min_percent": -23.209879949025424,
+          "max_percent": -22.925653623238894,
+          "values_percent": [
+            -23.05375018274346,
+            -23.209879949025424,
+            -22.925653623238894
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -38.03830237581104,
+          "min_percent": -38.3644835502627,
+          "max_percent": -37.49004735236478,
+          "values_percent": [
+            -38.03830237581104,
+            -38.3644835502627,
+            -37.49004735236478
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -32.03463203463204,
+          "min_percent": -33.062880324543606,
+          "max_percent": -31.818181818181824,
+          "values_percent": [
+            -32.03463203463204,
+            -33.062880324543606,
+            -31.818181818181824
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -8.148857532084918,
+          "min_percent": -8.428486494734411,
+          "max_percent": -7.833778726205887,
+          "values_percent": [
+            -8.428486494734411,
+            -8.148857532084918,
+            -7.833778726205887
+          ]
+        }
+      },
+      "raw-ceiling_vs_ceiling": {
+        "requests_per_second": {
+          "median_percent": 30.248173445208693,
+          "min_percent": 29.50294523776893,
+          "max_percent": 30.931839147505546,
+          "values_percent": [
+            30.248173445208693,
+            29.50294523776893,
+            30.931839147505546
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -51.48131031533725,
+          "min_percent": -54.95676045771868,
+          "max_percent": -51.39330699661051,
+          "values_percent": [
+            -51.39330699661051,
+            -51.48131031533725,
+            -54.95676045771868
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -13.420127370219802,
+          "min_percent": -14.852847153769721,
+          "max_percent": -12.321555682449292,
+          "values_percent": [
+            -14.852847153769721,
+            -13.420127370219802,
+            -12.321555682449292
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -27.659632114765365,
+          "min_percent": -28.258676956272033,
+          "max_percent": -27.249431784362166,
+          "values_percent": [
+            -27.659632114765365,
+            -27.249431784362166,
+            -28.258676956272033
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -23.357664233576646,
+          "min_percent": -24.880382775119614,
+          "max_percent": -20.863309352517977,
+          "values_percent": [
+            -24.880382775119614,
+            -20.863309352517977,
+            -23.357664233576646
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -5.785830468621944,
+          "min_percent": -6.069160189005274,
+          "max_percent": -5.782160734284025,
+          "values_percent": [
+            -5.782160734284025,
+            -5.785830468621944,
+            -6.069160189005274
+          ]
+        }
+      },
+      "raw-ceiling_vs_raw": {
+        "requests_per_second": {
+          "median_percent": 15.78749303506346,
+          "min_percent": 14.773902414964368,
+          "max_percent": 15.939483816309451,
+          "values_percent": [
+            15.78749303506346,
+            15.939483816309451,
+            14.773902414964368
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -29.045097942597543,
+          "min_percent": -30.410334763236037,
+          "max_percent": -27.56850752954325,
+          "values_percent": [
+            -29.045097942597543,
+            -30.410334763236037,
+            -27.56850752954325
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -12.963911647540261,
+          "min_percent": -13.620119234466554,
+          "max_percent": -12.483299567431416,
+          "values_percent": [
+            -13.620119234466554,
+            -12.963911647540261,
+            -12.483299567431416
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -17.826931609411368,
+          "min_percent": -17.948603966310493,
+          "max_percent": -16.56171084057566,
+          "values_percent": [
+            -17.826931609411368,
+            -17.948603966310493,
+            -16.56171084057566
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -11.267605633802813,
+          "min_percent": -15.591397849462362,
+          "max_percent": -10.8108108108108,
+          "values_percent": [
+            -15.591397849462362,
+            -10.8108108108108,
+            -11.267605633802813
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -4.850250622732066,
+          "min_percent": -4.870949047464624,
+          "max_percent": -4.543565731858045,
+          "values_percent": [
+            -4.850250622732066,
+            -4.870949047464624,
+            -4.543565731858045
+          ]
+        }
+      },
+      "raw-ceiling_vs_tokio-raw": {
+        "requests_per_second": {
+          "median_percent": -4.168716094090652,
+          "min_percent": -4.43388041537035,
+          "max_percent": -3.5527865945372605,
+          "values_percent": [
+            -4.43388041537035,
+            -3.5527865945372605,
+            -4.168716094090652
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 10.775193560751251,
+          "min_percent": 8.261768584156592,
+          "max_percent": 20.348064838078272,
+          "values_percent": [
+            20.348064838078272,
+            8.261768584156592,
+            10.775193560751251
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 3.891702310246692,
+          "min_percent": 2.814517634361313,
+          "max_percent": 4.15650108638248,
+          "values_percent": [
+            2.814517634361313,
+            4.15650108638248,
+            3.891702310246692
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 5.429251902283805,
+          "min_percent": 5.122446379976386,
+          "max_percent": 6.467339968469021,
+          "values_percent": [
+            6.467339968469021,
+            5.122446379976386,
+            5.429251902283805
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 6.081081081081097,
+          "min_percent": 2.941176470588247,
+          "max_percent": 10.367892976588644,
+          "values_percent": [
+            6.081081081081097,
+            10.367892976588644,
+            2.941176470588247
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 1.3919916704194346,
+          "min_percent": 1.033964013738431,
+          "max_percent": 1.741545427983704,
+          "values_percent": [
+            1.741545427983704,
+            1.3919916704194346,
+            1.033964013738431
+          ]
+        }
+      },
+      "raw-ceiling_vs_hyper": {
+        "requests_per_second": {
+          "median_percent": 27.205721257599148,
+          "min_percent": 26.122149658455896,
+          "max_percent": 31.771283688213114,
+          "values_percent": [
+            27.205721257599148,
+            26.122149658455896,
+            31.771283688213114
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -45.2011507208983,
+          "min_percent": -49.159547049607966,
+          "max_percent": -44.26218204853378,
+          "values_percent": [
+            -45.2011507208983,
+            -44.26218204853378,
+            -49.159547049607966
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -16.133935016331293,
+          "min_percent": -18.297795081801848,
+          "max_percent": -14.552621762082884,
+          "values_percent": [
+            -16.133935016331293,
+            -14.552621762082884,
+            -18.297795081801848
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -25.446732280901298,
+          "min_percent": -28.48612986604553,
+          "max_percent": -24.326776774889215,
+          "values_percent": [
+            -25.446732280901298,
+            -24.326776774889215,
+            -28.48612986604553
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -23.039215686274517,
+          "min_percent": -24.460431654676253,
+          "max_percent": -19.902912621359224,
+          "values_percent": [
+            -23.039215686274517,
+            -19.902912621359224,
+            -24.460431654676253
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -5.168123966642613,
+          "min_percent": -5.765883147283358,
+          "max_percent": -4.561285375212131,
+          "values_percent": [
+            -5.168123966642613,
+            -4.561285375212131,
+            -5.765883147283358
+          ]
+        }
+      },
+      "tokio-raw_vs_baseline": {
+        "requests_per_second": {
+          "median_percent": 54.511676713963595,
+          "min_percent": 53.855113776259934,
+          "max_percent": 54.651165666460535,
+          "values_percent": [
+            54.651165666460535,
+            54.511676713963595,
+            53.855113776259934
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -65.08486501321286,
+          "min_percent": -68.45645250645325,
+          "max_percent": -64.79313781855672,
+          "values_percent": [
+            -68.45645250645325,
+            -64.79313781855672,
+            -65.08486501321286
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -25.81279865200614,
+          "min_percent": -26.274289890663205,
+          "max_percent": -25.160131479777938,
+          "values_percent": [
+            -25.160131479777938,
+            -26.274289890663205,
+            -25.81279865200614
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -41.367882338897346,
+          "min_percent": -41.80215487440626,
+          "max_percent": -40.70909968556732,
+          "values_percent": [
+            -41.80215487440626,
+            -41.367882338897346,
+            -40.70909968556732
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -35.930735930735935,
+          "min_percent": -39.350912778904664,
+          "max_percent": -33.76623376623377,
+          "values_percent": [
+            -35.930735930735935,
+            -39.350912778904664,
+            -33.76623376623377
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -9.409864670098845,
+          "min_percent": -9.995947948241879,
+          "max_percent": -8.776991803210354,
+          "values_percent": [
+            -9.995947948241879,
+            -9.409864670098845,
+            -8.776991803210354
+          ]
+        }
+      },
+      "tokio-raw_vs_ceiling": {
+        "requests_per_second": {
+          "median_percent": 36.291160519357454,
+          "min_percent": 34.27339232014961,
+          "max_percent": 36.627449629141154,
+          "values_percent": [
+            36.291160519357454,
+            34.27339232014961,
+            36.627449629141154
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -59.3381531600947,
+          "min_percent": -59.6115707645261,
+          "max_percent": -55.183911810061495,
+          "values_percent": [
+            -59.6115707645261,
+            -55.183911810061495,
+            -59.3381531600947
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -16.87521016285394,
+          "min_percent": -17.18372579537978,
+          "max_percent": -15.605921966972048,
+          "values_percent": [
+            -17.18372579537978,
+            -16.87521016285394,
+            -15.605921966972048
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -31.953113818714375,
+          "min_percent": -32.05393512540212,
+          "max_percent": -30.794449025022608,
+          "values_percent": [
+            -32.05393512540212,
+            -30.794449025022608,
+            -31.953113818714375
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -28.297362110311752,
+          "min_percent": -29.186602870813395,
+          "max_percent": -25.547445255474454,
+          "values_percent": [
+            -29.186602870813395,
+            -28.297362110311752,
+            -25.547445255474454
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -7.079279162769891,
+          "min_percent": -7.394920266464078,
+          "max_percent": -7.030432065179426,
+          "values_percent": [
+            -7.394920266464078,
+            -7.079279162769891,
+            -7.030432065179426
+          ]
+        }
+      },
+      "tokio-raw_vs_raw": {
+        "requests_per_second": {
+          "median_percent": 20.21029921196529,
+          "min_percent": 19.766633334114104,
+          "max_percent": 21.15956317816854,
+          "values_percent": [
+            21.15956317816854,
+            20.21029921196529,
+            19.766633334114104
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -35.72092332606881,
+          "min_percent": -41.04192522508077,
+          "max_percent": -34.61397796544231,
+          "values_percent": [
+            -41.04192522508077,
+            -35.72092332606881,
+            -34.61397796544231
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -15.9847434457401,
+          "min_percent": -16.43720032388941,
+          "max_percent": -15.761607051907035,
+          "values_percent": [
+            -15.9847434457401,
+            -16.43720032388941,
+            -15.761607051907035
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -21.94683546736924,
+          "min_percent": -22.81852029465119,
+          "max_percent": -20.8585021197358,
+          "values_percent": [
+            -22.81852029465119,
+            -21.94683546736924,
+            -20.8585021197358
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -19.189189189189193,
+          "min_percent": -20.430107526881724,
+          "max_percent": -13.802816901408443,
+          "values_percent": [
+            -20.430107526881724,
+            -19.189189189189193,
+            -13.802816901408443
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -6.176957977353991,
+          "min_percent": -6.478961984494013,
+          "max_percent": -5.520450276342769,
+          "values_percent": [
+            -6.478961984494013,
+            -6.176957977353991,
+            -5.520450276342769
+          ]
+        }
+      },
+      "tokio-raw_vs_raw-ceiling": {
+        "requests_per_second": {
+          "median_percent": 4.350057647337424,
+          "min_percent": 3.683659142749307,
+          "max_percent": 4.639594486667287,
+          "values_percent": [
+            4.639594486667287,
+            3.683659142749307,
+            4.350057647337424
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -9.72708168173223,
+          "min_percent": -16.907679292937093,
+          "max_percent": -7.631289135771279,
+          "values_percent": [
+            -16.907679292937093,
+            -7.631289135771279,
+            -9.72708168173223
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -3.745922170593663,
+          "min_percent": -3.9906304868433273,
+          "max_percent": -2.7374710295004934,
+          "values_percent": [
+            -2.7374710295004934,
+            -3.9906304868433273,
+            -3.745922170593663
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -5.14966368851395,
+          "min_percent": -6.074482531811498,
+          "max_percent": -4.872837872761027,
+          "values_percent": [
+            -6.074482531811498,
+            -4.872837872761027,
+            -5.14966368851395
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -5.732484076433131,
+          "min_percent": -9.393939393939398,
+          "max_percent": -2.857142857142858,
+          "values_percent": [
+            -5.732484076433131,
+            -9.393939393939398,
+            -2.857142857142858
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -1.3728812773933785,
+          "min_percent": -1.7117347890262091,
+          "max_percent": -1.0233826058708706,
+          "values_percent": [
+            -1.7117347890262091,
+            -1.3728812773933785,
+            -1.0233826058708706
+          ]
+        }
+      },
+      "tokio-raw_vs_hyper": {
+        "requests_per_second": {
+          "median_percent": 33.107550887792094,
+          "min_percent": 30.76805975538157,
+          "max_percent": 37.503410491286914,
+          "values_percent": [
+            33.107550887792094,
+            30.76805975538157,
+            37.503410491286914
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -54.10483943545524,
+          "min_percent": -54.46636441322879,
+          "max_percent": -48.515696094380004,
+          "values_percent": [
+            -54.46636441322879,
+            -48.515696094380004,
+            -54.10483943545524
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -18.429744248841285,
+          "min_percent": -21.358296089696506,
+          "max_percent": -17.962510888253536,
+          "values_percent": [
+            -18.429744248841285,
+            -17.962510888253536,
+            -21.358296089696506
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -29.975457505392612,
+          "min_percent": -32.16885366858481,
+          "max_percent": -28.0142102557414,
+          "values_percent": [
+            -29.975457505392612,
+            -28.0142102557414,
+            -32.16885366858481
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -27.427184466019426,
+          "min_percent": -27.450980392156875,
+          "max_percent": -26.618705035971225,
+          "values_percent": [
+            -27.450980392156875,
+            -27.427184466019426,
+            -26.618705035971225
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -6.730258707950087,
+          "min_percent": -6.791394179791799,
+          "max_percent": -5.871545619680751,
+          "values_percent": [
+            -6.791394179791799,
+            -5.871545619680751,
+            -6.730258707950087
+          ]
+        }
+      },
+      "hyper_vs_baseline": {
+        "requests_per_second": {
+          "median_percent": 16.18511845119095,
+          "min_percent": 11.891852883175691,
+          "max_percent": 18.157046149493627,
+          "values_percent": [
+            16.18511845119095,
+            18.157046149493627,
+            11.891852883175691
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -30.724733294279226,
+          "min_percent": -31.616318934827593,
+          "max_percent": -23.924146778647494,
+          "values_percent": [
+            -30.724733294279226,
+            -31.616318934827593,
+            -23.924146778647494
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": -8.251031174241529,
+          "min_percent": -10.131683809932158,
+          "max_percent": -5.664300671041311,
+          "values_percent": [
+            -8.251031174241529,
+            -10.131683809932158,
+            -5.664300671041311
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -16.88936042663103,
+          "min_percent": -18.550427981129424,
+          "max_percent": -12.59044919461607,
+          "values_percent": [
+            -16.88936042663103,
+            -18.550427981129424,
+            -12.59044919461607
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -11.688311688311682,
+          "min_percent": -16.430020283975654,
+          "max_percent": -9.740259740259749,
+          "values_percent": [
+            -11.688311688311682,
+            -16.430020283975654,
+            -9.740259740259749
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -3.4380449533076396,
+          "min_percent": -3.759032349688629,
+          "max_percent": -2.1944234720791767,
+          "values_percent": [
+            -3.4380449533076396,
+            -3.759032349688629,
+            -2.1944234720791767
+          ]
+        }
+      },
+      "hyper_vs_ceiling": {
+        "requests_per_second": {
+          "median_percent": 2.3917573498509537,
+          "min_percent": -0.6370466441639855,
+          "max_percent": 2.6805724359030947,
+          "values_percent": [
+            2.3917573498509537,
+            2.6805724359030947,
+            -0.6370466441639855
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": -11.402757197634305,
+          "min_percent": -12.951939153932301,
+          "max_percent": -11.299792526982277,
+          "values_percent": [
+            -11.299792526982277,
+            -12.951939153932301,
+            -11.402757197634305
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 1.527540206889455,
+          "min_percent": 1.325370555793759,
+          "max_percent": 7.314661097991282,
+          "values_percent": [
+            1.527540206889455,
+            1.325370555793759,
+            7.314661097991282
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": -2.9682130663967854,
+          "min_percent": -3.862204997900931,
+          "max_percent": 0.3180542590513591,
+          "values_percent": [
+            -2.9682130663967854,
+            -3.862204997900931,
+            0.3180542590513591
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": -1.1990407673860837,
+          "min_percent": -2.392344497607646,
+          "max_percent": 1.4598540145985384,
+          "values_percent": [
+            -2.392344497607646,
+            -1.1990407673860837,
+            1.4598540145985384
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": -0.6475003905073162,
+          "min_percent": -1.2830695574893691,
+          "max_percent": -0.32183359047756044,
+          "values_percent": [
+            -0.6475003905073162,
+            -1.2830695574893691,
+            -0.32183359047756044
+          ]
+        }
+      },
+      "hyper_vs_raw": {
+        "requests_per_second": {
+          "median_percent": -8.976190779511484,
+          "min_percent": -12.899154351009145,
+          "max_percent": -8.07365389007525,
+          "values_percent": [
+            -8.976190779511484,
+            -8.07365389007525,
+            -12.899154351009145
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 29.482467224840224,
+          "min_percent": 24.85179326065341,
+          "max_percent": 42.468228088235826,
+          "values_percent": [
+            29.482467224840224,
+            24.85179326065341,
+            42.468228088235826
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 2.9974171106683656,
+          "min_percent": 1.859284798790517,
+          "max_percent": 7.116693509302507,
+          "values_percent": [
+            2.9974171106683656,
+            1.859284798790517,
+            7.116693509302507
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 10.220612596351607,
+          "min_percent": 8.428572930751344,
+          "max_percent": 16.674274519242125,
+          "values_percent": [
+            10.220612596351607,
+            8.428572930751344,
+            16.674274519242125
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 11.351351351351369,
+          "min_percent": 9.677419354838722,
+          "max_percent": 17.464788732394364,
+          "values_percent": [
+            9.677419354838722,
+            11.351351351351369,
+            17.464788732394364
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 0.33519672625557106,
+          "min_percent": -0.3244633726155133,
+          "max_percent": 1.297107094806993,
+          "values_percent": [
+            0.33519672625557106,
+            -0.3244633726155133,
+            1.297107094806993
+          ]
+        }
+      },
+      "hyper_vs_raw-ceiling": {
+        "requests_per_second": {
+          "median_percent": -21.38718368060345,
+          "min_percent": -24.11093130380959,
+          "max_percent": -20.71178593862838,
+          "values_percent": [
+            -21.38718368060345,
+            -20.71178593862838,
+            -24.11093130380959
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 82.4855837586655,
+          "min_percent": 79.41140086803387,
+          "max_percent": 96.69376293239513,
+          "values_percent": [
+            82.4855837586655,
+            79.41140086803387,
+            96.69376293239513
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 19.237739387764364,
+          "min_percent": 17.031092190521058,
+          "max_percent": 22.39571759430723,
+          "values_percent": [
+            19.237739387764364,
+            17.031092190521058,
+            22.39571759430723
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 34.132282942686466,
+          "min_percent": 32.14713968575453,
+          "max_percent": 39.83301394916459,
+          "values_percent": [
+            34.132282942686466,
+            32.14713968575453,
+            39.83301394916459
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 29.936305732484094,
+          "min_percent": 24.84848484848485,
+          "max_percent": 32.38095238095238,
+          "values_percent": [
+            29.936305732484094,
+            24.84848484848485,
+            32.38095238095238
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 5.44977509969824,
+          "min_percent": 4.779282069278268,
+          "max_percent": 6.118679030329477,
+          "values_percent": [
+            5.44977509969824,
+            4.779282069278268,
+            6.118679030329477
+          ]
+        }
+      },
+      "hyper_vs_tokio-raw": {
+        "requests_per_second": {
+          "median_percent": -24.872781947360235,
+          "min_percent": -27.274531124203182,
+          "max_percent": -23.52872697884879,
+          "values_percent": [
+            -24.872781947360235,
+            -23.52872697884879,
+            -27.274531124203182
+          ]
+        },
+        "user_cpu_us_per_request": {
+          "median_percent": 117.8878966102859,
+          "min_percent": 94.23395562134434,
+          "max_percent": 119.61786866202439,
+          "values_percent": [
+            119.61786866202439,
+            94.23395562134434,
+            117.8878966102859
+          ]
+        },
+        "system_cpu_us_per_request": {
+          "median_percent": 22.59370658964679,
+          "min_percent": 21.895490808825336,
+          "max_percent": 27.158994563567916,
+          "values_percent": [
+            22.59370658964679,
+            21.895490808825336,
+            27.158994563567916
+          ]
+        },
+        "total_cpu_us_per_request": {
+          "median_percent": 42.807073688058786,
+          "min_percent": 38.91630605882981,
+          "max_percent": 47.4249005190204,
+          "values_percent": [
+            42.807073688058786,
+            38.91630605882981,
+            47.4249005190204
+          ]
+        },
+        "latency_p99_ms": {
+          "median_percent": 37.792642140468246,
+          "min_percent": 36.274509803921575,
+          "max_percent": 37.83783783783785,
+          "values_percent": [
+            37.83783783783785,
+            37.792642140468246,
+            36.274509803921575
+          ]
+        },
+        "server_cpu_percent_one_core": {
+          "median_percent": 7.2159079833576945,
+          "min_percent": 6.237800948007921,
+          "max_percent": 7.286230836766139,
+          "values_percent": [
+            7.286230836766139,
+            6.237800948007921,
+            7.2159079833576945
+          ]
+        }
+      }
+    }
+  }
+]

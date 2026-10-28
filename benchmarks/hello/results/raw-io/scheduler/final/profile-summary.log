@@ -1,0 +1,22 @@
+base-native-raw 8217 {'send syscalls': 73.6, 'receive syscalls': 22.5, 'waiting/readiness syscalls': 1.9, 'remaining user-space code': 1.4, 'cancellation/event/mutex work': 0.6}
+  6044 __sendto
+  1803 __recvfrom
+   157 kevent
+    26 <base_scheduler_selector::readiness_driver::ReadinessWorker as base_scheduler_selector::selector_worker::SelectorWorker>::turn
+    25 <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_stream_writer::SocketStre
+    19 core::ptr::drop_glue::<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_re
+    18 pthread_mutex_lock
+    15 <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}
+    12 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}> a
+    12 <core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::write_with<<base_scheduler_s
+tokio-task-raw 8082 {'send syscalls': 74.8, 'receive syscalls': 21.3, 'waiting/readiness syscalls': 2.4, 'remaining user-space code': 1.3, 'cancellation/event/mutex work': 0.2}
+  6044 __sendto
+  1709 __recvfrom
+   190 kevent
+    18 <tokio::runtime::io::scheduled_io::ScheduledIo>::wake
+    15 <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unp
+    14 <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_read
+     8 <tokio::runtime::io::registration::Registration>::poll_ready
+     8 pthread_mutex_lock
+     7 <&mio::net::tcp::stream::TcpStream as core::io::write::Write>::write
+     7 <&mio::net::tcp::stream::TcpStream as alloc::io::read::Read>::read

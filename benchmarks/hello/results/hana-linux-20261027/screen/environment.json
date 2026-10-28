@@ -1,0 +1,56 @@
+{
+  "utc": "2026-10-27T02:12:42.222314+00:00",
+  "uname": [
+    "Linux",
+    "hana.oriontransfer.co.nz",
+    "7.2.11-arch1-1",
+    "#1 SMP PREEMPT_DYNAMIC Fri, 16 Oct 2026 00:28:58 +0000",
+    "x86_64"
+  ],
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13) (Arch Linux rust 1:1.99.1-1)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.3\n",
+  "cpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           39 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  8\nOn-line CPU(s) list:                     0-7\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Xeon(R) CPU E3-1240 v6 @ 3.70GHz\nCPU family:                              6\nModel:                                   158\nThread(s) per core:                      2\nCore(s) per socket:                      4\nSocket(s):                               1\nStepping:                                9\nMicrocode version:                       0xf8\nCPU(s) scaling MHz:                      87%\nCPU max MHz:                             4100.0000\nCPU min MHz:                             800.0000\nBogoMIPS:                                7399.70\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc art arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 sdbg fma cx16 xtpr pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm abm 3dnowprefetch cpuid_fault epb pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust sgx bmi1 avx2 smep bmi2 erms invpcid mpx rdseed adx smap clflushopt intel_pt xsaveopt xsavec xgetbv1 xsaves dtherm ida arat pln pts hwp hwp_notify hwp_act_window hwp_epp vnmi md_clear flush_l1d arch_capabilities\nVirtualization:                          VT-x\nL1d cache:                               128 KiB (4 instances)\nL1i cache:                               128 KiB (4 instances)\nL2 cache:                                1 MiB (4 instances)\nL3 cache:                                8 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-7\nVulnerability Gather data sampling:      Mitigation; Microcode\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             KVM: Mitigation: Split huge pages\nVulnerability L1tf:                      Mitigation; PTE Inversion; VMX conditional cache flushes, SMT vulnerable\nVulnerability Mds:                       Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Meltdown:                  Mitigation; PTI\nVulnerability Mmio stale data:           Mitigation; Clear CPU buffers; SMT vulnerable\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; IBRS\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; IBRS; IBPB conditional; STIBP conditional; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Mitigation; Microcode\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Mitigation; TSX disabled\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace\n",
+  "configuration": {
+    "variants": [
+      "old-epoll:baseline:base-native",
+      "epoll-default:candidate:base-native",
+      "epoll-hints:candidate:base-native-inq",
+      "old-iouring:baseline:base-iouring",
+      "iouring-default:candidate:base-iouring",
+      "iouring-hints:candidate:base-iouring-inq",
+      "hyper:candidate:hyper-tokio"
+    ],
+    "output": "results/screen",
+    "repetitions": 3,
+    "duration": 4,
+    "concurrency": [
+      1,
+      64
+    ]
+  },
+  "affinity": {
+    "server_all_threads": [
+      0
+    ],
+    "load": [
+      2,
+      3,
+      6,
+      7
+    ],
+    "controller": [
+      1
+    ]
+  },
+  "cpu_ticks_per_second": 100,
+  "binary_sha256": {
+    "old-epoll": "05dd627ee117df0c15f0ebe0ada665c8359c7ab9728d7fb7209d9025ed118088",
+    "epoll-default": "f5a764c8967e41181b52f242817c8c17c3035a972fcfc420aed9ee97764604ea",
+    "epoll-hints": "f5a764c8967e41181b52f242817c8c17c3035a972fcfc420aed9ee97764604ea",
+    "old-iouring": "05dd627ee117df0c15f0ebe0ada665c8359c7ab9728d7fb7209d9025ed118088",
+    "iouring-default": "f5a764c8967e41181b52f242817c8c17c3035a972fcfc420aed9ee97764604ea",
+    "iouring-hints": "f5a764c8967e41181b52f242817c8c17c3035a972fcfc420aed9ee97764604ea",
+    "hyper": "f5a764c8967e41181b52f242817c8c17c3035a972fcfc420aed9ee97764604ea"
+  },
+  "initial_load": "1.24 1.35 1.22 1/557 18581\n",
+  "initial_proc_stat": "cpu  95942 0 56827 789669 118124 1814 14882 0 0 0\ncpu0 17682 0 16294 80879 13018 378 6044 0 0 0\ncpu1 11485 0 2623 102103 17421 217 338 0 0 0\ncpu2 12308 0 8367 95385 16379 211 2053 0 0 0\ncpu3 12885 0 8846 95033 15619 211 2111 0 0 0\ncpu4 7125 0 2353 105834 19119 198 266 0 0 0\ncpu5 9393 0 1842 107963 15418 174 64 0 0 0\ncpu6 12282 0 8223 103703 8405 212 2012 0 0 0\ncpu7 12779 0 8277 98765 12741 209 1989 0 0 0\nintr 6503966 37 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 35 0 0 0 0 0 0 0 1 1 1 1 1 0 82626 2703 0 0 0 0 0 0 0 19278 21329 10621 11696 13055 13877 7867 22873 0 0 0 0 0 0 0 0 0 0 1 135248 52005 28647 79344 1 92950 3137 147907 2221 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\nctxt 70071337\nbtime 1793065818\nprocesses 18588\nprocs_running 1\nprocs_blocked 0\nsoftirq 84455490 11 230456 421 81082584 194407 0 19271 1313595 390 1614355\n"
+}

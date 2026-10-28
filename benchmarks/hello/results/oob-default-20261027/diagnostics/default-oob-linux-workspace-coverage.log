@@ -1,0 +1,2924 @@
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s
+     Running `/tmp/base-http-hana-epoll-uring-7nxlaica/target/debug/base-scheduler-bake 'test:coverage'`
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s
+   Doc-tests base_scheduler
+
+running 11 tests
+test src/clock.rs - clock::Clock::timeout (line 53) ... ok
+test src/address_resolution.rs - address_resolution::AddressResolution (line 11) ... ok
+test src/buffer_pooling.rs - buffer_pooling::BufferPooling (line 13) ... ok
+test src/file_advice.rs - file_advice::FileAdvice (line 14) ... ok
+test src/cancellation.rs - cancellation::Cancellation (line 62) ... ok
+test src/io_buffers.rs - io_buffers::IoBuffers (line 10) ... ok
+test src/defer_cancel.rs - defer_cancel::defer_cancel (line 14) ... ok
+test src/lib.rs - (line 27) ... ok
+test src/socket_get_option.rs - socket_get_option::SocketGetOption (line 12) ... ok
+test src/timers.rs - timers::Timers (line 11) ... ok
+test src/file_allocate.rs - file_allocate::FileAllocate (line 14) ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 11 tests
+test src/io_buffers_mut.rs - io_buffers_mut::IoBuffersMut (line 16) - compile fail ... ok
+test src/address_info_collection.rs - address_info_collection::AddressInfoCollection (line 10) - compile fail ... ok
+test src/io_buffers.rs - io_buffers::IoBuffers (line 23) - compile fail ... ok
+test src/io_buf_sequence.rs - io_buf_sequence::IoBufSequence (line 11) - compile fail ... ok
+test src/address_resolution.rs - address_resolution::AddressResolution (line 20) - compile fail ... ok
+test src/file_operation.rs - file_operation::FileOperation (line 14) - compile fail ... ok
+test src/socket_get_option.rs - socket_get_option::SocketGetOption (line 27) - compile fail ... ok
+test src/socket_operation.rs - socket_operation::SocketOperation (line 16) - compile fail ... ok
+test src/socket_recv_message.rs - socket_recv_message::SocketRecvMessage (line 10) - compile fail ... ok
+test src/socket_options.rs - socket_options::SocketOptions (line 14) - compile fail ... ok
+test src/socket_options.rs - socket_options::SocketOptions (line 21) - compile fail ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+all doctests ran in 0.33s; merged doctests compilation took 0.23s
+   Doc-tests base_scheduler_conformance
+
+running 2 tests
+test crates/conformance/src/../readme.md - (line 13) ... ignored
+test crates/conformance/src/../readme.md - (line 54) ... ignored
+
+test result: ok. 0 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.12s; merged doctests compilation took 0.11s
+   Doc-tests base_scheduler_direct
+
+running 1 test
+test crates/direct/src/../readme.md - (line 9) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test crates/direct/src/direct_file.rs - direct_file::DirectFile (line 12) - compile fail ... ok
+test crates/direct/src/direct_file.rs - direct_file::DirectFile (line 19) - compile fail ... ok
+test crates/direct/src/direct_file.rs - direct_file::DirectFile (line 25) - compile fail ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+all doctests ran in 0.22s; merged doctests compilation took 0.18s
+   Doc-tests base_scheduler_echo_benchmark
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests base_scheduler_examples
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests base_scheduler_file_benchmark
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests base_scheduler_iouring
+
+running 1 test
+test crates/iouring/src/../readme.md - (line 13) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.30s; merged doctests compilation took 0.29s
+   Doc-tests base_scheduler_native
+
+running 2 tests
+test crates/native/src/../readme.md - (line 46) ... ok
+test crates/native/src/../readme.md - (line 11) ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.34s; merged doctests compilation took 0.34s
+   Doc-tests base_scheduler_selector
+
+running 1 test
+test crates/selector/src/../readme.md - (line 9) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test crates/selector/src/native_file.rs - native_file::NativeFile (line 19) - compile fail ... ok
+test crates/selector/src/native_file.rs - native_file::NativeFile (line 12) - compile fail ... ok
+test crates/selector/src/native_file.rs - native_file::NativeFile (line 25) - compile fail ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+all doctests ran in 0.23s; merged doctests compilation took 0.18s
+   Doc-tests base_scheduler_timer_benchmark
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests base_scheduler_timers
+
+running 1 test
+test crates/timers/src/../readme.md - (line 9) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+all doctests ran in 0.22s; merged doctests compilation took 0.21s
+   Doc-tests base_scheduler_tokio
+
+running 1 test
+test crates/tokio/src/../readme.md - (line 9) ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 3 tests
+test crates/tokio/src/tokio_file.rs - tokio_file::TokioFile (line 12) - compile fail ... ok
+test crates/tokio/src/tokio_file.rs - tokio_file::TokioFile (line 19) - compile fail ... ok
+test crates/tokio/src/tokio_file.rs - tokio_file::TokioFile (line 25) - compile fail ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+all doctests ran in 0.24s; merged doctests compilation took 0.20s
+   Doc-tests base_scheduler_write_benchmark
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+info: cargo-llvm-cov currently setting cfg(coverage); you can opt-out it by passing --no-cfg-coverage
+   Compiling libc v0.2.191
+   Compiling pin-project-lite v0.2.17
+   Compiling fastrand v2.5.0
+   Compiling parking v2.2.1
+   Compiling futures-core v0.3.34
+   Compiling futures-io v0.3.34
+   Compiling cfg-if v1.0.5
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling event-listener v5.4.2
+   Compiling futures-channel v0.3.34
+   Compiling rustix v1.1.5
+   Compiling bitflags v2.13.2
+   Compiling futures-lite v2.6.1
+   Compiling linux-raw-sys v0.12.1
+   Compiling base-scheduler v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler)
+   Compiling signal-hook v0.4.5
+   Compiling once_cell v1.21.4
+   Compiling crossbeam-utils v0.8.23
+   Compiling autocfg v1.5.1
+   Compiling getrandom v0.4.3
+   Compiling slab v0.4.12
+   Compiling async-io v2.6.0
+   Compiling syn v3.0.9
+   Compiling concurrent-queue v2.5.0
+   Compiling async-task v4.7.1
+   Compiling serde_core v1.0.229
+   Compiling crossbeam-epoch v0.9.21
+   Compiling zmij v1.0.23
+   Compiling crossbeam-deque v0.8.8
+   Compiling memchr v2.8.3
+   Compiling base-scheduler-timers v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/timers)
+   Compiling errno v0.3.14
+   Compiling socket2 v0.6.5
+   Compiling signal-hook-registry v1.4.8
+   Compiling itoa v1.0.18
+   Compiling serde_json v1.0.154
+   Compiling crossbeam-queue v0.3.14
+   Compiling io-uring v0.7.15
+   Compiling mio v1.2.4
+   Compiling bytes v1.12.1
+   Compiling atomic-waker v1.1.2
+   Compiling allocation-counter v0.8.1
+   Compiling base-scheduler-direct v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/direct)
+   Compiling base-scheduler-conformance v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/conformance)
+   Compiling find-msvc-tools v0.1.15
+   Compiling shlex v2.0.1
+   Compiling stable_deref_trait v1.2.1
+   Compiling serde v1.0.229
+   Compiling cc v1.10.0
+   Compiling equivalent v1.0.3
+   Compiling linkme-impl v0.3.37
+   Compiling hashbrown v0.17.1
+   Compiling linkme v0.3.37
+   Compiling winnow v1.0.4
+   Compiling indexmap v2.14.2
+   Compiling smallvec v1.16.4
+   Compiling synstructure v0.14.0
+   Compiling toml_parser v1.1.5+spec-1.1.0
+   Compiling syn v2.0.119
+   Compiling num-traits v0.2.19
+   Compiling log v0.4.34
+   Compiling toml_writer v1.1.3+spec-1.1.0
+   Compiling writeable v0.6.4
+   Compiling litemap v0.8.3
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling toml_edit v0.25.17+spec-1.1.0
+   Compiling icu_properties_data v2.1.2
+   Compiling icu_normalizer_data v2.1.1
+   Compiling ring v0.17.14
+   Compiling byteorder v1.5.0
+   Compiling polling v3.11.0
+   Compiling tempfile v3.27.0
+   Compiling zeroize v1.9.1
+   Compiling rustls-pki-types v1.15.1
+   Compiling base-scheduler-selector v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/selector)
+   Compiling hdrhistogram v7.5.4
+   Compiling base-markdown v0.1.0
+   Compiling getrandom v0.2.17
+   Compiling crc32fast v1.5.3
+   Compiling untrusted v0.9.0
+   Compiling adler2 v2.0.1
+   Compiling percent-encoding v2.3.2
+   Compiling rustversion v1.0.23
+   Compiling rustls v0.23.46
+   Compiling tokio-macros v2.7.2
+   Compiling zerofrom-derive v0.1.8
+   Compiling yoke-derive v0.8.4
+   Compiling zerovec-derive v0.11.7
+   Compiling base-scheduler-native v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/native)
+   Compiling tokio v1.54.1
+   Compiling base-scheduler-iouring v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/iouring)
+   Compiling zerofrom v0.1.8
+   Compiling yoke v0.8.4
+   Compiling displaydoc v0.2.7
+   Compiling zerovec v0.11.9
+   Compiling serde_derive v1.0.229
+   Compiling zerotrie v0.2.5
+   Compiling tinystr v0.8.5
+   Compiling bake-macros v0.20.0
+   Compiling icu_locale_core v2.1.1
+   Compiling potential_utf v0.1.6
+   Compiling icu_collections v2.1.1
+   Compiling utf8_iter v1.0.4
+   Compiling simd-adler32 v0.3.10
+   Compiling form_urlencoded v1.2.2
+   Compiling miniz_oxide v0.9.1
+   Compiling webpki-roots v1.0.11
+   Compiling icu_provider v2.1.1
+   Compiling subtle v2.6.1
+   Compiling webpki-roots v0.26.11
+   Compiling icu_properties v2.1.2
+   Compiling icu_normalizer v2.1.1
+   Compiling flate2 v1.1.10
+   Compiling rustls-webpki v0.103.16
+   Compiling tracing-core v0.1.36
+   Compiling ryu v1.0.23
+   Compiling idna_adapter v1.2.1
+   Compiling idna v1.1.0
+   Compiling regex-syntax v0.8.11
+   Compiling unsafe-libyaml v0.2.11
+   Compiling url v2.5.8
+   Compiling base-scheduler-tokio v0.1.2 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/crates/tokio)
+   Compiling base64 v0.22.1
+   Compiling bake v0.20.0
+   Compiling regex-automata v0.4.18
+   Compiling serde_yaml_ng v0.10.0
+   Compiling generator v0.8.11
+   Compiling lazy_static v1.5.1
+   Compiling bake-releases v0.3.7
+   Compiling bake-license v0.2.5
+   Compiling base-scheduler-examples v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/examples)
+   Compiling base-scheduler-file-benchmark v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/benchmarks/files)
+   Compiling bake-agent-context v0.4.2
+   Compiling sharded-slab v0.1.7
+   Compiling matchers v0.2.0
+   Compiling ureq v2.12.1
+   Compiling bake-markdown v0.6.0
+   Compiling bake-test v0.3.3
+   Compiling bake-readme v0.2.7
+   Compiling tracing v0.1.44
+   Compiling tracing-log v0.2.0
+   Compiling bake-cargo v0.5.4
+   Compiling thread_local v1.1.10
+   Compiling nu-ansi-term v0.50.3
+   Compiling base-design v0.1.0
+   Compiling tracing-subscriber v0.3.23
+   Compiling base-project v0.1.0
+   Compiling base-scheduler-write-benchmark v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/benchmarks/writes)
+   Compiling base-scheduler-echo-benchmark v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/benchmarks/echo)
+   Compiling base-scheduler-timer-benchmark v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/benchmarks/timers)
+   Compiling scoped-tls v1.0.1
+   Compiling loom v0.7.2
+   Compiling base-scheduler-bake v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/bake)
+   Compiling base-scheduler-buffer-benchmark v0.0.0 (/tmp/base-http-linux-gap-vohfc1rh/base-scheduler/benchmarks/buffers)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 16s
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler-2a79a99712b146cf)
+
+running 11 tests
+test cancellation::tests::never_signals_need_no_cancellation_registration ... ok
+test heap_buffer_pool::tests::abandoned_exhaustion_restores_the_fast_return_path ... ok
+test heap_buffer_pool::tests::closing_retires_idle_tokens_across_availability_words ... ok
+test heap_buffer_pool::tests::notification_can_synchronously_acquire_and_retain_a_returned_slot ... ok
+test heap_buffer_pool::tests::slot_tokens_survive_pool_close_and_all_frozen_views ... ok
+test spawn_error::tests::spawn_errors_have_descriptive_messages ... ok
+test cancellation::tests::dropped_children_release_their_registrations_and_ancestors ... ok
+test heap_buffer_pool::tests::concurrent_returns_and_pool_close_reclaim_every_token ... ok
+test cancellation::tests::an_exclusively_owned_deep_chain_is_released_without_recursive_destruction ... ok
+test heap_buffer_pool::tests::frozen_reader_limit_aborts_before_the_count_can_wrap ... ok
+test heap_buffer_pool::tests::waiter_limit_aborts_before_the_count_can_wrap ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/address_info_collections.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/address_info_collections-dcb54c98b2c23e87)
+
+running 2 tests
+test portable_arrays_vectors_boxed_slices_and_cached_results_preserve_entries_without_allocating ... ok
+test borrowed_entry_iteration_can_cross_polling_threads ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/address_resolve_error.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/address_resolve_error-db8815da5ccba14d)
+
+running 1 test
+test resolver_errors_retain_category_code_message_and_source ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/buffer_pool.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/buffer_pool-878fc6455b01b854)
+
+running 18 tests
+test abandoning_waits_and_forgetting_owners_are_safe ... ok
+test aligned_slots_share_one_slab_without_aliasing_other_live_slots ... ok
+test each_return_wakes_a_distinct_waiter_before_either_is_polled ... ok
+test forgetting_a_frozen_view_never_recycles_its_slot ... ok
+test invalid_alignment_and_unrepresentable_padded_capacity_are_rejected ... ok
+test frozen_views_hold_storage_until_the_final_cross_thread_return ... ok
+test leases_outlive_the_pool_handle_and_can_be_used_as_owned_ranges ... ok
+test leases_cannot_expose_bytes_outside_the_initialized_prefix - should panic ... ok
+test leases_and_views_keep_their_send_and_sync_contracts ... ok
+test exhaustion_waits_for_capacity_and_cancellation_does_not_take_a_buffer ... ok
+test generic_pool_operations_allocate_nothing_after_setup ... ok
+test pools_validate_capacity_and_recycle_stable_initialized_storage ... ok
+test portable_pool_factories_need_only_the_ownership_contract ... ok
+test availability_words_preserve_exact_capacity_and_stable_storage ... ok
+test steady_state_acquire_freeze_views_and_return_allocate_nothing ... ok
+test pool_contract_preserves_alignment_prefixes_and_shared_capacity ... ok
+test concurrent_checkouts_exclusively_own_their_slots ... ok
+test many_readers_return_each_slot_once ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/buffers.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/buffers-f3dd4c7f9bd11dda)
+
+running 2 tests
+test operation_errors_keep_cancellation_and_os_errors_distinct ... ok
+test owned_ranges_preserve_storage_and_validate_boundaries ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cancellation.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/cancellation-fbe4f801cc068127)
+
+running 21 tests
+test already_cancelled_tokens_notify_before_the_first_protected_poll ... ok
+test a_wait_uses_the_waker_from_its_latest_poll ... ok
+test ancestor_cancellation_reaches_children_after_intermediate_handles_are_dropped ... ok
+test callback_panics_propagate_and_the_wrapper_can_be_destroyed ... ok
+test cancellation_wakes_every_registered_waiter_including_descendants ... ok
+test clones_share_persistent_cancellation_and_a_descriptive_error ... ok
+test cancellation_wakers_can_reenter_token_operations ... ok
+test deferred_work_completes_normally_without_a_cancellation_callback ... ok
+test deferred_cancellation_keeps_pending_work_alive_and_calls_a_consuming_callback_once ... ok
+test independent_and_child_signals_have_separate_cancellation_boundaries ... ok
+test dropping_a_wait_unregisters_it_without_affecting_other_waiters ... ok
+test dropping_a_wrapper_drops_its_work_and_does_not_call_on_cancel ... ok
+test dropping_all_parent_handles_does_not_cancel_surviving_children ... ok
+test concurrent_cancellation_requests_have_one_winner ... ok
+test nested_wrappers_observe_their_own_tokens_and_keep_draining ... ok
+test never_cancelled_tokens_remain_pending_and_can_create_independent_children ... ok
+test protected_futures_need_not_be_unpin ... ok
+test the_callback_can_make_protected_work_ready_in_the_same_poll ... ok
+test cancellation_racing_waiter_registration_preserves_wakeups ... ok
+test cancellation_racing_child_registration_cannot_escape_propagation ... ok
+test cancellation_traverses_a_deep_chain_without_recursion ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/cancellation_allocations.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/cancellation_allocations-a1d523b58b13c08f)
+
+running 3 tests
+test observing_cancellation_does_not_allocate ... ok
+test checks_clones_and_first_and_repeated_waits_do_not_allocate ... ok
+test a_registered_wait_can_be_polled_on_another_thread ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/clock.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/clock-c085eb5b3806c7d2)
+
+running 2 tests
+test cancellation_and_overflow_do_not_delegate_to_a_timer ... ok
+test relative_sleep_is_lazy_and_uses_the_supplied_clock_domain ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/file_capabilities.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/file_capabilities-529fbd08a95719b7)
+
+running 2 tests
+test read_only_resource_reuses_owned_storage_without_allocating ... ok
+test read_only_resource_satisfies_a_read_only_consumer ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/io_vectors.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/io_vectors-14abdb48c70304f6)
+
+running 7 tests
+test advancement_handles_empty_ranges_exact_boundaries_and_invalid_counts ... ok
+test plain_collections_leave_vector_storage_to_the_backend ... ok
+test unix_syscalls_use_the_prepared_arrays_directly ... ok
+test prepared_packages_retain_boxed_buffers_and_owned_subranges ... ok
+test writable_vectors_allow_repeated_byte_access_and_recover_original_owners ... ok
+test prepared_read_vectors_reuse_storage_across_moves_and_partial_advancement ... ok
+test prepared_packages_keep_boxed_outer_collections_stable ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/message_buffers.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/message_buffers-e5052a61a9931af3)
+
+running 3 tests
+test empty_arrays_and_default_messages_remain_supported ... ok
+test abandoning_a_wait_retains_the_entire_collection_until_backend_retirement ... ok
+test arrays_vectors_boxed_slices_and_pool_owners_compose_without_new_allocations ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/native_address_info.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/native_address_info-b1cdb216c54b5ed2)
+
+running 2 tests
+test native_list_wrapping_validation_and_borrowed_iteration_need_no_extra_allocation ... ok
+test abandoned_work_releases_its_native_result_exactly_once ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/notify.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/notify-63aef20fadc3e72e)
+
+running 2 tests
+test shared_targets_and_standard_channels_retain_values_in_order ... ok
+test cancellation_ignores_values_and_propagates_to_children ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/pool_contention.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/pool_contention-35cd61122abd6718)
+
+running 3 tests
+test abandoning_a_notified_waiter_preserves_other_waiters_capacity ... ok
+test cancelling_one_waiter_preserves_returns_from_later_availability_words ... ok
+test racing_exhaustion_and_returns_do_not_lose_capacity_or_notifications ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/resource_defaults.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/resource_defaults-29e29f55a2394c07)
+
+running 2 tests
+test file_defaults_return_original_owners_and_handle_short_writes ... ok
+test socket_defaults_preserve_owners_and_forward_flags_and_addresses ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/socket_domain.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/socket_domain-dce63da57c384dee)
+
+running 1 test
+test domains_follow_the_address_family ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/socket_recv_message.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/socket_recv_message-00b2a8edaa398962)
+
+running 5 tests
+test empty_payloads_and_clear_flags_are_preserved ... ok
+test portable_messages_preserve_metadata_and_transfer_the_completed_payload ... ok
+test pooled_payload_mutation_and_freezing_preserve_ownership_after_teardown ... ok
+test portable_message_rejects_an_inconsistent_payload_length - should panic ... ok
+test custom_immutable_messages_can_decode_metadata_lazily_and_move_between_workers ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/task_errors.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/task_errors-0d102d3f1c2889d4)
+
+running 2 tests
+test blocking_admission_errors_are_distinct_from_job_errors ... ok
+test task_errors_preserve_panic_payloads ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/timeouts.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/timeouts-7ed0f2c0a9a1966d)
+
+running 9 tests
+test generic_clock_timeouts_are_send_and_can_borrow_the_operation ... ok
+test operation_completion_wins_expiry_and_releases_the_timer_before_returning ... ok
+test ready_operations_preserve_outputs_without_reading_the_clock_or_allocating ... ok
+test abandoning_a_pending_timeout_releases_both_waits ... ok
+test relative_timeout_registers_only_when_polled_and_expires_in_its_clock_domain ... ok
+test timeout_composition_and_timer_cleanup_do_not_allocate ... ok
+test timeout_errors_report_expiry_and_preserve_the_clock_error_chain ... ok
+test timeout_is_lazy_and_dropping_an_unpolled_timeout_drops_its_operation ... ok
+test zero_duration_expires_a_pending_operation_and_overflow_is_a_clock_error ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_bake-86ce29f95af2b866)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cli.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/cli-98143f19650d74f9)
+
+running 2 tests
+test executable_reports_unknown_tasks_as_failure ... ok
+test executable_lists_discovered_tasks ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/files.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/files-85a09b12cbf85e87)
+
+running 6 tests
+test tests::rejects_unknown_backend - should panic ... ok
+test tests::rejects_unknown_mode - should panic ... ok
+test tests::submitted_output_retries_only_the_suffix_and_propagates_errors ... ok
+test tests::pooled_input_returns_capacity_after_cancellation_and_read_errors ... ok
+test tests::empty_input_returns_eof ... ok
+test tests::pipelines_copy_partial_tails_on_each_backend ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.29s
+
+     Running unittests src/bin/leases.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/leases-fceea8d581bdabdc)
+
+running 1 test
+test tests::shared_and_local_leases_can_be_moved_and_frozen ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/bin/pipeline.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/pipeline-3001e5c1ff35dc2e)
+
+running 8 tests
+test linux::tests::abandoned_receive_does_not_recycle_kernel_storage ... ok
+test linux::tests::notifications_decode_actual_zero_copy_and_partial_copy_reports ... ok
+test linux::tests::truncated_requests_and_reset_peers_fail_without_recycling_live_owners ... ok
+test linux::tests::large_streams_and_small_packets_preserve_sequence ... ok
+test linux::tests::pipelines_preserve_slices_and_return_every_lease ... ok
+test linux::tests::defaults_run_and_invalid_workloads_fail_before_submission ... ok
+test linux::tests::shared_pool_pressure_drives_completions_and_waits_for_external_owners ... ok
+test linux::tests::short_sends_keep_each_notification_owner_until_retirement ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.85s
+
+     Running unittests src/bin/registered.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/registered-d979871b10f9a383)
+
+running 5 tests
+test linux::tests::uncollected_requests_retain_their_pool_storage_during_unwinding ... ok
+test linux::tests::unexpected_end_of_file_rejects_a_truncated_sample - should panic ... ok
+test linux::tests::small_network_payloads_do_not_discard_allocator_pages ... ok
+test linux::tests::stream_transfers_reassemble_partial_completions ... ok
+test linux::tests::registered_and_ordinary_buffers_preserve_data ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s
+
+     Running unittests src/bin/sockets.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/sockets-dcd66cc646280b1d)
+
+running 8 tests
+test tests::rejects_multishot_on_portable_backends - should panic ... ok
+test tests::rejects_unknown_backend - should panic ... ok
+test tests::rejects_unknown_mode - should panic ... ok
+test tests::rejects_unknown_pool_layout - should panic ... ok
+test tests::rejects_unknown_transport - should panic ... ok
+test multishot::tests::portable_backends_reject_the_retired_multishot_control ... ok
+test tests::receivers_share_capacity_across_concurrent_connections ... ok
+test tests::receivers_preserve_tcp_and_udp_data_on_each_backend ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.93s
+
+     Running tests/cli.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/cli-7f78f88ee980f196)
+
+running 3 tests
+test registered_buffer_binary_emits_a_parseable_sample ... ok
+test remote_pipeline_client_verifies_frozen_payloads ... ok
+test benchmark_binaries_emit_parseable_samples ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_conformance-2cc1a10b79581fdd)
+
+running 2 tests
+test socket_stream_writing::tests::flush_accepts_completion_or_cancellation_and_rejects_other_errors ... ok
+test socket_resources::tests::cancellation_assertion_rejects_progress_and_io_errors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/address_resolution.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/address_resolution-fb24d6c1d6304af2)
+
+running 15 tests
+test empty_successful_results_are_allowed ... ok
+test generated::configured_named_service ... ok
+test generated::input_validation ... ok
+test generated::numeric_host_prevents_name_lookup ... ok
+test generated::lazy_and_pre_cancelled ... ok
+test generated::preserves_resolver_errors ... ok
+test ipv4::numeric_hosts_and_transport_hints ... ok
+test generated::ordered_owned_results ... ok
+test ipv4::absent_name_and_passive_hints ... ok
+test generated::forwards_all_hints ... ok
+test ipv6::absent_name_and_passive_hints ... ok
+test ipv6::numeric_hosts_and_transport_hints ... ok
+test rejects_swapped_native_hint_flags ... ok
+test rejects_dropped_hint_fields_and_numeric_host_fallback ... ok
+test rejects_resolver_contract_violations ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/clock.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/clock-c8a3bea919afd45c)
+
+running 9 tests
+test generated::absolute_deadline_and_wakeup ... ok
+test generated::lazy_registration_and_drop ... ok
+test generated::relative_wait_starts_on_poll ... ok
+test generated::overflow_registers_no_timer ... ok
+test generated::pre_cancelled_waits ... ok
+test generated::timeout_results_expiry_and_cleanup ... ok
+test generated::expiry_wins_concurrent_cancellation ... ok
+test generated::pending_cancellation_and_wakeup ... ok
+test rejects_clock_contract_violations ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/file_extensions.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/file_extensions-7bdff10e363156ab)
+
+running 10 tests
+test advice::lazy_admission ... ok
+test advice::accepted_work_survives_abandonment ... ok
+test advice::modes_ranges_and_completion ... ok
+test advice::validation_and_execution_errors ... ok
+test allocation::keep_size_reserves_beyond_eof ... ok
+test allocation::validation_and_execution_errors ... ok
+test allocation::lazy_and_pre_cancelled ... ok
+test allocation::extend_preserves_data_and_cursor ... ok
+test rejects_advice_contract_violations ... ok
+test rejects_allocation_contract_violations ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/process_wait.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/process_wait-c81e58205a81bda1)
+
+running 2 tests
+test process_child_fixture ... ignored, child fixture, invoked by process-wait conformance assertions
+test shutdown_retirement_without_reaping_preserves_child_status ... ok
+
+test result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/rejection.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/rejection-e211edb68aaeed66)
+
+running 6 tests
+test rejects_a_write_that_loses_an_expected_error - should panic ... ok
+test rejects_a_read_that_ignores_cancellation - should panic ... ok
+test short_send_assertions_cover_advancement_and_reject_zero_and_full_counts ... ok
+test rejects_eager_submission_ignored_cancellation_and_lost_panics ... ok
+test socket_conformance_rejects_ignored_cancellation_and_lost_os_errors ... ok
+test isolated_pre_cancelled_assertions_reject_hidden_scalar_and_message_side_effects ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/reporting.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/reporting-238d1e5ffa91baf3)
+
+running 5 tests
+test generated::lazy_submission ... ok
+test generated::preserves_panic_payload ... ok
+test generated::pre_cancelled_submission ... ok
+test generated::returns_output ... ok
+test generated_cases_are_listed_filterable_and_report_failures_independently ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/signals.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/signals-c16d6e4865d73ce9)
+
+running 7 tests
+test generated::independent_subscriptions ... ok
+test generated::setup_errors_release_target ... ok
+test generated::reentrant_subscription ... ok
+test generated::multiple_targets_and_signals ... ok
+test dispatch::unsubscribe_retains_in_progress_target_without_joining ... ok
+test rejects_target_retention_after_unsubscribed_dispatch_finishes ... ok
+test rejects_wrong_selection_detached_subscriptions_and_lost_setup_errors ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/socket_extensions.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/socket_extensions-c6a5d70cb734b705)
+
+running 10 tests
+test getter_only::native_values_and_errors ... ok
+test ipv4::imports_established_stream ... ok
+test ipv6::imports_established_stream ... ok
+test ipv4::imports_listening_socket ... ok
+test getter_only::lazy_and_pre_cancelled ... ok
+test setter_only::native_values_and_errors ... ok
+test rejects_pre_cancelled_setter_side_effects ... ok
+test setter_only::lazy_and_pre_cancelled ... ok
+test ipv6::imports_listening_socket ... ok
+test rejects_socket_extension_contract_violations ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/socket_poll.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/socket_poll-89ee1b3a4c8736de)
+
+running 1 test
+test borrowed_suite_rejects_success_and_io_error_when_pre_cancelled ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/spawn.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/spawn-3ec60e300b6c2770)
+
+running 11 tests
+test generated::abandoned_handle_releases_completed_output ... ok
+test generated::abandonment_destroys_task ... ok
+test generated::closed_service_rejects_unpolled_input ... ok
+test generated::preserves_panic_payload ... ok
+test generated::output_and_handle_transfer ... ok
+test dispatch::handle_drop_defers_destruction_until_active_poll_returns ... ok
+test generated::cooperative_cancellation ... ok
+test generated::registers_before_first_poll ... ok
+test rejects_detaching_an_abandoned_active_task ... ok
+test handle_drop_may_wait_for_an_active_poll ... ok
+test rejects_detaching_lost_panics_and_closed_service_violations ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_direct-7f2ea9d6e58ee8c4)
+
+running 234 tests
+test blocking_pool::tests::capacity_wait_rechecks_available_or_closed_state_before_sleeping ... ok
+test blocking_pool::tests::admission_reports_worker_startup_failure ... ok
+test blocking_pool::tests::immediate_admission_and_empty_drain_need_no_listeners_or_allocations ... ok
+test blocking_pool::tests::draining_waits_for_running_work_and_releases_capacity ... ok
+test blocking_pool::tests::forgetting_an_accepted_completion_can_leak_storage_but_does_not_block_retirement ... ok
+test blocking_pool::tests::abandoned_result_panics_release_capacity_and_preserve_the_worker ... ok
+test blocking_pool::tests::concurrent_first_admissions_share_one_startup ... ok
+test blocking_pool::tests::io_cancellation_returns_owned_input_and_worker_panics_resume_in_the_waiter ... ok
+test blocking_pool::tests::dropping_a_queued_handle_on_another_thread_skips_execution_and_preserves_the_worker ... ok
+test blocking_pool::tests::partial_startup_failure_closes_admission_and_releases_started_workers ... ok
+test blocking_pool::tests::pending_capacity_and_drain_waits_do_not_allocate_and_unregister_on_drop ... ok
+test blocking_pool::tests::shutdown_during_startup_cannot_admit_work ... ok
+test blocking_pool::tests::shutdown_catches_capture_destructor_panics_and_cancels_other_queued_jobs ... ok
+test blocking_pool::tests::submitted_jobs_survive_abandonment_and_shutdown_with_bounded_admission ... ok
+test blocking_pool::tests::submitted_io_retains_its_buffer_and_capacity_after_unpolled_completion_drop ... ok
+test blocking_pool::tests::shutdown_drain_waits_until_discarded_capture_destructors_finish ... ok
+test blocking_pool::tests::skipped_jobs_release_captures_before_reporting_completion ... ok
+
+running 1 test
+test bound_io_tests::file_submission_rejection_keeps_the_original_buffer ... ok
+
+thread '<unnamed>' (120801) panicked at crates/direct/src/blocking_pool/tests.rs:653:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test blocking_pool::tests::prepared_work_allocates_only_jobs_and_completion_channels ... ok
+
+thread 'base-direct-0' (120826) panicked at crates/direct/src/blocking_pool/tests.rs:653:13:
+Box<dyn Any>
+test bound_io_tests::default_packet_pool_and_closed_lanes_preserve_message_boundaries ... ok
+
+thread 'base-direct-0' (120833) panicked at crates/direct/src/blocking_pool/tests.rs:694:25:
+Box<dyn Any>
+test bound_io_tests::file_completion_collection_does_not_hold_a_retired_file_open ... ok
+
+thread 'base-direct-0' (120833) panicked at crates/direct/src/blocking_pool/tests.rs:653:13:
+Box<dyn Any>
+test direct_scheduler::tests::abandoned_io_and_scheduler_drop_retain_worker_access_until_retirement ... ok
+test direct_scheduler::tests::cancellation_after_io_dispatch_preserves_the_actual_result ... ok
+test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+test direct_scheduler::tests::cleanup_completion_preserves_os_and_worker_errors ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+
+test direct_scheduler::tests::invalid_options_and_closed_services_return_errors_and_buffers ... ok
+test direct_scheduler::tests::file_errors_and_exclusive_close_are_observable ... ok
+test direct_scheduler::tests::startup_failures_preserve_io_ownership_and_report_cleanup_errors ... ok
+test direct_scheduler::tests::cleanup_makes_progress_independently_and_accepted_close_survives_abandonment ... ok
+test direct_scheduler::tests::running_cancellation_preserves_results_and_abandonment_keeps_capacity_occupied ... ok
+test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+test bound_io_tests::owned_stream_reads_report_syscall_and_wait_errors_and_lazy_setup_rejects_shutdown ... ok
+test bound_io_tests::default_stream_pool_and_eof_are_consistent_across_read_forms ... ok
+test direct_stream_writer::tests::bound_io ... ok
+test direct_stream_writer::tests::accepted_cancellation_and_drop_release_owners ... ok
+test direct_stream_writer::tests::immediate_error_is_accepted_and_retained ... ok
+test bound_io_tests::abandoned_owned_transfers_keep_the_lane_busy_until_worker_retirement ... ok
+test direct_stream_writer::tests::close_pending ... ok
+test direct_stream_writer::tests::background_retry_errors_and_pending_close_preserve_the_result ... ok
+test direct_stream_writer::tests::ordering ... ok
+test direct_stream_writer::tests::ready_submission_and_flush_allocate_nothing ... ok
+test direct_stream_writer::tests::partial_initial_sends_continue_from_the_accepted_offset ... ok
+test direct_stream_writer::tests::rejects_datagrams_and_closed_admission ... ok
+test direct_stream_writer::tests::every_write_form_waits_for_accepted_output_and_preserves_terminal_errors ... ok
+test file_extensions::tests::advice::accepted_work_survives_abandonment ... ok
+test file_extensions::tests::advice::lazy_admission ... ok
+test direct_stream_writer::tests::syscall_and_task_admission_failures_are_retained_after_acceptance ... ok
+test file_extensions::tests::advice::modes_ranges_and_completion ... ok
+test file_extensions::tests::advice::validation_and_execution_errors ... ok
+test file_extensions::tests::advice_waiting_for_capacity_can_be_abandoned_and_closed_admission_reports_errors ... ok
+test file_extensions::tests::allocation::lazy_and_pre_cancelled ... ok
+test direct_stream_writer::tests::abandoned_admission ... ok
+test file_io::tests::close_consumes_the_handle_and_preserves_system_errors ... ok
+test file_extensions::tests::allocation::validation_and_execution_errors ... ok
+test file_extensions::tests::allocation::extend_preserves_data_and_cursor ... ok
+test file_extensions::tests::allocation::keep_size_reserves_beyond_eof ... ok
+test file_io::tests::file_io_operations_read_and_write_at_the_requested_offset ... ok
+test file_io::tests::read_and_write_reject_offsets_outside_the_platform_range ... ok
+test file_io::tests::retries_interrupted_file_operations ... ok
+test operation_state::tests::guard_preserves_owned_vectors_and_prepared_ranges ... ok
+test operation_state::tests::lazy_state_tracks_admission_and_retirement ... ok
+test process_child_fixture ... ignored, child fixture, invoked by process-wait conformance assertions
+test operation_state::tests::retired_results_do_not_block_the_next_operation_or_close ... ok
+test operation_state::tests::panicking_owner_still_publishes_retirement ... ok
+test process_io::tests::cancellation_and_io_errors_are_distinct ... ok
+test process_io::tests::interrupted_wait_preserves_the_os_error ... ok
+test resolver::tests::conformance::input_validation ... ok
+test resolver::tests::conformance::configured_named_service ... ok
+test resolver::tests::conformance::lazy_and_pre_cancelled ... ok
+test resolver::tests::conformance::forwards_all_hints ... ok
+test resolver::tests::conformance::numeric_host_prevents_name_lookup ... ok
+test resolver::tests::conformance::preserves_resolver_errors ... ok
+test resolver::tests::ipv4::absent_name_and_passive_hints ... ok
+test operation_state::tests::admission_observes_cross_thread_retirement_before_reusing_the_lane ... ok
+test resolver::tests::ipv4::numeric_hosts_and_transport_hints ... ok
+test resolver::tests::ipv6::absent_name_and_passive_hints ... ok
+test resolver::tests::native_address_validation_and_unusual_socket_parameters_are_preserved ... ok
+test resolver::tests::ipv6::numeric_hosts_and_transport_hints ... ok
+test resolver::tests::native_resolver_error_codes_keep_categories_and_system_errors ... ok
+test resolver::tests::conformance::ordered_owned_results ... ok
+test resolver::tests::running_lookup_retains_bounded_capacity_after_cancellation_and_abandonment ... ok
+test signal_service::tests::conformance::independent_subscriptions ... ok
+test resolver::tests::started_lookup_preserves_success_and_native_owner_moves_without_allocating_views ... ok
+test process_wait::tests::started_wait_returns_status_after_cancellation ... ok
+test signal_service::tests::conformance::multiple_targets_and_signals ... ok
+test signal_service::tests::conformance::reentrant_subscription ... ok
+test signal_service::tests::conformance::setup_errors_release_target ... ok
+test signal_service::tests::dispatch::unsubscribe_retains_in_progress_target_without_joining ... ok
+test socket_io::tests::borrowed_message_lengths_are_validated_before_native_access ... ok
+test signal_service::tests::panicking_targets_do_not_poison_dispatch_or_prevent_other_targets ... ok
+test socket_io::tests::borrowed_native_io_enforces_nonblocking_without_allocating_vectors ... ok
+test signal_service::tests::rejects_empty_forbidden_native_and_closed_registrations_and_startup_failure ... ok
+test socket_io::tests::invalid_vector_counts_fail_before_iterating_or_performing_native_io ... ok
+test socket_io::tests::message_validation_rejects_oversized_counts_lengths_and_overflow ... ok
+test socket_io::tests::native_parameters_addresses_and_errors_are_preserved ... ok
+test socket_io::tests::missing_control_storage_reports_discarded_packet_metadata ... ok
+test socket_io::tests::native_connect_preserves_immediate_and_deferred_results ... ok
+test socket_io::tests::prepared_messages_bypass_scratch_and_native_attempts_need_no_vector_allocation ... ok
+test socket_io::tests::zero_capacity_message_receives_use_a_real_native_vector_and_report_os_results ... ok
+
+running 1 test
+test socket_operations::tests::borrowed_operations_reject_closed_schedulers_and_preserve_storage_on_errors ... ok
+
+thread 'base-direct-signal' (121124) panicked at crates/direct/src/signal_service/tests.rs:159:13:
+signal target destructor
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test socket_operations::tests::borrowed_calls_make_progress_without_a_blocking_pool_slot ... ok
+test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+
+test socket_operations::tests::exclusive_close_rejects_retained_access_and_unpolled_close_drops_normally ... ok
+test socket_operations::tests::accepted_shutdown_and_close_survive_abandonment_and_drain_during_shutdown ... ok
+test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+test socket_operations::tests::borrowed_retry_handles_interruption_startup_errors_and_successful_cancellation_races ... ok
+test socket_operations::tests::pending_socket_attempts_release_capacity_and_observe_cancellation_and_scheduler_close ... ok
+test socket_operations::tests::socket_cleanup_is_independent_bounded_and_preserves_closed_admission_errors ... ok
+test socket_operations::tests::pooled_receivers_preserve_messages_and_stream_eof ... ok
+test socket_options::tests::imported_resources_are_nonblocking_and_closed_admission_is_rejected ... ok
+test socket_options::tests::actual_option_syscall_errors_are_preserved ... ok
+test socket_options::tests::ipv4::imports_established_stream ... ok
+test socket_operations::tests::interrupted_attempts_retry_and_retry_service_errors_return_input ... ok
+test socket_options::tests::ipv6::imports_established_stream ... ok
+test socket_options::tests::ipv4::imports_listening_socket ... ok
+test socket_options::tests::keepalive_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::keepalive_set::lazy_and_pre_cancelled ... ok
+test socket_operations::tests::vectored_sends_preserve_short_counts_without_implicitly_advancing_the_owner ... ok
+test socket_options::tests::ipv6::imports_listening_socket ... ok
+test socket_options::tests::keepalive_get::native_values_and_errors ... ok
+test socket_options::tests::keepalive_set::native_values_and_errors ... ok
+test socket_options::tests::nodelay_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::nodelay_set::lazy_and_pre_cancelled ... ok
+test socket_options::tests::nodelay_set::native_values_and_errors ... ok
+test socket_options::tests::nodelay_get::native_values_and_errors ... ok
+test socket_options::tests::reuse_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::reuse_set::lazy_and_pre_cancelled ... ok
+test socket_options::tests::reuse_set::native_values_and_errors ... ok
+test socket_retry::tests::retry_startup_failure_is_reported_consistently ... ok
+test socket_options::tests::reuse_get::native_values_and_errors ... ok
+test socket_receiving::tests::bound_factories_validate_kind_and_preserve_pool_ownership ... ok
+test socket_tests::failed_writes_return_the_original_buffer ... ok
+test socket_tests::ipv4::borrowed_datagrams::addresses_peek_and_truncation ... ok
+test socket_tests::ipv4::borrowed_datagrams::empty_messages ... ok
+test socket_tests::ipv4::borrowed_datagrams::pending_cancellation ... ok
+test socket_tests::directional_socket_handles_reuse_caller_owned_storage ... ok
+test socket_tests::ipv4::borrowed_messages::abandoned_receives ... ok
+test socket_tests::aggregate_socket_helpers_remain_compatible ... ok
+test socket_retry::tests::retries_wake_without_workers_and_cancellation_and_close_do_not_lose_wakeups ... ok
+test socket_tests::ipv4::borrowed_messages::pre_cancelled ... ok
+test socket_tests::ipv4::borrowed_messages::pending_cancellation ... ok
+test socket_tests::ipv4::borrowed_messages::stack_transfers ... ok
+test socket_tests::ipv4::borrowed_scalar::pending_cancellation ... ok
+test socket_tests::ipv4::borrowed_scalar::abandoned_receives ... ok
+test socket_tests::ipv4::borrowed_scalar::pre_cancelled ... ok
+test socket_tests::ipv4::datagrams::addresses_peek_and_truncation ... ok
+test socket_tests::ipv4::borrowed_scalar::stack_transfers ... ok
+test socket_tests::ipv4::borrowed_messages::readiness ... ok
+test socket_tests::ipv4::datagrams::pending_receive_cancellation ... ok
+test socket_tests::ipv4::messages::pending_receive_cancellation ... ok
+test socket_tests::ipv4::datagrams::empty_messages_and_boundaries ... ok
+test socket_tests::ipv4::borrowed_scalar::readiness_and_eof ... ok
+test socket_tests::ipv4::messages::prepared_transfers ... ok
+test socket_tests::ipv4::messages::pre_cancelled ... ok
+test socket_tests::ipv4::packet_handles::cancellation ... ok
+test socket_tests::ipv4::packet_handles::owned ... ok
+test socket_tests::ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test socket_tests::ipv4::scalar::pending_read_cancellation ... ok
+test socket_tests::ipv4::packet_handles::borrowed ... ok
+test socket_tests::ipv4::pooled_datagram_receiver ... ok
+test socket_tests::ipv4::scalar::pre_cancelled ... ok
+test socket_tests::ipv4::scalar::shutdown_and_eof ... ok
+test socket_tests::ipv6::borrowed_datagrams::addresses_peek_and_truncation ... ok
+test socket_tests::ipv4::scalar::transfer ... ok
+test socket_tests::ipv6::borrowed_datagrams::empty_messages ... ok
+test socket_tests::ipv6::borrowed_messages::pending_cancellation ... ok
+test socket_tests::ipv6::borrowed_messages::abandoned_receives ... ok
+test socket_tests::ipv6::borrowed_datagrams::pending_cancellation ... ok
+test socket_tests::ipv6::borrowed_messages::pre_cancelled ... ok
+test socket_tests::ipv6::borrowed_messages::stack_transfers ... ok
+test socket_tests::ipv4::pooled_stream_receiver ... ok
+test socket_tests::ipv6::borrowed_scalar::abandoned_receives ... ok
+test socket_tests::ipv6::borrowed_scalar::pending_cancellation ... ok
+test socket_tests::ipv6::borrowed_scalar::pre_cancelled ... ok
+test socket_tests::ipv6::borrowed_messages::readiness ... ok
+test socket_tests::ipv6::datagrams::addresses_peek_and_truncation ... ok
+test socket_tests::ipv6::borrowed_scalar::stack_transfers ... ok
+test socket_tests::ipv6::datagrams::empty_messages_and_boundaries ... ok
+test socket_tests::ipv6::messages::pending_receive_cancellation ... ok
+test socket_tests::ipv6::datagrams::pending_receive_cancellation ... ok
+test socket_tests::ipv6::borrowed_scalar::readiness_and_eof ... ok
+test socket_tests::ipv6::messages::prepared_transfers ... ok
+test socket_tests::ipv6::messages::pre_cancelled ... ok
+test socket_tests::ipv6::packet_handles::borrowed ... ok
+test socket_tests::ipv6::packet_handles::cancellation ... ok
+test socket_tests::ipv6::packet_handles::owned ... ok
+test socket_tests::ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test socket_tests::ipv6::pooled_datagram_receiver ... ok
+test socket_tests::ipv6::scalar::pending_read_cancellation ... ok
+test socket_tests::ipv6::scalar::pre_cancelled ... ok
+test socket_tests::ipv6::scalar::shutdown_and_eof ... ok
+test socket_tests::prepared_receive_lifecycle::abandoned_operation_retains_input ... ok
+test socket_tests::ipv6::scalar::transfer ... ok
+test socket_tests::prepared_receive_lifecycle::completion_wins_cancellation ... ok
+test socket_tests::ipv6::pooled_stream_receiver ... ok
+test socket_tests::prepared_send_lifecycle::completion_wins_cancellation ... ok
+test socket_tests::prepared_send_lifecycle::abandoned_operation_retains_input ... ok
+test socket_tests::scalar_read_lifecycle::completion_wins_cancellation ... ok
+test socket_write_state::tests::drop_cancels_the_background_operation ... ok
+test socket_write_state::tests::cancelled_wait_retains_pending_operation_and_close_signals_retirement ... ok
+test socket_write_state::tests::retained_errors_preserve_classification_and_first_failure ... ok
+test socket_tests::scalar_read_lifecycle::abandoned_operation_retains_input ... ok
+test socket_write_state::tests::successful_completion_wins_cancelled_wait_and_task_failure_reports_cleanup_failure ... ok
+test system_file_metadata::tests::classification_preserves_special_and_unknown_file_kinds ... ok
+test system_file_metadata::tests::classifies_real_symlinks_and_special_files ... ok
+test system_file_metadata::tests::preserves_native_metadata_and_exposes_portable_observations ... ok
+test task_service::tests::conformance::abandoned_handle_releases_completed_output ... ok
+test task_service::tests::conformance::abandonment_destroys_task ... ok
+test task_service::tests::conformance::cooperative_cancellation ... ok
+test task_service::tests::conformance::closed_service_rejects_unpolled_input ... ok
+
+running 1 test
+test socket_tests::sockets_move_between_threads_and_compatible_scheduler_instances ... ok
+test task_service::tests::conformance::preserves_panic_payload ... ok
+
+thread 'base-direct-task' (121657) panicked at crates/direct/src/task_service/tests.rs:147:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread '<unnamed>' (121655) panicked at crates/direct/src/task_service/tests.rs:134:13:
+abandoned destructor
+
+thread 'base-direct-task' (121657) panicked at crates/direct/src/task_service/tests.rs:173:28:
+Box<dyn Any>
+
+thread '<unnamed>' (121655) panicked at crates/direct/src/task_service/tests.rs:134:13:
+abandoned destructor
+
+thread 'base-direct-task' (121657) panicked at crates/direct/src/task_service/tests.rs:159:13:
+completed future destructor
+
+thread 'base-direct-task' (121657) panicked at crates/direct/src/task_service/tests.rs:134:13:
+abandoned destructor
+test task_service::tests::conformance::registers_before_first_poll ... ok
+test task_service::tests::conformance::output_and_handle_transfer ... oktest task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... 
+ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 233 filtered out; finished in 0.00s
+
+test task_service::tests::startup_and_identifier_exhaustion_are_reported_without_polling_inputs ... ok
+test task_service::tests::dispatch::handle_drop_defers_destruction_until_active_poll_returns ... ok
+test test_support::watchdog_propagates_assertion_panics ... ok
+test task_service::tests::future_destructor_panic_is_reported_and_worker_stays_available ... ok
+test task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... ok
+test task_service::tests::tasks_progress_without_occupying_syscall_workers_and_survive_admission_close ... ok
+test timer_service::tests::conformance::expiry_wins_concurrent_cancellation ... ok
+test timer_service::tests::conformance::lazy_registration_and_drop ... ok
+test timer_service::tests::conformance::overflow_registers_no_timer ... ok
+test timer_service::tests::conformance::pending_cancellation_and_wakeup ... ok
+test timer_service::tests::conformance::pre_cancelled_waits ... ok
+test timer_service::tests::conformance::relative_wait_starts_on_poll ... ok
+test timer_service::tests::conformance::absolute_deadline_and_wakeup ... ok
+test timer_service::tests::conformance::timeout_results_expiry_and_cleanup ... ok
+test timer_service::tests::reusable_timer_startup_and_identifier_exhaustion ... ok
+test timer_service::tests::startup_failure_exhaustion_and_shutdown_release_waiters ... ok
+test timer_service::tests::timer_waker_callbacks_run_outside_the_registry_lock ... ok
+test timer_service::tests::native_timer_driver_wakes_and_retires_deadlines ... ok
+test socket_operations::tests::borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full ... ok
+test direct_stream_writer::tests::independent_progress ... ok
+test direct_stream_writer::tests::overlapped_read_write ... ok
+test direct_stream_writer::tests::admission_rechecks_cancellation_and_shutdown_after_retiring_the_previous_owner ... ok
+
+test result: ok. 233 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 8.44s
+
+     Running tests/conformance.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/conformance-363ddc03e14a9456)
+
+running 35 tests
+test blocking_queue::queued_cancellation_and_admission ... ok
+test blocking_work::pre_cancelled_submission ... ok
+test blocking_queue::abandoned_handle_does_not_execute ... ok
+test blocking_work::lazy_submission ... ok
+test blocking_work::returns_output ... ok
+test blocking_work::preserves_panic_payload ... ok
+test files::accepted_write_progresses_without_polling_its_completion ... ok
+test files::abandoned_resource_operation ... ok
+test files::bound_file_submissions_separate_acceptance_from_owner_collection ... ok
+test files::close_retires_accepted_work_before_its_completion_is_collected ... ok
+test files::bound_file_handles_reject_cancelled_and_closed_operations ... ok
+test files::create ... ok
+test files::independent_readers ... ok
+test files::bound_file_handles_preserve_cursor_offsets_and_ownership ... ok
+test files::metadata ... ok
+test files::dropping_an_unpolled_accepted_completion_releases_only_after_retirement ... ok
+test files::resource_cancellation ... ok
+test files::read ... ok
+test files::read_at ... ok
+test files::pending_resource_retirement ... ok
+test files::seek ... ok
+test files::sequential_reader_writer ... ok
+test files::submission_is_lazy_and_pre_cancelled_admission_returns_the_owner ... ok
+test files::resource_write_error ... ok
+test files::resource_inflight_cancellation ... ok
+test files::sync ... ok
+test files::submitted_reads_and_writes_return_the_original_storage ... ok
+test files::truncate_shrink ... ok
+test files::write ... ok
+test files::truncate_grow ... ok
+test files::write_at ... ok
+test files::write_error ... ok
+test unix_positioned_operations_preserve_the_shared_cursor ... ok
+test files_move_between_threads_and_compatible_scheduler_instances ... ok
+test queue_conformance_rejects_cancellation_capacity_and_handle_ownership_violations ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/process_wait.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/process_wait-84d195dd0b1afb9e)
+
+running 9 tests
+test process_child_fixture ... ignored, child fixture, invoked by the process-wait suite
+test process_group_fixture ... ignored, isolated process-group fixture
+test fixture_cleanup ... ok
+
+running 1 test
+test lazy_and_pre_cancelled ... ok
+test exit_status ... ok
+test pending_shutdown ... ok
+test dropped_and_forgotten_waits ... ok
+test pending_cancellation ... ok
+test process_group_fixture ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.01s
+
+test process_groups ... ok
+
+test result: ok. 7 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_echo_benchmark-e6c4bd79e24fcccd)
+
+running 6 tests
+test server::tests::monitor_echo_reuses_payload_storage_and_completes_partial_writes ... ok
+test server::tests::zero_progress_is_an_error_instead_of_an_infinite_loop ... ok
+test server::tests::poll_zero_progress_is_an_error_instead_of_an_infinite_loop ... ok
+test server::tests::poll_echo_reuses_the_allocation_and_completes_partial_writes ... ok
+test server::tests::echo_reuses_the_allocation_and_completes_partial_writes ... ok
+test server::tests::monitor_echo_rejects_zero_progress ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_echo_benchmark-b36ec5771365c048)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/smoke.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/smoke-453376072123f2f1)
+
+running 12 tests
+test client_rejects_an_empty_measurement ... ok
+test client_rejects_corrupt_echoes ... ok
+test every_client_field_is_validated_and_server_connection_count_must_be_positive ... ok
+test invalid_configuration_fails_before_running_a_workload ... ok
+test native_iouring_monitor ... ok
+test native_iouring ... ok
+test native_iouring_multishot ... ok
+test tokio_adapter ... ok
+test native_iouring_poll ... ok
+test pure_tokio ... ok
+test tokio_adapter_monitor ... ok
+test tokio_adapter_poll ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_examples-bee857ed18b2f9a4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_examples-e830c61d92d2bea9)
+
+running 6 tests
+test tests::rejects_unknown_recipe - should panic ... ok
+test tests::rejects_unknown_backend - should panic ... ok
+test tests::rejects_empty_storage - should panic ... ok
+test tests::rejects_datagram_overflow - should panic ... ok
+test tests::stopped_packet_consumer_ends_the_generator ... ok
+test tests::recipes_preserve_data_on_every_backend ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+     Running tests/command.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/command-e8bfe632cebf78f0)
+
+running 1 test
+test command_emits_a_validated_sample ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/datagrams.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/datagrams-9884fd7400a5ecd5)
+
+running 5 tests
+test cancellation_after_handoff_waits_for_processing_and_returns_storage ... ok
+test packet_handoff_preserves_empty_messages_addresses_and_bounded_capacity ... ok
+test frame_receiver_validates_setup_and_reports_close_failure ... ok
+test frame_receiver_closes_after_incomplete_eof_consumer_failure_and_cancellation ... ok
+test packet_errors_and_task_panics_still_close_receivers_and_drain_accepted_work ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/files.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/files-620c41ce93579a8d)
+
+running 3 tests
+test copy_closes_both_handles_on_cancellation_empty_input_and_write_failure ... ok
+test copy_drives_reads_and_writes_together_and_advances_short_writes ... ok
+test copy_reports_setup_read_and_cleanup_failures ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/frames.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/frames-7398f91a7d134230)
+
+running 2 tests
+test framing_handles_tiny_chunks_incomplete_eof_and_consumer_errors ... ok
+test retained_ranges_prevent_reuse_and_fragmented_records_copy_only_their_bytes ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/stream.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/stream-dcc9011c69d9fb1f)
+
+running 2 tests
+test stream_reports_reader_setup_and_close_failures ... ok
+test stream_cleanup_allows_exclusive_close_after_cancellation_and_consumer_errors ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_file_benchmark-f9cd9b6b8a41c8a3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_file_benchmark-7048f4971196d82c)
+
+running 6 tests
+test tests::migration_rejects_unknown_workloads - should panic ... ok
+test tests::unknown_backend_is_rejected - should panic ... ok
+test tests::unknown_mode_is_rejected - should panic ... ok
+test tests::unknown_workload_is_rejected - should panic ... ok
+test tests::migration_workloads_run_with_registered_and_unregistered_files ... ok
+test tests::matched_workloads_run_on_each_backend ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.66s
+
+     Running unittests src/bin/migration.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/migration-0ba1ba64b197cd9f)
+
+running 1 test
+test tests::owned_state_moves_between_entered_workers_and_closes ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/cli.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/cli-ced1549aca1fcf22)
+
+running 2 tests
+test benchmark_binary_emits_a_parseable_sample ... ok
+test migration_binary_runs_the_controlled_handoff_workload ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.99s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_iouring-cceae7321c2fe064)
+
+running 224 tests
+test io_uring_recv_message::tests::incomplete_empty_and_unsupported_native_addresses_have_no_ip_view ... ok
+test io_uring_recv_message::tests::portable_metadata_and_empty_payloads_use_the_same_message_contract ... ok
+test io_uring_recv_message::tests::native_addresses_decode_unaligned_ipv4_and_ipv6_metadata_without_exposing_it_as_payload ... ok
+test io_uring_selector::file_monitor::tests::abandoned_close_preserves_release_and_retry_waits_for_every_registration ... ok
+test io_uring_selector::file_monitor::tests::close_waits_for_migration_release_on_the_original_ring_after_abandonment ... ok
+test io_uring_selector::file_monitor::tests::concurrent_completion_and_close_keep_independent_wakers_and_release_file_access ... ok
+test io_uring_selector::file_monitor::tests::close_and_reuse_both_report_an_abandoned_driver_failure ... ok
+test io_uring_selector::file_monitor::tests::admission_cancellation_and_identifier_exhaustion_return_the_buffer ... ok
+test io_uring_selector::file_monitor::tests::abandoned_operations_can_be_reused_and_forgotten_completions_can_be_closed ... ok
+test io_uring_selector::file_monitor::tests::dropping_a_cancelled_completion_releases_its_retired_owner_without_lane_reuse ... ok
+test io_uring_selector::file_monitor::tests::a_driver_failure_wakes_close_that_already_waits_for_retirement ... ok
+test io_uring_selector::file_monitor::tests::failed_eviction_remains_observable_after_another_migration ... ok
+test io_uring_selector::file_monitor::tests::active_request_keeps_its_ring_when_polling_moves_to_another_worker ... ok
+test io_uring_selector::file_monitor::tests::incompatible_and_closed_selectors_reject_monitor_operations ... ok
+test io_uring_selector::file_monitor::tests::disposal_of_an_abandoned_owner_can_close_admission_before_publication ... ok
+test io_uring_selector::file_monitor::tests::rejected_abandoned_command_is_reclaimed_before_reuse_reports_shutdown ... ok
+test io_uring_selector::file_monitor::tests::ordinary_and_submitted_monitor_operations_share_admission_and_retirement ... ok
+test io_uring_selector::file_monitor::tests::synchronous_submission_rejection_preserves_the_original_completion_owner ... ok
+test io_uring_selector::file_monitor::tests::queued_requests_return_owners_but_unknown_kernel_retirement_never_does ... ok
+test io_uring_selector::file_monitor::tests::dropping_an_unpolled_monitor_completion_queues_cancellation_without_close ... ok
+test io_uring_selector::message::tests::empty_receive_consumes_one_datagram_without_replacing_the_sequence ... ok
+test io_uring_selector::message::tests::message_admission_is_lazy_cancellable_and_reports_closure_or_exhaustion ... ok
+test io_uring_selector::message::tests::message_length_validation_rejects_overflow_without_truncating_datagrams ... ok
+test io_uring_selector::file_monitor::tests::repeated_operations_reuse_request_storage_without_allocations ... ok
+test io_uring_selector::file_monitor::tests::release_errors_and_driver_exit_remain_observable_on_repeated_close ... ok
+test io_uring_selector::message::tests::inline_prepared_vectors_survive_submission_and_are_used_without_copying ... ok
+test io_uring_selector::message::tests::submitted_message_keeps_payload_alive_after_waiter_drop_until_driver_retirement ... ok
+test io_uring_selector::monitor::tests::a_forgotten_wait_does_not_prevent_reuse_or_retirement ... ok
+test io_uring_selector::monitor::tests::a_close_caller_can_release_its_socket_before_the_completion_wake_returns ... ok
+test io_uring_selector::message::tests::ordinary_sequences_preserve_datagram_addresses_flags_and_payloads ... ok
+test io_uring_selector::monitor::tests::a_general_tcp_monitor_keeps_syscall_first_behavior_after_short_reads ... ok
+test io_uring_selector::monitor::tests::a_stream_monitor_on_a_datagram_socket_keeps_message_semantics ... ok
+test io_uring_selector::monitor::tests::abandoning_a_child_wait_does_not_retain_its_parent_task ... ok
+test io_uring_selector::message::tests::queued_or_disconnected_message_requests_return_owners_and_unknown_completion_panics ... ok
+test io_uring_selector::monitor::tests::a_later_wait_rebinds_to_its_new_workers_ring_after_retirement ... ok
+test io_uring_selector::file_monitor::tests::migration_invalidates_old_registrations_and_reuses_request_storage ... ok
+test io_uring_selector::monitor::tests::an_active_monitor_future_can_move_to_another_workers_thread ... ok
+test io_uring_selector::file_monitor::tests::write_all_reuses_one_request_type_across_short_transfers_and_logical_writes ... ok
+test io_uring_selector::monitor::tests::cached_readiness_survives_success_and_newer_notifications_survive_would_block ... ok
+test io_uring_selector::file_monitor::tests::unavailable_fixed_files_fall_back_without_changing_io_results ... ok
+test io_uring_selector::monitor::tests::cancellation_racing_would_block_does_not_wait_for_readiness ... ok
+test io_uring_selector::message::tests::message_cancellation_and_abandonment_retain_payload_until_original_completion ... ok
+test io_uring_selector::monitor::tests::completion_releases_backend_storage_before_waking ... ok
+test io_uring_selector::monitor::tests::datagram_scalar_receives_do_not_treat_short_messages_as_stream_exhaustion ... ok
+test io_uring_selector::monitor::tests::cancelling_a_pending_receive_preserves_bytes_that_are_already_available ... ok
+test io_uring_selector::monitor::tests::close_drains_the_registration_and_rejects_subsequent_operations ... ok
+test io_uring_selector::monitor::tests::cancelled_and_dropped_waiters_leave_the_registration_active ... ok
+test io_uring_selector::monitor::tests::an_active_monitor_receive_can_move_to_another_workers_thread ... ok
+test io_uring_selector::monitor::tests::datagram_boundaries_including_empty_messages_reuse_one_registration ... ok
+test io_uring_selector::monitor::tests::dropping_close_leaves_retirement_running_and_can_be_awaited_again ... ok
+test io_uring_selector::monitor::tests::full_reads_keep_progress_and_short_reads_preserve_racing_notifications ... ok
+test io_uring_selector::monitor::tests::dropping_the_resource_retires_its_registration ... ok
+test io_uring_selector::monitor::tests::incompatible_closed_selectors_and_exhausted_ids_reject_waits ... ok
+test io_uring_selector::monitor::tests::driver_abandonment_notifies_active_queued_and_submission_space_waiters ... ok
+test io_uring_selector::monitor::tests::readiness_generations_preserve_a_notification_across_wraparound ... ok
+test io_uring_selector::monitor::tests::peeking_and_empty_receives_keep_syscall_semantics ... ok
+test io_uring_selector::monitor::tests::one_shot_compatibility_waits_rearm_after_each_terminal_completion ... ok
+test io_uring_selector::monitor::tests::interrupted_syscalls_retry_and_observe_cancellation_and_closure ... ok
+test io_uring_selector::monitor::tests::pending_receive_cancellation_leaves_the_stream_usable ... ok
+test io_uring_selector::monitor::tests::dropping_a_task_retires_its_cached_waker_without_socket_activity ... ok
+test io_uring_selector::monitor::tests::registrations_do_not_consume_transient_operation_capacity ... ok
+test io_uring_selector::monitor::tests::repolling_a_pending_receive_can_read_before_the_driver_reports_readiness ... ok
+test io_uring_selector::monitor::tests::shutdown_overtakes_an_accepted_local_registration ... ok
+test io_uring_selector::monitor::tests::short_stream_reads_clear_readiness_only_on_would_block_and_preserve_eof ... ok
+test io_uring_selector::monitor::tests::terminal_and_cancellation_cqes_retire_in_either_order ... ok
+test io_uring_selector::monitor::tests::unsupported_multishot_poll_falls_back_and_terminal_success_can_rearm ... ok
+test io_uring_selector::monitor::tests::unconnected_stream_receives_return_the_os_error_without_waiting ... ok
+test io_uring_selector::monitor::tests::shutdown_retires_active_and_accepted_queued_monitors ... ok
+test io_uring_selector::monitor::tests::repeated_notifications_retain_one_registration_without_allocations ... ok
+test io_uring_selector::monitor::tests::shutdown_readiness_survives_the_last_short_receive ... ok
+test io_uring_selector::multishot::tests::a_completion_batch_preserves_every_queued_datagram ... ok
+test io_uring_selector::multishot::tests::a_returned_buffer_before_terminal_collection_allows_immediate_resubmission ... ok
+test io_uring_selector::multishot::tests::cancellation_reports_retirement_failure ... ok
+test io_uring_selector::multishot::tests::completion_between_queue_probe_and_listener_registration_is_not_lost ... ok
+test io_uring_selector::multishot::tests::construction_is_lazy_and_rejects_invalid_options_peeking_cancellation_and_closure ... ok
+test io_uring_selector::multishot::tests::cancellation_and_abandonment_retire_before_exclusive_socket_close ... ok
+test io_uring_selector::multishot::tests::empty_datagrams_truncation_and_exhaustion_preserve_message_boundaries ... ok
+test io_uring_selector::multishot::tests::dormant_close_and_shutdown_leave_held_leases_valid ... ok
+test io_uring_selector::multishot::tests::eof_follows_data_and_leases_support_owned_writes ... ok
+test io_uring_selector::multishot::tests::dropping_pending_dormant_and_prepared_requests_notifies_receivers ... ok
+test io_uring_selector::multishot::tests::persistent_stream_reuses_one_submission_and_keeps_leases_alive_after_shutdown ... ok
+test io_uring_selector::multishot::tests::precancelled_receive_preserves_a_live_stream_and_admission_cancels_without_submission ... ok
+test io_uring_selector::multishot::tests::local_returns_publish_directly_and_only_exhaustion_queues_a_rearm ... ok
+test io_uring_selector::multishot::tests::pool_errors_and_driver_failure_notify_the_receiver ... ok
+test io_uring_selector::multishot::tests::remote_return_rearms_the_original_pool_and_forgotten_receivers_drain_on_shutdown ... ok
+test io_uring_selector::multishot::tests::shutdown_during_buffer_exhaustion_retires_without_a_transport_error ... ok
+test io_uring_selector::multishot::tests::selected_error_and_eof_buffers_are_returned_without_reading_a_header ... ok
+test io_uring_selector::multishot::tests::retained_leases_can_be_released_after_worker_thread_locals_are_destroyed ... ok
+test io_uring_selector::multishot::tests::terminal_decoding_preserves_payload_before_rearm_and_accepts_eof_without_a_buffer ... ok
+test io_uring_selector::process_wait::tests::native_status_conversion_preserves_every_child_state ... ok
+test io_uring_selector::process_wait::tests::cancellation_retains_a_wait_reply_until_it_is_detached_exactly_once ... ok
+test io_uring_selector::process_wait::tests::no_event_ignores_stale_kernel_child_fields ... ok
+test io_uring_selector::process_wait::tests::optional_waitid_uses_the_shared_fallback_when_unavailable ... ok
+test io_uring_selector::process_wait::tests::capacity_cancellation_closure_and_identifier_exhaustion_prevent_submission ... ok
+test io_uring_selector::multishot::tests::unpublished_receivers_are_notified_when_the_driver_is_dropped ... ok
+test io_uring_selector::process_wait::tests::unsubmitted_driver_drop_reports_an_error_and_unknown_kernel_access_is_retained ... ok
+test io_uring_selector::readiness::rejection_tests::detaching_payload_failure_notification_preserves_ownership ... ok
+test io_uring_selector::readiness::rejection_tests::taking_a_readiness_reply_preserves_the_owned_input_until_request_disposal ... ok
+test io_uring_selector::readiness::rejection_tests::unpublished_payload_requests_return_the_original_owner ... ok
+test io_uring_selector::socket::tests::abandoned_retry_wait_retains_the_owned_lane_until_poll_retirement ... ok
+test io_uring_selector::readiness::tests::ready_waits_and_cancelled_waits_retire_before_returning ... ok
+test io_uring_selector::socket::tests::empty_owned_write_sends_one_udp_datagram_and_returns_the_owner ... ok
+test io_uring_selector::socket::tests::owned_write_checks_precancellation_and_closure_before_sending ... ok
+test io_uring_selector::readiness::tests::readiness_errors_and_unpublished_shutdown_release_the_socket ... ok
+test io_uring_selector::socket::tests::owned_write_fast_path_errors_and_ring_fallbacks_preserve_the_owner ... ok
+test io_uring_selector::socket::tests::ready_owned_writes_preserve_the_owner_without_consuming_ring_capacity ... ok
+test io_uring_selector::socket::tests::socket_retries_keep_the_original_ring_across_threads_and_nested_workers ... ok
+test io_uring_selector::socket::tests::socket_retry_readiness_cancels_and_closes_after_kernel_submission ... ok
+test io_uring_selector::socket::tests::transient_socket_failures_retry_and_preserve_the_owner ... ok
+test io_uring_selector::socket::tests::scalar_socket_requests_use_ring_opcodes_and_release_before_notification ... ok
+test io_uring_selector::socket_read::tests::abandoned_cached_reads_retain_the_socket_until_request_retirement ... ok
+test io_uring_selector::socket_read::tests::cached_reads_release_replaced_sockets_and_the_final_socket_on_drop ... ok
+test io_uring_selector::socket_read::tests::abandoning_receive_retires_its_owner_and_allows_a_different_buffer_type ... ok
+test io_uring_selector::socket_read::tests::cached_reads_keep_active_ring_ownership_and_rebind_after_retirement ... ok
+test io_uring_selector::socket_read::tests::cancellation_retires_the_original_receive_and_returns_its_buffer ... ok
+test io_uring_selector::readiness::rejection_tests::rejected_readiness_admission_returns_the_unchanged_owner ... ok
+test io_uring_selector::socket_read::tests::cancellation_during_receive_retry_returns_the_original_owner ... ok
+test io_uring_selector::socket_read::tests::completion_during_waker_registration_is_collected_without_another_poll ... ok
+test io_uring_selector::socket_read::tests::cancellation_while_waiting_for_capacity_returns_the_unsubmitted_buffer ... ok
+test io_uring_selector::socket_read::tests::forgetting_a_receive_and_dropping_its_reader_still_retains_the_owner_until_completion ... ok
+test io_uring_selector::socket_read::tests::prepared_receives_do_not_invoke_buffer_callbacks_on_the_ring_owner ... ok
+test io_uring_selector::socket_read::tests::interrupted_and_would_block_receives_retry_without_losing_the_owner ... ok
+test io_uring_selector::socket_read::tests::early_failures_return_the_original_owner_without_publishing_a_request ... ok
+test io_uring_selector::socket_read::tests::unknown_retirement_retains_the_buffer_and_panics_instead_of_returning_it ... ok
+test io_uring_selector::socket_read::tests::scalar_dispatch_retains_capacity_waiting_closure_and_cancellation_semantics ... ok
+test io_uring_selector::socket_read::tests::repeated_owned_reads_reuse_request_and_completion_storage_without_allocations ... ok
+test io_uring_selector::socket_read::tests::unpublished_receive_is_rejected_when_its_driver_disappears ... ok
+test io_uring_selector::stream_writer::tests::cancellation_racing_registration_prevents_submission ... ok
+test io_uring_selector::stream_writer::tests::completed_writes_can_migrate_rings_while_reusing_the_request_allocation ... ok
+test io_uring_selector::stream_writer::tests::completion_outcomes_preserve_short_write_order_and_retire_errors ... ok
+test io_uring_selector::stream_writer::tests::delayed_cancellation_wakes_cannot_cancel_a_reused_request ... ok
+test io_uring_selector::stream_writer::tests::immediate_writes_release_buffers_and_reuse_writer_without_allocating ... ok
+test io_uring_selector::stream_writer::tests::direct_send_errors_are_accepted_then_reported_and_drop_retires_pending_output ... ok
+test io_uring_selector::stream_writer::tests::immediate_zero_progress_and_identifier_exhaustion_become_terminal_write_errors ... ok
+test io_uring_selector::stream_writer::tests::cancelled_flush_does_not_cancel_accepted_output_but_submission_token_does ... ok
+test io_uring_selector::stream_writer::tests::raw_send_errors_preserve_os_details_and_completed_writers_can_be_dropped_without_flushing ... ok
+test io_uring_selector::stream_writer::tests::socket_query_failure_and_closed_selector_reject_before_output ... ok
+test io_uring_selector::stream_writer::tests::stream_type_scheduler_and_pre_cancellation_checks_preserve_new_buffers ... ok
+test io_uring_selector::stream_writer::tests::next_submission_waits_and_cancelled_admission_does_not_touch_the_previous_write ... ok
+test io_uring_selector::submission_notifications::tests::consumed_counter_wrap_preserves_order ... ok
+test io_uring_selector::stream_writer::tests::unpublished_commands_release_normally_and_unknown_kernel_access_reports_retirement_failure ... ok
+test io_uring_selector::submission_notifications::tests::issuance_is_acknowledged_after_kernel_entry_without_waiting_for_output_completion ... ok
+test io_uring_selector::submission_notifications::tests::mixed_submissions_allow_receipt_wakers_to_enqueue_more_work ... ok
+test io_uring_selector::submission_notifications::tests::issuance_handles_full_submission_queues_and_abandoned_waiters ... ok
+test io_uring_selector::submission_notifications::tests::partial_submission_notifies_only_consumed_entries_even_with_later_refills ... ok
+test io_uring_selector::tests::a_full_local_readiness_batch_returns_before_waiting ... ok
+test io_uring_selector::submission_notifications::tests::terminal_failure_before_issuance_still_resolves_accepted_submission ... ok
+test io_uring_selector::tests::a_retired_driver_can_enter_a_worker_without_recreating_its_ring ... ok
+test io_uring_selector::tests::abandoning_submitted_io_keeps_storage_until_original_retirement ... ok
+test io_uring_selector::tests::abandoned_buffer_destructor_panics_do_not_stop_other_operations ... ok
+test io_uring_selector::tests::binding_an_already_driven_ring_preserves_inflight_io_without_upgrade ... ok
+test io_uring_selector::tests::borrowed_routes_preserve_worker_identity_without_cloning_controllers ... ok
+test io_uring_selector::tests::capacity_admission_rechecks_closure_after_a_competing_transition ... ok
+test io_uring_selector::tests::capacity_wait_observes_retirement_and_closure_before_registration ... ok
+test io_uring_selector::tests::bounded_admission_wakes_for_cancellation_and_closure ... ok
+test io_uring_selector::tests::close_returns_pending_owners_and_cancellation_tolerates_retired_requests ... ok
+test io_uring_selector::tests::convenience_driver_loop_reports_the_original_failure ... ok
+test io_uring_selector::tests::cooperative_cancellation_waits_for_original_completion_and_returns_the_owner ... ok
+test io_uring_selector::tests::deferred_cancellations_prevent_waiting_while_originals_fill_the_submission_queue ... ok
+test io_uring_selector::tests::driver_failure_retains_submitted_storage_and_wakes_waiters_with_a_panic ... ok
+test io_uring_selector::tests::dropping_an_undriven_driver_returns_queued_buffers_and_closes_fallback ... ok
+test io_uring_selector::tests::dropping_local_driver_returns_queued_owners_before_shutdown_and_allows_reentrant_wakes ... ok
+test io_uring_selector::tests::closing_a_full_local_batch_drains_all_accepted_owners ... ok
+test io_uring_selector::tests::event_loop_wakers_and_notification_errors_do_not_lose_work ... ok
+test io_uring_selector::tests::empty_operations_keep_native_access_mode_errors ... ok
+test io_uring_selector::tests::eventfd_creation_reports_descriptor_exhaustion ... ok
+test io_uring_selector::tests::failed_notification_completion_still_retires_original_completions_in_the_batch ... ok
+test io_uring_selector::tests::fresh_bound_worker_attempts_optional_upgrade_without_losing_queued_io ... ok
+test io_uring_selector::tests::full_eventfd_preserves_existing_notifications_without_failing_the_waker ... ok
+test io_uring_selector::tests::full_submission_queue_defers_cancellations_and_shutdown_tolerates_duplicate_requests ... ok
+test io_uring_selector::tests::full_submission_queue_defers_waiting_until_the_notification_can_be_armed ... ok
+test io_uring_selector::tests::idle_ring_waits_honor_finite_timeouts_and_rearm_after_notifications ... ok
+test io_uring_selector::tests::idle_turn_consumes_local_and_remote_notifications_together ... ok
+test io_uring_selector::tests::idle_wait_publishes_completions_and_preserves_explicit_wakes ... ok
+test io_uring_selector::tests::idle_waits_do_not_read_the_eventfd_without_a_notification_completion ... ok
+test io_uring_selector::tests::interrupted_notification_reads_yield_without_losing_the_wake ... ok
+test io_uring_selector::tests::lazy_precancelled_empty_invalid_and_closed_operations_preserve_the_buffer ... ok
+test io_uring_selector::tests::local_notifications_match_the_ring_controller_including_nested_workers ... ok
+test io_uring_selector::tests::local_readiness_submission_can_submit_and_wait_in_one_turn ... ok
+test io_uring_selector::tests::migrated_cancellation_cannot_overtake_a_queued_submission ... ok
+test io_uring_selector::tests::movable_driver_never_upgrades_and_completes_inflight_io_after_thread_migration ... ok
+test io_uring_selector::tests::moving_a_waiter_to_another_thread_keeps_cancellation_on_the_original_ring ... ok
+test io_uring_selector::tests::native_workers_use_distinct_rings_without_external_submission_routing ... ok
+test io_uring_selector::tests::nested_selectors_restore_routes_and_never_use_another_selectors_ring ... ok
+test io_uring_selector::tests::nonblocking_and_productive_turns_do_not_prepare_an_idle_wait ... ok
+test io_uring_selector::tests::nonblocking_turn_preserves_notifications_for_the_next_idle_turn ... ok
+test io_uring_selector::tests::notification_completion_read_failure_stops_the_driver ... ok
+test io_uring_selector::tests::notification_read_failure_after_an_idle_wait_stops_the_driver ... ok
+test io_uring_selector::tests::notifications_racing_idle_preparation_remain_observable ... ok
+test io_uring_selector::tests::one_entry_ring_submits_payload_and_cancellation_before_notification ... ok
+test io_uring_selector::tests::one_notification_read_clears_coalesced_wakes_without_a_second_read ... ok
+test io_uring_selector::multishot::tests::construction_failures_release_admission_and_close_races_notify_the_receiver ... ok
+test io_uring_selector::tests::owner_wakes_coalesce_without_writes_and_survive_productive_turns ... ok
+test io_uring_selector::tests::optional_worker_upgrade_failures_preserve_the_valid_ring_and_queued_io ... ok
+test io_uring_selector::monitor::tests::urgent_tcp_boundary_keeps_trailing_bytes_readable ... ok
+test io_uring_selector::tests::partial_ring_construction_releases_previously_created_drivers ... ok
+test io_uring_selector::tests::pending_submissions_are_flushed_before_preparing_to_sleep ... ok
+test io_uring_selector::tests::readiness_submission_is_deferred_for_at_most_one_nonblocking_turn ... ok
+test io_uring_selector::tests::preparing_user_buffers_returns_to_the_executor_before_waiting ... ok
+test io_uring_selector::tests::remote_wakes_interrupt_entered_workers_during_idle_preparation ... ok
+test io_uring_selector::tests::remote_notification_retires_before_waiting_with_a_socket_read_pending ... ok
+test io_uring_selector::tests::repeated_external_notifications_cannot_starve_a_one_entry_ring_payload ... ok
+test io_uring_selector::tests::setup_probes_and_errors_are_explicit ... ok
+test io_uring_selector::tests::stopping_one_ring_closes_the_group_and_shared_fallback ... ok
+test io_uring_selector::tests::successful_completion_wins_cancellation_and_releases_the_file_before_waking ... ok
+test io_uring_selector::tests::submission_racing_shutdown_or_driver_exit_returns_unpublished_storage ... ok
+test io_uring_selector::tests::workers_route_locally_and_external_operations_share_ring_capacity_fairly ... ok
+test io_uring_selector::tests::transient_syscall_errors_preserve_progress_and_fatal_errors_stop_the_driver ... ok
+test io_uring_selector::tests::external_admission_remains_bounded_under_contention ... ok
+test operation_state::tests::close_unregisters_abandoned_waiters_and_can_wait_again ... ok
+test operation_state::tests::collected_operations_reuse_the_lane_after_abandoned_close_waits ... ok
+test operation_state::tests::admission_observes_cross_thread_retirement_before_reusing_the_lane ... ok
+test operation_state::tests::retirement_releases_the_owned_value_before_waking_close ... ok
+test retained_socket::tests::oversized_native_messages_are_rejected_before_accessing_payload_pages ... ok
+test retained_socket::tests::scalar_datagrams_transfer_and_consume_empty_messages ... ok
+test retained_socket::tests::scalar_stream_reads_preserve_peek_empty_ranges_and_would_block ... ok
+test retained_socket::tests::scalar_stream_writes_preserve_empty_ranges_and_report_broken_peers ... ok
+test operation_state::tests::retirement_racing_close_cannot_lose_its_wakeup ... ok
+test io_uring_socket_stream_reader::tests::default_conservative_path_keeps_normal_data_readable_at_urgent_marks ... ok
+test io_uring_socket_stream_reader::tests::opt_in_reads_past_urgent_marks_with_or_without_an_alias_consuming_oob ... ok
+test io_uring_selector::multishot::tests::concurrent_completion_publication_preserves_receive_wakeups ... ok
+test io_uring_selector::stream_writer::tests::stalled_write_finishes_and_releases_its_owner_without_polling_a_writer_future ... ok
+test io_uring_selector::stream_writer::tests::completion_callbacks_can_cancel_or_close_a_waiting_admission_before_its_first_byte ... ok
+test io_uring_selector::multishot::pool::tests::group_identifiers_are_bounded_and_reused_after_release ... ok
+
+test result: ok. 224 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 18.25s
+
+     Running tests/bound_io.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/bound_io-95f5954985af83da)
+
+running 3 tests
+test packet_reads_keep_peek_addresses_truncation_and_empty_datagrams ... ok
+test stream_reads_can_switch_between_owned_and_borrowed_storage ... ok
+test abandoned_owned_socket_transfers_reserve_the_lane_until_retirement ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/conformance.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/conformance-b61fb109470ec023)
+
+running 276 tests
+test independent_selector::abandoned_resource_operation ... ok
+test independent_selector::bound_file_handles_reject_cancelled_and_closed_operations ... ok
+test independent_selector::accepted_write_progresses_without_polling_its_completion ... ok
+test directional_monitors_work_through_the_native_scheduler ... ok
+test fallback_capabilities_compose_with_completion_io ... ok
+test independent_selector::bound_file_handles_preserve_cursor_offsets_and_ownership ... ok
+test directional_monitors_work_with_an_independent_driver ... ok
+test composed_tasks_clocks_and_socket_completions_share_one_explicit_scheduler ... ok
+test independent_selector::bound_file_submissions_separate_acceptance_from_owner_collection ... ok
+test independent_selector::close_retires_accepted_work_before_its_completion_is_collected ... ok
+test independent_selector::pending_resource_retirement ... ok
+test independent_selector::metadata ... ok
+test independent_selector::independent_readers ... ok
+test independent_selector::create ... ok
+test independent_selector::dropping_an_unpolled_accepted_completion_releases_only_after_retirement ... ok
+test independent_selector::resource_cancellation ... ok
+test independent_selector::read ... ok
+test independent_selector::seek ... ok
+test independent_selector::read_at ... ok
+test independent_selector::resource_write_error ... ok
+test independent_selector::resource_inflight_cancellation ... ok
+test independent_selector::submission_is_lazy_and_pre_cancelled_admission_returns_the_owner ... ok
+test independent_selector::sync ... ok
+test independent_selector::submitted_reads_and_writes_return_the_original_storage ... ok
+test independent_selector::sequential_reader_writer ... ok
+test independent_selector::write_at ... ok
+test independent_selector::truncate_grow ... ok
+test independent_selector::write ... ok
+test independent_selector::write_error ... ok
+test native_composition::abandoned_resource_operation ... ok
+test independent_selector::truncate_shrink ... ok
+test native_composition::accepted_write_progresses_without_polling_its_completion ... ok
+test native_composition::bound_file_handles_reject_cancelled_and_closed_operations ... ok
+test native_composition::bound_file_submissions_separate_acceptance_from_owner_collection ... ok
+test native_composition::metadata ... ok
+test native_composition::close_retires_accepted_work_before_its_completion_is_collected ... ok
+test native_composition::bound_file_handles_preserve_cursor_offsets_and_ownership ... ok
+test native_composition::create ... ok
+test native_composition::independent_readers ... ok
+test native_composition::dropping_an_unpolled_accepted_completion_releases_only_after_retirement ... ok
+test native_composition::pending_resource_retirement ... ok
+test native_composition::read_at ... ok
+test native_composition::read ... ok
+test native_composition::resource_inflight_cancellation ... ok
+test native_composition::resource_cancellation ... ok
+test native_composition::sync ... ok
+test native_composition::submission_is_lazy_and_pre_cancelled_admission_returns_the_owner ... ok
+test native_composition::resource_write_error ... ok
+test native_composition::submitted_reads_and_writes_return_the_original_storage ... ok
+test native_composition::seek ... ok
+test native_composition::truncate_grow ... ok
+test native_composition::truncate_shrink ... ok
+test native_composition::sequential_reader_writer ... ok
+test native_ipv4::borrowed_datagram::addresses_peek_and_truncation ... ok
+test native_composition::write_at ... ok
+test native_composition::write ... ok
+test native_ipv4::borrowed_datagram::empty_messages ... ok
+test native_ipv4::borrowed_datagram::pending_cancellation ... ok
+test native_ipv4::borrowed_message::pending_cancellation ... ok
+test native_ipv4::borrowed_message::abandoned_receives ... ok
+test native_ipv4::borrowed_message::pre_cancelled ... ok
+test native_ipv4::borrowed_message::stack_transfers ... ok
+test native_ipv4::borrowed_scalar::abandoned_receives ... ok
+test native_composition::write_error ... ok
+test native_ipv4::borrowed_message::readiness ... ok
+test native_ipv4::borrowed_scalar::pending_cancellation ... ok
+test native_ipv4::borrowed_scalar::pre_cancelled ... ok
+test native_ipv4::borrowed_scalar::readiness_and_eof ... ok
+test native_ipv4::datagram::pending_receive_cancellation ... ok
+test native_ipv4::borrowed_scalar::stack_transfers ... ok
+test native_ipv4::datagram::addresses_peek_and_truncation ... ok
+test native_ipv4::message::pending_receive_cancellation ... ok
+test native_ipv4::datagram::empty_messages_and_boundaries ... ok
+test native_ipv4::message::pre_cancelled ... ok
+test native_ipv4::packet_handles::owned ... ok
+test native_ipv4::message::prepared_transfers ... ok
+test native_ipv4::pooled_messages ... ok
+test native_ipv4::packet_handles::borrowed ... ok
+test native_ipv4::packet_handles::cancellation ... ok
+test native_ipv4::pooled_stream_eof ... ok
+test native_ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test native_ipv6::borrowed_datagram::addresses_peek_and_truncation ... ok
+test native_ipv4::scalar::pending_read_cancellation ... ok
+test native_ipv6::borrowed_datagram::empty_messages ... ok
+test native_ipv4::scalar::pre_cancelled ... ok
+test native_ipv4::scalar::shutdown_and_eof ... ok
+test native_ipv6::borrowed_datagram::pending_cancellation ... ok
+test native_ipv6::borrowed_message::stack_transfers ... ok
+test native_ipv6::borrowed_message::pre_cancelled ... ok
+test native_ipv6::borrowed_scalar::abandoned_receives ... ok
+test native_ipv6::borrowed_message::abandoned_receives ... ok
+test native_ipv6::borrowed_message::pending_cancellation ... ok
+test native_ipv4::scalar::transfer ... ok
+test native_ipv6::borrowed_message::readiness ... ok
+test native_ipv6::borrowed_scalar::pending_cancellation ... ok
+test native_ipv6::borrowed_scalar::pre_cancelled ... ok
+test native_ipv6::borrowed_scalar::readiness_and_eof ... ok
+test native_ipv6::datagram::pending_receive_cancellation ... ok
+test native_ipv6::borrowed_scalar::stack_transfers ... ok
+test native_ipv6::datagram::addresses_peek_and_truncation ... ok
+test native_ipv6::message::pre_cancelled ... ok
+test native_ipv6::datagram::empty_messages_and_boundaries ... ok
+test native_ipv6::message::pending_receive_cancellation ... ok
+test native_ipv6::packet_handles::cancellation ... ok
+test native_ipv6::message::prepared_transfers ... ok
+test native_ipv6::packet_handles::borrowed ... ok
+test native_ipv6::pooled_messages ... ok
+test native_ipv6::packet_handles::owned ... ok
+test native_ipv6::pooled_stream_eof ... ok
+test native_ipv6::scalar::pre_cancelled ... ok
+test native_ipv6::scalar::pending_read_cancellation ... ok
+test native_ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test native_ipv6::scalar::shutdown_and_eof ... ok
+test native_ipv6::scalar::transfer ... ok
+test native_worker_rings::abandoned_resource_operation ... ok
+test native_worker_rings::accepted_write_progresses_without_polling_its_completion ... ok
+test native_worker_rings::bound_file_handles_reject_cancelled_and_closed_operations ... ok
+test native_worker_rings::bound_file_handles_preserve_cursor_offsets_and_ownership ... ok
+test native_worker_rings::close_retires_accepted_work_before_its_completion_is_collected ... ok
+test native_worker_rings::create ... ok
+test native_worker_rings::bound_file_submissions_separate_acceptance_from_owner_collection ... ok
+test native_worker_rings::dropping_an_unpolled_accepted_completion_releases_only_after_retirement ... ok
+test native_worker_rings::metadata ... ok
+test native_worker_rings::independent_readers ... ok
+test native_worker_rings::resource_cancellation ... ok
+test native_worker_rings::pending_resource_retirement ... ok
+test native_worker_rings::read_at ... ok
+test native_worker_rings::read ... ok
+test native_worker_rings::resource_inflight_cancellation ... ok
+test native_worker_rings::resource_write_error ... ok
+test native_worker_rings::seek ... ok
+test native_worker_rings::submission_is_lazy_and_pre_cancelled_admission_returns_the_owner ... ok
+test native_worker_rings::sequential_reader_writer ... ok
+test native_worker_rings::truncate_grow ... ok
+test native_worker_rings::truncate_shrink ... ok
+test native_worker_rings::submitted_reads_and_writes_return_the_original_storage ... ok
+test native_worker_rings::write_error ... ok
+test native_worker_rings::write ... ok
+test one_thread_can_poll_a_borrowing_future_and_drive_the_ring ... ok
+test native_worker_rings::write_at ... ok
+test native_worker_rings::sync ... ok
+test ordered_writer_native::bound_io ... ok
+test ordered_writer_native::ordering ... ok
+test ordered_writer_selector::bound_io ... ok
+test ordered_writer_selector::close_pending ... ok
+test ordered_writer_native::close_pending ... ok
+test ordered_writer_selector::ordering ... ok
+test ordered_writer_worker_rings::bound_io ... ok
+test ordered_writer_worker_rings::close_pending ... ok
+test ordered_writer_selector::abandoned_admission ... ok
+test ordered_writer_native::abandoned_admission ... ok
+test ordered_writer_worker_rings::abandoned_admission ... ok
+test ordered_writer_worker_rings::ordering ... ok
+test selector_ipv4::borrowed_datagram::addresses_peek_and_truncation ... ok
+test selector_ipv4::borrowed_datagram::empty_messages ... ok
+test pooled_socket_receivers_work_on_worker_owned_rings ... ok
+test selector_ipv4::borrowed_datagram::pending_cancellation ... ok
+test selector_ipv4::borrowed_message::pending_cancellation ... ok
+test selector_ipv4::borrowed_message::abandoned_receives ... ok
+test selector_ipv4::borrowed_message::readiness ... ok
+test selector_ipv4::borrowed_message::pre_cancelled ... ok
+test selector_ipv4::borrowed_message::stack_transfers ... ok
+test selector_ipv4::borrowed_scalar::abandoned_receives ... ok
+test selector_ipv4::borrowed_scalar::pending_cancellation ... ok
+test selector_ipv4::borrowed_scalar::pre_cancelled ... ok
+test selector_ipv4::borrowed_scalar::stack_transfers ... ok
+test selector_ipv4::borrowed_scalar::readiness_and_eof ... ok
+test selector_ipv4::datagram::empty_messages_and_boundaries ... ok
+test selector_ipv4::datagram::addresses_peek_and_truncation ... ok
+test selector_ipv4::datagram::pending_receive_cancellation ... ok
+test selector_ipv4::message::pending_receive_cancellation ... ok
+test selector_ipv4::message::prepared_transfers ... ok
+test selector_ipv4::message::pre_cancelled ... ok
+test selector_ipv4::packet_handles::borrowed ... ok
+test selector_ipv4::packet_handles::cancellation ... ok
+test selector_ipv4::packet_handles::owned ... ok
+test selector_ipv4::pooled_messages ... ok
+test selector_ipv4::pooled_stream_eof ... ok
+test selector_ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test selector_ipv4::scalar::pending_read_cancellation ... ok
+test selector_ipv4::scalar::pre_cancelled ... ok
+test selector_ipv4::scalar::shutdown_and_eof ... ok
+test selector_ipv6::borrowed_datagram::addresses_peek_and_truncation ... ok
+test selector_ipv6::borrowed_datagram::empty_messages ... ok
+test selector_ipv4::scalar::transfer ... ok
+test selector_ipv6::borrowed_datagram::pending_cancellation ... ok
+test selector_ipv6::borrowed_message::abandoned_receives ... ok
+test selector_ipv6::borrowed_message::pending_cancellation ... ok
+test selector_ipv6::borrowed_message::pre_cancelled ... ok
+test selector_ipv6::borrowed_message::readiness ... ok
+test selector_ipv6::borrowed_message::stack_transfers ... ok
+test selector_ipv6::borrowed_scalar::abandoned_receives ... ok
+test selector_ipv6::borrowed_scalar::pending_cancellation ... ok
+test selector_ipv6::borrowed_scalar::pre_cancelled ... ok
+test selector_ipv6::borrowed_scalar::readiness_and_eof ... ok
+test selector_ipv6::borrowed_scalar::stack_transfers ... ok
+test selector_ipv6::datagram::addresses_peek_and_truncation ... ok
+test selector_ipv6::datagram::empty_messages_and_boundaries ... ok
+test selector_ipv6::datagram::pending_receive_cancellation ... ok
+test selector_ipv6::message::pending_receive_cancellation ... ok
+test selector_ipv6::message::pre_cancelled ... ok
+test selector_ipv6::message::prepared_transfers ... ok
+test selector_ipv6::packet_handles::borrowed ... ok
+test selector_ipv6::packet_handles::cancellation ... ok
+test selector_ipv6::packet_handles::owned ... ok
+test selector_ipv6::pooled_messages ... ok
+test selector_ipv6::pooled_stream_eof ... ok
+test selector_ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test selector_ipv6::scalar::pending_read_cancellation ... ok
+test selector_ipv6::scalar::pre_cancelled ... ok
+test selector_ipv6::scalar::shutdown_and_eof ... ok
+test workers_ipv4::borrowed_datagram::addresses_peek_and_truncation ... ok
+test selector_ipv6::scalar::transfer ... ok
+test workers_ipv4::borrowed_datagram::empty_messages ... ok
+test workers_ipv4::borrowed_datagram::pending_cancellation ... ok
+test workers_ipv4::borrowed_message::abandoned_receives ... ok
+test workers_ipv4::borrowed_message::pending_cancellation ... ok
+test workers_ipv4::borrowed_message::pre_cancelled ... ok
+test workers_ipv4::borrowed_message::readiness ... ok
+test workers_ipv4::borrowed_scalar::abandoned_receives ... ok
+test workers_ipv4::borrowed_message::stack_transfers ... ok
+test workers_ipv4::borrowed_scalar::pending_cancellation ... ok
+test workers_ipv4::borrowed_scalar::pre_cancelled ... ok
+test workers_ipv4::borrowed_scalar::stack_transfers ... ok
+test workers_ipv4::borrowed_scalar::readiness_and_eof ... ok
+test workers_ipv4::datagram::addresses_peek_and_truncation ... ok
+test workers_ipv4::datagram::empty_messages_and_boundaries ... ok
+test workers_ipv4::datagram::pending_receive_cancellation ... ok
+test workers_ipv4::message::pending_receive_cancellation ... ok
+test workers_ipv4::message::pre_cancelled ... ok
+test workers_ipv4::message::prepared_transfers ... ok
+test workers_ipv4::packet_handles::borrowed ... ok
+test workers_ipv4::packet_handles::cancellation ... ok
+test workers_ipv4::pooled_messages ... ok
+test workers_ipv4::packet_handles::owned ... ok
+test workers_ipv4::pooled_stream_eof ... ok
+test workers_ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test workers_ipv4::scalar::pending_read_cancellation ... ok
+test workers_ipv4::scalar::pre_cancelled ... ok
+test workers_ipv4::scalar::shutdown_and_eof ... ok
+test workers_ipv6::borrowed_datagram::addresses_peek_and_truncation ... ok
+test workers_ipv4::scalar::transfer ... ok
+test workers_ipv6::borrowed_datagram::empty_messages ... ok
+test workers_ipv6::borrowed_datagram::pending_cancellation ... ok
+test workers_ipv6::borrowed_message::abandoned_receives ... ok
+test workers_ipv6::borrowed_message::pending_cancellation ... ok
+test workers_ipv6::borrowed_message::pre_cancelled ... ok
+test workers_ipv6::borrowed_message::readiness ... ok
+test workers_ipv6::borrowed_message::stack_transfers ... ok
+test workers_ipv6::borrowed_scalar::pending_cancellation ... ok
+test workers_ipv6::borrowed_scalar::abandoned_receives ... ok
+test workers_ipv6::borrowed_scalar::pre_cancelled ... ok
+test workers_ipv6::borrowed_scalar::readiness_and_eof ... ok
+test workers_ipv6::borrowed_scalar::stack_transfers ... ok
+test workers_ipv6::datagram::addresses_peek_and_truncation ... ok
+test workers_ipv6::datagram::pending_receive_cancellation ... ok
+test workers_ipv6::datagram::empty_messages_and_boundaries ... ok
+test workers_ipv6::message::pre_cancelled ... ok
+test workers_ipv6::message::pending_receive_cancellation ... ok
+test workers_ipv6::message::prepared_transfers ... ok
+test workers_ipv6::packet_handles::borrowed ... ok
+test workers_ipv6::packet_handles::cancellation ... ok
+test workers_ipv6::packet_handles::owned ... ok
+test workers_ipv6::pooled_messages ... ok
+test workers_ipv6::pooled_stream_eof ... ok
+test workers_ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test workers_ipv6::scalar::pending_read_cancellation ... ok
+test workers_ipv6::scalar::pre_cancelled ... ok
+test workers_ipv6::scalar::shutdown_and_eof ... ok
+test workers_ipv6::scalar::transfer ... ok
+test ordered_writer_native::overlapped_read_write ... ok
+test ordered_writer_selector::overlapped_read_write ... ok
+test ordered_writer_selector::independent_progress ... ok
+test ordered_writer_native::independent_progress ... ok
+test ordered_writer_worker_rings::overlapped_read_write ... ok
+test ordered_writer_worker_rings::independent_progress ... ok
+
+test result: ok. 276 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.02s
+
+     Running tests/process_wait.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/process_wait-74798e685c3ec39a)
+
+running 10 tests
+test process_child_fixture ... ignored, child fixture, invoked by the process-wait suite
+test process_group_fixture ... ignored, isolated process-group fixture
+test fixture_cleanup ... ok
+
+running 1 test
+test pending_shutdown ... ok
+test pending_cancellation ... ok
+test exit_status ... ok
+test lazy_and_pre_cancelled ... ok
+test suspended_wait_after_shutdown ... ok
+test dropped_and_forgotten_waits ... ok
+test process_group_fixture ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.01s
+
+test process_groups ... ok
+
+test result: ok. 8 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/resource_options.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/resource_options-e701911c71a83a9e)
+
+running 11 tests
+test packet_borrowing_preserves_peek_and_cancellation_before_closed_rejection ... ok
+test packet_flags_preserve_addresses_and_owned_ranges_after_close_or_cancellation ... ok
+test stopped_selector_rejects_lazy_pool_setup_and_file_writer_construction ... ok
+test each_stream_write_form_follows_accepted_output_without_reordering ... ok
+test stream_flags_owned_vectors_and_default_pool_preserve_byte_order ... ok
+test stream_read_cancellation_and_closed_admission_preserve_cleanup ... ok
+test stream_socket_failures_preserve_borrowed_and_owned_storage ... ok
+test abandoned_operations_reject_owned_successors_until_retirement ... ok
+test stream_storage_supports_owned_peeks_cancellation_and_every_eof_form ... ok
+test stream_read_errors_and_cancellation_release_pool_capacity ... ok
+test cancelled_successors_preserve_their_owners_and_leave_cleanup_available ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+     Running tests/shared_pools.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/shared_pools-6e4d07221e67b802)
+
+running 2 tests
+test shared_receive_preserves_alignment_empty_datagrams_and_wait_cancellation ... ok
+test shared_pool_preserves_capacity_and_retained_payloads_across_workers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_native-5e2f4aee3b23b033)
+
+running 83 tests
+test native_scheduler::driver_tests::self_wakes_wait_for_the_next_driver_turn ... ok
+test native_scheduler::driver_tests::completion_batch_is_published_before_any_local_task_resumes ... ok
+test native_scheduler::driver_tests::busy_tasks_do_not_starve_driver_turns ... ok
+test native_scheduler::driver_tests::invalid_configuration_and_partial_startup_drop_every_driver ... ok
+test native_scheduler::driver_tests::closed_workers_keep_driving_abandoned_operations_until_retirement ... ok
+test native_scheduler::driver_tests::remote_task_wakes_still_interrupt_an_idle_single_worker ... ok
+test native_scheduler::driver_tests::idle_completions_resume_tasks_without_interrupting_their_own_worker ... ok
+test native_scheduler::driver_tests::io_only_batches_collect_completions_without_a_zero_timeout_probe ... ok
+test native_scheduler::tests::zero_executor_workers_and_timer_slots_are_rejected ... ok
+test task_service::tests::busy_local_queue_regularly_services_external_submissions ... ok
+test native_scheduler::driver_tests::tasks_keep_running_after_driver_retirement_or_failure ... ok
+test native_scheduler::tests::block_on_inside_a_worker_is_rejected_without_stopping_execution ... ok
+test native_scheduler::tests::default_scheduler_and_borrowed_non_send_root_future_work ... ok
+test task_service::tests::concurrent_spawners_share_initial_distribution ... ok
+test task_service::tests::conformance::closed_service_rejects_unpolled_input ... ok
+
+running 1 test
+test task_service::tests::conformance::abandoned_handle_releases_completed_output ... ok
+test task_service::tests::conformance::abandonment_destroys_task ... ok
+test task_service::tests::conformance::preserves_panic_payload ... ok
+test task_service::tests::conformance::output_and_handle_transfer ... ok
+test task_service::tests::conformance::cooperative_cancellation ... ok
+test task_service::tests::independently_driven_selectors_also_report_worker_startup_failures ... 
+thread 'base-native-task' (125681) panicked at crates/native/src/task_service/tests.rs:266:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+ok
+
+thread '<unnamed>' (125673) panicked at crates/native/src/task_service/tests.rs:253:13:
+abandoned destructor
+test task_service::tests::conformance::registers_before_first_poll ... ok
+
+thread 'base-native-task' (125681) panicked at crates/native/src/task_service/tests.rs:292:28:
+Box<dyn Any>
+
+thread '<unnamed>' (125673) panicked at crates/native/src/task_service/tests.rs:253:13:
+abandoned destructor
+
+thread 'base-native-task' (125681) panicked at crates/native/src/task_service/tests.rs:278:13:
+completed future destructor
+
+thread 'base-native-task' (125681) panicked at crates/native/src/task_service/tests.rs:253:13:
+abandoned destructor
+test task_service::tests::future_destructor_panic_is_reported_and_worker_stays_available ... ok
+test task_service::tests::initial_tasks_are_distributed_before_their_first_poll ... ok
+test task_service::tests::dispatch::handle_drop_defers_destruction_until_active_poll_returns ... ok
+test task_service::tests::intermediate_runnable_retirement_does_not_wake_drain_waiters ... ok
+test task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 82 filtered out; finished in 0.00s
+
+test task_service::tests::quiescence_before_listening_and_concurrent_abandoned_waiters_preserve_progress ... ok
+test task_service::tests::rejected_future_destructors_can_close_admission_again ... ok
+test task_service::tests::local_work_can_be_stolen_while_its_worker_is_busy ... ok
+test task_service::tests::task_wakes_retain_placement_without_advancing_admission ... ok
+test task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... ok
+test task_service::tests::pinned_tasks::poll_and_destructor_panics_retire_the_future_once ... ok
+test test_support::watchdog_propagates_assertion_panics ... ok
+test worker::tests::a_nonblocking_turn_without_a_driver_does_not_park ... ok
+test worker::tests::batch_search_admits_incoming_tasks_before_local_work ... ok
+test worker::tests::idle_empty_search_parks_while_scheduler_is_running ... ok
+test task_service::tests::submissions_from_another_native_worker_use_the_selected_scheduler ... ok
+test worker::tests::idle_empty_search_skips_park_after_shutdown ... ok
+test task_service::tests::worker_startup_failures_are_reported ... ok
+test worker::tests::idle_retry_restores_worker_sleep_state ... ok
+test task_service::tests::tasks_progress_without_occupying_syscall_workers_and_survive_admission_close ... ok
+test worker::tests::idle_success_restores_worker_state_and_returns_the_runnable ... ok
+test worker::tests::idle_wake_falls_back_when_the_preferred_worker_is_busy ... ok
+test worker::tests::idle_recheck_finds_work_published_after_a_quiescent_search ... ok
+test worker::tests::idle_wake_prefers_the_requested_sleeping_worker ... ok
+test worker::tests::idle_worker_can_steal_both_ready_generations ... ok
+test worker::tests::local_worker_wake_clears_sleeping_without_interrupting_its_driver ... ok
+test task_service::tests::pinned_tasks::address_is_stable_through_thread_changes_completion_and_abandonment ... ok
+test worker::tests::idle_worker_steals_remote_wakes_when_preferred_worker_is_busy ... ok
+test worker::tests::records_retry_separately_from_empty_and_success ... ok
+test worker::tests::nested_admission_distributes_tasks_instead_of_inheriting_the_worker ... ok
+test worker::tests::search_reports_retry_only_when_a_queue_raced ... ok
+test worker::tests::worker_yields_after_a_concurrent_steal_retry ... ok
+test worker::tests::remote_wake_retains_the_unpark_token_and_interrupts_the_driver_once ... ok
+test worker::tests::publication_after_the_idle_recheck_retains_a_wake ... ok
+test worker_timers::tests::conformance::overflow_registers_no_timer ... ok
+test worker_timers::tests::closure_rejects_queued_registrations_and_notifies_late_updates ... ok
+test worker_timers::tests::conformance::expiry_wins_concurrent_cancellation ... ok
+test worker_timers::tests::conformance::pending_cancellation_and_wakeup ... ok
+test worker_timers::tests::conformance::lazy_registration_and_drop ... ok
+test worker_timers::tests::conformance::absolute_deadline_and_wakeup ... ok
+test worker_timers::tests::conformance::pre_cancelled_waits ... ok
+test worker_timers::tests::dropping_unacknowledged_registration_releases_its_slot ... ok
+test worker_timers::tests::conformance::relative_wait_starts_on_poll ... ok
+test worker_timers::tests::calls_from_another_scheduler_use_the_explicitly_supplied_scheduler ... ok
+test worker_timers::tests::full_capacity_reclaims_cancelled_timers_and_shutdown_rejects_waits ... ok
+test worker_timers::tests::conformance::timeout_results_expiry_and_cleanup ... ok
+test worker_timers::tests::local_capacity_and_delayed_updates_obey_registration_ownership ... ok
+test worker_timers::tests::shutdown_waits_for_timer_callbacks_and_live_waits_can_outlast_workers ... ok
+test worker_timers::tests::moving_a_sleep_to_another_worker_updates_and_releases_its_original_queue ... ok
+test worker_timers::tests::worker_conformance::cancellation ... ok
+test worker_timers::tests::pending_registration_notifies_replacement_waker ... ok
+test worker_timers::tests::worker_conformance::deadline ... ok
+test worker_timers::tests::worker_conformance::expiry_wins ... ok
+test worker_timers::tests::worker_conformance::overflow ... ok
+test worker_timers::tests::worker_conformance::pre_cancelled ... ok
+test worker_timers::tests::worker_conformance::registration ... ok
+test worker_timers::tests::worker_conformance::relative ... ok
+test worker_timers::tests::worker_conformance::timeout ... ok
+test worker_timers::tests::worker_sleep_registration_repoll_and_drop_allocate_nothing ... ok
+test worker_timers::tests::earlier_external_deadline_interrupts_worker_wait ... ok
+test native_scheduler::driver_tests::timer_deadlines_bound_driver_waits_and_survive_driver_retirement ... ok
+test worker_timers::tests::timer_wakers_can_reenter_and_panic_without_stopping_workers ... ok
+
+test result: ok. 83 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/conformance.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/conformance-646109d016c4c2e9)
+
+running 35 tests
+test blocking_work::pre_cancelled_submission ... ok
+test blocking_work::lazy_submission ... ok
+test blocking_queue::abandoned_handle_does_not_execute ... ok
+test blocking_queue::queued_cancellation_and_admission ... ok
+test blocking_work::preserves_panic_payload ... ok
+test blocking_work::returns_output ... ok
+test files::abandoned_resource_operation ... ok
+test files::accepted_write_progresses_without_polling_its_completion ... ok
+test files::create ... ok
+test files::bound_file_handles_preserve_cursor_offsets_and_ownership ... ok
+test files::bound_file_handles_reject_cancelled_and_closed_operations ... ok
+test files::independent_readers ... ok
+test files::read ... ok
+test files::bound_file_submissions_separate_acceptance_from_owner_collection ... ok
+test files::metadata ... ok
+test files::pending_resource_retirement ... ok
+test files::dropping_an_unpolled_accepted_completion_releases_only_after_retirement ... ok
+test files::close_retires_accepted_work_before_its_completion_is_collected ... ok
+test files::read_at ... ok
+test files::resource_cancellation ... ok
+test files::resource_write_error ... ok
+test files::submission_is_lazy_and_pre_cancelled_admission_returns_the_owner ... ok
+test files::resource_inflight_cancellation ... ok
+test files::seek ... ok
+test files::sequential_reader_writer ... ok
+test files::submitted_reads_and_writes_return_the_original_storage ... ok
+test files::sync ... ok
+test files::truncate_shrink ... ok
+test files::truncate_grow ... ok
+test files::write ... ok
+test files::write_error ... ok
+test files::write_at ... ok
+test files_move_between_threads_and_compatible_scheduler_instances ... ok
+test unix_positioned_operations_preserve_the_shared_cursor ... ok
+test queue_conformance_rejects_cancellation_capacity_and_handle_ownership_violations ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/process_wait.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/process_wait-f20b80f5da403f5e)
+
+running 10 tests
+test process_child_fixture ... ignored, child fixture, invoked by the process-wait suite
+test process_group_fixture ... ignored, isolated process-group fixture
+test fixture_cleanup ... ok
+
+running 1 test
+test pending_shutdown ... ok
+test suspended_wait_after_shutdown ... ok
+test lazy_and_pre_cancelled ... ok
+test pending_cancellation ... ok
+test dropped_and_forgotten_waits ... ok
+test exit_status ... ok
+test process_group_fixture ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.02s
+
+test process_groups ... ok
+
+test result: ok. 8 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/public_capabilities.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/public_capabilities-013bf39cba83d04c)
+
+running 1 test
+test native_preserves_all_public_factories_without_backend_capabilities ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/selector.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/selector-606fafde1b8334d0)
+
+running 7 tests
+test failed_composition_closes_the_supplied_selector ... ok
+test a_partial_selector_keeps_its_own_resource_type_and_needs_no_executor ... ok
+test optional_file_capabilities_preserve_custom_resources_arguments_and_errors ... ok
+test custom_signal_capability_preserves_the_selectors_signal_and_subscription_types ... ok
+test portable_pool_capacity_is_independent_of_worker_count ... ok
+test readiness_is_usable_without_native_task_workers ... ok
+test registered_sockets_options_resolution_and_signals_forward_to_the_selector ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/sockets.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/sockets-3e10ae0f840c8e8d)
+
+running 67 tests
+test ipv4::borrowed_datagrams::pending_cancellation ... ok
+test failed_writes_return_the_original_buffer ... ok
+test ipv4::borrowed_datagrams::empty_messages ... ok
+test ipv4::borrowed_datagrams::addresses_peek_and_truncation ... ok
+test ipv4::borrowed_messages::pending_cancellation ... ok
+test ipv4::borrowed_messages::abandoned_receives ... ok
+test bound_socket_handles_reuse_storage ... ok
+test ipv4::borrowed_messages::stack_transfers ... ok
+test ipv4::borrowed_messages::pre_cancelled ... ok
+test ipv4::borrowed_messages::readiness ... ok
+test ipv4::borrowed_scalar::abandoned_receives ... ok
+test ipv4::borrowed_scalar::pre_cancelled ... ok
+test ipv4::borrowed_scalar::pending_cancellation ... ok
+test ipv4::borrowed_scalar::readiness_and_eof ... ok
+test ipv4::borrowed_scalar::stack_transfers ... ok
+test ipv4::datagrams::addresses_peek_and_truncation ... ok
+test aggregate_socket_helpers_remain_compatible ... ok
+test ipv4::datagrams::empty_messages_and_boundaries ... ok
+test ipv4::messages::pending_receive_cancellation ... ok
+test ipv4::datagrams::pending_receive_cancellation ... ok
+test ipv4::messages::pre_cancelled ... ok
+test ipv4::packet_handles::cancellation ... ok
+test ipv4::packet_handles::borrowed ... ok
+test ipv4::packet_handles::owned ... ok
+test ipv4::pooled_datagram_receiver ... ok
+test ipv4::messages::prepared_transfers ... ok
+test ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test ipv4::scalar::pending_read_cancellation ... ok
+test ipv4::scalar::pre_cancelled ... ok
+test ipv4::pooled_stream_receiver ... ok
+test ipv4::scalar::shutdown_and_eof ... ok
+test ipv6::borrowed_datagrams::empty_messages ... ok
+test ipv6::borrowed_datagrams::addresses_peek_and_truncation ... ok
+test ipv6::borrowed_datagrams::pending_cancellation ... ok
+test ipv4::scalar::transfer ... ok
+test ipv6::borrowed_messages::abandoned_receives ... ok
+test ipv6::borrowed_messages::pending_cancellation ... ok
+test ipv6::borrowed_scalar::abandoned_receives ... ok
+test ipv6::borrowed_messages::stack_transfers ... ok
+test ipv6::borrowed_messages::pre_cancelled ... ok
+test ipv6::borrowed_scalar::pending_cancellation ... ok
+test ipv6::borrowed_messages::readiness ... ok
+test ipv6::borrowed_scalar::pre_cancelled ... ok
+test ipv6::borrowed_scalar::readiness_and_eof ... ok
+test ipv6::borrowed_scalar::stack_transfers ... ok
+test ipv6::datagrams::addresses_peek_and_truncation ... ok
+test ipv6::messages::pending_receive_cancellation ... ok
+test ipv6::datagrams::pending_receive_cancellation ... ok
+test ipv6::datagrams::empty_messages_and_boundaries ... ok
+test ipv6::messages::pre_cancelled ... ok
+test ipv6::messages::prepared_transfers ... ok
+test ipv6::packet_handles::cancellation ... ok
+test ipv6::packet_handles::owned ... ok
+test ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test ipv6::pooled_datagram_receiver ... ok
+test ipv6::scalar::pending_read_cancellation ... ok
+test ipv6::scalar::pre_cancelled ... ok
+test ipv6::packet_handles::borrowed ... ok
+test ipv6::scalar::shutdown_and_eof ... ok
+test pooled_messages_use_the_explicit_native_scheduler ... ok
+test ipv6::scalar::transfer ... ok
+test ipv6::pooled_stream_receiver ... ok
+test selector_packet_handles::borrowed ... ok
+test pooled_stream_uses_the_explicit_native_scheduler ... ok
+test selector_packet_handles::cancellation ... ok
+test selector_packet_handles::owned ... ok
+test sockets_move_between_threads_and_compatible_scheduler_instances ... ok
+
+test result: ok. 67 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/worker_readiness.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/worker_readiness-93f7be1eaacd4899)
+
+running 3 tests
+test shutdown_wakes_a_worker_waiting_for_input ... ok
+test worker_of_another_scheduler_preserves_explicit_selection ... ok
+test default_workers_drive_full_duplex_streams_and_external_root_io ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_selector-088ade9e78ce559a)
+
+running 210 tests
+test blocking_pool::tests::admission_reports_worker_startup_failure ... ok
+test blocking_pool::tests::capacity_wait_rechecks_available_or_closed_state_before_sleeping ... ok
+test blocking_pool::tests::forgetting_an_accepted_completion_can_leak_storage_but_does_not_block_retirement ... ok
+test blocking_pool::tests::abandoned_result_panics_release_capacity_and_preserve_the_worker ... ok
+test blocking_pool::tests::partial_startup_failure_closes_admission_and_releases_started_workers ... ok
+test blocking_pool::tests::immediate_admission_and_empty_drain_need_no_listeners_or_allocations ... ok
+test blocking_pool::tests::draining_waits_for_running_work_and_releases_capacity ... ok
+test blocking_pool::tests::dropping_a_queued_handle_on_another_thread_skips_execution_and_preserves_the_worker ... ok
+test blocking_pool::tests::pending_capacity_and_drain_waits_do_not_allocate_and_unregister_on_drop ... ok
+test blocking_pool::tests::concurrent_first_admissions_share_one_startup ... ok
+test blocking_pool::tests::io_cancellation_returns_owned_input_and_worker_panics_resume_in_the_waiter ... ok
+test blocking_pool::tests::shutdown_during_startup_cannot_admit_work ... ok
+test blocking_pool::tests::shutdown_catches_capture_destructor_panics_and_cancels_other_queued_jobs ... ok
+test blocking_pool::tests::submitted_jobs_survive_abandonment_and_shutdown_with_bounded_admission ... ok
+test blocking_pool::tests::submitted_io_retains_its_buffer_and_capacity_after_unpolled_completion_drop ... ok
+
+running 1 test
+test blocking_pool::tests::shutdown_drain_waits_until_discarded_capture_destructors_finish ... ok
+
+thread '<unnamed>' (126541) panicked at crates/selector/src/blocking_pool/tests.rs:657:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test blocking_pool::tests::skipped_jobs_release_captures_before_reporting_completion ... ok
+test blocking_pool::tests::prepared_work_allocates_only_jobs_and_completion_channels ... ok
+
+thread 'base-native-0' (126552) panicked at crates/selector/src/blocking_pool/tests.rs:657:13:
+Box<dyn Any>
+test bound_io_tests::packet_resources_keep_addresses_and_peeking_and_close_each_transfer_form ... ok
+
+thread 'base-native-0' (126556) panicked at crates/selector/src/blocking_pool/tests.rs:698:25:
+Box<dyn Any>
+
+thread 'base-native-0' (126556) panicked at crates/selector/src/blocking_pool/tests.rs:657:13:
+Box<dyn Any>
+test bound_io_tests::owned_stream_writes_wait_for_earlier_accepted_output ... ok
+test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 209 filtered out; finished in 0.00s
+
+test bound_io_tests::rejected_work_admission_returns_file_and_stream_owners ... ok
+test bound_io_tests::owned_vectors_support_empty_reads_and_packet_addresses ... ok
+test bound_io_tests::stopped_selector_rejects_factories_and_pooled_read_admission ... ok
+test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+test bound_io_tests::stream_input_preserves_peek_and_owned_ranges_and_rejects_closed_calls ... ok
+test bound_io_tests::stream_output_orders_submissions ... ok
+test bound_io_tests::stream_output_supports_borrowed_and_owned_transfers ... ok
+test bound_io_tests::stream_read_errors_preserve_storage_and_closed_selector_waits_retire ... ok
+test file_extensions::tests::advice::lazy_admission ... ok
+test bound_io_tests::stream_socket_errors_remain_observable_after_collection ... ok
+test file_extensions::tests::advice::accepted_work_survives_abandonment ... ok
+test bound_io_tests::stream_output_close_retires_pending_work ... ok
+test file_extensions::tests::advice::validation_and_execution_errors ... ok
+test file_extensions::tests::advice_waiting_for_capacity_can_be_abandoned_and_closed_admission_reports_errors ... ok
+test file_extensions::tests::advice::modes_ranges_and_completion ... ok
+test file_extensions::tests::allocation::extend_preserves_data_and_cursor ... ok
+test file_extensions::tests::allocation::keep_size_reserves_beyond_eof ... ok
+test file_extensions::tests::allocation::lazy_and_pre_cancelled ... ok
+test file_io::tests::file_io_operations_read_and_write_at_the_requested_offset ... ok
+test file_io::tests::read_and_write_reject_offsets_outside_the_platform_range ... ok
+test file_io::tests::close_consumes_the_handle_and_preserves_system_errors ... ok
+test file_io::tests::retries_interrupted_file_operations ... ok
+test file_extensions::tests::allocation::validation_and_execution_errors ... ok
+test native_file::tests::native_retention_keeps_the_file_alive_until_backend_retirement ... ok
+test native_socket::tests::failed_registration_returns_the_original_error ... ok
+test native_socket::tests::direct_nonblocking_calls_support_scalar_and_vectored_datagrams ... ok
+test native_socket::tests::native_retention_preserves_the_registration_until_completion ... ok
+test native_socket::tests::transient_would_block_retries_through_writable_readiness ... ok
+test native_socket::tests::unrelated_polls_do_not_retry_a_blocked_socket_operation ... ok
+test native_socket::tests::readiness_errors_return_without_retrying_the_operation ... ok
+test operation_state::tests::guard_preserves_owned_vectors_and_prepared_ranges ... ok
+test operation_state::tests::lazy_state_tracks_admission_and_retirement ... ok
+test operation_state::tests::panicking_owner_still_publishes_retirement ... ok
+test process_child_fixture ... ignored, child fixture, invoked by process-wait conformance assertions
+test operation_state::tests::retired_results_do_not_block_the_next_operation_or_close ... ok
+test process_io::tests::cancellation_and_io_errors_are_distinct ... ok
+test process_io::tests::interrupted_wait_preserves_the_os_error ... ok
+test process_io::tests::notification_selection_and_setup_failures ... ok
+test process_wait::tests::notification_and_reactor_registration_failures_survive ... ok
+test process_wait::tests::cancelling_a_running_pool_fallback_does_not_kill_the_child ... ok
+test process_wait::tests::interruptions_and_notification_reaping_races_use_the_pool ... ok
+test readiness_driver::epoll::tests::compatible_creation_and_wait_errors_preserve_os_errors_and_retained_events ... ok
+test readiness_driver::epoll::tests::another_thread_can_interrupt_an_indefinite_wait ... ok
+test readiness_driver::epoll::tests::compatible_events_preserve_direction_and_reuse_their_scratch ... ok
+test readiness_driver::epoll::tests::compatible_worker_preserves_duplex_waiters_cancellation_and_closure ... ok
+test operation_state::tests::admission_observes_cross_thread_retirement_before_reusing_the_lane ... ok
+test readiness_driver::epoll::tests::edge_registration_reuses_the_native_buffer_and_deletes_synchronously ... ok
+test readiness_driver::epoll::tests::fatal_notification_and_timer_cleanup_errors_close_the_worker ... ok
+test process_wait::tests::started_fallback_returns_status_after_cancellation ... ok
+test readiness_driver::epoll::tests::native_control_retries_and_propagates_failures_for_every_interest ... ok
+test readiness_driver::epoll::tests::notification_is_retained_drained_and_reusable ... ok
+test readiness_driver::epoll::tests::early_socket_and_notification_wakes_disarm_the_timer ... ok
+test readiness_driver::epoll::tests::native_failed_registration_and_deletion_quarantine_until_stop ... ok
+test readiness_driver::epoll::tests::notification_retries_and_saturation_preserve_wakes ... ok
+test readiness_driver::epoll::tests::constructor_failures_preserve_compatible_backends ... ok
+test readiness_driver::epoll::tests::wait_errors_keep_retained_events_and_disarm_before_returning ... ok
+test readiness_driver::notification::tests::broadcast_replaces_wakers_and_abandonment_only_removes_its_owner ... ok
+test readiness_driver::notification::tests::a_notified_direction_wait_completes_even_after_another_reader_clears_readiness ... ok
+test readiness_driver::epoll::tests::precise_expiry_is_filtered_and_does_not_leave_stale_readiness ... ok
+test readiness_driver::notification::tests::id_exhaustion_preserves_live_waiters_and_rejects_registration ... ok
+test readiness_driver::notification::tests::notification_cutoff_does_not_cover_new_listeners_or_reused_slots ... ok
+test readiness_driver::notification::tests::lazy_registration_checks_readiness_and_closure_after_waker_clone ... ok
+test readiness_driver::notification::tests::notification_during_cancellation_preserves_a_reused_slot ... ok
+test readiness_driver::notification::tests::waker_clone_drop_and_wake_can_reenter_notification ... ok
+test bound_io_tests::stream_output_preserves_accepted_work_after_abandonment ... ok
+test readiness_driver::notification::tests::simultaneous_notifications_deliver_each_registration_once ... ok
+test readiness_driver::tests::a_socket_can_outlive_its_driver_group_without_retaining_the_poller ... ok
+test readiness_driver::tests::closing_one_worker_preserves_another_workers_collected_batch ... ok
+test readiness_driver::tests::cancellation_releases_one_waiter_without_stopping_others ... ok
+test readiness_driver::tests::concurrent_registration_of_the_same_socket_reuses_one_live_record ... ok
+test readiness_driver::tests::collected_pointers_survive_remote_retirement_and_reclaim_at_the_next_boundary ... ok
+test readiness_driver::tests::driver_interruption_is_retryable_but_failure_wakes_all_waiters ... ok
+test readiness_driver::tests::explicit_worker_close_wakes_waits_and_key_exhaustion_never_reuses_a_key ... ok
+test readiness_driver::tests::external_routes_are_round_robin_and_stopped_groups_are_reclaimed ... ok
+test readiness_driver::tests::failed_driver_creation_and_registration_return_the_os_error ... ok
+test readiness_driver::tests::fallback_drivers_retire_without_owning_an_event_queue ... ok
+test readiness_driver::tests::failed_epoll_deletion_quarantines_the_inactive_record_until_stop ... ok
+test readiness_driver::tests::notification_during_syscall_survives_would_block_clear ... ok
+test readiness_driver::tests::inactive_events_do_not_notify_the_old_registration ... ok
+test readiness_driver::tests::readable_delivery_keeps_progress_when_the_opposite_direction_is_full ... ok
+test readiness_driver::tests::publication_allows_remote_exclusive_close_during_a_live_batch ... ok
+test readiness_driver::tests::retirement_interrupts_a_prepared_driver_without_socket_events ... ok
+test readiness_driver::tests::routing_uses_the_selected_group_and_restores_nested_workers ... ok
+test readiness_driver::tests::shutdown_and_driver_drop_wake_pending_waits_and_preserve_immediate_errors ... ok
+test readiness_driver::tests::retired_records_release_on_next_turn_or_driver_drop ... ok
+test readiness_driver::tests::a_pending_future_can_move_to_an_external_thread ... ok
+test readiness_driver::tests::simultaneous_listeners_have_distinct_wakers_and_drop_unregisters_only_one ... ok
+test readiness_driver::tests::worker_delivers_to_all_waiters_and_abandonment_only_removes_its_listener ... ok
+test readiness_driver::tests::socket_can_be_used_by_different_selectors_and_exclusively_closed_remotely ... ok
+test readiness_selector::tests::abandoned_io_and_scheduler_drop_retain_worker_access_until_retirement ... ok
+test readiness_selector::tests::cleanup_completion_preserves_os_and_worker_errors ... ok
+test readiness_selector::tests::cancellation_after_io_dispatch_preserves_the_actual_result ... ok
+test readiness_driver::tests::the_first_callback_can_remotely_replace_sources_in_the_rest_of_the_batch ... ok
+test readiness_selector::tests::invalid_options_and_closed_services_return_errors_and_buffers ... ok
+test readiness_selector::tests::file_errors_and_exclusive_close_are_observable ... ok
+test readiness_selector::tests::startup_failures_preserve_io_ownership_and_report_cleanup_errors ... ok
+test readiness_selector::tests::cleanup_makes_progress_independently_and_accepted_close_survives_abandonment ... ok
+test readiness_socket_stream_reader::tests::a_readability_event_during_a_short_read_is_not_erased ... ok
+test readiness_selector::tests::running_cancellation_preserves_results_and_abandonment_keeps_capacity_occupied ... ok
+test readiness_socket_stream_reader::tests::compile_time_options_preserve_the_pool_eof_and_closed_state ... ok
+test readiness_socket_stream_reader::tests::cancellation_shutdown_and_immediate_errors_preserve_stream_state ... ok
+test readiness_socket_stream_reader::tests::data_and_peer_eof_in_one_event_leave_eof_immediately_readable ... ok
+test readiness_socket_stream_reader::tests::short_reads_wait_without_a_syscall_and_full_reads_keep_ready ... ok
+test readiness_socket_stream_writer::cancellation_tests::cancellation_between_ready_short_sends_stops_accepted_output ... ok
+test readiness_socket_stream_writer::cancellation_tests::cancellation_interrupts_a_pending_send ... ok
+test readiness_socket_stream_writer::readiness_tests::a_blocked_registered_write_waits_without_a_same_generation_probe ... ok
+test readiness_socket_stream_writer::readiness_tests::blocked_writes_report_failed_registration_and_closure_during_the_first_wait ... ok
+test readiness_socket_stream_writer::readiness_tests::pending_writes_observe_cancellation_and_scheduler_closure ... ok
+test readiness_socket_stream_writer::readiness_tests::ready_results_win_cancellation_and_closure_after_admission ... ok
+test readiness_driver::tests::deregistered_keys_are_removed_and_never_reused ... ok
+test readiness_socket_stream_reader::tests::default_reader_rejects_urgent_data_and_opt_in_preserves_the_live_reader ... ok
+test readiness_socket_stream_writer::readiness_tests::ready_write_admission_is_lazy_and_prevents_syscalls_after_cancel_or_close ... ok
+test readiness_socket_stream_writer::readiness_tests::ready_writes_skip_registration_and_blocked_writes_retain_it ... ok
+test resolver::tests::conformance::configured_named_service ... ok
+test readiness_socket_stream_writer::tests::submitted_nonempty_output_reports_zero_progress ... ok
+test resolver::tests::conformance::input_validation ... ok
+test resolver::tests::conformance::forwards_all_hints ... ok
+test resolver::tests::conformance::lazy_and_pre_cancelled ... ok
+test resolver::tests::conformance::numeric_host_prevents_name_lookup ... ok
+test resolver::tests::conformance::ordered_owned_results ... ok
+test resolver::tests::conformance::preserves_resolver_errors ... ok
+test resolver::tests::ipv4::absent_name_and_passive_hints ... ok
+test resolver::tests::ipv4::numeric_hosts_and_transport_hints ... ok
+test resolver::tests::ipv6::absent_name_and_passive_hints ... ok
+test readiness_driver::notification::tests::racing_cancellation_and_notification_leave_no_stale_waiters ... ok
+test resolver::tests::native_address_validation_and_unusual_socket_parameters_are_preserved ... ok
+test resolver::tests::native_resolver_error_codes_keep_categories_and_system_errors ... ok
+test resolver::tests::ipv6::numeric_hosts_and_transport_hints ... ok
+test resolver::tests::running_lookup_retains_bounded_capacity_after_cancellation_and_abandonment ... ok
+test signal_service::tests::conformance::independent_subscriptions ... ok
+test resolver::tests::started_lookup_preserves_success_and_native_owner_moves_without_allocating_views ... ok
+test signal_service::tests::conformance::multiple_targets_and_signals ... ok
+test signal_service::tests::conformance::setup_errors_release_target ... ok
+test signal_service::tests::conformance::reentrant_subscription ... ok
+test signal_service::tests::panicking_targets_do_not_poison_dispatch_or_prevent_other_targets ... ok
+test signal_service::tests::dispatch::unsubscribe_retains_in_progress_target_without_joining ... ok
+test socket_io::tests::borrowed_message_lengths_are_validated_before_native_access ... ok
+test signal_service::tests::rejects_empty_forbidden_native_and_closed_registrations_and_startup_failure ... ok
+test socket_io::tests::borrowed_native_io_enforces_nonblocking_without_allocating_vectors ... ok
+test socket_io::tests::invalid_vector_counts_fail_before_iterating_or_performing_native_io ... ok
+test socket_io::tests::message_validation_rejects_oversized_counts_lengths_and_overflow ... ok
+test readiness_socket_stream_reader::tests::urgent_boundaries_keep_trailing_bytes_ready_even_if_an_alias_consumes_urgent_data ... ok
+test socket_io::tests::missing_control_storage_reports_discarded_packet_metadata ... ok
+test socket_io::tests::native_connect_preserves_immediate_and_deferred_results ... ok
+test socket_io::tests::native_parameters_addresses_and_errors_are_preserved ... ok
+test socket_io::tests::prepared_messages_bypass_scratch_and_native_attempts_need_no_vector_allocation ... ok
+test socket_io::tests::zero_capacity_message_receives_use_a_real_native_vector_and_report_os_results ... ok
+test socket_operations::tests::borrowed_operations_reject_closed_schedulers_and_preserve_storage_on_errors ... ok
+test socket_operations::tests::closed_socket_io_returns_the_owner_without_attempting_a_syscall ... ok
+
+running 1 test
+test socket_operations::tests::closure_wakes_pending_io_and_preserves_owned_inputs ... ok
+
+thread 'base-native-signal' (126875) panicked at crates/selector/src/signal_service/tests.rs:159:13:
+signal target destructor
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test socket_operations::tests::accepted_shutdown_and_close_survive_abandonment_and_drain_during_shutdown ... ok
+test socket_operations::tests::directional_handle_factories_validate_transport_and_closed_admission ... ok
+test socket_operations::tests::immediate_cancellation_and_closure_prevent_readiness_submission ... ok
+test socket_operations::tests::exclusive_close_rejects_retained_access_and_unpolled_close_drops_normally ... ok
+test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 209 filtered out; finished in 0.00s
+
+test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+test socket_operations::tests::native_cleanup_failure_is_reported_by_each_cleanup_operation ... ok
+test socket_operations::tests::prepared_message_io_reuses_vectors_and_payload_without_fresh_allocations ... ok
+test socket_operations::tests::pooled_receivers_preserve_messages_and_stream_eof ... ok
+test socket_operations::tests::registered_would_block_attempts_once_before_waiting ... ok
+test socket_operations::tests::readiness_published_during_a_registered_syscall_is_not_cleared ... ok
+test socket_operations::tests::socket_cleanup_is_independent_bounded_and_preserves_closed_admission_errors ... ok
+test socket_options::tests::actual_option_syscall_errors_are_preserved ... ok
+test socket_options::tests::imported_resources_are_nonblocking_and_closed_admission_is_rejected ... ok
+test socket_options::tests::ipv4::imports_established_stream ... ok
+test socket_options::tests::ipv4::imports_listening_socket ... ok
+test socket_operations::tests::invalid_socket_protocol_is_reported ... ok
+test socket_options::tests::ipv6::imports_established_stream ... ok
+test socket_options::tests::keepalive_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::ipv6::imports_listening_socket ... ok
+test socket_options::tests::keepalive_get::native_values_and_errors ... ok
+test socket_operations::tests::vectored_sends_preserve_short_counts_without_implicitly_advancing_the_owner ... ok
+test socket_options::tests::keepalive_set::native_values_and_errors ... ok
+test socket_options::tests::nodelay_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::keepalive_set::lazy_and_pre_cancelled ... ok
+test socket_options::tests::nodelay_get::native_values_and_errors ... ok
+test socket_options::tests::nodelay_set::lazy_and_pre_cancelled ... ok
+test socket_options::tests::nodelay_set::native_values_and_errors ... ok
+test socket_options::tests::reuse_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::reuse_get::native_values_and_errors ... ok
+test socket_options::tests::reuse_set::lazy_and_pre_cancelled ... ok
+test system_file_metadata::tests::classification_preserves_special_and_unknown_file_kinds ... ok
+test socket_options::tests::reuse_set::native_values_and_errors ... ok
+test system_file_metadata::tests::classifies_real_symlinks_and_special_files ... ok
+test system_file_metadata::tests::preserves_native_metadata_and_exposes_portable_observations ... ok
+test test_support::watchdog_propagates_assertion_panics ... ok
+test bound_io_tests::pending_stream_output_keeps_order_when_later_waiters_are_cancelled ... ok
+test socket_operations::tests::borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full ... ok
+test bound_io_tests::stream_output_releases_owners_independently ... ok
+test bound_io_tests::accepted_output_overlaps_the_next_read ... ok
+test readiness_socket_stream_writer::readiness_tests::worker_driven_writes_resume_after_real_tcp_backpressure ... ok
+
+test result: ok. 209 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.90s
+
+     Running tests/process_wait.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/process_wait-673ee473ed213709)
+
+running 10 tests
+test process_child_fixture ... ignored, child fixture, invoked by the process-wait suite
+test process_group_fixture ... ignored, isolated process-group fixture
+test fixture_cleanup ... ok
+
+running 1 test
+test exit_status ... ok
+test lazy_and_pre_cancelled ... ok
+test dropped_and_forgotten_waits ... ok
+test pending_shutdown ... ok
+test pending_cancellation ... ok
+test suspended_wait_after_shutdown ... ok
+test process_group_fixture ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.01s
+
+test process_groups ... ok
+
+test result: ok. 8 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/stream_output.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/stream_output-e45043be3511897c)
+
+running 1 test
+test public_output_preserves_order_and_progresses_without_its_waiter ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_timer_benchmark-f38f801d42fe7d7f)
+
+running 10 tests
+test tests::deferred_deadline_and_waker_replacement ... ok
+test tests::native_local_capacity_and_drop ... ok
+test tests::closed_backends_reject_pending_timers ... ok
+test tests::native_capacity_and_resource_drop ... ok
+test tests::native_resource_moves_between_tasks_and_executors ... ok
+test tests::benchmark_counts_immediate_expirations ... ok
+test tests::rejects_incompatible_schedulers ... ok
+test tests::direct_semantics ... ok
+test tests::tokio_semantics ... ok
+test tests::native_external_and_worker_semantics ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/main.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_timer_benchmark-164c4ce832797acc)
+
+running 3 tests
+test tests::unknown_mode_is_rejected - should panic ... ok
+test tests::unknown_backend_is_rejected - should panic ... ok
+test tests::benchmark_cli_exercises_backends_and_workloads ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+     Running tests/cli.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/cli-dbd781843c876e25)
+
+running 1 test
+test benchmark_binary_emits_a_parseable_sample ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_timers-32abf8a7d0c47299)
+
+running 22 tests
+test timers::local::timer_queue::tests::bounded_registration_expiry_updates_and_release_reuse_slots ... ok
+test timers::local::timer_queue::tests::full_queue_reclaims_a_cancelled_non_root_heap_entry ... ok
+test timers::tests::batch_values_are_processed_after_unlocking_and_can_reenter_cancellation ... ok
+test timers::tests::cancellation_before_flush_releases_values_and_is_idempotent ... ok
+test timers::tests::cancelled_roots_are_discarded_before_waiting_or_firing ... ok
+test timers::tests::clear_and_drop_release_values_with_outstanding_handles ... ok
+test timers::tests::capacity_overflow_does_not_damage_the_queue_or_prevent_cleanup ... ok
+test timers::tests::clear_finishes_cleanup_and_preserves_storage_if_a_value_destructor_panics ... ok
+test timers::tests::deadlines_are_exact_and_expire_in_order ... ok
+test timers::tests::expired_handles_keep_their_status_and_capacity_until_dropped ... ok
+test timers::tests::handles_do_not_require_ordered_or_cloneable_values ... ok
+test timers::tests::reserve_adds_room_beyond_occupied_slots_and_full_returns_the_value ... ok
+test timers::tests::slots_are_reused_only_after_the_entry_and_last_handle_are_gone ... ok
+test timers::tests::heapify_and_incremental_batches_preserve_order ... ok
+test timers::tests::small_fully_cancelled_heaps_are_cleared ... ok
+test timers::tests::compaction_threshold_and_pending_batch_are_preserved ... ok
+test timers::tests::batch_expiry_respects_output_capacity_cancellation_and_future_deadlines ... ok
+test timers::tests::value_destructors_can_reenter_cancellation ... ok
+test timers::tests::sparse_batch_expiry_prunes_future_subtrees_and_flushes_new_timers ... ok
+test timers::tests::batch_expiry_claims_values_once_when_cancellation_races ... ok
+test timers::tests::cancellation_and_expiry_claim_each_value_once_across_threads ... ok
+test timers::tests::cancellation_can_race_with_pending_insertion_and_compaction ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running tests/allocations.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/allocations-6945adbbc6699adc)
+
+running 2 tests
+test local_queue_reuses_slots_and_compacts_without_allocating ... ok
+test reserved_timer_lifecycles_and_reuse_allocate_nothing ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_tokio-e02e9b8b357f8a22)
+
+running 262 tests
+test blocking_pool::tests::capacity_wait_rechecks_available_or_closed_state_before_sleeping ... ok
+test blocking_pool::tests::admission_reports_worker_startup_failure ... ok
+test blocking_pool::tests::draining_waits_for_running_work_and_releases_capacity ... ok
+test blocking_pool::tests::partial_startup_failure_closes_admission_and_releases_started_workers ... ok
+test blocking_pool::tests::forgetting_an_accepted_completion_can_leak_storage_but_does_not_block_retirement ... ok
+test blocking_pool::tests::concurrent_first_admissions_share_one_startup ... ok
+test blocking_pool::tests::abandoned_result_panics_release_capacity_and_preserve_the_worker ... ok
+test blocking_pool::tests::immediate_admission_and_empty_drain_need_no_listeners_or_allocations ... ok
+test blocking_pool::tests::pending_capacity_and_drain_waits_do_not_allocate_and_unregister_on_drop ... ok
+test blocking_pool::tests::io_cancellation_returns_owned_input_and_worker_panics_resume_in_the_waiter ... ok
+test blocking_pool::tests::shutdown_during_startup_cannot_admit_work ... ok
+test blocking_pool::tests::dropping_a_queued_handle_on_another_thread_skips_execution_and_preserves_the_worker ... ok
+test blocking_pool::tests::shutdown_drain_waits_until_discarded_capture_destructors_finish ... ok
+test blocking_pool::tests::shutdown_catches_capture_destructor_panics_and_cancels_other_queued_jobs ... ok
+test blocking_pool::tests::submitted_io_retains_its_buffer_and_capacity_after_unpolled_completion_drop ... ok
+test blocking_pool::tests::submitted_jobs_survive_abandonment_and_shutdown_with_bounded_admission ... ok
+test blocking_pool::tests::skipped_jobs_release_captures_before_reporting_completion ... ok
+test bound_io_tests::file_submission_rejection_keeps_the_original_buffer ... ok
+
+running 1 test
+test bound_io_tests::default_packet_pool_and_closed_lanes_preserve_message_boundaries ... ok
+test blocking_pool::tests::prepared_work_allocates_only_jobs_and_completion_channels ... ok
+test clock::tests::another_ambient_clock_does_not_replace_the_selected_host_clock ... ok
+test clock::tests::close_preserves_pending_timers_and_rejects_new_waits ... ok
+test bound_io_tests::file_completion_collection_does_not_hold_a_retired_file_open ... ok
+
+thread '<unnamed>' (127272) panicked at crates/tokio/src/blocking_pool/tests.rs:653:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test clock::tests::conformance::expiry_wins_concurrent_cancellation ... ok
+test bound_io_tests::owned_stream_reads_report_syscall_and_wait_errors_and_lazy_setup_rejects_shutdown ... ok
+test clock::tests::conformance::pending_cancellation_and_wakeup ... ok
+test clock::tests::conformance::lazy_registration_and_drop ... ok
+
+thread 'base-tokio-0' (127291) panicked at crates/tokio/src/blocking_pool/tests.rs:653:13:
+Box<dyn Any>
+test clock::tests::conformance::absolute_deadline_and_wakeup ... ok
+test clock::tests::conformance::overflow_registers_no_timer ... ok
+test clock::tests::conformance::pre_cancelled_waits ... ok
+
+thread 'base-tokio-0' (127299) panicked at crates/tokio/src/blocking_pool/tests.rs:694:25:
+Box<dyn Any>
+
+thread 'base-tokio-0' (127299) panicked at crates/tokio/src/blocking_pool/tests.rs:653:13:
+Box<dyn Any>
+test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 261 filtered out; finished in 0.00s
+
+test file_extensions::tests::advice::lazy_admission ... ok
+test clock::tests::conformance::relative_wait_starts_on_poll ... ok
+test bound_io_tests::default_stream_pool_and_eof_are_consistent_across_read_forms ... ok
+test clock::tests::conformance::timeout_results_expiry_and_cleanup ... ok
+test file_extensions::tests::advice::accepted_work_survives_abandonment ... ok
+test file_extensions::tests::advice_waiting_for_capacity_can_be_abandoned_and_closed_admission_reports_errors ... ok
+test file_extensions::tests::advice::validation_and_execution_errors ... ok
+test file_extensions::tests::allocation::keep_size_reserves_beyond_eof ... ok
+test file_extensions::tests::allocation::lazy_and_pre_cancelled ... ok
+test file_extensions::tests::allocation::extend_preserves_data_and_cursor ... ok
+test file_io::tests::close_consumes_the_handle_and_preserves_system_errors ... ok
+test file_io::tests::file_io_operations_read_and_write_at_the_requested_offset ... ok
+test file_io::tests::read_and_write_reject_offsets_outside_the_platform_range ... ok
+test blocking_pool::tests::panicking_unobserved_payloads_preserve_native_capacity_and_shutdown ... ok
+test file_io::tests::retries_interrupted_file_operations ... ok
+test operation_state::tests::guard_preserves_owned_vectors_and_prepared_ranges ... ok
+test process_child_fixture ... ignored, child fixture, invoked by process-wait conformance assertions
+test operation_state::tests::lazy_state_tracks_admission_and_retirement ... ok
+test operation_state::tests::retired_results_do_not_block_the_next_operation_or_close ... ok
+test operation_state::tests::panicking_owner_still_publishes_retirement ... ok
+test file_extensions::tests::allocation::validation_and_execution_errors ... ok
+test process_io::tests::cancellation_and_io_errors_are_distinct ... ok
+test process_io::tests::notification_selection_and_setup_failures ... ok
+test process_io::tests::interrupted_wait_preserves_the_os_error ... ok
+test file_extensions::tests::advice::modes_ranges_and_completion ... ok
+test process_wait::tests::notification_and_reactor_registration_failures_survive ... ok
+test process_wait::tests::cancelling_a_running_pool_fallback_does_not_kill_the_child ... ok
+test process_wait::tests::interruptions_and_notification_reaping_races_use_the_pool ... ok
+test resolver::tests::conformance::input_validation ... ok
+test resolver::tests::conformance::forwards_all_hints ... ok
+test resolver::tests::conformance::configured_named_service ... ok
+test resolver::tests::conformance::lazy_and_pre_cancelled ... ok
+test resolver::tests::conformance::numeric_host_prevents_name_lookup ... ok
+test resolver::tests::conformance::preserves_resolver_errors ... ok
+test resolver::tests::ipv4::absent_name_and_passive_hints ... ok
+test resolver::tests::conformance::ordered_owned_results ... ok
+test resolver::tests::ipv4::numeric_hosts_and_transport_hints ... ok
+test resolver::tests::native_address_validation_and_unusual_socket_parameters_are_preserved ... ok
+test resolver::tests::ipv6::absent_name_and_passive_hints ... ok
+test resolver::tests::ipv6::numeric_hosts_and_transport_hints ... ok
+test resolver::tests::native_resolver_error_codes_keep_categories_and_system_errors ... ok
+test operation_state::tests::admission_observes_cross_thread_retirement_before_reusing_the_lane ... ok
+test process_wait::tests::started_fallback_returns_status_after_cancellation ... ok
+test resolver::tests::running_lookup_retains_bounded_capacity_after_cancellation_and_abandonment ... ok
+test signal_service::tests::conformance::setup_errors_release_target ... ok
+test signal_service::tests::conformance::reentrant_subscription ... ok
+test signal_service::tests::conformance::multiple_targets_and_signals ... ok
+test signal_service::tests::conformance::independent_subscriptions ... ok
+test resolver::tests::started_lookup_preserves_success_and_native_owner_moves_without_allocating_views ... ok
+test socket_io::tests::borrowed_message_lengths_are_validated_before_native_access ... ok
+test signal_service::tests::panicking_targets_do_not_poison_dispatch_or_prevent_other_targets ... ok
+test socket_io::tests::invalid_vector_counts_fail_before_iterating_or_performing_native_io ... ok
+test socket_io::tests::borrowed_native_io_enforces_nonblocking_without_allocating_vectors ... ok
+test socket_io::tests::message_validation_rejects_oversized_counts_lengths_and_overflow ... ok
+test signal_service::tests::rejects_empty_forbidden_native_and_closed_registrations_and_startup_failure ... ok
+test socket_io::tests::missing_control_storage_reports_discarded_packet_metadata ... ok
+test socket_io::tests::native_parameters_addresses_and_errors_are_preserved ... ok
+test socket_io::tests::native_connect_preserves_immediate_and_deferred_results ... ok
+test socket_io::tests::prepared_messages_bypass_scratch_and_native_attempts_need_no_vector_allocation ... ok
+test socket_io::tests::zero_capacity_message_receives_use_a_real_native_vector_and_report_os_results ... ok
+test socket_operations::tests::borrowed_operations_reject_closed_schedulers_and_preserve_storage_on_errors ... ok
+test signal_service::tests::dispatch::unsubscribe_retains_in_progress_target_without_joining ... ok
+test clock::tests::real_timers_use_the_selected_host_on_both_runtime_types ... ok
+test socket_operations::tests::immediate_cancellation_and_closure_prevent_readiness_submission ... ok
+test socket_operations::tests::cached_readiness_does_not_delay_lifecycle_calls_or_invalid_operations ... ok
+
+running 1 test
+test socket_operations::tests::closure_preserves_pending_io_and_rejects_new_operations ... ok
+test socket_operations::tests::accepted_shutdown_and_close_survive_abandonment_and_drain_during_shutdown ... ok
+test socket_operations::tests::exclusive_close_rejects_retained_access_and_unpolled_close_drops_normally ... ok
+test socket_operations::tests::incompatible_runtime_rejects_operations_and_returns_original_owners ... ok
+test socket_operations::tests::pooled_receivers_preserve_messages_and_stream_eof ... ok
+test socket_operations::tests::prepared_message_io_reuses_vectors_and_payload_without_fresh_allocations ... ok
+
+thread 'base-tokio-signal' (127483) panicked at crates/tokio/src/signal_service/tests.rs:159:13:
+signal target destructor
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test socket_operations::tests::socket_cleanup_is_independent_bounded_and_preserves_closed_admission_errors ... ok
+test socket_operations::tests::shutdown_drains_task_owned_io_after_explicit_cancellation ... ok
+test socket_operations::tests::stopped_runtime_socket_registration_reports_an_error ... ok
+test socket_operations::tests::native_cleanup_failure_is_reported_by_each_cleanup_operation ... ok
+test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 261 filtered out; finished in 0.00s
+
+test socket_options::tests::actual_option_syscall_errors_are_preserved ... ok
+test socket_options::tests::imported_resources_are_nonblocking_and_closed_admission_is_rejected ... ok
+test socket_operations::tests::socket_registration_uses_the_selected_runtime_under_another_ambient_host ... ok
+test socket_options::tests::ipv4::imports_established_stream ... ok
+test signal_service::tests::os_signal_bridge_delivers_outside_the_raw_handler ... ok
+test socket_options::tests::keepalive_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::keepalive_get::native_values_and_errors ... ok
+test socket_options::tests::ipv6::imports_established_stream ... ok
+test socket_options::tests::keepalive_set::lazy_and_pre_cancelled ... ok
+test socket_options::tests::keepalive_set::native_values_and_errors ... ok
+test socket_options::tests::ipv4::imports_listening_socket ... ok
+test socket_options::tests::ipv6::imports_listening_socket ... ok
+test socket_options::tests::nodelay_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::nodelay_get::native_values_and_errors ... ok
+test socket_options::tests::reuse_get::lazy_and_pre_cancelled ... ok
+test socket_options::tests::nodelay_set::native_values_and_errors ... ok
+test socket_options::tests::nodelay_set::lazy_and_pre_cancelled ... ok
+test socket_options::tests::reuse_set::lazy_and_pre_cancelled ... ok
+test socket_options::tests::reuse_set::native_values_and_errors ... ok
+test socket_receiving::tests::bound_factories_validate_kind_and_preserve_pool_ownership ... ok
+test socket_options::tests::reuse_get::native_values_and_errors ... ok
+test socket_receiving::tests::bound_reader_cannot_switch_runtime_and_retains_received_chunks ... ok
+test socket_tests::failed_writes_return_the_original_buffer ... ok
+test socket_operations::tests::invalid_socket_protocol_is_reported ... ok
+test socket_tests::ipv4::borrowed_datagrams::addresses_peek_and_truncation ... ok
+test socket_operations::tests::vectored_sends_preserve_short_counts_without_implicitly_advancing_the_owner ... ok
+test socket_tests::directional_socket_handles_reuse_caller_owned_storage ... ok
+test socket_tests::ipv4::borrowed_datagrams::empty_messages ... ok
+test socket_tests::ipv4::borrowed_datagrams::pending_cancellation ... ok
+test socket_tests::ipv4::borrowed_messages::pre_cancelled ... ok
+test socket_tests::ipv4::borrowed_messages::pending_cancellation ... ok
+test socket_tests::ipv4::borrowed_messages::stack_transfers ... ok
+test socket_tests::ipv4::borrowed_scalar::abandoned_receives ... ok
+test socket_tests::aggregate_socket_helpers_remain_compatible ... ok
+test socket_tests::ipv4::borrowed_scalar::pre_cancelled ... ok
+test socket_tests::ipv4::borrowed_messages::abandoned_receives ... ok
+test socket_tests::ipv4::borrowed_messages::readiness ... ok
+test socket_tests::ipv4::borrowed_scalar::pending_cancellation ... ok
+test socket_tests::ipv4::datagrams::pending_receive_cancellation ... ok
+test socket_tests::ipv4::borrowed_scalar::readiness_and_eof ... ok
+test socket_tests::ipv4::borrowed_scalar::stack_transfers ... ok
+test socket_tests::ipv4::datagrams::empty_messages_and_boundaries ... ok
+test socket_tests::ipv4::datagrams::addresses_peek_and_truncation ... ok
+test socket_tests::ipv4::messages::pending_receive_cancellation ... ok
+test socket_tests::ipv4::messages::pre_cancelled ... ok
+test socket_tests::ipv4::messages::prepared_transfers ... ok
+test socket_tests::ipv4::packet_handles::cancellation ... ok
+test socket_tests::ipv4::packet_handles::borrowed ... ok
+test socket_tests::ipv4::pooled_datagram_receiver ... ok
+test socket_tests::ipv4::packet_handles::owned ... ok
+test socket_tests::ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test socket_tests::ipv4::scalar::pending_read_cancellation ... ok
+test socket_tests::ipv4::scalar::shutdown_and_eof ... ok
+test socket_tests::ipv6::borrowed_datagrams::addresses_peek_and_truncation ... ok
+test socket_tests::ipv4::scalar::pre_cancelled ... ok
+test socket_tests::ipv4::pooled_stream_receiver ... ok
+test socket_tests::ipv4::scalar::transfer ... ok
+test socket_tests::ipv6::borrowed_datagrams::empty_messages ... ok
+test socket_tests::ipv6::borrowed_datagrams::pending_cancellation ... ok
+test socket_tests::ipv6::borrowed_messages::abandoned_receives ... ok
+test socket_tests::ipv6::borrowed_messages::readiness ... ok
+test socket_tests::ipv6::borrowed_messages::pre_cancelled ... ok
+test socket_tests::ipv6::borrowed_messages::pending_cancellation ... ok
+test socket_tests::ipv6::borrowed_scalar::stack_transfers ... ok
+test socket_tests::ipv6::borrowed_scalar::abandoned_receives ... ok
+test socket_tests::ipv6::borrowed_messages::stack_transfers ... ok
+test socket_tests::ipv6::borrowed_scalar::pre_cancelled ... ok
+test socket_tests::ipv6::borrowed_scalar::pending_cancellation ... ok
+test socket_tests::ipv6::borrowed_scalar::readiness_and_eof ... ok
+test socket_tests::ipv6::datagrams::addresses_peek_and_truncation ... ok
+test socket_tests::ipv6::datagrams::pending_receive_cancellation ... ok
+test socket_tests::ipv6::datagrams::empty_messages_and_boundaries ... ok
+test socket_tests::ipv6::messages::pre_cancelled ... ok
+test socket_tests::ipv6::messages::pending_receive_cancellation ... ok
+test socket_tests::ipv6::packet_handles::borrowed ... ok
+test socket_tests::ipv6::messages::prepared_transfers ... ok
+test socket_tests::ipv6::packet_handles::cancellation ... ok
+test socket_tests::ipv6::packet_handles::owned ... ok
+test socket_tests::ipv6::pooled_datagram_receiver ... ok
+test socket_tests::ipv6::scalar::pending_read_cancellation ... ok
+test socket_tests::ipv6::scalar::shutdown_and_eof ... ok
+test socket_tests::ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test socket_tests::ipv6::scalar::pre_cancelled ... ok
+test socket_write_state::tests::cancelled_wait_retains_pending_operation_and_close_signals_retirement ... ok
+test socket_tests::ipv6::pooled_stream_receiver ... ok
+test socket_tests::ipv6::scalar::transfer ... ok
+test socket_write_state::tests::drop_cancels_the_background_operation ... ok
+test system_file_metadata::tests::classification_preserves_special_and_unknown_file_kinds ... ok
+test socket_write_state::tests::successful_completion_wins_cancelled_wait_and_task_failure_reports_cleanup_failure ... ok
+test socket_write_state::tests::retained_errors_preserve_classification_and_first_failure ... ok
+test system_file_metadata::tests::classifies_real_symlinks_and_special_files ... ok
+test socket_tests::sockets_move_between_threads_and_compatible_scheduler_instances ... ok
+test system_file_metadata::tests::preserves_native_metadata_and_exposes_portable_observations ... ok
+test task_service::tests::completed_poll_waits_for_registration_retirement_and_join_notification ... ok
+test task_service::tests::conformance::closed_service_rejects_unpolled_input ... ok
+test task_service::tests::conformance::abandoned_handle_releases_completed_output ... ok
+test task_service::tests::conformance::abandonment_destroys_task ... ok
+test task_service::tests::conformance::cooperative_cancellation ... ok
+test task_service::tests::conformance::registers_before_first_poll ... ok
+test task_service::tests::current_thread::abandoned_handle_releases_completed_output ... ok
+test task_service::tests::current_thread::closed_service_rejects_unpolled_input ... ok
+test task_service::tests::current_thread::cooperative_cancellation ... ok
+test task_service::tests::current_thread::abandonment_destroys_task ... ok
+test task_service::tests::current_thread::output_and_handle_transfer ... ok
+test task_service::tests::current_thread::preserves_panic_payload ... ok
+test task_service::tests::current_thread::registers_before_first_poll ... ok
+test task_service::tests::conformance::output_and_handle_transfer ... ok
+test task_service::tests::dispatch::handle_drop_defers_destruction_until_active_poll_returns ... ok
+
+running 1 test
+test task_service::tests::identifier_exhaustion_rejects_without_polling ... ok
+test task_service::tests::conformance::preserves_panic_payload ... ok
+test task_service::tests::future_destructor_panic_is_reported_and_worker_stays_available ... ok
+test test_support::watchdog_propagates_assertion_panics ... ok
+test task_service::tests::stopped_host_destroys_submissions_without_retaining_the_registry_lock ... ok
+test tokio_scheduler::tests::abandoned_io_and_scheduler_drop_retain_worker_access_until_retirement ... ok
+test tokio_scheduler::tests::cleanup_completion_preserves_os_and_worker_errors ... ok
+test tokio_scheduler::tests::cancellation_after_io_dispatch_preserves_the_actual_result ... ok
+test task_service::tests::tasks_progress_without_occupying_syscall_workers_and_survive_admission_close ... ok
+test task_service::tests::shutdown_waits_for_cooperative_task_exit_and_leaves_host_running ... ok
+
+thread 'tokio-rt-worker' (127804) panicked at crates/tokio/src/task_service/tests.rs:282:13:
+Box<dyn Any>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread '<unnamed>' (127799) panicked at crates/tokio/src/task_service/tests.rs:269:13:
+abandoned destructor
+test tokio_scheduler::tests::invalid_options_and_closed_services_return_errors_and_buffers ... ok
+test tokio_scheduler::tests::startup_failures_preserve_io_ownership_and_report_cleanup_errors ... ok
+
+thread 'tokio-rt-worker' (127804) panicked at crates/tokio/src/task_service/tests.rs:308:28:
+Box<dyn Any>
+test tokio_scheduler::tests::file_errors_and_exclusive_close_are_observable ... ok
+
+thread '<unnamed>' (127799) panicked at crates/tokio/src/task_service/tests.rs:269:13:
+abandoned destructor
+
+thread 'tokio-rt-worker' (127804) panicked at crates/tokio/src/task_service/tests.rs:294:13:
+completed future destructor
+
+thread 'tokio-rt-worker' (127804) panicked at crates/tokio/src/task_service/tests.rs:269:13:
+abandoned destructor
+test tokio_scheduler::tests::cleanup_makes_progress_independently_and_accepted_close_survives_abandonment ... ok
+test task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 261 filtered out; finished in 0.00stest tokio_scheduler::tests::running_cancellation_preserves_results_and_abandonment_keeps_capacity_occupied ... 
+
+ok
+test tokio_socket::tests::established_stream_empty_reads_do_not_require_reactor_progress ... ok
+test tokio_socket::tests::datagrams_preserve_direct_syscall_behavior ... ok
+test tokio_socket::tests::explicit_close_rejects_retained_socket_ownership ... ok
+test tokio_socket::tests::nonblocking_configuration_errors_are_returned ... ok
+test tokio_socket::tests::invalid_accept_returns_without_waiting_for_readiness ... ok
+test tokio_socket::tests::dropping_or_forgetting_a_reserved_waiter_preserves_other_waiters ... ok
+test tokio_socket::tests::registration_errors_are_returned ... ok
+test tokio_socket::tests::registered_listeners_still_report_invalid_read_errors_immediately ... ok
+test task_service::tests::abandoned_task_destructor_panics_do_not_abort_or_stop_workers ... ok
+test tokio_socket::tests::runtime_shutdown_wakes_both_reserved_and_concurrent_waiters ... ok
+test tokio_socket::tests::registration_is_deferred_until_waiting_and_reused_after_cancellation ... ok
+test tokio_socket::tests::reserved_and_concurrent_waiters_both_receive_readiness_wakeups ... ok
+test tokio_socket::tests::full_peeking_and_datagram_reads_retain_readability ... ok
+test tokio_socket::tests::transient_would_block_retries_with_the_requested_readiness_direction ... ok
+test tokio_stream_writer::tests::accepted_cancellation_and_drop_release_owners ... ok
+test tokio_socket::tests::established_stream_reads_only_retry_stale_readiness_once ... ok
+test tokio_stream_writer::tests::bound_io ... ok
+test tokio_stream_writer::tests::foreign_scheduler_is_rejected_before_changing_writer_state ... ok
+test tokio_stream_writer::tests::immediate_error_is_accepted_and_retained ... ok
+test tokio_stream_writer::tests::every_write_form_waits_for_accepted_output_and_preserves_terminal_errors ... ok
+test tokio_stream_writer::tests::ordering ... ok
+test tokio_stream_writer::tests::background_retry_errors_and_pending_close_preserve_the_result ... ok
+test tokio_stream_writer::tests::close_pending ... ok
+test tokio_stream_writer::tests::partial_initial_sends_continue_from_the_accepted_offset ... ok
+test tokio_stream_writer::tests::ready_submission_and_flush_allocate_nothing ... ok
+test tokio_stream_writer::tests::rejects_datagrams_and_closed_admission ... ok
+test tokio_task::tests::host_panic_payload_is_preserved_by_the_join_boundary ... ok
+test tokio_stream_writer::tests::syscall_and_task_admission_failures_are_retained_after_acceptance ... ok
+test tokio_stream_writer::tests::abandoned_admission ... ok
+test tokio_socket::tests::urgent_tcp_boundary_keeps_trailing_bytes_readable ... ok
+test socket_operations::tests::borrowed_sends_preserve_short_counts_and_cancel_when_the_send_queue_is_full ... ok
+test tokio_stream_writer::tests::overlapped_read_write ... ok
+test tokio_stream_writer::tests::independent_progress ... ok
+test tokio_stream_writer::tests::admission_rechecks_cancellation_and_shutdown_after_retiring_the_previous_owner ... ok
+
+test result: ok. 261 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 6.12s
+
+     Running tests/conformance.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/conformance-99fbeb62c81e63a5)
+
+running 34 tests
+test blocking_work::lazy_submission ... ok
+test blocking_work::pre_cancelled_submission ... ok
+test blocking_queue::queued_cancellation_and_admission ... ok
+test blocking_work::returns_output ... ok
+test blocking_queue::abandoned_handle_does_not_execute ... ok
+test blocking_work::preserves_panic_payload ... ok
+test files::abandoned_resource_operation ... ok
+test files::bound_file_submissions_separate_acceptance_from_owner_collection ... ok
+test files::accepted_write_progresses_without_polling_its_completion ... ok
+test files::bound_file_handles_reject_cancelled_and_closed_operations ... ok
+test files::dropping_an_unpolled_accepted_completion_releases_only_after_retirement ... ok
+test files::close_retires_accepted_work_before_its_completion_is_collected ... ok
+test files::independent_readers ... ok
+test files::create ... ok
+test files::metadata ... ok
+test files::pending_resource_retirement ... ok
+test files::resource_inflight_cancellation ... ok
+test files::read_at ... ok
+test files::bound_file_handles_preserve_cursor_offsets_and_ownership ... ok
+test files::resource_write_error ... ok
+test files::read ... ok
+test files::seek ... ok
+test files::resource_cancellation ... ok
+test files::sequential_reader_writer ... ok
+test files::submission_is_lazy_and_pre_cancelled_admission_returns_the_owner ... ok
+test files::write ... ok
+test files::sync ... ok
+test files::truncate_grow ... ok
+test files::submitted_reads_and_writes_return_the_original_storage ... ok
+test files::truncate_shrink ... ok
+test files::write_error ... ok
+test files::write_at ... ok
+test files_move_between_threads_and_compatible_scheduler_instances ... ok
+test unix_positioned_operations_preserve_the_shared_cursor ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/process_wait.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/process_wait-bb94ed9842ee1b80)
+
+running 10 tests
+test process_child_fixture ... ignored, child fixture, invoked by the process-wait suite
+test process_group_fixture ... ignored, isolated process-group fixture
+test fixture_cleanup ... ok
+
+running 1 test
+test pending_shutdown ... ok
+test dropped_and_forgotten_waits ... ok
+test pending_cancellation ... ok
+test exit_status ... ok
+test suspended_wait_after_shutdown ... ok
+test lazy_and_pre_cancelled ... ok
+test process_group_fixture ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.01s
+
+test process_groups ... ok
+
+test result: ok. 8 passed; 0 failed; 2 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/runtime_conformance.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/runtime_conformance-062e1d198eb85b87)
+
+running 66 tests
+test multiple_threads::files::create ... ok
+test multiple_threads::files::sync ... ok
+test multiple_threads::files::read ... ok
+test multiple_threads::files::truncate_shrink ... ok
+test multiple_threads::files::read_at ... ok
+test multiple_threads::files::truncate_grow ... ok
+test multiple_threads::files::metadata ... ok
+test multiple_threads::files::seek ... ok
+test multiple_threads::ipv4::datagrams::addresses_peek_and_truncation ... ok
+test multiple_threads::files::write_error ... ok
+test multiple_threads::files::write_at ... ok
+test multiple_threads::ipv4::datagrams::empty_messages_and_boundaries ... ok
+test multiple_threads::ipv4::datagrams::pending_receive_cancellation ... ok
+test multiple_threads::files::write ... ok
+test multiple_threads::ipv4::messages::pre_cancelled ... ok
+test multiple_threads::ipv4::messages::pending_receive_cancellation ... ok
+test multiple_threads::ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test multiple_threads::ipv4::messages::prepared_transfers ... ok
+test multiple_threads::ipv4::scalar::pending_read_cancellation ... ok
+test multiple_threads::ipv4::scalar::pre_cancelled ... ok
+test multiple_threads::ipv6::datagrams::addresses_peek_and_truncation ... ok
+test multiple_threads::ipv4::scalar::shutdown_and_eof ... ok
+test multiple_threads::ipv4::scalar::transfer ... ok
+test multiple_threads::ipv6::datagrams::empty_messages_and_boundaries ... ok
+test multiple_threads::ipv6::messages::pending_receive_cancellation ... ok
+test multiple_threads::ipv6::datagrams::pending_receive_cancellation ... ok
+test multiple_threads::ipv6::messages::prepared_transfers ... ok
+test multiple_threads::ipv6::messages::pre_cancelled ... ok
+test multiple_threads::ipv6::scalar::pre_cancelled ... ok
+test multiple_threads::ipv6::scalar::shutdown_and_eof ... ok
+test multiple_threads::ipv6::scalar::pending_read_cancellation ... ok
+test multiple_threads::ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test single_thread::files::create ... ok
+test multiple_threads::ipv6::scalar::transfer ... ok
+test single_thread::files::metadata ... ok
+test single_thread::files::read_at ... ok
+test single_thread::files::sync ... ok
+test single_thread::files::truncate_grow ... ok
+test single_thread::files::read ... ok
+test single_thread::files::seek ... ok
+test single_thread::files::truncate_shrink ... ok
+test single_thread::files::write ... ok
+test single_thread::ipv4::datagrams::pending_receive_cancellation ... ok
+test single_thread::ipv4::datagrams::empty_messages_and_boundaries ... ok
+test single_thread::ipv4::datagrams::addresses_peek_and_truncation ... ok
+test single_thread::files::write_error ... ok
+test single_thread::files::write_at ... ok
+test single_thread::ipv4::messages::pending_receive_cancellation ... ok
+test single_thread::ipv4::scalar::pending_borrowed_read_cancellation ... ok
+test single_thread::ipv4::scalar::pre_cancelled ... ok
+test single_thread::ipv4::scalar::shutdown_and_eof ... ok
+test single_thread::ipv4::messages::prepared_transfers ... ok
+test single_thread::ipv4::scalar::pending_read_cancellation ... ok
+test single_thread::ipv4::scalar::transfer ... ok
+test single_thread::ipv6::datagrams::empty_messages_and_boundaries ... ok
+test single_thread::ipv6::datagrams::addresses_peek_and_truncation ... ok
+test single_thread::ipv6::datagrams::pending_receive_cancellation ... ok
+test single_thread::ipv4::messages::pre_cancelled ... ok
+test single_thread::ipv6::messages::pre_cancelled ... ok
+test single_thread::ipv6::messages::pending_receive_cancellation ... ok
+test single_thread::ipv6::scalar::pending_read_cancellation ... ok
+test single_thread::ipv6::scalar::pending_borrowed_read_cancellation ... ok
+test single_thread::ipv6::messages::prepared_transfers ... ok
+test single_thread::ipv6::scalar::shutdown_and_eof ... ok
+test single_thread::ipv6::scalar::pre_cancelled ... ok
+test single_thread::ipv6::scalar::transfer ... ok
+
+test result: ok. 66 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/tasks.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/tasks-b857cec75e889a56)
+
+running 2 tests
+test current_thread_task_ownership_cancellation_and_shutdown ... ok
+test multithreaded_task_ownership_cancellation_and_shutdown ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_write_benchmark-20ff30766d3c5b4a)
+
+running 14 tests
+test server::tests::monitor_failures_still_close_both_directions_and_prioritize_cleanup_errors ... ok
+test client::tests::failed_socket_configuration_is_reported ... ok
+test server::tests::script_rejects_operations_outside_the_benchmark_contract ... ok
+test server::tests::scheduler_admission_and_task_failures_are_returned ... ok
+test server::tests::monitor_retries_partial_writes_before_reading_the_next_request ... ok
+test tests::generated_payload_distinguishes_chunks_and_work ... ok
+test tests::invalid_cli_arguments_fail ... ok
+test client::tests::failed_request_writes_return_the_transport_error ... ok
+test server::tests::native_runtime_setup_failures_are_returned ... ok
+test server::tests::setup_failures_are_reported_before_connections_start ... ok
+test server::tests::tokio_connection_reports_a_reset_while_waiting_for_a_request ... ok
+test server::tests::writer_failures_still_retire_both_directions ... ok
+test client::tests::an_empty_measurement_is_reported ... ok
+test client::tests::responses_must_start_and_finish_inside_the_measurement_window ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/base_scheduler_write_benchmark-e7231abc40617b48)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/process.rs (/tmp/base-http-hana-epoll-uring-7nxlaica/target/llvm-cov-target/debug/deps/process-e6517967c8b4e2ab)
+
+running 6 tests
+test connection_refusal_is_reported ... ok
+test client_rejects_corrupt_payloads ... ok
+test client_reports_a_response_cut_short_by_disconnect ... ok
+test invalid_command_lines_fail_without_starting_work ... ok
+test every_backend_reports_a_reset_peer_during_reading_and_writing ... ok
+test every_backend_exchanges_validated_responses_and_rejects_invalid_requests ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.14s
+
+
+    Finished report saved to /tmp/bake-test-coverage-101235-0/coverage.json
+bake: test:coverage: failed to read covered source file /usr/src/debug/rust/rustc-1.99.1-src/library/std/src/sys/thread_local/native/mod.rs: No such file or directory (os error 2)

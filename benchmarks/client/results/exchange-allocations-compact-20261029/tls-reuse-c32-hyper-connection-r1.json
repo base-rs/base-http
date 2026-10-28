@@ -1,0 +1,105 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 1086980,
+    "allocations_per_response": 12.000353282769737,
+    "deallocations": 1086980,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 1
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 15
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 32
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 40
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 192
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 232
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 624
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 8192
+      }
+    ],
+    "reallocations": 0,
+    "reallocations_per_response": 0.0,
+    "requested_bytes": 874100076,
+    "requested_bytes_per_response": 9650.14049614149,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.9908319999999999,
+  "client_cpu_us_per_request": 10.938871040748959,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000440209,
+  "fresh": false,
+  "implementation": "hyper-connection",
+  "latency_us": {
+    "max": 1025.535,
+    "mean": 353.135372039877,
+    "p50": 353.279,
+    "p90": 445.183,
+    "p99": 584.703
+  },
+  "requests": 90579,
+  "requests_per_second": 90539.14385402316,
+  "tls": true,
+  "warmup_requests": 26284,
+  "client_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "client",
+    "--implementation",
+    "hyper-connection",
+    "--address",
+    "127.0.0.1:64422",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 116863
+  },
+  "server_cpu_seconds_including_warmup": 1.6848500000000002
+}

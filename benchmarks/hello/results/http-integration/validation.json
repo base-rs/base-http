@@ -1,0 +1,60 @@
+{
+  "msrv": "rustc 1.85.1",
+  "msrv_tests": [
+    {
+      "directory": "base-http",
+      "command": "rustup run 1.85.1 cargo test",
+      "passed": 55
+    },
+    {
+      "directory": "base-http1",
+      "command": "rustup run 1.85.1 cargo test",
+      "passed": 32
+    },
+    {
+      "directory": "base-http-server",
+      "command": "rustup run 1.85.1 cargo test",
+      "passed": 28
+    }
+  ],
+  "formatting": {
+    "directories": [
+      "base-http",
+      "base-http1",
+      "base-http-server"
+    ],
+    "command": "cargo fmt --check",
+    "passed": true
+  },
+  "clippy": {
+    "directories": [
+      "base-http",
+      "base-http1",
+      "base-http-server"
+    ],
+    "command": "cargo clippy --all-targets -- -D warnings",
+    "passed": true
+  },
+  "benchmark_clippy": {
+    "directory": "base-http/benchmarks/hello",
+    "command": "cargo clippy --all-targets --features profile-tools -- -D warnings",
+    "passed": true
+  },
+  "python": {
+    "directory": "base-http/benchmarks/hello",
+    "command": "python3 -m py_compile compare_http.py",
+    "passed": true
+  },
+  "throughput": {
+    "samples": 25,
+    "requests": 19761743,
+    "wrk_reported_errors": 0,
+    "independent_preflight_every_sample": true
+  },
+  "benchmark_formatting": {
+    "directory": "base-http/benchmarks/hello",
+    "command": "cargo fmt --check",
+    "passed": true
+  },
+  "measured_source_and_binary_hashes_verified_after_checks": true
+}

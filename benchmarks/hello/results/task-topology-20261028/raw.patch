@@ -1,0 +1,124 @@
+--- a/src/raw.rs
++++ b/src/raw.rs
+@@ -15,6 +15,8 @@
+ };
+ use std::{io, net::TcpListener, pin::pin};
+ use tokio::io::{AsyncReadExt, AsyncWriteExt};
++#[cfg(target_os = "linux")]
++use {base_scheduler::Spawn, std::sync::Arc};
+ 
+ const READ_SIZE: usize = 16 * 1024;
+ const RESPONSE: &[u8] =
+@@ -136,7 +138,85 @@
+     }
+ }
+ 
+-pub async fn tokio_server() -> Result<()> {
++#[cfg(target_os = "linux")]
++fn task_finished(result: std::result::Result<Result<()>, base_scheduler::TaskError>) {
++    match result {
++        Ok(result) => connection_finished(result),
++        Err(error) => connection_finished(Err::<(), _>(error)),
++    }
++}
++
++#[cfg(target_os = "linux")]
++fn spawn_base_connection<S, const OWNED_RECEIVE: bool>(
++    scheduler: &Arc<S>,
++    socket: S::Socket,
++) -> std::result::Result<S::Handle<Result<()>>, base_scheduler::SpawnError>
++where
++    S: SocketStreamReading + SocketStreamWriting + SocketClose + Spawn + 'static,
++    S::Socket: 'static,
++{
++    let shared = scheduler.clone();
++    scheduler.spawn(async move {
++        let cancellation = Cancellation::never();
++        base_connection::<_, OWNED_RECEIVE>(shared.as_ref(), socket, &cancellation).await
++    })
++}
++
++#[cfg(target_os = "linux")]
++#[allow(clippy::manual_async_fn)] // Prove Send here, before nesting this future in another spawn.
++pub fn base_task_server<S, const OWNED_RECEIVE: bool>(
++    scheduler: Arc<S>,
++) -> impl std::future::Future<Output = Result<()>> + Send
++where
++    S: SocketRegistration
++        + SocketAccept
++        + SocketSetOption<TcpNoDelay>
++        + SocketStreamReading
++        + SocketStreamWriting
++        + SocketClose
++        + Spawn
++        + 'static,
++    S::Socket: 'static,
++{
++    async move {
++        let listener = TcpListener::bind("127.0.0.1:0")?;
++        ready(&listener)?;
++        let listener = scheduler.register_listener(listener)?;
++        let cancellation = Cancellation::never();
++        let mut connections = FuturesUnordered::new();
++        loop {
++            if connections.len() == MAX_CONNECTIONS {
++                task_finished(connections.next().await.unwrap());
++                continue;
++            }
++            let accepted = {
++                let mut accept = pin!(scheduler.socket_accept(&listener, &cancellation));
++                loop {
++                    let completed = pin!(async {
++                        if connections.is_empty() {
++                            std::future::pending().await
++                        } else {
++                            connections.next().await.unwrap()
++                        }
++                    });
++                    match select(accept.as_mut(), completed).await {
++                        Either::Left((accepted, _)) => break accepted,
++                        Either::Right((completed, _)) => task_finished(completed),
++                    }
++                }
++            };
++            let (socket, _) = accepted?;
++            scheduler
++                .socket_set_option(&socket, TcpNoDelay, true, &cancellation)
++                .await?;
++            let connection = spawn_base_connection::<_, OWNED_RECEIVE>(&scheduler, socket)?;
++            // Retain every task handle; Base dropping a handle requests cancellation.
++            connections.push(connection);
++        }
++    }
++}
++
++pub async fn tokio_server<const CONNECTION_TASKS: bool>() -> Result<()> {
+     let listener = TcpListener::bind("127.0.0.1:0")?;
+     ready(&listener)?;
+     listener.set_nonblocking(true)?;
+@@ -165,12 +245,19 @@
+         };
+         let (socket, _) = accepted?;
+         socket.set_nodelay(true)?;
+-        connections.push(tokio_connection(socket));
+-    }
+-}
+-
+-async fn tokio_connection(mut socket: tokio::net::TcpStream) -> io::Result<()> {
+-    let mut buffer = [0; READ_SIZE];
++        connections.push(async move {
++            if CONNECTION_TASKS {
++                tokio::spawn(tokio_connection(socket)).await?
++            } else {
++                tokio_connection(socket).await
++            }
++        });
++    }
++}
++
++async fn tokio_connection(mut socket: tokio::net::TcpStream) -> Result<()> {
++    // Match Base's initialized, reused heap buffer in every topology.
++    let mut buffer = vec![0; READ_SIZE];
+     loop {
+         if socket.read(&mut buffer).await? == 0 {
+             return Ok(());

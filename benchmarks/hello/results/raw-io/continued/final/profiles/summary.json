@@ -1,0 +1,284 @@
+[
+  {
+    "backend": "base-native-raw",
+    "thread": "Thread_50255186: base-native-task",
+    "thread_samples": 6000,
+    "categories": {
+      "send syscalls": {
+        "samples": 4452,
+        "percent": 74.2
+      },
+      "receive syscalls": {
+        "samples": 1312,
+        "percent": 21.866666666666667
+      },
+      "waiting/readiness syscalls": {
+        "samples": 126,
+        "percent": 2.1
+      },
+      "remaining user-space code": {
+        "samples": 74,
+        "percent": 1.2333333333333334
+      },
+      "cancellation/event/mutex work": {
+        "samples": 36,
+        "percent": 0.6
+      }
+    },
+    "top_exclusive_symbols": [
+      [
+        "__sendto",
+        4452
+      ],
+      [
+        "__recvfrom",
+        1289
+      ],
+      [
+        "kevent",
+        126
+      ],
+      [
+        "<futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin",
+        18
+      ],
+      [
+        "core::ptr::drop_glue::<<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_stream_writer::SocketStreamWriter>::write::{closure#0}>",
+        13
+      ],
+      [
+        "<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}",
+        12
+      ],
+      [
+        "pthread_mutex_lock",
+        11
+      ],
+      [
+        "<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease> as base_scheduler::socket_stream_writer::SocketStreamWriter>::write::{closure#0}",
+        10
+      ],
+      [
+        "core::ptr::drop_glue::<<base_scheduler_selector::readiness_selector::ReadinessSelector>::cancellable<usize, core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>::read_with<<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}::{closure#0}>::{closure#0}::{closure#0}>>::{closure#0}>",
+        6
+      ],
+      [
+        "<base_scheduler_selector::readiness_driver::ReadinessWorker as base_scheduler_selector::selector_worker::SelectorWorker>::turn",
+        6
+      ],
+      [
+        "<futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::base_connection<base_scheduler_native::native_scheduler::NativeScheduler>::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref",
+        6
+      ],
+      [
+        "<core::pin::Pin<&mut <base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader>::read_with<<base_scheduler_selector::readiness_socket_stream_reader::ReadinessSocketStreamReader as base_scheduler::socket_stream_reader::SocketStreamReader>::read_into::{closure#0}::{closure#0}>::{closure#0}::{closure#0}> as core::future::future::Future>::poll",
+        5
+      ],
+      [
+        "<socket2::socket::Socket>::recv_with_flags",
+        5
+      ],
+      [
+        "<base_scheduler_selector::readiness_selector::ReadinessSelector>::check_open",
+        4
+      ],
+      [
+        "<base_scheduler_selector::readiness_driver::Direction>::snapshot",
+        4
+      ],
+      [
+        "<base_scheduler_selector::readiness_driver::Direction>::clear_after_read",
+        4
+      ],
+      [
+        "<base_scheduler_selector::readiness_driver::notification::Notification>::notify",
+        4
+      ],
+      [
+        "<std::sys::pal::unix::sync::mutex::Mutex>::lock",
+        3
+      ],
+      [
+        "DYLD-STUB$$pthread_mutex_unlock",
+        3
+      ],
+      [
+        "pthread_mutex_unlock",
+        3
+      ],
+      [
+        "<base_scheduler_selector::readiness_socket_stream_writer::ReadinessSocketStreamWriter<base_scheduler::buffer_lease::BufferLease>>::result",
+        2
+      ],
+      [
+        "<core::future::poll_fn::PollFn<<base_scheduler_selector::readiness_driver::Direction>::wait::{closure#0}::{closure#0}> as core::future::future::Future>::poll",
+        2
+      ],
+      [
+        "<base_scheduler_selector::readiness_driver::notification::Listener>::poll",
+        2
+      ],
+      [
+        "DYLD-STUB$$pthread_mutex_lock",
+        2
+      ],
+      [
+        "<async_task::raw::RawTask<base_scheduler_native::native_task::TaskFuture<base_http_hello_benchmark::main::{closure#0}>, base_scheduler_native::native_task::TaskOutcome<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>, <base_scheduler_native::task_service::TaskService>::spawn<base_http_hello_benchmark::main::{closure#0}>::{closure#1}, base_scheduler_native::task_service::TaskState>>::run",
+        1
+      ]
+    ],
+    "all_thread_counts": [
+      {
+        "name": "Thread_50255185   DispatchQueue_1: com.apple.main-thread  (serial)",
+        "samples": 6000
+      },
+      {
+        "name": "Thread_50255186: base-native-task",
+        "samples": 6000
+      },
+      {
+        "name": "Thread_50255187: async-io",
+        "samples": 6000
+      },
+      {
+        "name": "Thread_50255188: base-native-0",
+        "samples": 6000
+      }
+    ]
+  },
+  {
+    "backend": "tokio-task-raw",
+    "thread": "Thread_50255560   DispatchQueue_1: com.apple.main-thread  (serial)",
+    "thread_samples": 5878,
+    "categories": {
+      "send syscalls": {
+        "samples": 4314,
+        "percent": 73.39231030962912
+      },
+      "receive syscalls": {
+        "samples": 1337,
+        "percent": 22.745831915617558
+      },
+      "waiting/readiness syscalls": {
+        "samples": 146,
+        "percent": 2.4838380401497107
+      },
+      "remaining user-space code": {
+        "samples": 71,
+        "percent": 1.2078938414426676
+      },
+      "cancellation/event/mutex work": {
+        "samples": 10,
+        "percent": 0.1701258931609391
+      }
+    },
+    "top_exclusive_symbols": [
+      [
+        "__sendto",
+        4314
+      ],
+      [
+        "__recvfrom",
+        1330
+      ],
+      [
+        "kevent",
+        146
+      ],
+      [
+        "<tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_read",
+        10
+      ],
+      [
+        "<tokio::runtime::io::scheduled_io::ScheduledIo>::wake",
+        9
+      ],
+      [
+        "<&std::net::tcp::TcpStream as core::io::write::Write>::write",
+        7
+      ],
+      [
+        "<&mio::net::tcp::stream::TcpStream as alloc::io::read::Read>::read",
+        7
+      ],
+      [
+        "<tokio::net::tcp::stream::TcpStream as tokio::io::async_write::AsyncWrite>::poll_write",
+        6
+      ],
+      [
+        "<tokio::runtime::io::registration::Registration>::poll_ready",
+        6
+      ],
+      [
+        "<tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness",
+        6
+      ],
+      [
+        "<futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin",
+        5
+      ],
+      [
+        "pthread_mutex_unlock",
+        5
+      ],
+      [
+        "<tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_write",
+        4
+      ],
+      [
+        "pthread_mutex_lock",
+        4
+      ],
+      [
+        "<&mio::net::tcp::stream::TcpStream as core::io::write::Write>::write",
+        2
+      ],
+      [
+        "<std::sys::pal::unix::sync::mutex::Mutex>::lock",
+        2
+      ],
+      [
+        "_tlv_get_addr",
+        2
+      ],
+      [
+        "<tokio::runtime::io::driver::Driver>::turn",
+        2
+      ],
+      [
+        "<tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#2}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>",
+        1
+      ],
+      [
+        "DYLD-STUB$$recv",
+        1
+      ],
+      [
+        "<tokio::net::tcp::stream::TcpStream as tokio::io::async_read::AsyncRead>::poll_read",
+        1
+      ],
+      [
+        "core::ptr::drop_glue::<<futures_util::stream::futures_unordered::FuturesUnordered<_> as futures_core::stream::Stream>::poll_next::Bomb<base_http_hello_benchmark::raw::tokio_connection::{closure#0}>>",
+        1
+      ],
+      [
+        "<tokio::runtime::io::scheduled_io::Readiness as core::future::future::Future>::poll",
+        1
+      ],
+      [
+        "<tokio::runtime::task::state::State>::transition_to_idle",
+        1
+      ],
+      [
+        "DYLD-STUB$$pthread_mutex_unlock",
+        1
+      ]
+    ],
+    "all_thread_counts": [
+      {
+        "name": "Thread_50255560   DispatchQueue_1: com.apple.main-thread  (serial)",
+        "samples": 5878
+      }
+    ]
+  }
+]

@@ -1,0 +1,78 @@
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -65,7 +65,7 @@
+     }
+ }
+ 
+-// Every variant has one application worker and one FuturesUnordered supervisor.
++// HTTP variants have one application worker and one FuturesUnordered supervisor.
+ // Connections are polled in that supervisor, matching base_http_server::serve.
+ // This small accept loop additionally sets TCP_NODELAY on every accepted socket.
+ async fn base_server<S>(scheduler: &S) -> Result<()>
+@@ -201,7 +201,7 @@
+             result
+         }
+         #[cfg(target_os = "linux")]
+-        Some(backend @ ("base-iouring" | "base-iouring-raw" | "base-iouring-owned-raw")) => {
++        Some(backend @ ("base-iouring" | "base-iouring-raw" | "base-iouring-owned-raw" | "base-iouring-owned-connections-raw" | "base-iouring-connections-raw")) => {
+             use base_scheduler_iouring::{IoUringOptions, IoUringSelector};
+             let (selector, drivers) = IoUringSelector::with_workers(IoUringOptions {
+                 capacity: MAX_CONNECTIONS,
+@@ -212,12 +212,20 @@
+                 base_scheduler_native::NativeExecutorOptions { workers: 1, ..Default::default() })?);
+             let shared = scheduler.clone();
+             let raw = backend.ends_with("-raw");
+-            let owned_receive = backend == "base-iouring-owned-raw";
+-            let server = scheduler.spawn(async move {
+-                if owned_receive { raw::base_server::<_, true>(shared.as_ref()).await }
+-                else if raw { raw::base_server::<_, false>(shared.as_ref()).await }
+-                else { base_server(shared.as_ref()).await }
+-            })?;
++            let owned_receive = backend.starts_with("base-iouring-owned-");
++            let connection_tasks = backend.ends_with("-connections-raw");
++            let server = if connection_tasks {
++                scheduler.spawn(async move {
++                    if owned_receive { raw::base_task_server::<_, true>(shared).await }
++                    else { raw::base_task_server::<_, false>(shared).await }
++                })?
++            } else {
++                scheduler.spawn(async move {
++                    if owned_receive { raw::base_server::<_, true>(shared.as_ref()).await }
++                    else if raw { raw::base_server::<_, false>(shared.as_ref()).await }
++                    else { base_server(shared.as_ref()).await }
++                })?
++            };
+             let result = scheduler.block_on(server)
+                 .map_err(|error| std::io::Error::other(error.to_string()))?;
+             scheduler.block_on(scheduler.shutdown());
+@@ -232,15 +240,17 @@
+             futures_lite::future::block_on(scheduler.shutdown());
+             result
+         }
+-        Some(backend @ ("base-tokio" | "hyper-tokio" | "hyper-task-tokio" | "base-tokio-raw" | "tokio-raw" | "tokio-task-raw")) => {
++        Some(backend @ ("base-tokio" | "hyper-tokio" | "hyper-task-tokio" | "base-tokio-raw" | "tokio-raw" | "tokio-task-raw" | "tokio-connections-raw")) => {
+             let runtime = tokio::runtime::Builder::new_current_thread()
+                 .enable_all()
+                 .build()?;
+             runtime.block_on(async {
+-                if backend == "tokio-task-raw" {
+-                    tokio::spawn(raw::tokio_server()).await?
++                if backend == "tokio-connections-raw" {
++                    tokio::spawn(raw::tokio_server::<true>()).await?
++                } else if backend == "tokio-task-raw" {
++                    tokio::spawn(raw::tokio_server::<false>()).await?
+                 } else if backend == "tokio-raw" {
+-                    raw::tokio_server().await
++                    raw::tokio_server::<false>().await
+                 } else if backend == "hyper-task-tokio" {
+                     tokio::spawn(hyper_server()).await?
+                 } else if backend == "hyper-tokio" {
+@@ -258,7 +268,7 @@
+             })
+         }
+         _ => Err(
+-            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-direct|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw"
++            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-iouring-owned-connections-raw|base-iouring-connections-raw|base-direct|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw|tokio-connections-raw"
+                 .into(),
+         ),
+     }

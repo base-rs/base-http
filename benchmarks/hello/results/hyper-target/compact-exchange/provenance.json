@@ -1,0 +1,17 @@
+{
+  "baseline_binary_sha256": "628eaad6625d9a87dee6582e9331a3bb3a5f45bae9fa7ba80db51dc9549fc95d",
+  "baseline_matches": "../../http-integration/comparison/environment.json: variants.after-native",
+  "baseline_sources": "../before/sources",
+  "final_sources": "sources",
+  "scheduler_tracked_changes": "../final/scheduler.patch",
+  "scheduler_untracked_sources": "../final/sources/base-scheduler",
+  "build_profile": "Cargo default release, debug=1; no LTO; same settings apply to Base and Hyper",
+  "candidate_experiments_reverted": [
+    "single-IoSlice sendmsg output",
+    "macOS bound scalar writev output"
+  ],
+  "lto_experiment": "Separate target/lto build with thin LTO and codegen-units=1; not applied to final comparison",
+  "scheduler_evidence": "../final/scheduler.patch and ../final/sources/base-scheduler",
+  "context_change": "Full RequestHead snapshot replaced with immutable framing facts; Exchange::head removed in favor of framing accessors",
+  "binary_sha256": "52e0ef6d8e4c7f9974f1e6d024f633b4d9709213242c70e50b643012c3587e71"
+}

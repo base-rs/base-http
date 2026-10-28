@@ -1,0 +1,83 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 601430,
+    "allocations_per_response": 6.00031925613321,
+    "deallocations": 601430,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 6
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 11
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 15
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 29
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 128
+      }
+    ],
+    "reallocations": 0,
+    "reallocations_per_response": 0.0,
+    "requested_bytes": 32436837,
+    "requested_bytes_per_response": 323.61434856783694,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.996809,
+  "client_cpu_us_per_request": 9.944918340267177,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000454125,
+  "fresh": false,
+  "implementation": "base-connection",
+  "latency_us": {
+    "max": 618.495,
+    "mean": 319.11339347320694,
+    "p50": 328.447,
+    "p90": 351.231,
+    "p99": 377.343
+  },
+  "requests": 100233,
+  "requests_per_second": 100187.50235049507,
+  "tls": false,
+  "warmup_requests": 30453,
+  "client_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "client",
+    "--implementation",
+    "base-connection",
+    "--address",
+    "127.0.0.1:64674",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-allocation-compact-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-tk9x1qh9"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 130686
+  },
+  "server_cpu_seconds_including_warmup": 1.5678480000000015
+}

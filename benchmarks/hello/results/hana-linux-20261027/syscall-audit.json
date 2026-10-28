@@ -1,0 +1,70 @@
+{
+  "accept-before/base-iouring": {
+    "wrk_completed_requests": 152140,
+    "syscalls": {
+      "syscalls:sys_enter_recvfrom": 304190,
+      "syscalls:sys_exit_recvfrom": 152048,
+      "syscalls:sys_enter_recvmsg": 0,
+      "syscalls:sys_exit_recvmsg": 0,
+      "syscalls:sys_enter_sendto": 152140,
+      "syscalls:sys_enter_writev": 0,
+      "syscalls:sys_enter_epoll_pwait": 2,
+      "syscalls:sys_enter_epoll_wait": 0,
+      "syscalls:sys_enter_io_uring_enter": 148625,
+      "syscalls:sys_enter_accept4": 303352,
+      "syscalls:sys_enter_epoll_ctl": 303356
+    },
+    "note": "sys_exit_recvfrom and sys_exit_recvmsg count EAGAIN only; counters include attachment/exit interval"
+  },
+  "accept-after/base-iouring": {
+    "wrk_completed_requests": 200198,
+    "syscalls": {
+      "syscalls:sys_enter_recvfrom": 400398,
+      "syscalls:sys_exit_recvfrom": 200198,
+      "syscalls:sys_enter_recvmsg": 0,
+      "syscalls:sys_exit_recvmsg": 0,
+      "syscalls:sys_enter_sendto": 200198,
+      "syscalls:sys_enter_writev": 0,
+      "syscalls:sys_enter_epoll_pwait": 4,
+      "syscalls:sys_enter_epoll_wait": 0,
+      "syscalls:sys_enter_io_uring_enter": 200195,
+      "syscalls:sys_enter_accept4": 4,
+      "syscalls:sys_enter_epoll_ctl": 16
+    },
+    "note": "sys_exit_recvfrom and sys_exit_recvmsg count EAGAIN only; counters include attachment/exit interval"
+  },
+  "hints-counters-after/base-native-inq": {
+    "wrk_completed_requests": 607109,
+    "syscalls": {
+      "syscalls:sys_enter_recvfrom": 0,
+      "syscalls:sys_exit_recvfrom": 0,
+      "syscalls:sys_enter_recvmsg": 607341,
+      "syscalls:sys_exit_recvmsg": 128,
+      "syscalls:sys_enter_sendto": 607210,
+      "syscalls:sys_enter_writev": 0,
+      "syscalls:sys_enter_epoll_pwait": 10048,
+      "syscalls:sys_enter_epoll_wait": 0,
+      "syscalls:sys_enter_io_uring_enter": 0,
+      "syscalls:sys_enter_accept4": 73,
+      "syscalls:sys_enter_epoll_ctl": 299
+    },
+    "note": "sys_exit_recvfrom and sys_exit_recvmsg count EAGAIN only; counters include attachment/exit interval"
+  },
+  "hints-counters-after/base-iouring-inq": {
+    "wrk_completed_requests": 571429,
+    "syscalls": {
+      "syscalls:sys_enter_recvfrom": 0,
+      "syscalls:sys_exit_recvfrom": 0,
+      "syscalls:sys_enter_recvmsg": 571600,
+      "syscalls:sys_exit_recvmsg": 45,
+      "syscalls:sys_enter_sendto": 571551,
+      "syscalls:sys_enter_writev": 0,
+      "syscalls:sys_enter_epoll_pwait": 63,
+      "syscalls:sys_enter_epoll_wait": 0,
+      "syscalls:sys_enter_io_uring_enter": 7181,
+      "syscalls:sys_enter_accept4": 70,
+      "syscalls:sys_enter_epoll_ctl": 205
+    },
+    "note": "sys_exit_recvfrom and sys_exit_recvmsg count EAGAIN only; counters include attachment/exit interval"
+  }
+}

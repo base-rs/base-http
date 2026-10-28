@@ -1,0 +1,171 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 6K of event 'cpu-clock'
+# Event count (approx.): 6999999811
+#
+# Overhead  Command   Shared Object      Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+# ........  ........  .................  .................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+     9.34%  baseline  libc.so.6          [.] send
+     8.64%  baseline  [kernel.kallsyms]  [k] do_syscall_64
+     7.67%  baseline  libc.so.6          [.] recv
+     3.38%  baseline  [kernel.kallsyms]  [k] _raw_spin_unlock_irqrestore
+     1.82%  baseline  [kernel.kallsyms]  [k] tcp_ack
+     1.73%  baseline  [kernel.kallsyms]  [k] skb_defer_free_flush
+     1.62%  baseline  [kernel.kallsyms]  [k] __tcp_transmit_skb
+     1.60%  baseline  [kernel.kallsyms]  [k] tcp_sendmsg_locked
+     1.52%  baseline  [kernel.kallsyms]  [k] fdget
+     1.43%  baseline  [kernel.kallsyms]  [k] memset_orig
+     1.40%  baseline  [kernel.kallsyms]  [k] skb_release_data
+     1.40%  baseline  [kernel.kallsyms]  [k] tcp_v4_rcv
+     1.38%  baseline  [kernel.kallsyms]  [k] tcp_rcv_established
+     1.30%  baseline  [kernel.kallsyms]  [k] __inet_lookup_established
+     1.25%  baseline  [kernel.kallsyms]  [k] ip_finish_output2
+     1.16%  baseline  [kernel.kallsyms]  [k] __ip_queue_xmit
+     1.06%  baseline  [kernel.kallsyms]  [k] __rcu_read_unlock
+     1.05%  baseline  [kernel.kallsyms]  [k] __dev_queue_xmit
+     0.97%  baseline  [kernel.kallsyms]  [k] __check_object_size
+     0.97%  baseline  [kernel.kallsyms]  [k] skb_attempt_defer_free
+     0.96%  baseline  [kernel.kallsyms]  [k] tcp_recvmsg_locked
+     0.93%  baseline  [kernel.kallsyms]  [k] kmem_cache_alloc_node_noprof
+     0.83%  baseline  [kernel.kallsyms]  [k] sock_rfree
+     0.82%  baseline  [kernel.kallsyms]  [k] __sys_sendto
+     0.82%  baseline  [kernel.kallsyms]  [k] handle_softirqs
+     0.77%  baseline  baseline           [.] <tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness
+     0.76%  baseline  [kernel.kallsyms]  [k] ep_send_events
+     0.72%  baseline  [kernel.kallsyms]  [k] rep_movs_alternative
+     0.72%  baseline  [kernel.kallsyms]  [k] tcp_poll
+     0.70%  baseline  [kernel.kallsyms]  [k] loopback_xmit
+     0.70%  baseline  [kernel.kallsyms]  [k] net_rx_action
+     0.67%  baseline  [kernel.kallsyms]  [k] sock_poll
+     0.66%  baseline  [kernel.kallsyms]  [k] __skb_datagram_iter
+     0.66%  baseline  [kernel.kallsyms]  [k] __sys_recvfrom
+     0.63%  baseline  libc.so.6          [.] epoll_wait
+     0.62%  baseline  [kernel.kallsyms]  [k] tcp_event_new_data_sent
+     0.60%  baseline  [kernel.kallsyms]  [k] skb_page_frag_refill
+     0.59%  baseline  [kernel.kallsyms]  [k] __ip_local_out
+     0.59%  baseline  [kernel.kallsyms]  [k] ktime_get
+     0.59%  baseline  [kernel.kallsyms]  [k] tcp_write_xmit
+     0.57%  baseline  [kernel.kallsyms]  [k] _raw_spin_unlock_irq
+     0.56%  baseline  [kernel.kallsyms]  [k] __virt_addr_valid
+     0.56%  baseline  [kernel.kallsyms]  [k] do_softirq.part.0
+     0.56%  baseline  [kernel.kallsyms]  [k] tcp_current_mss
+     0.54%  baseline  baseline           [.] tokio::runtime::task::raw::poll::<base_http_hello_benchmark::raw::tokio_connection::{closure#0}, alloc::sync::Arc<tokio::runtime::scheduler::current_thread::Handle>>
+     0.53%  baseline  [kernel.kallsyms]  [k] enqueue_to_backlog
+     0.52%  baseline  [kernel.kallsyms]  [k] __rcu_read_lock
+     0.50%  baseline  [kernel.kallsyms]  [k] ep_item_poll.isra.0
+     0.50%  baseline  [kernel.kallsyms]  [k] lock_sock_nested
+     0.50%  baseline  baseline           [.] <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_read
+     0.47%  baseline  baseline           [.] <tokio::runtime::io::registration::Registration>::poll_ready
+     0.44%  baseline  [kernel.kallsyms]  [k] skb_clone
+     0.43%  baseline  [kernel.kallsyms]  [k] _find_next_bit
+     0.40%  baseline  [kernel.kallsyms]  [k] __netif_receive_skb_core.constprop.0
+     0.40%  baseline  [kernel.kallsyms]  [k] nf_hook_slow
+     0.40%  baseline  [kernel.kallsyms]  [k] sock_def_readable
+     0.39%  baseline  [kernel.kallsyms]  [k] _raw_spin_lock
+     0.39%  baseline  [kernel.kallsyms]  [k] dev_hard_start_xmit
+     0.39%  baseline  [kernel.kallsyms]  [k] tcp_wfree
+     0.37%  baseline  [kernel.kallsyms]  [k] __local_bh_enable_ip
+     0.37%  baseline  [kernel.kallsyms]  [k] __mod_memcg_state
+     0.37%  baseline  [kernel.kallsyms]  [k] __mod_timer
+     0.37%  baseline  [kernel.kallsyms]  [k] kfree_skbmem
+     0.36%  baseline  [kernel.kallsyms]  [k] _copy_from_iter
+     0.36%  baseline  [kernel.kallsyms]  [k] inet_recvmsg
+     0.36%  baseline  [kernel.kallsyms]  [k] ip_finish_output
+     0.36%  baseline  [kernel.kallsyms]  [k] ip_rcv_finish_core
+     0.34%  baseline  [kernel.kallsyms]  [k] ip_output
+     0.33%  baseline  [kernel.kallsyms]  [k] _raw_spin_lock_bh
+     0.33%  baseline  [kernel.kallsyms]  [k] tcp_rcv_space_adjust
+     0.32%  baseline  [kernel.kallsyms]  [k] ip_skb_dst_mtu
+     0.32%  baseline  baseline           [.] <tokio::runtime::task::state::State>::transition_to_running
+     0.30%  baseline  [kernel.kallsyms]  [k] _find_first_bit
+     0.30%  baseline  [kernel.kallsyms]  [k] cubictcp_acked
+     0.30%  baseline  [kernel.kallsyms]  [k] ip_protocol_deliver_rcu
+     0.30%  baseline  [kernel.kallsyms]  [k] tcp_skb_entail
+     0.30%  baseline  [kernel.kallsyms]  [k] try_charge_memcg
+     0.29%  baseline  [kernel.kallsyms]  [k] ipv4_mtu
+     0.29%  baseline  [kernel.kallsyms]  [k] ktime_get_with_offset
+     0.29%  baseline  [kernel.kallsyms]  [k] tcp_queue_rcv
+     0.29%  baseline  baseline           [.] <tokio::runtime::io::scheduled_io::ScheduledIo>::wake
+     0.27%  baseline  [kernel.kallsyms]  [k] ip_local_out
+     0.27%  baseline  [kernel.kallsyms]  [k] tcp_schedule_loss_probe
+     0.27%  baseline  [nf_tables]        [k] 0x000000000001e764
+     0.26%  baseline  [kernel.kallsyms]  [k] __alloc_skb
+     0.26%  baseline  [kernel.kallsyms]  [k] security_sock_rcv_skb
+     0.26%  baseline  baseline           [.] <tokio::runtime::scheduler::current_thread::Context>::run_task
+     0.24%  baseline  [kernel.kallsyms]  [k] __tcp_push_pending_frames
+     0.24%  baseline  [kernel.kallsyms]  [k] ip_send_check
+     0.24%  baseline  [kernel.kallsyms]  [k] tcp_ack_update_rtt
+     0.24%  baseline  [kernel.kallsyms]  [k] tcp_update_pacing_rate
+     0.24%  baseline  baseline           [.] <tokio::runtime::io::driver::Driver>::turn
+     0.23%  baseline  [kernel.kallsyms]  [k] dst_release
+     0.23%  baseline  [nf_tables]        [k] 0x00000000000000b6
+     0.21%  baseline  [kernel.kallsyms]  [k] __tcp_select_window
+     0.21%  baseline  [kernel.kallsyms]  [k] _copy_to_iter
+     0.21%  baseline  [kernel.kallsyms]  [k] napi_consume_skb
+     0.21%  baseline  [kernel.kallsyms]  [k] tcp_tso_segs
+     0.21%  baseline  [kernel.kallsyms]  [k] tcp_v4_fill_cb
+     0.21%  baseline  [nf_tables]        [k] 0x000000000001e760
+     0.20%  baseline  [kernel.kallsyms]  [k] __x64_sys_sendto
+     0.20%  baseline  [kernel.kallsyms]  [k] ip_local_deliver_finish
+     0.20%  baseline  [kernel.kallsyms]  [k] ip_rcv_core
+     0.20%  baseline  [kernel.kallsyms]  [k] security_socket_recvmsg
+     0.20%  baseline  [kernel.kallsyms]  [k] security_socket_sendmsg
+     0.20%  baseline  [kernel.kallsyms]  [k] tcp_established_options
+     0.20%  baseline  baseline           [.] <tokio::runtime::scheduler::current_thread::Core>::next_task
+     0.19%  baseline  [kernel.kallsyms]  [k] release_sock
+     0.19%  baseline  [kernel.kallsyms]  [k] tcp_rate_check_app_limited
+     0.19%  baseline  [kernel.kallsyms]  [k] tcp_rearm_rto
+     0.19%  baseline  [kernel.kallsyms]  [k] tcp_sendmsg
+     0.19%  baseline  [kernel.kallsyms]  [k] x64_sys_call
+     0.19%  baseline  [nf_tables]        [k] 0x00000000000001e6
+     0.19%  baseline  baseline           [.] <tokio::runtime::task::state::State>::transition_to_idle
+     0.17%  baseline  [kernel.kallsyms]  [k] raw_local_deliver
+     0.17%  baseline  baseline           [.] <&std::net::tcp::TcpStream as alloc::io::read::Read>::read
+     0.16%  baseline  [kernel.kallsyms]  [k] __sk_dst_check
+     0.16%  baseline  [kernel.kallsyms]  [k] bpf_skops_write_hdr_opt.isra.0
+     0.16%  baseline  [kernel.kallsyms]  [k] cubictcp_cwnd_event_tx_start
+     0.16%  baseline  [kernel.kallsyms]  [k] process_backlog
+     0.16%  baseline  [kernel.kallsyms]  [k] sock_recvmsg
+     0.16%  baseline  baseline           [.] tokio::runtime::task::waker::clone_waker
+     0.14%  baseline  [kernel.kallsyms]  [k] __copy_skb_header
+     0.14%  baseline  [kernel.kallsyms]  [k] __css_rstat_updated
+     0.14%  baseline  [kernel.kallsyms]  [k] __sk_mem_reduce_allocated
+     0.14%  baseline  [kernel.kallsyms]  [k] hook_socket_sendmsg
+     0.14%  baseline  [kernel.kallsyms]  [k] sk_filter_trim_cap
+     0.14%  baseline  [kernel.kallsyms]  [k] sk_forced_mem_schedule
+     0.14%  baseline  [kernel.kallsyms]  [k] tcp_stream_alloc_skb
+     0.14%  baseline  baseline           [.] <&std::os::unix::net::stream::UnixStream as core::io::write::Write>::write
+     0.13%  baseline  [kernel.kallsyms]  [k] __usecs_to_jiffies
+     0.13%  baseline  [kernel.kallsyms]  [k] cubictcp_cong_avoid
+     0.13%  baseline  [kernel.kallsyms]  [k] import_ubuf
+     0.13%  baseline  [kernel.kallsyms]  [k] ip_local_deliver
+     0.13%  baseline  [kernel.kallsyms]  [k] ipv4_dst_check
+     0.13%  baseline  [kernel.kallsyms]  [k] skb_clone_tx_timestamp
+     0.13%  baseline  [kernel.kallsyms]  [k] tcp_data_ready
+     0.13%  baseline  [kernel.kallsyms]  [k] tcp_options_write
+     0.13%  baseline  [kernel.kallsyms]  [k] tcp_rate_skb_delivered.part.0
+     0.13%  baseline  [kernel.kallsyms]  [k] tcp_update_skb_after_send
+     0.11%  baseline  [kernel.kallsyms]  [k] __netif_receive_skb_one_core
+     0.11%  baseline  [kernel.kallsyms]  [k] do_epoll_wait
+     0.11%  baseline  [kernel.kallsyms]  [k] ip_rcv
+     0.11%  baseline  [kernel.kallsyms]  [k] kmalloc_reserve
+     0.11%  baseline  [kernel.kallsyms]  [k] prandom_u32_state
+     0.11%  baseline  [kernel.kallsyms]  [k] sk_reset_timer
+     0.11%  baseline  [kernel.kallsyms]  [k] tcp_in_ack_event
+     0.11%  baseline  [nf_tables]        [k] 0x0000000000000183
+     0.11%  baseline  baseline           [.] <tokio::runtime::context::scoped::Scoped<tokio::runtime::scheduler::Context>>::set::<<tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#5}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>
+     0.11%  baseline  baseline           [.] tokio::runtime::task::waker::wake_by_val
+     0.10%  baseline  [kernel.kallsyms]  [k] eth_type_trans
+     0.10%  baseline  [kernel.kallsyms]  [k] tcp_delack_max
+     0.10%  baseline  [kernel.kallsyms]  [k] validate_xmit_skb
+     0.10%  baseline  [nf_tables]        [k] 0x000000000001e76d
+     0.10%  baseline  baseline           [.] <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_write
+
+
+#
+# (Tip: System-wide collection from all CPUs: perf record -a)
+#

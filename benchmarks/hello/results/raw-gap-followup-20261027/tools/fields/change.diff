@@ -1,0 +1,60 @@
+--- before/syntax.rs
++++ fields/syntax.rs
+@@ -1,6 +1,7 @@
+ // Released under the MIT License.
+ // Copyright, 2026, by Samuel Williams.
+ 
++#[inline]
+ pub(crate) fn is_token(value: &[u8]) -> bool {
+     !value.is_empty()
+         && value.iter().all(|byte| {
+--- before/fields.rs
++++ fields/fields.rs
+@@ -52,6 +52,7 @@
+     Heap(String),
+ }
+ impl NameStorage {
++    #[inline]
+     fn new(value: &str) -> Self {
+         match ArrayString::from(value) {
+             Ok(value) => Self::Inline(value),
+@@ -75,6 +76,7 @@
+     Heap(Vec<u8>),
+ }
+ impl ValueStorage {
++    #[inline]
+     fn new(value: &[u8]) -> Self {
+         let mut inline = ArrayVec::new();
+         if inline.try_extend_from_slice(value).is_ok() {
+@@ -95,6 +97,7 @@
+ }
+ 
+ impl Field {
++    #[inline]
+     pub fn new(name: impl AsRef<str>, value: impl AsRef<[u8]>) -> Result<Self, FieldError> {
+         let name = name.as_ref();
+         if !is_token(name.as_bytes()) {
+@@ -302,6 +305,7 @@
+ }
+ 
+ impl Fields {
++    #[inline]
+     pub fn new() -> Self {
+         Self::default()
+     }
+@@ -369,6 +373,7 @@
+             .any(|field| field.name.eq_ignore_ascii_case(name))
+     }
+ 
++    #[inline]
+     pub fn add(
+         &mut self,
+         name: impl AsRef<str>,
+@@ -377,6 +382,7 @@
+         self.append(Field::new(name, value)?)
+     }
+ 
++    #[inline]
+     pub fn append(&mut self, field: Field) -> Result<(), FieldError> {
+         self.check_trailer(&field)?;
+         if let Some(index) = &mut self.indexed {

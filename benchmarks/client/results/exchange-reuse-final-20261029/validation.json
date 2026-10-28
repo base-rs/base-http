@@ -1,0 +1,97 @@
+[
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "../base-http-client/Cargo.toml",
+      "--check"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "test",
+      "--manifest-path",
+      "../base-http-client/Cargo.toml",
+      "--locked",
+      "--offline"
+    ],
+    "exit_code": 0,
+    "stdout": "\nrunning 4 tests\ntest reuse::tests::dropping_unpolled_operation_clears_its_owners ... ok\ntest reuse::tests::retained_operations_never_share_storage_and_surplus_is_discarded ... ok\ntest reuse::tests::pinned_state_is_dropped_in_place_before_storage_is_reused ... ok\ntest reuse::tests::storage_can_be_taken_and_returned_from_different_threads ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 13 tests\ntest dropping_driver_wakes_queued_calls_and_rejects_new_submissions ... ok\ntest failed_construction_releases_capacity_and_preserves_client_admission ... ok\ntest busy_and_closed_clients_close_rejected_bodies ... ok\ntest lifetime_cancellation_stops_an_uncooperative_upload_and_joins_cleanup ... ok\ntest response_finishes_before_upload_and_use_remains_charged ... ok\ntest cancelled_pool_waiter_does_not_cancel_occupied_connection ... ok\ntest known_empty_responses_are_ready_and_reusable_without_body_reads ... ok\ntest post_then_get_reuses_one_connection_with_heterogeneous_bodies ... ok\ntest interim_responses_and_trailers_preserve_order ... ok\ntest abandoned_partial_response_disconnects_and_replaces_connection ... ok\ntest cancelling_a_waiting_call_disconnects_and_allows_replacement ... ok\ntest dropped_call_retires_an_exchange_waiting_for_final_metadata ... ok\ntest upload_keeps_progressing_while_response_queue_is_full ... ok\n\ntest result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 2 tests\ntest proxy_continues_upload_after_downstream_response_completion ... ok\ntest proxy_forwards_upload_when_downstream_response_reads_are_paused ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s\n\n\nrunning 22 tests\ntest deferred_close_survives_dropped_and_cancelled_completion_waits ... ok\ntest dropping_a_cold_open_retires_construction_before_replacement ... ok\ntest cancelled_and_dropped_open_waiters_do_not_abandon_active_exchange ... ok\ntest direct_writes_reach_peer_before_finish_and_observe_interims ... ok\ntest completed_direct_response_releases_use_before_next_driver_poll ... ok\ntest deferred_close_preserves_framing_errors_and_retires_the_connection ... ok\ntest aborting_output_wakes_a_response_blocked_in_an_interim_observer ... ok\ntest completed_adapters_release_observers_while_old_handles_remain_alive ... ok\ntest cancellation_wakes_direct_input_and_retains_cleanup_accounting ... ok\ntest dropping_a_pending_direct_write_retires_the_connection ... ok\ntest normal_close_write_finalizes_without_a_body_queue ... ok\ntest precancelled_writes_leave_output_usable ... ok\ntest producer_error_is_observable_and_retires_direct_output ... ok\ntest old_completed_handles_cannot_cancel_the_next_exchange ... ok\ntest early_empty_response_does_not_finish_upload_or_release_pool_use ... ok\ntest established_http1_runs_without_polling_client_driver ... ok\ntest partial_input_and_unfinished_output_both_retire_connections ... ok\ntest dropped_input_reads_preserve_decoder_state_but_cancelled_reads_retire ... ok\ntest sequential_writes_flush_without_reading_and_share_pool_with_call ... ok\ntest fixed_length_errors_retire_instead_of_replaying_partial_writes ... ok\ntest direct_upload_progresses_while_response_consumption_is_paused ... ok\ntest direct_http_split_echo_under_backpressure ... ok\n\ntest result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s\n\n\nrunning 1 test\ntest src/lib.rs - (line 31) ... ignored\n\ntest result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+    "stderr": "   Compiling base-http-client v0.0.0 (/Users/samuel/Developer/base-rs/base-http-client)\n    Finished `test` profile [unoptimized] target(s) in 1.25s\n     Running unittests src/lib.rs (/tmp/base-http-validation-target/debug/deps/base_http_client-136431b5e89e54be)\n     Running tests/client.rs (/tmp/base-http-validation-target/debug/deps/client-ceb7725677437f74)\n     Running tests/https.rs (/tmp/base-http-validation-target/debug/deps/https-8d4f6741d8833c3f)\n     Running tests/proxy.rs (/tmp/base-http-validation-target/debug/deps/proxy-185c66d1caa9bcb0)\n     Running tests/writable.rs (/tmp/base-http-validation-target/debug/deps/writable-aed144c9abd3a017)\n   Doc-tests base_http_client\n"
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "../base-http-client/Cargo.toml",
+      "--all-targets",
+      "--features",
+      "rustls",
+      "--locked",
+      "--offline",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Checking base-http-client v0.0.0 (/Users/samuel/Developer/base-rs/base-http-client)\n    Finished `dev` profile [unoptimized] target(s) in 0.96s\n"
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "benchmarks/client/Cargo.toml",
+      "--all-targets",
+      "--locked",
+      "--offline",
+      "--features",
+      "count-allocations",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Checking concurrent-queue v2.5.0\n    Checking crossbeam-epoch v0.9.21\n    Checking crossbeam-queue v0.3.14\n    Checking base-http-client v0.0.0 (/Users/samuel/Developer/base-rs/base-http-client)\n    Checking async-io v2.6.0\n    Checking crossbeam-deque v0.8.8\n    Checking base-scheduler-selector v0.2.0\n    Checking base-scheduler-native v0.2.0\n    Checking base-http-client-benchmark v0.0.0 (/Users/samuel/Developer/base-rs/base-http/benchmarks/client)\n    Finished `dev` profile [unoptimized] target(s) in 1.16s\n"
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "benchmarks/client/Cargo.toml",
+      "--all-targets",
+      "--locked",
+      "--offline",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "    Checking base-http-client-benchmark v0.0.0 (/Users/samuel/Developer/base-rs/base-http/benchmarks/client)\n    Finished `dev` profile [unoptimized] target(s) in 0.31s\n"
+  }
+]

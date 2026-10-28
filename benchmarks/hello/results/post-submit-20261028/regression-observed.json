@@ -1,0 +1,21 @@
+{
+  "before": {
+    "filter": "nonblocking_submission_publishes_immediate_completions_before_returning",
+    "extra_arguments": [
+      "--nocapture"
+    ],
+    "tests_run": 1,
+    "exit_status": 101,
+    "result": "expected assertion failure"
+  },
+  "after": {
+    "filter": "nonblocking_submission_publishes_immediate_completions_before_returning",
+    "extra_arguments": [
+      "--nocapture"
+    ],
+    "tests_run": 1,
+    "exit_status": 0,
+    "result": "passed"
+  },
+  "source": "Observed SSH command exits and retained before/after logs; excludes the earlier zero-test --exact invocation."
+}

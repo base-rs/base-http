@@ -1,0 +1,10 @@
+--- before/crates/selector/src/readiness_socket_stream_reader.rs
++++ after/crates/selector/src/readiness_socket_stream_reader.rs
+@@ -214,6 +214,7 @@
+         }
+     }
+ 
++    #[inline]
+     async fn read_into(
+         &mut self,
+         buffer: &mut [u8],

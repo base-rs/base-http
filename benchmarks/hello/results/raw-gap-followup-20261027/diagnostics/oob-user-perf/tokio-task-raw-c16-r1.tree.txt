@@ -1,0 +1,108 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 19K of event 'cycles:u'
+# Event count (approx.): 4978688569
+#
+# Children      Self  Command      Shared Object     Symbol                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+# ........  ........  ...........  ................  .........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+#
+    13.89%    13.87%  oob-default  oob-default       [.] <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin
+            |          
+             --0.39%--<futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_util::stream::stream::StreamExt>::poll_next_unpin
+                       <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_core::stream::Stream>::poll_next (inlined)
+
+     9.70%     9.70%  oob-default  oob-default       [.] <futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref
+            |          
+             --0.22%--<futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_util::stream::futures_unordered::task::ArcWake>::wake_by_ref
+
+     9.01%     9.01%  oob-default  oob-default       [.] <tokio::runtime::io::scheduled_io::ScheduledIo>::poll_readiness
+     8.53%     8.53%  oob-default  oob-default       [.] <tokio::runtime::io::registration::Registration>::poll_ready
+     8.18%     8.16%  oob-default  oob-default       [.] <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_read
+     6.35%     3.97%  oob-default  libc.so.6         [.] send
+            |          
+             --6.26%--send
+                       |          
+                        --2.36%--0xffffffff9f600080
+
+     5.77%     5.77%  oob-default  oob-default       [.] <tokio::runtime::io::scheduled_io::ScheduledIo>::wake
+     4.80%     4.80%  oob-default  [unknown]         [k] 0xffffffff9f600080
+            |          
+            |--2.36%--send
+            |          0xffffffff9f600080
+            |          
+             --2.25%--0x1
+                       recv
+                       0xffffffff9f600080
+
+     4.34%     2.08%  oob-default  libc.so.6         [.] recv
+            |          
+             --4.31%--recv
+                       |          
+                        --2.25%--0xffffffff9f600080
+
+     3.87%     3.87%  oob-default  oob-default       [.] <futures_core::task::__internal::atomic_waker::AtomicWaker>::wake
+     3.20%     3.20%  oob-default  oob-default       [.] <tokio::runtime::io::driver::Driver>::turn
+     2.74%     2.74%  oob-default  oob-default       [.] futures_util::stream::futures_unordered::task::waker_ref::wake_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::tokio_connection::{closure#0}>>
+     2.31%     0.00%  oob-default  [unknown]         [.] 0x0000000000000001
+            |
+            ---0x1
+               |          
+                --2.25%--recv
+                          0xffffffff9f600080
+
+     2.24%     2.24%  oob-default  oob-default       [.] <tokio::io::poll_evented::PollEvented<mio::net::tcp::stream::TcpStream>>::poll_write
+     2.20%     2.20%  oob-default  oob-default       [.] futures_util::stream::futures_unordered::task::waker_ref::clone_arc_raw::<futures_util::stream::futures_unordered::task::Task<base_http_hello_benchmark::raw::tokio_connection::{closure#0}>>
+     1.92%     1.92%  oob-default  oob-default       [.] <&std::os::unix::net::stream::UnixStream as core::io::write::Write>::write
+     1.73%     0.37%  oob-default  libc.so.6         [.] clock_gettime
+            |          
+             --1.72%--clock_gettime
+                       |          
+                        --1.36%--__vdso_clock_gettime
+
+     1.65%     1.61%  oob-default  oob-default       [.] <&std::net::tcp::TcpStream as alloc::io::read::Read>::read
+     1.36%     1.36%  oob-default  [vdso]            [.] __vdso_clock_gettime
+            |          
+             --1.31%--clock_gettime
+                       __vdso_clock_gettime
+
+     1.12%     1.12%  oob-default  oob-default       [.] <tokio::runtime::task::harness::Harness<base_http_hello_benchmark::raw::tokio_server::{closure#0}, alloc::sync::Arc<tokio::runtime::scheduler::current_thread::Handle>>>::poll
+     0.99%     0.99%  oob-default  oob-default       [.] <tokio::runtime::scheduler::current_thread::Context>::park
+     0.97%     0.94%  oob-default  oob-default       [.] <tokio::runtime::time::Driver>::park_internal
+     0.78%     0.68%  oob-default  oob-default       [.] <&mio::net::tcp::stream::TcpStream as core::io::write::Write>::write
+     0.73%     0.53%  oob-default  libc.so.6         [.] epoll_wait
+            |          
+             --0.72%--epoll_wait
+
+     0.71%     0.71%  oob-default  oob-default       [.] <tokio::runtime::task::state::State>::transition_to_running
+     0.61%     0.61%  oob-default  oob-default       [.] <tokio::runtime::io::scheduled_io::Readiness as core::future::future::Future>::poll
+     0.59%     0.57%  oob-default  oob-default       [.] <std::thread::local::LocalKey<tokio::runtime::context::Context>>::with::<tokio::runtime::context::set_scheduler<(alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>), <tokio::runtime::scheduler::current_thread::CoreGuard>::enter<<tokio::runtime::scheduler::current_thread::CoreGuard>::block_on<base_http_hello_benchmark::main::{closure#4}>::{closure#0}, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>>::{closure#0}>::{closure#0}, (alloc::boxed::Box<tokio::runtime::scheduler::current_thread::Core>, core::option::Option<core::result::Result<(), alloc::boxed::Box<dyn core::error::Error + core::marker::Send + core::marker::Sync>>>)>
+     0.54%     0.54%  oob-default  oob-default       [.] <tokio::runtime::time::handle::Handle>::process_at_time
+     0.54%     0.54%  oob-default  oob-default       [.] <tokio::runtime::scheduler::current_thread::Core>::next_task
+     0.51%     0.50%  oob-default  oob-default       [.] <tokio::runtime::time::wheel::Wheel>::next_expiration
+     0.48%     0.48%  oob-default  oob-default       [.] core::ptr::drop_glue::<<futures_util::stream::futures_unordered::FuturesUnordered<_> as futures_core::stream::Stream>::poll_next::Bomb<base_http_hello_benchmark::raw::tokio_connection::{closure#0}>>
+     0.47%     0.47%  oob-default  oob-default       [.] <futures_core::task::__internal::atomic_waker::AtomicWaker>::register
+     0.43%     0.38%  oob-default  oob-default       [.] <&mio::net::tcp::stream::TcpStream as alloc::io::read::Read>::read
+     0.42%     0.42%  oob-default  oob-default       [.] <tokio::runtime::scheduler::current_thread::Context>::run_task
+     0.40%     0.40%  oob-default  oob-default       [.] <futures_util::future::select::Select<core::pin::Pin<&mut <tokio::net::tcp::listener::TcpListener>::accept::{closure#0}>, core::pin::Pin<&mut base_http_hello_benchmark::raw::tokio_server::{closure#0}::{closure#0}>> as core::future::future::Future>::poll
+     0.39%     0.00%  oob-default  oob-default       [.] <futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_core::stream::Stream>::poll_next (inlined)
+            |
+            ---<futures_util::stream::futures_unordered::FuturesUnordered<base_http_hello_benchmark::raw::tokio_connection::{closure#0}> as futures_core::stream::Stream>::poll_next (inlined)
+
+     0.38%     0.38%  oob-default  oob-default       [.] <tokio::runtime::task::state::State>::transition_to_idle
+     0.34%     0.34%  oob-default  oob-default       [.] <core::pin::Pin<&mut <tokio::net::tcp::listener::TcpListener>::accept::{closure#0}> as futures_util::future::future::FutureExt>::poll_unpin
+     0.32%     0.31%  oob-default  oob-default       [.] <mio::poll::Poll>::poll
+     0.30%     0.29%  oob-default  oob-default       [.] <tokio::runtime::metrics::batch::MetricsBatch>::start_processing_scheduled_tasks
+     0.27%     0.27%  oob-default  oob-default       [.] tokio::runtime::task::waker::clone_waker
+     0.25%     0.25%  oob-default  oob-default       [.] <tokio::net::tcp::stream::TcpStream as tokio::io::async_read::AsyncRead>::poll_read
+     0.25%     0.25%  oob-default  oob-default       [.] <tokio::runtime::task::state::State>::transition_to_notified_by_val
+     0.24%     0.24%  oob-default  oob-default       [.] tokio::runtime::task::waker::wake_by_val
+     0.21%     0.21%  oob-default  oob-default       [.] <std::sys::pal::unix::time::Timespec>::sub_timespec
+     0.21%     0.18%  oob-default  oob-default       [.] <tokio::runtime::metrics::batch::MetricsBatch>::end_processing_scheduled_tasks
+
+
+#
+# (Tip: To not accumulate CPU time of children symbols add --no-children)
+#

@@ -1,0 +1,137 @@
+diff --git a/crates/iouring/src/io_uring_selector.rs b/crates/iouring/src/io_uring_selector.rs
+index 4d66414..01f4bb8 100644
+--- a/crates/iouring/src/io_uring_selector.rs
++++ b/crates/iouring/src/io_uring_selector.rs
+@@ -1053,6 +1053,7 @@ impl Reactor {
+             let (submitter, mut submissions, _) = self.ring.split();
+             let had_submissions = !submissions.is_empty();
+             let mut prepared = false;
++            let mut readiness_only = true;
+             while let Some(&identifier) = self.cancellations.front() {
+                 let entry = opcode::AsyncCancel::new(identifier)
+                     .build()
+@@ -1062,6 +1063,7 @@ impl Reactor {
+                     break;
+                 }
+                 self.cancellations.pop_front();
++                readiness_only = false;
+             }
+             while !submissions.is_full() {
+                 let Some(mut request) = self.pending.pop_front() else {
+@@ -1080,6 +1082,7 @@ impl Reactor {
+                 let entry = request.entry();
+                 progressed |= request.entry_may_wake();
+                 prepared = true;
++                readiness_only &= entry.get_opcode() == u32::from(opcode::PollAdd::CODE);
+                 // SAFETY: InFlight owns the buffer allocation and descriptor before publication. Neither is released or accessed until the original CQE, even when cancellation completes first. A failed push does not publish the entry.
+                 unsafe { submissions.push(&entry) }
+                     .expect("submission capacity was checked and the local queue has not changed");
+@@ -1118,6 +1121,7 @@ impl Reactor {
+             }
+             // A readiness-only batch can join the next idle wait. Existing SQ entries must be submitted on this turn, even if tasks stay busy.
+             defer_submission = prepared
++                && readiness_only
+                 && !progressed
+                 && !command_batch_full
+                 && !had_submissions
+diff --git a/crates/iouring/src/io_uring_selector/multishot/tests.rs b/crates/iouring/src/io_uring_selector/multishot/tests.rs
+index 4aef2c3..9674820 100644
+--- a/crates/iouring/src/io_uring_selector/multishot/tests.rs
++++ b/crates/iouring/src/io_uring_selector/multishot/tests.rs
+@@ -148,7 +148,13 @@ fn shutdown_during_buffer_exhaustion_retires_without_a_transport_error() {
+     sender
+         .try_send(b"abcdefgh", SocketSendFlags::default())
+         .unwrap();
+-    driver.turn(Some(Duration::ZERO)).unwrap();
++    {
++        // Leave this turn's SQEs unpublished so post-submit collection cannot
++        // consume the CQEs which the direct wait below needs to retain.
++        let _failure =
++            super::super::tests::Failures::new([("submit", io::ErrorKind::Interrupted.into())]);
++        driver.turn(Some(Duration::ZERO)).unwrap();
++    }
+     {
+         let reactor = driver.reactor.as_mut().unwrap();
+         let deadline = std::time::Instant::now() + Duration::from_secs(3);
+diff --git a/crates/iouring/src/io_uring_selector/process_wait/tests.rs b/crates/iouring/src/io_uring_selector/process_wait/tests.rs
+index 545b749..a45a91f 100644
+--- a/crates/iouring/src/io_uring_selector/process_wait/tests.rs
++++ b/crates/iouring/src/io_uring_selector/process_wait/tests.rs
+@@ -180,6 +180,11 @@ fn unsubmitted_driver_drop_reports_an_error_and_unknown_kernel_access_is_retaine
+             Box::pin(selector.process_wait(i32::MAX, ProcessWaitFlags::default(), &never));
+         assert!(block_on(poll_once(wait.as_mut())).is_none());
+         if submitted {
++            // Keep the invalid PID from completing during submission. Driver
++            // teardown must conservatively retain the staged request after an
++            // interrupted entry, even though the fixture knows it was not issued.
++            let _failure =
++                super::super::tests::Failures::new([("submit", io::ErrorKind::Interrupted.into())]);
+             driver.turn(Some(Duration::ZERO)).unwrap();
+             assert_eq!(driver.reactor.as_ref().unwrap().in_flight.0.len(), 1);
+         }
+diff --git a/crates/iouring/src/io_uring_selector/tests.rs b/crates/iouring/src/io_uring_selector/tests.rs
+index 43f134a..f7c2b29 100644
+--- a/crates/iouring/src/io_uring_selector/tests.rs
++++ b/crates/iouring/src/io_uring_selector/tests.rs
+@@ -447,6 +447,61 @@ fn transient_syscall_errors_preserve_progress_and_fatal_errors_stop_the_driver()
+     }
+ }
+ 
++#[test]
++fn nonblocking_owned_reads_attempt_submission_without_an_extra_turn() {
++    use base_scheduler_selector::{SelectorDriver, SelectorWorker};
++
++    for with_monitor in [false, true] {
++        let (selector, driver) = pair(8);
++        let (sender, receiver) = block_on(base_scheduler_conformance::socket::stream_pair(
++            &selector,
++            SocketDomain::Ipv4,
++        ));
++        let mut worker = driver.enter();
++        worker.turn(Some(Duration::ZERO)).unwrap();
++        let never = Cancellation::never();
++        let mut monitor = selector.socket_monitor(&receiver, Interest::Readable);
++        let mut waiting = Box::pin(selector.socket_monitor_wait(&mut monitor, &never));
++        if with_monitor {
++            assert!(block_on(poll_once(&mut waiting)).is_none());
++        }
++        let mut reader = selector.socket_stream_reader(&receiver).unwrap();
++        let mut reading = Box::pin(reader.read_owned(vec![0; 1], &never));
++        assert!(block_on(poll_once(&mut reading)).is_none());
++        {
++            // Observe the submission attempt without depending on when the kernel
++            // completes it. An interrupted attempt must leave the owner pending.
++            let _failure = Failures::new([("submit", io::ErrorKind::Interrupted.into())]);
++            worker.turn(Some(Duration::ZERO)).unwrap();
++            assert!(FAILURES.with(|failures| failures.borrow().is_empty()));
++        }
++        assert!(block_on(poll_once(&mut reading)).is_none());
++        assert_eq!(
++            sender.try_send(b"x", SocketSendFlags::default()).unwrap(),
++            1
++        );
++        let deadline = Instant::now() + Duration::from_secs(10);
++        let (result, buffer) = loop {
++            worker.turn(Some(Duration::ZERO)).unwrap();
++            if let Some(result) = block_on(poll_once(&mut reading)) {
++                break result;
++            }
++            assert!(Instant::now() < deadline);
++        };
++        assert_eq!(result.unwrap(), 1);
++        assert_eq!(buffer, b"x");
++        drop(reading);
++        drop(reader);
++        drop(waiting);
++        drop(monitor);
++        selector.close();
++        while !worker.turn(Some(Duration::from_millis(10))).unwrap() {
++            assert!(Instant::now() < deadline);
++        }
++        block_on(selector.shutdown());
++    }
++}
++
+ #[test]
+ fn nonblocking_submission_publishes_immediate_completions_before_returning() {
+     use base_scheduler_selector::{SelectorDriver, SelectorWorker};

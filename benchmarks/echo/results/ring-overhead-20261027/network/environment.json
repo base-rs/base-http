@@ -1,0 +1,42 @@
+{
+  "client_sha256": "6f96e2abd22ffe140c5873ba2682dec474e513a5a325cc2741411da10ae3d513",
+  "configuration": {
+    "client": "/tmp/base-http-ring-client-target-20261027/release/base-http-remote-echo-client",
+    "output": "benchmarks/echo/results/ring-overhead-20261027/network",
+    "remote": "hana.local",
+    "root": "/tmp/base-http-ring-overhead-20261027",
+    "bytes": 64,
+    "workers": [
+      1,
+      4
+    ],
+    "connections": [
+      64,
+      256
+    ],
+    "repetitions": 3
+  },
+  "variants": {
+    "epoll": [
+      "network-before",
+      "native-poll"
+    ],
+    "before": [
+      "network-before",
+      "iouring-poll"
+    ],
+    "after": [
+      "network-after",
+      "iouring-poll"
+    ],
+    "tokio": [
+      "network-before",
+      "tokio"
+    ]
+  },
+  "network_address": "192.168.1.80",
+  "client_source": "exact canonical echo client.rs; standalone Tokio 1.54.1 executable",
+  "cpu_accounting_scope": "whole server and client lifetimes, including setup/warmup/cleanup",
+  "server_sha256": "a8339dae880f9c7472001b93550e7a4a11f465b415c3a14a02f854fee76aa3ea  /tmp/base-http-ring-overhead-20261027/network-before\n35badded82bb1f1ad01cd00ca685b25dee3dc9d69a0ec07a32f317b43369262e  /tmp/base-http-ring-overhead-20261027/network-after\n",
+  "local_uname": "Darwin Kusanagi.local 27.0.0 Darwin Kernel Version 27.0.0: Tue Aug 11 21:05:48 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6041 arm64\n"
+}

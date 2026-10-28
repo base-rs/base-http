@@ -1,0 +1,44 @@
+   Compiling async-io v2.6.0
+   Compiling tokio v1.54.1 (/tmp/base-http-layers-20261027/deps/tokio)
+   Compiling serde_json v1.0.154
+   Compiling base-scheduler-selector v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/selector)
+   Compiling base-scheduler-native v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/native)
+warning: unreachable `pub` item
+  --> /tmp/base-http-layers-20261027/deps/tokio/src/runtime/io/layer_probe.rs:6:1
+   |
+ 6 | pub fn probe(kind: &str, iterations: u64, width: usize, waker: &Waker) -> (u64, usize) {
+   | ---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | help: consider restricting its visibility: `pub(crate)`
+   |
+   = help: or consider exporting it for use by other crates
+note: the lint level is defined here
+  --> /tmp/base-http-layers-20261027/deps/tokio/src/lib.rs:11:5
+   |
+11 |     unreachable_pub
+   |     ^^^^^^^^^^^^^^^
+
+warning: `tokio` (lib) generated 1 warning (run `cargo fix --lib -p tokio` to apply 1 suggestion)
+   Compiling base-http-layer-probe v0.0.0 (/tmp/base-http-layers-20261027/probe)
+error[E0521]: borrowed data escapes outside of function
+  --> src/main.rs:61:29
+   |
+39 |   fn tasks(backend: &str, kind: &str, iterations: u64, width: usize) -> u64 {
+   |                           ----  - let's call the lifetime of this reference `'1`
+   |                           |
+   |                           `kind` is a reference that is only valid in the function body
+...
+61 |           rt.block_on(async { tokio::spawn(async move {
+   |  _____________________________^
+62 | |             if kind == "supervisor" { supervised(iterations, width).await }
+63 | |             else {
+64 | |                 let mut tasks = Vec::new();
+...  |
+70 | |         }).await.unwrap() })
+   | |          ^
+   | |          |
+   | |__________`kind` escapes the function body here
+   |            argument requires that `'1` must outlive `'static`
+
+For more information about this error, try `rustc --explain E0521`.
+error: could not compile `base-http-layer-probe` (bin "base-http-layer-probe") due to 1 previous error

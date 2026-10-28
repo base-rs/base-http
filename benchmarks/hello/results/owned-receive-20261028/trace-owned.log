@@ -1,0 +1,66 @@
+{
+  "instrumented_rates_excluded": true,
+  "server_pid": 284745,
+  "ring_creation": [
+    {
+      "comm": "candidate",
+      "tid": 284745,
+      "ring": "0xffff8e675a7f6000",
+      "flags": 0
+    },
+    {
+      "comm": "base-native-tas",
+      "tid": 284746,
+      "ring": "0xffff8e675a7f0800",
+      "flags": 12800
+    }
+  ],
+  "ring_events": {
+    "io_uring:io_uring_create": 2,
+    "io_uring:io_uring_submit_req": 228368,
+    "io_uring:io_uring_complete": 228368,
+    "io_uring:io_uring_local_work_run": 3806,
+    "io_uring:io_uring_poll_arm": 15759
+  },
+  "submissions": {
+    "POLL_ADD": 5,
+    "RECV": 228363
+  },
+  "completions": {
+    "('POLL_ADD', 'positive')": 5,
+    "('RECV', '0')": 12,
+    "('RECV', 'positive')": 228298,
+    "('RECV', '-104')": 53
+  },
+  "ring_payload_bytes": {
+    "RECV": 9360218
+  },
+  "creator_thread_syscalls": {
+    "syscalls:sys_enter_io_uring_enter": 3760
+  },
+  "local_work": {
+    "batches": 3806,
+    "tasks": 15825
+  },
+  "complete_server_writes": 228298,
+  "receive_syscalls_per_response": 0.0,
+  "receive_eagain_per_response": 0.0,
+  "send_syscalls_per_response": 1.0,
+  "submissions_per_response": {
+    "POLL_ADD": 2.19011993096742e-05,
+    "RECV": 1.0002847155910257
+  },
+  "completions_per_response": {
+    "('POLL_ADD', 'positive')": 2.19011993096742e-05,
+    "('RECV', '0')": 5.256287834321807e-05,
+    "('RECV', 'positive')": 1.0,
+    "('RECV', '-104')": 0.0002321527126825465
+  },
+  "ring_events_per_response": {
+    "io_uring:io_uring_create": 8.760479723869679e-06,
+    "io_uring:io_uring_submit_req": 1.0003066167903354,
+    "io_uring:io_uring_complete": 1.0003066167903354,
+    "io_uring:io_uring_local_work_run": 0.016671192914524,
+    "io_uring:io_uring_poll_arm": 0.06902819998423114
+  }
+}

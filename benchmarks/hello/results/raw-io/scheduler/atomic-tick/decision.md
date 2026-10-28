@@ -1,0 +1,1 @@
+Rejected after five interleaved five-second samples: CAS update user CPU 0.343994 us/request vs 0.334404 for separate atomics (+2.87%). Throughput and system time varied substantially. No supported gain; restored separate generation increment/readiness publication. Zero errors.

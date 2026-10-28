@@ -1,0 +1,50 @@
+unpaced 1
+borrowed-supervisor {'requests_per_second': 69282.45, 'total_cpu_us_per_request': 6.142}
+borrowed-tasks {'requests_per_second': 71477.89, 'total_cpu_us_per_request': 5.542}
+owned-supervisor {'requests_per_second': 69698.86, 'total_cpu_us_per_request': 6.627}
+owned-tasks {'requests_per_second': 71645.92, 'total_cpu_us_per_request': 5.992}
+tokio-supervisor {'requests_per_second': 69082.61, 'total_cpu_us_per_request': 5.899}
+tokio-tasks {'requests_per_second': 70091.11, 'total_cpu_us_per_request': 5.56}
+owned-tasks_vs_owned-supervisor {'requests_per_second': 3.0, 'total_cpu_us_per_request': -8.94}
+borrowed-tasks_vs_borrowed-supervisor {'requests_per_second': 3.85, 'total_cpu_us_per_request': -9.83}
+tokio-tasks_vs_tokio-supervisor {'requests_per_second': 1.28, 'total_cpu_us_per_request': -5.41}
+owned-supervisor_vs_tokio-supervisor {'requests_per_second': 2.17, 'total_cpu_us_per_request': 12.19}
+owned-tasks_vs_tokio-tasks {'requests_per_second': 2.22, 'total_cpu_us_per_request': 8.29}
+unpaced 64
+borrowed-supervisor {'requests_per_second': 241903.7, 'total_cpu_us_per_request': 2.924}
+borrowed-tasks {'requests_per_second': 241452.81, 'total_cpu_us_per_request': 2.94}
+owned-supervisor {'requests_per_second': 263799.69, 'total_cpu_us_per_request': 2.665}
+owned-tasks {'requests_per_second': 261927.39, 'total_cpu_us_per_request': 2.691}
+tokio-supervisor {'requests_per_second': 248965.65, 'total_cpu_us_per_request': 2.831}
+tokio-tasks {'requests_per_second': 248854.92, 'total_cpu_us_per_request': 2.837}
+owned-tasks_vs_owned-supervisor {'requests_per_second': -0.95, 'total_cpu_us_per_request': 0.97}
+borrowed-tasks_vs_borrowed-supervisor {'requests_per_second': 0.11, 'total_cpu_us_per_request': 0.86}
+tokio-tasks_vs_tokio-supervisor {'requests_per_second': -0.62, 'total_cpu_us_per_request': -0.08}
+owned-supervisor_vs_tokio-supervisor {'requests_per_second': 5.85, 'total_cpu_us_per_request': -6.25}
+owned-tasks_vs_tokio-tasks {'requests_per_second': 5.16, 'total_cpu_us_per_request': -4.94}
+fixed-240k 240000
+borrowed-supervisor {'wire_rtt.mean_us': 70.918, 'wire_rtt.p50_us': 42.367, 'wire_rtt.p99_us': 290.303, 'scheduled_latency.mean_us': 349.553, 'scheduled_latency.p50_us': 43.071, 'scheduled_latency.p99_us': 7532.543}
+borrowed-tasks {'wire_rtt.mean_us': 82.809, 'wire_rtt.p50_us': 35.007, 'wire_rtt.p99_us': 319.999, 'scheduled_latency.mean_us': 441.665, 'scheduled_latency.p50_us': 35.999, 'scheduled_latency.p99_us': 11042.815}
+owned-supervisor {'wire_rtt.mean_us': 81.719, 'wire_rtt.p50_us': 66.047, 'wire_rtt.p99_us': 280.063, 'scheduled_latency.mean_us': 177.892, 'scheduled_latency.p50_us': 67.455, 'scheduled_latency.p99_us': 4562.943}
+owned-tasks {'wire_rtt.mean_us': 73.915, 'wire_rtt.p50_us': 58.335, 'wire_rtt.p99_us': 269.055, 'scheduled_latency.mean_us': 105.272, 'scheduled_latency.p50_us': 59.167, 'scheduled_latency.p99_us': 1580.031}
+tokio-supervisor {'wire_rtt.mean_us': 46.219, 'wire_rtt.p50_us': 29.759, 'wire_rtt.p99_us': 269.055, 'scheduled_latency.mean_us': 131.273, 'scheduled_latency.p50_us': 30.735, 'scheduled_latency.p99_us': 3557.375}
+tokio-tasks {'wire_rtt.mean_us': 42.912, 'wire_rtt.p50_us': 25.599, 'wire_rtt.p99_us': 261.887, 'scheduled_latency.mean_us': 108.287, 'scheduled_latency.p50_us': 26.255, 'scheduled_latency.p99_us': 3022.847}
+owned-tasks_vs_owned-supervisor {'wire_rtt.mean_us': -9.1, 'wire_rtt.p50_us': -12.82, 'wire_rtt.p99_us': -0.19, 'scheduled_latency.mean_us': -13.44, 'scheduled_latency.p50_us': -12.61, 'scheduled_latency.p99_us': -33.76}
+borrowed-tasks_vs_borrowed-supervisor {'wire_rtt.mean_us': 13.39, 'wire_rtt.p50_us': -15.91, 'wire_rtt.p99_us': 3.39, 'scheduled_latency.mean_us': 105.06, 'scheduled_latency.p50_us': -15.29, 'scheduled_latency.p99_us': 121.8}
+tokio-tasks_vs_tokio-supervisor {'wire_rtt.mean_us': -4.87, 'wire_rtt.p50_us': -6.18, 'wire_rtt.p99_us': -0.35, 'scheduled_latency.mean_us': -2.84, 'scheduled_latency.p50_us': -6.4, 'scheduled_latency.p99_us': -7.56}
+owned-supervisor_vs_tokio-supervisor {'wire_rtt.mean_us': 36.81, 'wire_rtt.p50_us': 90.93, 'wire_rtt.p99_us': -4.47, 'scheduled_latency.mean_us': -32.39, 'scheduled_latency.p50_us': 88.22, 'scheduled_latency.p99_us': -36.42}
+owned-tasks_vs_tokio-tasks {'wire_rtt.mean_us': 42.96, 'wire_rtt.p50_us': 68.87, 'wire_rtt.p99_us': 1.47, 'scheduled_latency.mean_us': -6.35, 'scheduled_latency.p50_us': 67.63, 'scheduled_latency.p99_us': -34.65}
+validation {'samples': 30, 'measured_responses': 57600000, 'all_responses': 72000000, 'payload_errors': 0, 'max_drain_ms': 4.619422, 'max_target_deviation_percent': 0.07255208333334373}
+fixed-200k 200000
+borrowed-supervisor {'wire_rtt.mean_us': 24.842, 'wire_rtt.p50_us': 15.175, 'wire_rtt.p99_us': 275.455, 'scheduled_latency.mean_us': 41.582, 'scheduled_latency.p50_us': 15.911, 'scheduled_latency.p99_us': 737.279}
+borrowed-tasks {'wire_rtt.mean_us': 21.433, 'wire_rtt.p50_us': 13.247, 'wire_rtt.p99_us': 245.375, 'scheduled_latency.mean_us': 31.406, 'scheduled_latency.p50_us': 14.279, 'scheduled_latency.p99_us': 296.703}
+owned-supervisor {'wire_rtt.mean_us': 27.01, 'wire_rtt.p50_us': 15.703, 'wire_rtt.p99_us': 244.351, 'scheduled_latency.mean_us': 41.753, 'scheduled_latency.p50_us': 16.863, 'scheduled_latency.p99_us': 441.343}
+owned-tasks {'wire_rtt.mean_us': 25.772, 'wire_rtt.p50_us': 14.015, 'wire_rtt.p99_us': 238.975, 'scheduled_latency.mean_us': 36.16, 'scheduled_latency.p50_us': 14.815, 'scheduled_latency.p99_us': 311.295}
+tokio-supervisor {'wire_rtt.mean_us': 20.757, 'wire_rtt.p50_us': 13.807, 'wire_rtt.p99_us': 237.055, 'scheduled_latency.mean_us': 33.13, 'scheduled_latency.p50_us': 14.527, 'scheduled_latency.p99_us': 262.911}
+tokio-tasks {'wire_rtt.mean_us': 21.681, 'wire_rtt.p50_us': 12.991, 'wire_rtt.p99_us': 249.215, 'scheduled_latency.mean_us': 46.477, 'scheduled_latency.p50_us': 14.023, 'scheduled_latency.p99_us': 543.743}
+owned-tasks_vs_owned-supervisor {'wire_rtt.mean_us': -10.26, 'wire_rtt.p50_us': -10.53, 'wire_rtt.p99_us': 10.15, 'scheduled_latency.mean_us': -11.72, 'scheduled_latency.p50_us': -12.93, 'scheduled_latency.p99_us': 17.3}
+borrowed-tasks_vs_borrowed-supervisor {'wire_rtt.mean_us': -16.94, 'wire_rtt.p50_us': -13.29, 'wire_rtt.p99_us': -5.95, 'scheduled_latency.mean_us': -13.46, 'scheduled_latency.p50_us': -10.76, 'scheduled_latency.p99_us': -34.41}
+tokio-tasks_vs_tokio-supervisor {'wire_rtt.mean_us': 2.68, 'wire_rtt.p50_us': -5.03, 'wire_rtt.p99_us': 6.81, 'scheduled_latency.mean_us': 32.37, 'scheduled_latency.p50_us': -3.47, 'scheduled_latency.p99_us': 87.96}
+owned-supervisor_vs_tokio-supervisor {'wire_rtt.mean_us': 29.07, 'wire_rtt.p50_us': 14.21, 'wire_rtt.p99_us': 3.08, 'scheduled_latency.mean_us': 15.32, 'scheduled_latency.p50_us': 17.16, 'scheduled_latency.p99_us': 46.85}
+owned-tasks_vs_tokio-tasks {'wire_rtt.mean_us': 10.69, 'wire_rtt.p50_us': 7.88, 'wire_rtt.p99_us': -5.52, 'scheduled_latency.mean_us': -26.01, 'scheduled_latency.p50_us': 5.71, 'scheduled_latency.p99_us': -40.38}
+validation {'samples': 30, 'measured_responses': 48000000, 'all_responses': 60000000, 'payload_errors': 0, 'max_drain_ms': 0.313892, 'max_target_deviation_percent': 0.0047499999999978115}

@@ -1,0 +1,14 @@
+--- before/readiness_driver.rs
++++ cas/readiness_driver.rs
+@@ -164,8 +164,9 @@
+     pub(crate) fn publish(&self) {
+         // Increment the generation before publishing readiness. A racing clear
+         // can at most cause a spurious retry, never erase this notification.
+-        self.tick.fetch_add(8, Ordering::AcqRel);
+-        self.tick.fetch_or(1, Ordering::Release);
++        let _ = self.tick.fetch_update(Ordering::AcqRel, Ordering::Acquire, |tick| {
++            Some(tick.wrapping_add(8) | 1)
++        });
+         self.changed.notify();
+     }
+     #[cfg(target_os = "macos")]

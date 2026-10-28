@@ -1,0 +1,38 @@
+[package]
+name = "base-http-client-benchmark"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.87"
+publish = false
+
+[workspace]
+
+[features]
+count-allocations = []
+
+[dependencies]
+base-http = { path = "../.." }
+base-http1 = { path = "../../crates/http1" }
+base-endpoint = { path = "../../../base-endpoint", features = ["rustls"] }
+base-http-client = { path = "../../crates/client", features = ["rustls"] }
+base-pool = "=0.2.0"
+base-scheduler = "=0.2.0"
+base-scheduler-native = "=0.2.0"
+futures-lite = "2.6.1"
+futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await"] }
+hdrhistogram = { version = "7.5", default-features = false }
+http-body-util = "0.1.3"
+hyper = { version = "=1.12.0", features = ["client", "server", "http1"] }
+hyper-util = { version = "=0.1.21", features = ["client-legacy", "http1", "tokio"] }
+hyper-rustls = { version = "=0.27.10", default-features = false, features = ["http1", "ring", "tls12"] }
+libc = "0.2"
+rcgen = "=0.14.7"
+rustls = { version = "=0.23.46", default-features = false, features = ["std", "ring", "tls12"] }
+serde_json = "1"
+tokio = { version = "=1.54.1", features = ["rt", "rt-multi-thread", "net", "time", "signal", "macros", "io-util", "sync"] }
+tokio-rustls = { version = "=0.26.6", default-features = false, features = ["ring", "tls12"] }
+
+tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["fmt", "env-filter"] }
+
+[profile.release]
+debug = 0

@@ -1,0 +1,60 @@
+{
+  "mode": "counts",
+  "variant": "poll-first",
+  "backend": "base-iouring-owned-connections-raw",
+  "connections": 64,
+  "rate": 240000,
+  "repetition": 1,
+  "responses": 1200000,
+  "achieved_rate": 215074.0,
+  "drain_ms": 610.9105649999999,
+  "server_cpu": {
+    "user_seconds": 0.91,
+    "system_seconds": 3.26
+  },
+  "perf_returncode": -2,
+  "counts": {
+    "recv_poll_arm": {
+      "value": 35564.0,
+      "unit": "",
+      "event": "io_uring:io_uring_poll_arm",
+      "raw": [
+        "35564",
+        "",
+        "io_uring:io_uring_poll_arm",
+        "5612629627",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_calls": {
+      "value": 1200064.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg",
+      "raw": [
+        "1200064",
+        "",
+        "base_http_lifecycle:tcp_recvmsg",
+        "5612629627",
+        "100.00",
+        "",
+        ""
+      ]
+    },
+    "tcp_recv_eagain": {
+      "value": 0.0,
+      "unit": "",
+      "event": "base_http_lifecycle:tcp_recvmsg_return32__return",
+      "raw": [
+        "0",
+        "",
+        "base_http_lifecycle:tcp_recvmsg_return32__return",
+        "5612629627",
+        "100.00",
+        "",
+        ""
+      ]
+    }
+  }
+}

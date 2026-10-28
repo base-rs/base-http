@@ -1,0 +1,17 @@
+   Compiling base-scheduler-selector v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/selector)
+   Compiling tokio v1.54.1 (/tmp/base-http-layers-20261027/deps/tokio)
+   Compiling base-scheduler-native v0.1.2 (/tmp/base-http-layers-20261027/deps/base-scheduler/crates/native)
+warning: value assigned to `elapsed` is never read
+  --> /tmp/base-http-layers-20261027/deps/tokio/src/runtime/io/layer_probe.rs:29:23
+   |
+29 |     let mut elapsed = 0;
+   |                       ^ this value is reassigned later and never used
+...
+47 |             elapsed = start.elapsed().as_nanos() as u64;
+   |             ------------------------------------------- `elapsed` is overwritten here before the previous value is read
+   |
+   = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: `tokio` (lib) generated 1 warning
+   Compiling base-http-layer-probe v0.0.0 (/tmp/base-http-layers-20261027/probe)
+    Finished `release` profile [optimized + debuginfo] target(s) in 7.45s

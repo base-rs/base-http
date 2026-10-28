@@ -1,0 +1,168 @@
+[
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "../base-http-client/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.11837766598910093
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "../base-pool/Cargo.toml",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.09145420900313184
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "benchmarks/client/Cargo.toml",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.08526425005402416
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "test",
+      "--manifest-path",
+      "../base-pool/Cargo.toml"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 2.018329458020162
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "test",
+      "--manifest-path",
+      "../base-http-client/Cargo.toml",
+      "--features",
+      "rustls",
+      "--config",
+      "patch.crates-io.base-pool.path=\"/Users/samuel/Developer/base-rs/base-pool\""
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 8.302000333962496
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "test",
+      "--manifest-path",
+      "../base-http-client/Cargo.toml",
+      "--config",
+      "patch.crates-io.base-pool.path=\"/Users/samuel/Developer/base-rs/base-pool\""
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 3.722866875003092
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "../base-pool/Cargo.toml",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.6205951670417562
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "../base-http-client/Cargo.toml",
+      "--all-targets",
+      "--features",
+      "rustls",
+      "--config",
+      "patch.crates-io.base-pool.path=\"/Users/samuel/Developer/base-rs/base-pool\"",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 2.75146133400267
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "benchmarks/client/Cargo.toml",
+      "--all-targets",
+      "--config",
+      "patch.crates-io.base-pool.path=\"/Users/samuel/Developer/base-rs/base-pool\"",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 3.6204093749984168
+  },
+  {
+    "command": [
+      "rustup",
+      "run",
+      "1.87.0",
+      "cargo",
+      "clippy",
+      "--manifest-path",
+      "benchmarks/client/Cargo.toml",
+      "--all-targets",
+      "--features",
+      "count-allocations",
+      "--config",
+      "patch.crates-io.base-pool.path=\"/Users/samuel/Developer/base-rs/base-pool\"",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "elapsed_seconds": 0.3817943329922855
+  }
+]

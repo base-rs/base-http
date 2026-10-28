@@ -1,0 +1,113 @@
+{
+  "allocation_diagnostic": {
+    "allocations": 1792735,
+    "allocations_per_response": 17.000644849266482,
+    "deallocations": 1792734,
+    "frequent_allocation_sizes_up_to_32768": [
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 1
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 9
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 24
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 32
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 40
+      },
+      {
+        "allocations_per_response": 2.000009483077448,
+        "bytes": 64
+      },
+      {
+        "allocations_per_response": 2.0,
+        "bytes": 87
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 140
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 232
+      },
+      {
+        "allocations_per_response": 1.999706024599103,
+        "bytes": 288
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 624
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 2488
+      },
+      {
+        "allocations_per_response": 1.0,
+        "bytes": 8192
+      }
+    ],
+    "reallocations": 105454,
+    "reallocations_per_response": 1.0000284492323448,
+    "requested_bytes": 1347611594,
+    "requested_bytes_per_response": 12779.505116120283,
+    "scope": "whole_client_process_timed_phase"
+  },
+  "client_cpu_seconds": 0.998313,
+  "client_cpu_us_per_request": 9.467079496638249,
+  "concurrency": 32,
+  "elapsed_seconds": 1.000462458,
+  "fresh": false,
+  "implementation": "hyper",
+  "latency_us": {
+    "max": 630.783,
+    "mean": 303.41420132573444,
+    "p50": 286.207,
+    "p90": 356.863,
+    "p99": 454.911
+  },
+  "requests": 105451,
+  "requests_per_second": 105402.2558835486,
+  "tls": true,
+  "warmup_requests": 28808,
+  "client_command": [
+    "/private/tmp/base-http-exchange-reuse-allocation-20261029",
+    "client",
+    "--implementation",
+    "hyper",
+    "--address",
+    "127.0.0.1:53330",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qlsra5y4",
+    "--concurrency",
+    "32",
+    "--seconds",
+    "1.0",
+    "--warmup",
+    "0.3",
+    "--tls"
+  ],
+  "server_command": [
+    "/private/tmp/base-http-exchange-reuse-allocation-20261029",
+    "server",
+    "--identity",
+    "/var/folders/b4/k49s9q3d669dvwxdm0j6jm7m0000gn/T/base-http-client-identity-qlsra5y4",
+    "--tls"
+  ],
+  "server": {
+    "connections": 32,
+    "failures": 0,
+    "requests": 134259
+  },
+  "server_cpu_seconds_including_warmup": 1.5820599999999998
+}
