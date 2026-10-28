@@ -59,6 +59,46 @@ impl From<String> for Scheme {
     }
 }
 
+// Request authorities are almost always lowercase already, and are usually
+// shorter than a vector register, so check eight bytes at a time first.
+#[inline]
+fn lowercase(value: &mut str) {
+    if has_uppercase(value.as_bytes()) {
+        value.make_ascii_lowercase();
+    }
+}
+
+#[inline]
+fn has_uppercase(bytes: &[u8]) -> bool {
+    const ONES: u64 = u64::MAX / 255;
+    // Set the high bit of each byte in b'A'..=b'Z'. Clearing high bits first
+    // prevents carries between bytes; non-ASCII bytes are then excluded.
+    let word = |word: u64| {
+        let ascii = word & (0x7f * ONES);
+        (ascii + (0x80 - b'A') as u64 * ONES)
+            & !(ascii + (0x80 - b'Z' - 1) as u64 * ONES)
+            & !word
+            & (0x80 * ONES)
+            != 0
+    };
+    let load = |at: usize| u64::from_le_bytes(bytes[at..at + 8].try_into().unwrap());
+    if bytes.len() < 8 {
+        return bytes.iter().any(u8::is_ascii_uppercase);
+    }
+    // The last word may overlap the previous one.
+    let mut at = 0;
+    while at + 8 < bytes.len() {
+        if word(load(at)) {
+            return true;
+        }
+        at += 8;
+    }
+    word(load(bytes.len() - 8))
+}
+
+#[inline]
+fn preserve(_: &mut str) {}
+
 // Short authorities and paths require no separate allocation, however they
 // were supplied.
 #[derive(Clone)]
@@ -68,7 +108,7 @@ enum Storage {
 }
 
 macro_rules! stored {
-    ($($(#[$meta:meta])* $name:ident => $normalize:expr),*) => {$(
+    ($($(#[$meta:meta])* $name:ident => $normalize:ident),*) => {$(
         $(#[$meta])*
         #[derive(Clone)]
         pub struct $name(Storage);
@@ -91,15 +131,14 @@ macro_rules! stored {
         impl From<&str> for $name {
             #[inline]
             fn from(value: &str) -> Self {
-                let normalize: fn(&mut str) = $normalize;
                 match ArrayString::from(value) {
                     Ok(mut value) => {
-                        normalize(&mut value);
+                        $normalize(&mut value);
                         Self(Storage::Inline(value))
                     }
                     Err(_) => {
                         let mut value = value.to_owned();
-                        normalize(&mut value);
+                        $normalize(&mut value);
                         Self(Storage::Heap(value))
                     }
                 }
@@ -108,14 +147,13 @@ macro_rules! stored {
         impl From<String> for $name {
             #[inline]
             fn from(mut value: String) -> Self {
-                let normalize: fn(&mut str) = $normalize;
                 match ArrayString::from(&value) {
                     Ok(mut inline) => {
-                        normalize(&mut inline);
+                        $normalize(&mut inline);
                         Self(Storage::Inline(inline))
                     }
                     Err(_) => {
-                        normalize(&mut value);
+                        $normalize(&mut value);
                         Self(Storage::Heap(value))
                     }
                 }
@@ -129,10 +167,10 @@ stored! {
     /// authorities are a case-insensitive host and an optional port, so
     /// conversions lowercase ASCII letters and comparisons with `str` use the
     /// lowercase text.
-    Authority => str::make_ascii_lowercase,
+    Authority => lowercase,
     /// A request path with optional query, or another supplied request-target
     /// form. Paths are case-sensitive and preserved as supplied.
-    Path => |_| {}
+    Path => preserve
 }
 
 // Each component behaves as its text: comparison, hashing and formatting do
@@ -266,6 +304,36 @@ mod tests {
         assert!(inline(&Path::from("é".repeat(12).as_str())));
         assert!(!inline(&Path::from("é".repeat(13).as_str())));
         assert_eq!(String::from(Path::from("x".repeat(25))), "x".repeat(25));
+    }
+
+    #[test]
+    fn uppercase_detection_matches_bytes() {
+        for length in 0..=24 {
+            for at in 0..length {
+                for byte in 0..=255u8 {
+                    let mut bytes = vec![b'a'; length];
+                    bytes[at] = byte;
+                    assert_eq!(
+                        has_uppercase(&bytes),
+                        byte.is_ascii_uppercase(),
+                        "{length} {at} {byte}"
+                    );
+                }
+            }
+        }
+        for neighbour in [0x00, 0x40, 0x5b, 0x7f, 0x80, 0xc0, 0xff] {
+            for byte in 0..=255u8 {
+                let bytes = [
+                    neighbour, byte, neighbour, neighbour, neighbour, neighbour, neighbour,
+                    neighbour,
+                ];
+                assert_eq!(
+                    has_uppercase(&bytes),
+                    bytes.iter().any(u8::is_ascii_uppercase),
+                    "{neighbour} {byte}"
+                );
+            }
+        }
     }
 
     #[test]
