@@ -91,6 +91,7 @@ fn https_echo_reuses_connections_and_accepts_during_another_handshake() {
                     let stop = Cancellation::new();
                     let lifetime = Cancellation::new();
                     let endpoint = Endpoint::new(address).with_tls(client_config, "localhost");
+                    assert_eq!(endpoint.scheme(), "https");
                     let options = Options {
                         protocols: base_http_protocol::HttpProtocols { require_alpn: true },
                         ..Options::default()
