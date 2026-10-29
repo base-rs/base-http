@@ -116,6 +116,29 @@ pub(crate) fn fields(headers: &[httparse::Header<'_>]) -> Result<Fields, Error> 
     Ok(fields)
 }
 
+/// Received values may contain SP, HTAB, VCHAR and obs-text (RFC 9110, section
+/// 5.5), the bytes httparse accepts in heads.
+pub(crate) fn field_value(value: &[u8]) -> bool {
+    value.iter().fold(true, |valid, b| {
+        valid & (*b == b'\t' || *b >= b' ' && *b != 0x7f)
+    })
+}
+
+/// CR, LF and NUL change how HTTP/1 text is framed or interpreted, so no sent
+/// value may contain them (RFC 9110, section 5.5). Other bytes pass through.
+pub(crate) fn output_fields(fields: &[base_http::Field]) -> Result<(), Error> {
+    let unsafe_bytes = fields.iter().fold(false, |found, field| {
+        field
+            .value()
+            .iter()
+            .fold(found, |found, b| found | matches!(b, b'\r' | b'\n' | 0))
+    });
+    if unsafe_bytes {
+        return Err(Error::Invalid("field value contains CR, LF or NUL"));
+    }
+    Ok(())
+}
+
 /// Bytes permitted in a registered name: unreserved, sub-delims except comma,
 /// and percent-encoding.
 const REG_NAME: [bool; 256] = {

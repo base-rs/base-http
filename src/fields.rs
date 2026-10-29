@@ -1,7 +1,10 @@
 // Released under the MIT License.
 // Copyright, 2018-2026, by Samuel Williams.
 
-//! Ordered, syntax-checked byte-valued pairs, without interpretation or section state.
+//! Ordered pairs of token names and opaque byte values, without interpretation
+//! or section state. Protocol drivers decide which value bytes each protocol can
+//! carry: HTTP/2 and HTTP/3 extensions can negotiate binary values, so the
+//! semantic model does not restrict them.
 
 use crate::syntax::is_token;
 use arrayvec::{ArrayString, ArrayVec};
@@ -11,6 +14,7 @@ use std::{error::Error, fmt, ops::Deref};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum FieldError {
     InvalidName,
+    /// A value the protocol cannot carry, reported by protocol drivers.
     InvalidValue,
     Duplicate(String),
     InvalidTrailer(String),
@@ -33,7 +37,8 @@ impl fmt::Display for FieldError {
 
 impl Error for FieldError {}
 
-/// One syntax-checked pair, retaining the original name spelling and value bytes.
+/// One pair with a token name, retaining the original name spelling and value
+/// bytes.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Field {
     name: NameStorage,
@@ -99,16 +104,9 @@ impl Field {
         if !is_token(name.as_bytes()) {
             return Err(FieldError::InvalidName);
         }
-        let value = value.as_ref();
-        if !value
-            .iter()
-            .all(|byte| *byte == b'\t' || (*byte >= b' ' && *byte != 0x7f))
-        {
-            return Err(FieldError::InvalidValue);
-        }
         Ok(Self {
             name: NameStorage::new(name),
-            value: ValueStorage::new(value),
+            value: ValueStorage::new(value.as_ref()),
         })
     }
 

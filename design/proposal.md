@@ -159,7 +159,7 @@ Port `protocol-http` into Base-owned `Request<B>` and `Response<B>` types, adapt
 | Protocol intent | Typed Base metadata, separate from HTTP version, covering upgrades and extended CONNECT. |
 | Version | Optional before negotiation; records the wire version on received messages. Outbound protocol policy belongs in execution options. |
 | Status | Base status value and Socketry-style classification predicates; informational/final response sequencing is explicit. |
-| Message metadata | `RequestMetadata` / `ResponseMetadata`, raw ordered `Fields`, and typed representation/protocol controls. Optional `HttpHeaders` interpretation owns its index and trailer provenance. |
+| Message metadata | `RequestMetadata` / `ResponseMetadata`, raw ordered `Fields` (token names and opaque byte values; each protocol driver enforces which value bytes it can carry, so negotiated binary values remain representable), and typed representation/protocol controls. Optional `HttpHeaders` interpretation owns its index and trailer provenance. |
 | Body | Generic `B` implementing native Base body contracts; `EmptyBody` provides a cheap empty representation. |
 | Peer/security information | Typed descriptive metadata or the operation context. |
 | Interim responses | Explicit exchange callbacks/responder capabilities carrying Socketry's behavior outside the head. |
