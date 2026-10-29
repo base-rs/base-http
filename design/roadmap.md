@@ -70,7 +70,7 @@ Body reads now deliver owned `BodyFrame` data/headers with an `end` flag or a se
 
 ### M3: native HTTP/1 — initial client/server codecs implemented
 
-`base-http1` provides `RequestReader`, `IncomingBody`, per-request `Exchange`, `ResponseWriter`, client `RequestWriter`/`ResponseReader`, interim hooks, configurable parsing limits, fixed/chunked framing, close-delimited responses, trailers and persistence. Server upgrades/CONNECT retain managed duplex bodies; client switch parsing exposes raw input, while outgoing client switch coordination remains planned. `httparse` is a private dependency for head parsing; native code owns framing and connection decisions.
+`base-http1` provides `RequestReader`, `IncomingBody`, per-request `Exchange`, `ResponseWriter`, client `RequestWriter`/`ResponseReader`, interim hooks, configurable parsing limits, fixed/chunked framing, close-delimited responses, trailers and persistence. Server upgrades/CONNECT retain managed duplex bodies; client switch parsing exposes raw input, while outgoing client switch coordination remains planned. Native code parses heads and trailers and owns framing and connection decisions.
 
 The tests include fragmented and coalesced messages, ambiguous framing, truncation, partial/zero writes, interim/final sequencing, static and computed trailers, bodyless responses, cancellation and upgrade read-ahead. The raw TCP peer is independent of the Base codec. Early final responses permit reuse when active uploads finish; abandoned uploads disable reuse. No unread upload is silently drained. The [proxy experiment](duplex.md) checks complete early responses, independent upload/download progress, interim/trailer forwarding, two-connection reuse and joined failure/cancellation cleanup.
 

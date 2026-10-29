@@ -1,12 +1,48 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-//! The request head pipeline used before the single-pass parser: line checks,
-//! httparse, then field classification. Tests compare the parser with it.
+//! The pipelines used before the single-pass parser: line checks, httparse,
+//! then field classification for heads, and a line-by-line reader for trailer
+//! sections. Tests and fuzz targets compare the parser with them.
 
 use crate::Error;
 use crate::wire::*;
-use base_http::{Method, Protocol, RequestMetadata, Version};
+use base_http::{Fields, Method, Protocol, RequestMetadata, ResponseMetadata, Status, Version};
+use std::fmt::Debug;
+
+/// Reject lenient line endings and whitespace before a field name. This check
+/// complements httparse, which intentionally accepts some interoperable forms.
+fn strict_lines(bytes: &[u8]) -> Result<(), Error> {
+    // Every LF must follow a CR and every CR must precede an LF. Comparing each
+    // adjacent pair without short-circuiting lets the compiler vectorize the
+    // scan; heads are bounded by the input limits.
+    let unpaired = bytes
+        .iter()
+        .zip(&bytes[1.min(bytes.len())..])
+        .fold(false, |unpaired, (previous, byte)| {
+            unpaired | ((*previous == b'\r') != (*byte == b'\n'))
+        });
+    if unpaired || bytes.first() == Some(&b'\n') || bytes.last() == Some(&b'\r') {
+        return Err(Error::Invalid("expected CRLF"));
+    }
+    Ok(())
+}
+
+fn fields(headers: &[httparse::Header<'_>]) -> Result<Fields, Error> {
+    let mut fields = Fields::new();
+    for field in headers {
+        fields.add(field.name, field.value)?;
+    }
+    Ok(fields)
+}
+
+/// Received values may contain SP, HTAB, VCHAR and obs-text (RFC 9110, section
+/// 5.5), the bytes httparse accepts in heads.
+fn field_value(value: &[u8]) -> bool {
+    value.iter().fold(true, |valid, b| {
+        valid & (*b == b'\t' || *b >= b' ' && *b != 0x7f)
+    })
+}
 
 pub(crate) fn read(
     bytes: &[u8],
@@ -184,6 +220,125 @@ fn terminator(bytes: &[u8]) -> Option<usize> {
         .map(|p| p + 4)
 }
 
+/// The old response reader: cut at the terminator, check line endings and the
+/// start line prefix, then parse with httparse.
+fn response(bytes: &[u8], max_fields: usize) -> Result<Option<(ResponseMetadata, usize)>, Error> {
+    let Some(end) = terminator(bytes) else {
+        return Ok(None);
+    };
+    let bytes = &bytes[..end];
+    strict_lines(bytes)?;
+    if matches!(bytes.first(), Some(b'\r' | b'\n' | b' ' | b'\t')) {
+        return Err(Error::Invalid("invalid start line prefix"));
+    }
+    let mut headers = vec![std::mem::MaybeUninit::uninit(); max_fields];
+    let mut parsed = httparse::Response::new(&mut []);
+    match httparse::ParserConfig::default().parse_response_with_uninit_headers(
+        &mut parsed,
+        bytes,
+        &mut headers,
+    ) {
+        Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
+        Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
+        _ => return Err(Error::Invalid("invalid response head")),
+    }
+    let mut head = ResponseMetadata::new(
+        Status::new(parsed.code.ok_or(Error::Invalid("missing status"))?)
+            .map_err(|_| Error::Invalid("invalid status"))?,
+    );
+    head.version = Some(match parsed.version {
+        Some(0) => Version::Http10,
+        Some(1) => Version::Http11,
+        _ => return Err(Error::Invalid("unsupported response version")),
+    });
+    head.fields = fields(parsed.headers)?;
+    Ok(Some((head, end)))
+}
+
+/// The old trailer reader, which read and checked one line at a time.
+fn trailers(bytes: &[u8], max_fields: usize) -> Result<Option<(Fields, usize)>, Error> {
+    let mut fields = Fields::new();
+    let mut at = 0;
+    loop {
+        let Some(end) = bytes[at..].windows(2).position(|w| w == b"\r\n") else {
+            return Ok(None);
+        };
+        let line = &bytes[at..at + end + 2];
+        at += end + 2;
+        if line == b"\r\n" {
+            return Ok(Some((fields, at)));
+        }
+        if fields.len() >= max_fields {
+            return Err(Error::Limit("trailer count"));
+        }
+        strict_lines(line)?;
+        let colon = line
+            .iter()
+            .position(|b| *b == b':')
+            .ok_or(Error::Invalid("invalid trailer"))?;
+        let name = std::str::from_utf8(&line[..colon])
+            .map_err(|_| Error::Invalid("invalid trailer name"))?;
+        let value = trim(&line[colon + 1..line.len() - 2]);
+        if !field_value(value) {
+            return Err(Error::Invalid("invalid trailer value"));
+        }
+        fields.add(name, value)?;
+    }
+}
+
+/// A prefix of a valid section must not be rejected early. Completing a
+/// rejected prefix with a terminator cannot show this, since that completion
+/// is invalid for a prefix ending inside a token.
+fn incomplete_before(section: &[u8], incomplete: impl Fn(&[u8]) -> bool) {
+    for end in 0..section.len() {
+        assert!(
+            incomplete(&section[..end]),
+            "{:?} rejected as a prefix",
+            &section[..end]
+        );
+    }
+}
+
+type Section<T> = fn(&[u8], usize) -> Result<Option<(T, usize)>, Error>;
+
+/// Check that a section parser and the previous reader agree on `bytes`. Both
+/// must accept with the same result and length, or both reject; the parser
+/// may also reject input the old reader was still waiting on, but only input
+/// that completing the section leaves invalid.
+fn compare_section<T: Debug>(bytes: &[u8], max_fields: usize, parser: Section<T>, old: Section<T>) {
+    match (parser(bytes, max_fields), old(bytes, max_fields)) {
+        (Ok(Some((section, n))), Ok(Some((expected, end)))) => {
+            assert_eq!(n, end, "{bytes:?}");
+            assert_eq!(format!("{section:?}"), format!("{expected:?}"), "{bytes:?}");
+            incomplete_before(&bytes[..end], |prefix| {
+                matches!(parser(prefix, max_fields), Ok(None))
+            });
+        }
+        (Ok(None), Ok(None)) | (Err(_), Err(_)) => {}
+        (Err(error), Ok(None)) => {
+            let mut completed = bytes.to_vec();
+            completed.extend_from_slice(b"\r\n\r\n");
+            assert!(
+                old(&completed, max_fields).is_err(),
+                "{bytes:?} rejected early as {error:?}"
+            );
+        }
+        (parsed, expected) => panic!(
+            "{bytes:?}: parser {:?}, previous {:?}",
+            parsed.map(|p| p.map(|(_, n)| n)),
+            expected.map(|p| p.map(|(_, n)| n))
+        ),
+    }
+}
+
+pub(crate) fn compare_response(bytes: &[u8], max_fields: usize) {
+    compare_section(bytes, max_fields, crate::wire::response, response);
+}
+
+pub(crate) fn compare_trailers(bytes: &[u8], max_fields: usize) {
+    compare_section(bytes, max_fields, crate::wire::trailers, trailers);
+}
+
 /// Check that the parser and the previous pipeline agree on `bytes`.
 pub(crate) fn compare(bytes: &[u8], max_fields: usize) {
     let parsed = crate::wire::request(bytes, max_fields);
@@ -210,6 +365,9 @@ pub(crate) fn compare(bytes: &[u8], max_fields: usize) {
                 "{bytes:?}"
             );
             assert_eq!(framing, expected_framing, "{bytes:?}");
+            incomplete_before(&bytes[..end], |prefix| {
+                matches!(crate::wire::request(prefix, max_fields), Ok(None))
+            });
         }
         (Err(_), Err(_)) => {}
         (parsed, expected) => panic!(
@@ -222,7 +380,7 @@ pub(crate) fn compare(bytes: &[u8], max_fields: usize) {
 
 #[cfg(test)]
 mod tests {
-    use super::{compare as compare_with, read};
+    use super::{compare as compare_with, compare_response, compare_trailers, read, strict_lines};
     use crate::wire;
 
     const SEEDS: &[&[u8]] = &[
@@ -238,6 +396,34 @@ mod tests {
         b"GET /a/long/path/beyond/the/inline/limit?with=query HTTP/1.1\r\nHost: a.long.host.name.beyond.inline:65535\r\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\n\r\n",
         b"GET / HTTP/1.1\r\nHost: h\r\nCookie: session=4f1c2a9e8b7d6c5e4f3a2b1c0d9e8f7a; theme=dark; _ga=GA1.1.1234567890\r\nAccess-Control-Request-Headers: x\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8 \t\r\n\r\n",
     ];
+
+    fn original_strict_lines(bytes: &[u8]) -> bool {
+        bytes.iter().enumerate().all(|(i, b)| {
+            !((*b == b'\n' && (i == 0 || bytes[i - 1] != b'\r'))
+                || (*b == b'\r' && bytes.get(i + 1) != Some(&b'\n')))
+        })
+    }
+
+    #[test]
+    fn strict_lines_matches_pairwise_definition() {
+        let alphabet = *b"a\r\n";
+        for length in 0..=8 {
+            for mut index in 0..alphabet.len().pow(length) {
+                let bytes: Vec<u8> = (0..length)
+                    .map(|_| {
+                        let byte = alphabet[index % alphabet.len()];
+                        index /= alphabet.len();
+                        byte
+                    })
+                    .collect();
+                assert_eq!(
+                    strict_lines(&bytes).is_ok(),
+                    original_strict_lines(&bytes),
+                    "{bytes:?}"
+                );
+            }
+        }
+    }
 
     const ALPHABET: &[u8] = b"\r\n \t:\x00\x01\x7f\x80\xffAa0#\\/,;=@[]%?*";
 
@@ -366,9 +552,25 @@ mod tests {
         ));
     }
 
-    #[test]
-    fn parser_matches_the_previous_pipeline_on_single_mutations() {
-        for seed in SEEDS {
+    const RESPONSES: &[&[u8]] = &[
+        b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\n",
+        b"HTTP/1.0 404 Not Found\r\n\r\n",
+        b"HTTP/1.1 204\r\nX-Empty:\r\n\r\n",
+        b"HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n",
+        b"HTTP/1.1 100 \r\n\r\n",
+        b"HTTP/1.1 503 Service \t Unavailable \x80\xff\r\nRetry-After: 5\r\nX-Spaces: \t a b \t\r\n\r\n",
+        b"HTTP/1.1 200 OK\r\nSet-Cookie: session=4f1c2a9e8b7d6c5e4f3a2b1c0d9e8f7a; Path=/; HttpOnly\r\nAccess-Control-Allow-Headers: x\r\nTransfer-Encoding: chunked\r\n\r\n",
+    ];
+
+    const TRAILERS: &[&[u8]] = &[
+        b"\r\n",
+        b"X-Checksum: abc\r\n\r\n",
+        b"X-A: 1\r\nx-b:\r\nX-Spaces: \t a b \t\r\nX-Obs: \x80\xff\r\n\r\n",
+        b"Server-Timing: total;dur=123.4, db;dur=56.7, cache;desc=\"hit\"\r\nAccess-Control-Request-Headers: x\r\n\r\n",
+    ];
+
+    fn mutate_once(seeds: &[&[u8]], compare: impl Fn(&[u8])) {
+        for seed in seeds {
             compare(seed);
             for at in 0..=seed.len() {
                 compare(&seed[..at]);
@@ -391,8 +593,7 @@ mod tests {
         }
     }
 
-    #[test]
-    fn parser_matches_the_previous_pipeline_on_random_mutations() {
+    fn mutate_randomly(seeds: &[&[u8]], cases: usize, compare: impl Fn(&[u8])) {
         let mut state = 0x9e37_79b9_7f4a_7c15u64;
         let mut next = move |bound: usize| {
             state ^= state << 13;
@@ -400,8 +601,8 @@ mod tests {
             state ^= state << 17;
             (state % bound as u64) as usize
         };
-        for _ in 0..200_000 {
-            let mut bytes = SEEDS[next(SEEDS.len())].to_vec();
+        for _ in 0..cases {
+            let mut bytes = seeds[next(seeds.len())].to_vec();
             for _ in 0..1 + next(4) {
                 let at = next(bytes.len() + 1);
                 let byte = ALPHABET[next(ALPHABET.len())];
@@ -415,5 +616,40 @@ mod tests {
             }
             compare(&bytes);
         }
+    }
+
+    /// Compare a section alone and followed by further input, which moves its
+    /// last lines from the word and byte tails onto the block scan.
+    fn with_and_without_more(bytes: &[u8], compare: impl Fn(&[u8], usize), more: &[u8]) {
+        compare(bytes, MAX_FIELDS);
+        let mut continued = bytes.to_vec();
+        continued.extend_from_slice(more);
+        compare(&continued, MAX_FIELDS);
+    }
+
+    fn compare_responses(bytes: &[u8]) {
+        with_and_without_more(bytes, compare_response, b"chunk data");
+    }
+
+    fn compare_trailer_sections(bytes: &[u8]) {
+        with_and_without_more(
+            bytes,
+            compare_trailers,
+            b"GET /next HTTP/1.1\r\nHost: h\r\n\r\n",
+        );
+    }
+
+    #[test]
+    fn parser_matches_the_previous_pipeline_on_single_mutations() {
+        mutate_once(SEEDS, compare);
+        mutate_once(RESPONSES, compare_responses);
+        mutate_once(TRAILERS, compare_trailer_sections);
+    }
+
+    #[test]
+    fn parser_matches_the_previous_pipeline_on_random_mutations() {
+        mutate_randomly(SEEDS, 200_000, compare);
+        mutate_randomly(RESPONSES, 100_000, compare_responses);
+        mutate_randomly(TRAILERS, 100_000, compare_trailer_sections);
     }
 }

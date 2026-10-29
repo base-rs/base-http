@@ -2,7 +2,7 @@
 // Copyright, 2026, by Samuel Williams.
 
 use crate::{Error, parse};
-use base_http::{Fields, Method, Protocol, RequestMetadata, Version};
+use base_http::{Fields, Method, Protocol, RequestMetadata, ResponseMetadata, Status, Version};
 use smallvec::SmallVec;
 
 pub(crate) fn token(bytes: &[u8]) -> bool {
@@ -89,40 +89,6 @@ pub(crate) fn parse_framing(
         return Err(Error::Invalid("unsupported transfer coding"));
     }
     Ok((length, transfer.is_some()))
-}
-
-/// Reject lenient line endings and whitespace before a field name. This check
-/// complements httparse, which intentionally accepts some interoperable forms.
-pub(crate) fn strict_lines(bytes: &[u8]) -> Result<(), Error> {
-    // Every LF must follow a CR and every CR must precede an LF. Comparing each
-    // adjacent pair without short-circuiting lets the compiler vectorize the
-    // scan; heads are bounded by the input limits.
-    let unpaired = bytes
-        .iter()
-        .zip(&bytes[1.min(bytes.len())..])
-        .fold(false, |unpaired, (previous, byte)| {
-            unpaired | ((*previous == b'\r') != (*byte == b'\n'))
-        });
-    if unpaired || bytes.first() == Some(&b'\n') || bytes.last() == Some(&b'\r') {
-        return Err(Error::Invalid("expected CRLF"));
-    }
-    Ok(())
-}
-
-pub(crate) fn fields(headers: &[httparse::Header<'_>]) -> Result<Fields, Error> {
-    let mut fields = Fields::new();
-    for field in headers {
-        fields.add(field.name, field.value)?;
-    }
-    Ok(fields)
-}
-
-/// Received values may contain SP, HTAB, VCHAR and obs-text (RFC 9110, section
-/// 5.5), the bytes httparse accepts in heads.
-pub(crate) fn field_value(value: &[u8]) -> bool {
-    value.iter().fold(true, |valid, b| {
-        valid & (*b == b'\t' || *b >= b' ' && *b != 0x7f)
-    })
 }
 
 /// CR, LF and NUL change how HTTP/1 text is framed or interpreted, so no sent
@@ -561,6 +527,59 @@ pub(crate) fn request(
     Ok(Some((head, framing, length_of_head)))
 }
 
+/// Collect the field lines starting at `at`, through the empty line ending
+/// the section, returning the fields and the section's end.
+fn field_section(
+    bytes: &[u8],
+    at: usize,
+    max_fields: usize,
+) -> Result<Option<(Fields, usize)>, Error> {
+    let mut lines = parse::Lines::new(bytes, at, max_fields);
+    let mut spans: SmallVec<[parse::Field; 16]> = SmallVec::new();
+    let end = loop {
+        match lines.next()? {
+            parse::Line::Field(field) => spans.push(field),
+            parse::Line::End(n) => break n,
+            parse::Line::Incomplete => return Ok(None),
+        }
+    };
+    // As for requests, one UTF-8 check provides every name as text.
+    let text = std::str::from_utf8(&bytes[..end]).ok();
+    let mut fields = Fields::with_capacity(spans.len());
+    for field in &spans {
+        fields.add(field.name.ascii(text, bytes), field.value.of(bytes))?;
+    }
+    Ok(Some((fields, end)))
+}
+
+/// Parse a response head from the start of `bytes`, returning the metadata and
+/// head length. `Ok(None)` means the head is incomplete.
+pub(crate) fn response(
+    bytes: &[u8],
+    max_fields: usize,
+) -> Result<Option<(ResponseMetadata, usize)>, Error> {
+    let Some((line, at)) = parse::status_line(bytes)? else {
+        return Ok(None);
+    };
+    let Some((fields, end)) = field_section(bytes, at, max_fields)? else {
+        return Ok(None);
+    };
+    let status = Status::new(line.code).map_err(|_| Error::Invalid("invalid status"))?;
+    let mut head = ResponseMetadata::new(status);
+    head.version = Some(line.version);
+    head.fields = fields;
+    Ok(Some((head, end)))
+}
+
+/// Parse a trailer section from the start of `bytes`, returning the fields and
+/// section length. `Ok(None)` means the section is incomplete.
+pub(crate) fn trailers(bytes: &[u8], max_fields: usize) -> Result<Option<(Fields, usize)>, Error> {
+    field_section(bytes, 0, max_fields).map_err(|error| match error {
+        Error::Limit("field count") => Error::Limit("trailer count"),
+        error => error,
+    })
+}
+
 /// Remove wire controls from a response after their values have been validated and captured.
 /// Scan Connection first, so nominated pairs are removed regardless of order. Requests classify
 /// the same controls, plus Host, with `request_control` while their fields are read.
@@ -608,34 +627,6 @@ pub(crate) fn declared_length(typed: Option<u64>, raw: Option<u64>) -> Result<Op
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn original_strict_lines(bytes: &[u8]) -> bool {
-        bytes.iter().enumerate().all(|(i, b)| {
-            !((*b == b'\n' && (i == 0 || bytes[i - 1] != b'\r'))
-                || (*b == b'\r' && bytes.get(i + 1) != Some(&b'\n')))
-        })
-    }
-
-    #[test]
-    fn strict_lines_matches_pairwise_definition() {
-        let alphabet = *b"a\r\n";
-        for length in 0..=8 {
-            for mut index in 0..alphabet.len().pow(length) {
-                let bytes: Vec<u8> = (0..length)
-                    .map(|_| {
-                        let byte = alphabet[index % alphabet.len()];
-                        index /= alphabet.len();
-                        byte
-                    })
-                    .collect();
-                assert_eq!(
-                    strict_lines(&bytes).is_ok(),
-                    original_strict_lines(&bytes),
-                    "{bytes:?}"
-                );
-            }
-        }
-    }
 
     #[test]
     fn simple_authority_only_accepts_valid_authorities() {

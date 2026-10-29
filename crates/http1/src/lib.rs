@@ -29,6 +29,20 @@ pub fn fuzz_request_head(bytes: &[u8]) {
     oracle::compare(bytes, 8);
 }
 
+/// Compare the response head parser with the previous httparse pipeline.
+#[cfg(fuzzing)]
+#[doc(hidden)]
+pub fn fuzz_response_head(bytes: &[u8]) {
+    oracle::compare_response(bytes, 8);
+}
+
+/// Compare the trailer section parser with the previous line reader.
+#[cfg(fuzzing)]
+#[doc(hidden)]
+pub fn fuzz_trailers(bytes: &[u8]) {
+    oracle::compare_trailers(bytes, 8);
+}
+
 /// Bounds apply before allocating or accepting an entire wire section.
 #[derive(Clone, Debug)]
 pub struct Options {

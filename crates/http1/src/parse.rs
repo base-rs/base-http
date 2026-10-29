@@ -173,6 +173,55 @@ pub(crate) fn request_line(bytes: &[u8]) -> Result<Option<(RequestLine<'_>, usiz
     Ok(Some((line, target + 11)))
 }
 
+pub(crate) struct StatusLine {
+    pub version: Version,
+    pub code: u16,
+}
+
+/// Parse `HTTP-version SP 3DIGIT [ SP reason-phrase ] CRLF`. The reason phrase
+/// is checked and discarded. `Ok(None)` means the input ended first.
+pub(crate) fn status_line(bytes: &[u8]) -> Result<Option<(StatusLine, usize)>, Error> {
+    if matches!(bytes.first(), Some(b'\r' | b'\n' | b' ' | b'\t')) {
+        return Err(Error::Invalid("invalid start line prefix"));
+    }
+    let version = match bytes.get(..9) {
+        Some(b"HTTP/1.1 ") => Version::Http11,
+        Some(b"HTTP/1.0 ") => Version::Http10,
+        None if [b"HTTP/1.1 ", b"HTTP/1.0 "]
+            .iter()
+            .any(|version| version.starts_with(bytes)) =>
+        {
+            return Ok(None);
+        }
+        _ => return Err(Error::Invalid("invalid response head")),
+    };
+    let mut code = 0;
+    for at in 9..12 {
+        match bytes.get(at) {
+            None => return Ok(None),
+            Some(digit @ b'0'..=b'9') => code = code * 10 + u16::from(digit - b'0'),
+            Some(_) => return Err(Error::Invalid("invalid response head")),
+        }
+    }
+    let at = match bytes.get(12) {
+        None => return Ok(None),
+        Some(b' ') => span(bytes, 13, &VALUE),
+        Some(_) => 12,
+    };
+    match bytes.get(at) {
+        None => return Ok(None),
+        Some(b'\r') => {}
+        Some(b'\n') => return Err(Error::Invalid("expected CRLF")),
+        Some(_) => return Err(Error::Invalid("invalid response head")),
+    }
+    match bytes.get(at + 1) {
+        None => return Ok(None),
+        Some(b'\n') => {}
+        Some(_) => return Err(Error::Invalid("expected CRLF")),
+    }
+    Ok(Some((StatusLine { version, code }, at + 2)))
+}
+
 /// A field name, which is a token and so ASCII, and its trimmed value.
 #[derive(Clone, Copy)]
 pub(crate) struct Field {

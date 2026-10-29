@@ -1,6 +1,6 @@
 # HTTP/1 head parser
 
-Updated 2026-10-29. `base-http1` currently checks each request head in several separate passes: a terminator search, a strict line-ending scan, httparse, then target, Host and field-name checks in `wire::request`. On the hello request, the Host checks alone account for about 320 of the 343 instructions per request separating Base from Hyper at 64 connections. This note defines a single-pass, hand-written parser that replaces httparse for request heads, response heads and trailers, and states the exact grammar it accepts.
+Updated 2026-10-29. `base-http1` previously checked each request head in several separate passes: a terminator search, a strict line-ending scan, httparse, then target, Host and field-name checks in `wire::request`. On the hello request, the Host checks alone account for about 320 of the 343 instructions per request separating Base from Hyper at 64 connections. This note defines the single-pass, hand-written parser that replaced httparse for request heads, response heads and trailers, and states the exact grammar it accepts. All three stages below are implemented.
 
 ## Goals
 
@@ -72,10 +72,11 @@ The reader parses the first read of a head directly, without a separate terminat
 
 ## Verification
 
-The current pipeline is kept as a test oracle, and httparse becomes a development dependency once response heads also move (stage 3). These checks compare the new parser with the oracle:
+The previous pipeline is kept as a test oracle in `oracle.rs`, with the old response head reader (strict line scan and httparse) and the old line-by-line trailer reader. httparse is now compiled only for tests and fuzzing. These checks compare the new parser with the oracle:
 
-- A deterministic differential test, run in the normal suite, which exhaustively mutates seed heads over small byte alphabets and compares acceptance, the resulting metadata and framing facts, and the head length. Error kinds are not compared, since rejections may report a different first error. A prefix rejected before its terminator arrives must be rejected by the old pipeline once completed.
-- A `cargo fuzz` target performing the same comparison on arbitrary input. It needs a nightly toolchain and runs outside the normal suite.
+- A deterministic differential test, run in the normal suite, which exhaustively mutates seed heads over small byte alphabets and compares acceptance, the resulting metadata and framing facts, and the head length. Error kinds are not compared, since rejections may report a different first error. A prefix rejected before its terminator arrives must be rejected by the old pipeline once completed, and every strict prefix of a section the old pipeline accepts must be incomplete rather than rejected.
+- The same exhaustive and random mutations of seed response heads and trailer sections, each also followed by further input, so that their last lines reach the block scan rather than only the word and byte tails.
+- `cargo fuzz` targets `request_head`, `response_head` and `trailers` performing the same comparisons on arbitrary input. They need a nightly toolchain and run outside the normal suite.
 - A request smuggling corpus: bare CR or LF in each position, obs-fold, whitespace before the colon, whitespace before the first field, duplicate or invalid Content-Length, Content-Length with Transfer-Encoding, non-chunked or repeated transfer codings, NUL and other controls in values, invalid Host forms, missing Host on HTTP/1.1, and limits on both sides of each boundary.
 
 Existing codec, fragmentation and TCP tests continue to pass unchanged.
@@ -95,7 +96,15 @@ Median user instructions per request, from five interleaved samples of each buil
 
 With 12 fields, every Base build alternates between two levels about 600 instructions apart, so the medians there are less precise than the hello figures. The field scan itself now costs less than httparse with AVX2. Most of the saving with 12 fields comes from parsing the first read directly: the terminator search it replaces compares four bytes at every position and cost about 3,700 instructions for that head. After the `Fields::add` changes described above, the 12-field request costs 13,591 instructions at 64 connections and 16,150 at 1, below Hyper in both, and the two levels no longer appear.
 
+## Response heads and trailers
+
+Response heads and trailer sections are read by the same field-line parser as requests, after a status line for responses. They need no target, Host or framing classification, so their spans are converted directly into `Fields`, reserved once for the number of lines. As for requests, one `from_utf8` over the section provides every name as text. The reader parses the first non-empty read directly and otherwise waits for the terminator, and a section that does not end within `max_head_bytes` is rejected. Trailers report this as `Limit("trailer section")` rather than the previous per-line `Limit("line length")`; the bound itself, the whole section within `max_head_bytes`, is unchanged.
+
+Chunk size lines no longer pass through the strict line scan. A chunk line ends at its first CRLF, and its grammar accepts only hex digits, tokens, whitespace, `;`, `=` and quoted text that excludes controls, so it already rejects any other CR, LF or NUL.
+
 ## Stages
+
+All three stages are implemented.
 
 1. The request head parser, with the Host and target construction above, the differential test, fuzz target and corpus.
 2. Response heads for the client and trailer sections, sharing the field-line parser.
