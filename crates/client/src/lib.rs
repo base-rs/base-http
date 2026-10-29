@@ -20,7 +20,7 @@ pub use connection::Connection;
 pub use driver::Driver;
 pub use error::Error;
 
-use base_http::{Authority, InterimHandler, Method, Request, Response, body::ReadableBody};
+use base_http::{Authority, InterimHandler, Method, Request, Response, Scheme, body::ReadableBody};
 use base_pool::MultiplexPool;
 use base_scheduler::{
     Cancellation, SocketClose, SocketConnect, SocketOpen, SocketStreamReading, SocketStreamWriting,
@@ -76,6 +76,14 @@ impl Endpoint {
             return "https";
         }
         "http"
+    }
+    // The scheme constant, so requests need not convert the text.
+    pub(crate) fn request_scheme(&self) -> Scheme {
+        #[cfg(feature = "rustls")]
+        if self.tls.is_some() {
+            return Scheme::HTTPS;
+        }
+        Scheme::HTTP
     }
 }
 
@@ -225,7 +233,7 @@ impl<'scope> Client<'scope> {
         }
         request
             .scheme
-            .get_or_insert_with(|| self.endpoint.scheme().into());
+            .get_or_insert_with(|| self.endpoint.request_scheme());
         request
             .authority
             .get_or_insert_with(|| self.endpoint.authority.clone());

@@ -120,7 +120,7 @@ impl<'scope> Client<'scope> {
         }
         metadata
             .scheme
-            .get_or_insert_with(|| self.endpoint.scheme().into());
+            .get_or_insert_with(|| self.endpoint.request_scheme());
         metadata
             .authority
             .get_or_insert_with(|| self.endpoint.authority.clone());
