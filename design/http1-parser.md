@@ -93,7 +93,7 @@ Median user instructions per request, from five interleaved samples of each buil
 | 12 fields | 64 | 22,525 | 17,929 | 15,331 |
 | 12 fields | 1 | 25,012 | 20,417 | 18,143 |
 
-With 12 fields, every Base build alternates between two levels about 600 instructions apart, so the medians there are less precise than the hello figures. The field scan itself now costs less than httparse with AVX2. Most of the saving with 12 fields comes from parsing the first read directly: the terminator search it replaces compares four bytes at every position and cost about 3,700 instructions for that head. After the `Fields::add` changes described above, the 12-field request costs 13,568 instructions at 64 connections and 16,128 at 1, below Hyper in both, and the two levels no longer appear.
+With 12 fields, every Base build alternates between two levels about 600 instructions apart, so the medians there are less precise than the hello figures. The field scan itself now costs less than httparse with AVX2. Most of the saving with 12 fields comes from parsing the first read directly: the terminator search it replaces compares four bytes at every position and cost about 3,700 instructions for that head. After the `Fields::add` changes described above, the 12-field request costs 13,591 instructions at 64 connections and 16,150 at 1, below Hyper in both, and the two levels no longer appear.
 
 ## Stages
 
