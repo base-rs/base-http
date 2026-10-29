@@ -2,7 +2,7 @@
 // Copyright, 2026, by Samuel Williams.
 
 use base_http::{
-    Fields, Method, Request, RequestMetadata,
+    Fields, Method, Request, RequestMetadata, Scheme,
     body::{BodyFrame, EmptyBody, ReadableBody, WritableBody},
 };
 use base_http_client::{Client, Endpoint, Error, Options};
@@ -304,6 +304,39 @@ fn fixed_length_errors_retire_instead_of_replaying_partial_writes() {
         });
         peer.join().unwrap();
     }
+}
+
+#[test]
+fn request_schemes_match_the_endpoint_case_insensitively() {
+    let (address, peer) = peer(|listener| {
+        let mut stream = accept(&listener);
+        assert!(head(&mut stream).starts_with("GET / HTTP/1.1\r\n"));
+        stream
+            .get_mut()
+            .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok")
+            .unwrap();
+    });
+    run(address, async |client| {
+        let cancel = Cancellation::never();
+        let mut metadata = RequestMetadata::new(Method::GET);
+        metadata.scheme = Some(Scheme::from("HTTPS"));
+        metadata.path = Some("/".into());
+        assert!(matches!(
+            client.open_request(metadata, &cancel).await,
+            Err(Error::Unsupported(
+                "request scheme does not match the endpoint"
+            ))
+        ));
+        let mut metadata = RequestMetadata::new(Method::GET);
+        metadata.scheme = Some(Scheme::from("HTTP"));
+        metadata.path = Some("/".into());
+        metadata.content_length = Some(0);
+        let request = client.open_request(metadata, &cancel).await.unwrap();
+        let mut response = request.finish(&cancel).await.unwrap();
+        assert_eq!(payload(&mut response.body).await, b"ok");
+        client.begin_close();
+    });
+    peer.join().unwrap();
 }
 
 #[test]
