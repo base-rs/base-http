@@ -10,13 +10,24 @@
 mod client;
 mod error;
 mod input;
+#[cfg(any(test, fuzzing))]
+mod oracle;
 mod output;
+mod parse;
 mod wire;
 
 pub use client::{RequestWriter, ResponseReader};
 pub use error::Error;
 pub use input::{Exchange, IncomingBody, RequestReader};
 pub use output::{InterimWriter, ResponseWriter};
+
+/// Compare the request head parser with the previous httparse pipeline,
+/// panicking when they disagree. Only fuzz targets build this.
+#[cfg(fuzzing)]
+#[doc(hidden)]
+pub fn fuzz_request_head(bytes: &[u8]) {
+    oracle::compare(bytes, 8);
+}
 
 /// Bounds apply before allocating or accepting an entire wire section.
 #[derive(Clone, Debug)]

@@ -606,6 +606,75 @@ fn incoming_fixed_and_chunked_bodies_leave_the_next_request_intact_at_every_frag
     }
 }
 
+/// Read up to three requests, describing each outcome.
+fn outcomes(bytes: &'static [u8], step: usize, max_head_bytes: usize) -> Vec<String> {
+    let options = base_http1::Options {
+        max_head_bytes,
+        read_size: 4096,
+        ..Default::default()
+    };
+    let mut input = RequestReader::new(Input { bytes, step }, options).unwrap();
+    let mut outcomes = Vec::new();
+    block_on(async {
+        for _ in 0..3 {
+            match input.read_request(&Cancellation::never()).await {
+                Ok(Some((request, _))) => outcomes.push(format!(
+                    "{:?} {:?} {:?} {:?}",
+                    request.method, request.path, request.authority, request.fields
+                )),
+                Ok(None) => return outcomes.push("end".into()),
+                Err(error) => return outcomes.push(format!("{error:?}")),
+            }
+        }
+    });
+    outcomes
+}
+
+#[test]
+fn request_heads_are_read_identically_at_every_fragment_size_and_head_limit() {
+    let streams: &[&'static [u8]] = &[
+        b"GET / HTTP/1.1\r\nHost: h\r\n\r\n",
+        b"GET /a HTTP/1.1\r\nHost: example.com\r\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64)\r\nAccept: */*\r\n\r\nGET /b HTTP/1.1\r\nHost: h\r\n\r\n",
+        b"GET / HTTP/1.1\r\nHost: h\r\nX: \xff\xfe\r\n\r\nGET / HTTP/1.0\r\n\r\n",
+        b"GET / HTTP/1.1\r\nHost: h\r\nX: a\x00b\r\n\r\n",
+        b"GET / HTTP/1.1\r\nHost: h\r\n\r",
+        b"GET / HTTP/1.1\r\nHost: h\r\n\r\nGET / HTTP/1.1\r\nHost",
+        b"",
+    ];
+    for stream in streams {
+        for max_head_bytes in [16, 26, 27, 28, 29, 60, 105, 106, 1000] {
+            let expected = outcomes(stream, usize::MAX, max_head_bytes);
+            for step in 1..stream.len() {
+                let fragmented = outcomes(stream, step, max_head_bytes);
+                // An invalid byte is reported as soon as it is read, while a
+                // fragmented head may instead end or reach the limit first.
+                let last = expected.len() - 1;
+                assert_eq!(fragmented.len(), expected.len(), "{stream:?} {step}");
+                assert_eq!(fragmented[..last], expected[..last], "{stream:?} {step}");
+                if !expected[last].starts_with("Invalid") {
+                    assert_eq!(fragmented[last], expected[last], "{stream:?} {step}");
+                }
+            }
+        }
+    }
+    let head: &'static [u8] = b"GET / HTTP/1.1\r\nHost: h\r\n\r\n";
+    assert_eq!(
+        outcomes(head, usize::MAX, head.len()),
+        [
+            "Method(\"GET\") Some(Path(\"/\")) Some(Authority(\"h\")) Fields { pairs: [] }",
+            "end"
+        ]
+    );
+    assert_eq!(
+        outcomes(head, usize::MAX, head.len() - 1)[0],
+        "Limit(\"message head\")"
+    );
+    assert_eq!(
+        outcomes(b"GET / HTTP/1.1\r\nHost: h\r\nX: a\x00b", usize::MAX, 1000),
+        ["Invalid(\"invalid field value\")"]
+    );
+}
+
 #[test]
 fn failed_body_reads_prevent_reuse_even_if_the_body_is_dropped() {
     block_on(async {
