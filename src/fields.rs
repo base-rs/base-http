@@ -14,8 +14,6 @@ use std::{error::Error, fmt, ops::Deref};
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum FieldError {
     InvalidName,
-    /// A value the protocol cannot carry, reported by protocol drivers.
-    InvalidValue,
     Duplicate(String),
     InvalidTrailer(String),
     InvalidList(String),
@@ -25,7 +23,6 @@ impl fmt::Display for FieldError {
     fn fmt(&self, output: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::InvalidName => output.write_str("invalid HTTP field name"),
-            Self::InvalidValue => output.write_str("invalid HTTP field value"),
             Self::Duplicate(name) => write!(output, "duplicate singleton field: {name}"),
             Self::InvalidTrailer(name) => {
                 write!(output, "field is not permitted in trailers: {name}")
@@ -71,19 +68,22 @@ impl Deref for NameStorage {
     }
 }
 
+// Each variant also records whether the value contains CR, LF or NUL, which
+// fits in the inline variant's padding.
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum ValueStorage {
-    Inline(ArrayVec<u8, 24>),
-    Heap(Vec<u8>),
+    Inline(ArrayVec<u8, 24>, bool),
+    Heap(Vec<u8>, bool),
 }
 impl ValueStorage {
     #[inline]
     fn new(value: &[u8]) -> Self {
+        let dangerous = value.iter().any(|byte| matches!(byte, b'\r' | b'\n' | 0));
         let mut inline = ArrayVec::new();
         if inline.try_extend_from_slice(value).is_ok() {
-            Self::Inline(inline)
+            Self::Inline(inline, dangerous)
         } else {
-            Self::Heap(value.to_vec())
+            Self::Heap(value.to_vec(), dangerous)
         }
     }
 }
@@ -91,8 +91,8 @@ impl Deref for ValueStorage {
     type Target = [u8];
     fn deref(&self) -> &[u8] {
         match self {
-            Self::Inline(value) => value.as_slice(),
-            Self::Heap(value) => value,
+            Self::Inline(value, _) => value.as_slice(),
+            Self::Heap(value, _) => value,
         }
     }
 }
@@ -115,6 +115,15 @@ impl Field {
     }
     pub fn value(&self) -> &[u8] {
         &self.value
+    }
+    /// Whether the value contains CR, LF or NUL, which RFC 9110 (section 5.5)
+    /// calls invalid and dangerous in field values. HTTP/1 cannot carry them,
+    /// and HTTP/2 and HTTP/3 forbid them without a negotiated extension. This is
+    /// recorded when the field is constructed.
+    pub fn has_dangerous_bytes(&self) -> bool {
+        match self.value {
+            ValueStorage::Inline(_, dangerous) | ValueStorage::Heap(_, dangerous) => dangerous,
+        }
     }
 }
 

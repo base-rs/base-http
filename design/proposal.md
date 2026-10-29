@@ -171,7 +171,7 @@ The initial implementation provides constructors, public `RequestMetadata`/`Resp
 
 ### Raw fields and explicit header interpretation
 
-`Fields` owns an ordered sequence of syntax-checked `Field` pairs. Preserve supplied name spelling, duplicate pairs, spacing and opaque value bytes. Raw lookup/mutation is case-insensitive by name, without combining or parsing values. Storage has no trailer marker, policy or semantic index.
+`Fields` owns an ordered sequence of `Field` pairs with token names and opaque byte values. Preserve supplied name spelling, duplicate pairs, spacing and opaque value bytes. Raw lookup/mutation is case-insensitive by name, without combining or parsing values. Storage has no trailer marker, policy or semantic index.
 
 `HttpHeaders::new(fields)` explicitly interprets an owned initial section. It caches lookup lazily and applies `headers::Policy`: comma lists, semicolon-joined cookies, separately emitted cookies/challenges, singleton checks and trailer eligibility. Custom overrides let application interpreters change these choices; a different protocol can also interpret raw `Fields` independently. Lookup takes `&mut self`, with no interior mutability or shared message ownership.
 

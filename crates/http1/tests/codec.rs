@@ -2893,6 +2893,7 @@ fn values_that_would_change_http1_framing_are_never_sent() {
                     .is_err()
             );
             assert!(bytes.lock().unwrap().is_empty());
+            assert!(writer.is_usable());
 
             let (mut writer, bytes) = output(2);
             let mut hint = ResponseMetadata::new(Status::EARLY_HINTS);
@@ -2927,6 +2928,17 @@ fn values_that_would_change_http1_framing_are_never_sent() {
                     .is_err()
             );
             assert!(bytes.lock().unwrap().is_empty());
+
+            let (mut writer, bytes) = client_output(2);
+            let mut request = Request::new(Method::POST, "/", trailing_body([], fields()));
+            request.authority = Some("example".into());
+            assert!(
+                writer
+                    .write_request(&mut request, &Cancellation::never())
+                    .await
+                    .is_err()
+            );
+            assert!(!String::from_utf8_lossy(&bytes.lock().unwrap()).contains("x-value"));
         }
 
         // Other control bytes and obs-text are not framing, and pass through.

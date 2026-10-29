@@ -343,6 +343,20 @@ fn names_are_tokens_and_values_are_opaque_bytes() {
             value
         );
     }
+    let long = b"x".repeat(30);
+    for (value, dangerous) in [
+        (b"a\rb".as_slice(), true),
+        (b"a\nb", true),
+        (b"a\0b", true),
+        (b"a\x01\x7f\xffb", false),
+        (&long, false),
+        (&[long.as_slice(), b"\n"].concat(), true),
+    ] {
+        assert_eq!(
+            Field::new("x", value).unwrap().has_dangerous_bytes(),
+            dangerous
+        );
+    }
 }
 
 #[test]

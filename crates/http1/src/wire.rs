@@ -127,13 +127,7 @@ pub(crate) fn field_value(value: &[u8]) -> bool {
 /// CR, LF and NUL change how HTTP/1 text is framed or interpreted, so no sent
 /// value may contain them (RFC 9110, section 5.5). Other bytes pass through.
 pub(crate) fn output_fields(fields: &[base_http::Field]) -> Result<(), Error> {
-    let unsafe_bytes = fields.iter().fold(false, |found, field| {
-        field
-            .value()
-            .iter()
-            .fold(found, |found, b| found | matches!(b, b'\r' | b'\n' | 0))
-    });
-    if unsafe_bytes {
+    if fields.iter().any(base_http::Field::has_dangerous_bytes) {
         return Err(Error::Invalid("field value contains CR, LF or NUL"));
     }
     Ok(())
