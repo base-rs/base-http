@@ -351,6 +351,9 @@ fn names_are_tokens_and_values_are_opaque_bytes() {
         (b"a\x01\x7f\xffb", false),
         (&long, false),
         (&[long.as_slice(), b"\n"].concat(), true),
+        // The last inline byte and the first heap byte.
+        (&[&long[..23], b"\r"].concat(), true),
+        (&[&long[..24], b"\0"].concat(), true),
     ] {
         assert_eq!(
             Field::new("x", value).unwrap().has_dangerous_bytes(),
