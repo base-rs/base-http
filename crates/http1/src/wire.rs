@@ -429,6 +429,12 @@ pub(crate) fn request(
     let version = line.version;
     let mut head = RequestMetadata::new(method);
     head.version = Some(version);
+    // Reserving for every line, including Host and other controls that are
+    // not stored, means the storage never grows. A short head grows as needed
+    // instead, so one storing a single field still needs no allocation.
+    if fields.len() > 3 {
+        head.fields.reserve(fields.len());
+    }
     let mut host = None;
     let mut length = None;
     let mut transfer = None;
