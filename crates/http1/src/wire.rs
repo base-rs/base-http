@@ -146,28 +146,37 @@ const REG_NAME: [bool; 256] = {
     table
 };
 
-/// Accept the common `reg-name[:port]` form in one pass. Returns false when the
-/// value is invalid or uses another form, leaving the complete validation to
-/// select the error.
+/// Accept the common `reg-name[:port]` form. Returns false when the value is
+/// invalid or uses another form, leaving the complete validation to select the
+/// error. The scans do not short-circuit, so they compile without a branch per
+/// byte.
 #[inline]
 fn simple_authority(value: &[u8], require_port: bool) -> bool {
-    let host = value
-        .iter()
-        .take_while(|b| REG_NAME[usize::from(**b)])
-        .count();
-    if host == 0 {
+    let (host, port) = match value.iter().rposition(|b| *b == b':') {
+        Some(colon) => (&value[..colon], Some(&value[colon + 1..])),
+        None => (value, None),
+    };
+    if host.is_empty()
+        || !host
+            .iter()
+            .fold(true, |valid, b| valid & REG_NAME[usize::from(*b)])
+    {
         return false;
     }
-    match value[host..].split_first() {
+    match port {
         None => !require_port,
-        Some((b':', port)) => {
-            !port.is_empty()
-                && port.len() <= 5
-                && port.iter().all(u8::is_ascii_digit)
-                && port.iter().fold(0u32, |n, b| n * 10 + u32::from(b - b'0'))
-                    <= u32::from(u16::MAX)
+        Some(port) => {
+            if port.is_empty() || port.len() > 5 {
+                return false;
+            }
+            let (number, digits) = port.iter().fold((0u32, true), |(number, digits), b| {
+                (
+                    number * 10 + u32::from(b.wrapping_sub(b'0')),
+                    digits & b.is_ascii_digit(),
+                )
+            });
+            digits && number <= u32::from(u16::MAX)
         }
-        Some(_) => false,
     }
 }
 
