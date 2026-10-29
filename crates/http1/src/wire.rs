@@ -1,8 +1,9 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::Error;
+use crate::{Error, parse};
 use base_http::{Fields, Method, Protocol, RequestMetadata, Version};
+use smallvec::SmallVec;
 
 pub(crate) fn token(bytes: &[u8]) -> bool {
     !bytes.is_empty()
@@ -66,7 +67,7 @@ pub(crate) fn framing(fields: &Fields) -> Result<(Option<u64>, bool), Error> {
     )
 }
 
-fn parse_framing(
+pub(crate) fn parse_framing(
     length: Option<&[u8]>,
     transfer: Option<&[u8]>,
 ) -> Result<(Option<u64>, bool), Error> {
@@ -259,6 +260,12 @@ pub(crate) fn request_target(method: &Method, target: &str) -> Result<(), Error>
     {
         return Err(Error::Invalid("invalid request target"));
     }
+    target_form(method, target)
+}
+
+/// Check which of the four request-target forms a target with valid bytes
+/// takes. The parser has already checked received bytes.
+pub(crate) fn target_form(method: &Method, target: &str) -> Result<(), Error> {
     if *method == Method::CONNECT {
         authority(target, true)
     } else if target.starts_with('/') || (target == "*" && *method == Method::OPTIONS) {
@@ -336,6 +343,7 @@ pub(crate) fn response_framing(fields: &Fields) -> Result<ResponseFraming<'_>, E
     Ok(facts)
 }
 
+#[derive(Debug, PartialEq)]
 pub(crate) struct RequestFraming {
     pub length: Option<u64>,
     pub chunked: bool,
@@ -345,7 +353,7 @@ pub(crate) struct RequestFraming {
     pub upgrade: Option<Box<[u8]>>,
 }
 
-fn set_singleton<'a>(slot: &mut Option<&'a [u8]>, value: &'a [u8]) -> Result<(), Error> {
+pub(crate) fn set_singleton<'a>(slot: &mut Option<&'a [u8]>, value: &'a [u8]) -> Result<(), Error> {
     if slot.replace(trim(value)).is_some() {
         return Err(Error::Invalid("duplicate singleton field"));
     }
@@ -353,7 +361,7 @@ fn set_singleton<'a>(slot: &mut Option<&'a [u8]>, value: &'a [u8]) -> Result<(),
 }
 
 #[derive(Clone, Copy)]
-enum Control {
+pub(crate) enum Control {
     Host,
     ContentLength,
     TransferEncoding,
@@ -364,44 +372,61 @@ enum Control {
 
 /// Classify request fields consumed by HTTP/1 framing rather than retained as
 /// application fields.
-fn request_control(name: &str) -> Option<Control> {
-    let is = |control: &str| name.eq_ignore_ascii_case(control);
+pub(crate) fn request_control(name: &[u8]) -> Option<Control> {
+    let is = |control: &[u8]| name.eq_ignore_ascii_case(control);
     match name.len() {
-        2 if is("te") => Some(Control::Removed),
-        4 if is("host") => Some(Control::Host),
-        7 if is("upgrade") => Some(Control::Upgrade),
-        10 if is("connection") => Some(Control::Connection),
-        10 if is("keep-alive") => Some(Control::Removed),
-        14 if is("content-length") => Some(Control::ContentLength),
-        16 if is("proxy-connection") => Some(Control::Removed),
-        17 if is("transfer-encoding") => Some(Control::TransferEncoding),
+        2 if is(b"te") => Some(Control::Removed),
+        4 if is(b"host") => Some(Control::Host),
+        7 if is(b"upgrade") => Some(Control::Upgrade),
+        10 if is(b"connection") => Some(Control::Connection),
+        10 if is(b"keep-alive") => Some(Control::Removed),
+        14 if is(b"content-length") => Some(Control::ContentLength),
+        16 if is(b"proxy-connection") => Some(Control::Removed),
+        17 if is(b"transfer-encoding") => Some(Control::TransferEncoding),
         _ => None,
     }
 }
 
+/// Parse a request head from the start of `bytes`, returning the metadata,
+/// framing facts and head length. `Ok(None)` means the head is incomplete.
 pub(crate) fn request(
-    parsed: &httparse::Request<'_, '_>,
-) -> Result<(RequestMetadata, RequestFraming), Error> {
-    let method = match parsed.method.ok_or(Error::Invalid("missing method"))? {
-        "GET" => Method::GET,
-        "HEAD" => Method::HEAD,
-        "POST" => Method::POST,
-        "PUT" => Method::PUT,
-        "DELETE" => Method::DELETE,
-        "CONNECT" => Method::CONNECT,
-        "OPTIONS" => Method::OPTIONS,
-        "TRACE" => Method::TRACE,
-        "PATCH" => Method::PATCH,
-        "QUERY" => Method::QUERY,
-        other => Method::new(other).map_err(|_| Error::Invalid("invalid method"))?,
+    bytes: &[u8],
+    max_fields: usize,
+) -> Result<Option<(RequestMetadata, RequestFraming, usize)>, Error> {
+    let Some((line, at)) = parse::request_line(bytes)? else {
+        return Ok(None);
     };
-    let target = parsed.path.ok_or(Error::Invalid("missing target"))?;
-    request_target(&method, target)?;
-    let version = match parsed.version {
-        Some(0) => Version::Http10,
-        Some(1) => Version::Http11,
-        _ => return Err(Error::Invalid("unsupported HTTP version")),
+    let method = match line.method {
+        b"GET" => Method::GET,
+        b"HEAD" => Method::HEAD,
+        b"POST" => Method::POST,
+        b"PUT" => Method::PUT,
+        b"DELETE" => Method::DELETE,
+        b"CONNECT" => Method::CONNECT,
+        b"OPTIONS" => Method::OPTIONS,
+        b"TRACE" => Method::TRACE,
+        b"PATCH" => Method::PATCH,
+        b"QUERY" => Method::QUERY,
+        // The parser accepts only token bytes, which are ASCII.
+        other => Method::new(std::str::from_utf8(other).unwrap())
+            .map_err(|_| Error::Invalid("invalid method"))?,
     };
+    // Validate every line before interpreting any, recording where each
+    // field is, so that one UTF-8 check covers the target and all names.
+    let mut lines = parse::Lines::new(bytes, at, max_fields);
+    let mut fields: SmallVec<[parse::Field; 16]> = SmallVec::new();
+    let length_of_head = loop {
+        match lines.next()? {
+            parse::Line::Field(field) => fields.push(field),
+            parse::Line::End(n) => break n,
+            parse::Line::Incomplete => return Ok(None),
+        }
+    };
+    // obs-text that is not UTF-8 leaves each piece to be converted separately.
+    let text = std::str::from_utf8(&bytes[..length_of_head]).ok();
+    let target = line.target.ascii(text, bytes);
+    target_form(&method, target)?;
+    let version = line.version;
     let mut head = RequestMetadata::new(method);
     head.version = Some(version);
     let mut host = None;
@@ -414,16 +439,23 @@ pub(crate) fn request(
     let mut first_upgrade = None;
     let mut upgrade_count = 0;
     let mut options: Vec<Vec<u8>> = Vec::new();
-    for field in parsed.headers.iter() {
-        // httparse has already applied the field name and value syntax. Wire
+    let mut offers = Vec::new();
+    for field in &fields {
+        let name = field.name.of(bytes);
+        let value = field.value.of(bytes);
+        // The parser has already applied the field name and value syntax. Wire
         // controls and Host are captured here instead of being stored and then
         // removed from the application fields.
-        match request_control(field.name) {
-            Some(Control::Host) => set_singleton(&mut host, field.value)?,
-            Some(Control::ContentLength) => set_singleton(&mut length, field.value)?,
-            Some(Control::TransferEncoding) => set_singleton(&mut transfer, field.value)?,
+        match request_control(name) {
+            Some(Control::Host) => {
+                if host.replace(field.value).is_some() {
+                    return Err(Error::Invalid("duplicate singleton field"));
+                }
+            }
+            Some(Control::ContentLength) => set_singleton(&mut length, value)?,
+            Some(Control::TransferEncoding) => set_singleton(&mut transfer, value)?,
             Some(Control::Connection) => {
-                for option in field.value.split(|b| *b == b',').map(trim) {
+                for option in value.split(|b| *b == b',').map(trim) {
                     close |= option.eq_ignore_ascii_case(b"close");
                     keep_alive |= option.eq_ignore_ascii_case(b"keep-alive");
                     connection_upgrade |= option.eq_ignore_ascii_case(b"upgrade");
@@ -437,18 +469,21 @@ pub(crate) fn request(
                 }
             }
             Some(Control::Upgrade) => {
-                first_upgrade.get_or_insert(field.value);
+                first_upgrade.get_or_insert(value);
                 upgrade_count += 1;
+                if !offers.is_empty() {
+                    offers.push(b',');
+                }
+                offers.extend_from_slice(value);
             }
             Some(Control::Removed) => {}
             None => {
-                if field.name.eq_ignore_ascii_case("expect") {
-                    expect_continue |= field
-                        .value
+                if name.eq_ignore_ascii_case(b"expect") {
+                    expect_continue |= value
                         .split(|b| *b == b',')
                         .any(|v| trim(v).eq_ignore_ascii_case(b"100-continue"));
                 }
-                head.fields.add(field.name, field.value)?;
+                head.fields.add(field.name.ascii(text, bytes), value)?;
             }
         }
     }
@@ -461,7 +496,7 @@ pub(crate) fn request(
         });
     }
     let host = host
-        .map(|v| std::str::from_utf8(v).map_err(|_| Error::Invalid("invalid host")))
+        .map(|host| host.text(text, bytes).ok_or(Error::Invalid("invalid host")))
         .transpose()?;
     if version == Version::Http11 && host.is_none() {
         return Err(Error::Invalid("missing host"));
@@ -503,17 +538,6 @@ pub(crate) fn request(
                 }
             }
         }
-        let mut offers = Vec::new();
-        for field in parsed
-            .headers
-            .iter()
-            .filter(|f| f.name.eq_ignore_ascii_case("upgrade"))
-        {
-            if !offers.is_empty() {
-                offers.push(b',');
-            }
-            offers.extend_from_slice(field.value);
-        }
         Some(offers.into_boxed_slice())
     } else {
         None
@@ -528,7 +552,7 @@ pub(crate) fn request(
         trailer_options: options,
         upgrade,
     };
-    Ok((head, framing))
+    Ok(Some((head, framing, length_of_head)))
 }
 
 /// Remove wire controls from a response after their values have been validated and captured.

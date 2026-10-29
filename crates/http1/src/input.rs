@@ -305,26 +305,39 @@ impl<R: ReadableStream> RequestReader<R> {
         if !self.is_reusable() {
             return Err(Error::Invalid("request input is not reusable"));
         }
-        let max_fields = self.options.max_fields;
-        let Some(bytes) = self.read_head(cancellation).await? else {
-            self.poisoned = false;
-            return Ok(None);
+        // Parse the first input available, which is usually a complete head.
+        // A head that is still incomplete is parsed again only once its
+        // terminator arrives, so fragmented input costs linear work. The loop stays in this function so the parsed metadata
+        // is not moved through another future's output.
+        self.poisoned = true;
+        let max_head_bytes = self.options.max_head_bytes;
+        let mut scanned = None;
+        let (head, facts) = loop {
+            let available = self.available();
+            let window = &available[..available.len().min(max_head_bytes)];
+            let terminated = scanned.is_none_or(|scanned: usize| {
+                window[scanned..].windows(4).any(|w| w == b"\r\n\r\n")
+            });
+            if terminated && !window.is_empty() {
+                if let Some((head, facts, n)) = wire::request(window, self.options.max_fields)? {
+                    self.start += n;
+                    break (head, facts);
+                }
+            }
+            if available.len() >= max_head_bytes {
+                return Err(Error::Limit("message head"));
+            }
+            if !available.is_empty() {
+                scanned = Some(available.len().saturating_sub(3));
+            }
+            if !self.fill(cancellation).await? {
+                if self.available().is_empty() {
+                    self.poisoned = false;
+                    return Ok(None);
+                }
+                return Err(Error::Truncated);
+            }
         };
-        let mut local = [std::mem::MaybeUninit::uninit(); 100];
-        let mut overflow;
-        let headers = if max_fields <= local.len() {
-            &mut local[..max_fields]
-        } else {
-            overflow = vec![std::mem::MaybeUninit::uninit(); max_fields];
-            &mut overflow
-        };
-        let mut parsed = httparse::Request::new(&mut []);
-        match parsed.parse_with_uninit_headers(bytes, headers) {
-            Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
-            Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
-            _ => return Err(Error::Invalid("invalid request head")),
-        }
-        let (head, facts) = wire::request(&parsed)?;
         let length = facts.length;
         let chunked = facts.chunked;
         if chunked && head.version != Some(Version::Http11) {

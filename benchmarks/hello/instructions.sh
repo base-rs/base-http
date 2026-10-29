@@ -5,6 +5,8 @@
 # Measure user-space instructions, cycles and CPU time per request on Linux.
 # The server is pinned to SERVER_CPUS and wrk to CLIENT_CPUS. Each repeat warms
 # up for one second, then counts the server process during a three second run.
+# HEADERS names an optional file of request fields, one per line, which wrk
+# sends with every request.
 #
 # Usage: instructions.sh BINARY BACKEND CONNECTIONS [REPEATS]
 set -euo pipefail
@@ -17,6 +19,10 @@ wrk=${WRK:-wrk}
 server_cpus=${SERVER_CPUS:-0}
 client_cpus=${CLIENT_CPUS:-1-3,5-7}
 threads=$((connections < 4 ? connections : 4))
+fields=()
+if [ -n "${HEADERS:-}" ]; then
+	while IFS= read -r field; do fields+=(-H "$field"); done <"$HEADERS"
+fi
 
 directory=$(mktemp -d)
 trap 'rm -rf "$directory"' EXIT
@@ -28,10 +34,10 @@ for _ in $(seq "$repeats"); do
 	while [ ! -s "$directory/address" ]; do sleep 0.05; done
 	url="http://$(head -1 "$directory/address")/"
 
-	taskset -c "$client_cpus" "$wrk" -t"$threads" -c"$connections" -d1s "$url" >/dev/null
+	taskset -c "$client_cpus" "$wrk" -t"$threads" -c"$connections" -d1s ${fields[@]+"${fields[@]}"} "$url" >/dev/null
 	perf stat -x, -e instructions:u,cycles:u,task-clock -p "$server" -o "$directory/stat" -- sleep 3.2 &
 	counter=$!
-	requests=$(taskset -c "$client_cpus" "$wrk" -t"$threads" -c"$connections" -d3s "$url" | awk '/requests in/ {print $1}')
+	requests=$(taskset -c "$client_cpus" "$wrk" -t"$threads" -c"$connections" -d3s ${fields[@]+"${fields[@]}"} "$url" | awk '/requests in/ {print $1}')
 	wait "$counter"
 	kill "$server"
 	wait "$server" 2>/dev/null || true
