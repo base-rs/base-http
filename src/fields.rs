@@ -78,7 +78,10 @@ enum ValueStorage {
 impl ValueStorage {
     #[inline]
     fn new(value: &[u8]) -> Self {
-        let dangerous = value.iter().any(|byte| matches!(byte, b'\r' | b'\n' | 0));
+        // Folding without stopping early lets the compiler vectorize the scan.
+        let dangerous = value.iter().fold(false, |found, byte| {
+            found | matches!(byte, b'\r' | b'\n' | 0)
+        });
         let mut inline = ArrayVec::new();
         if inline.try_extend_from_slice(value).is_ok() {
             Self::Inline(inline, dangerous)
@@ -139,6 +142,19 @@ impl Fields {
     #[inline]
     pub fn new() -> Self {
         Self::default()
+    }
+    /// Fields with storage for `capacity` pairs, for a driver that knows how
+    /// many it will add.
+    #[inline]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            pairs: SmallVec::with_capacity(capacity),
+        }
+    }
+    /// Reserve storage for at least `additional` more pairs.
+    #[inline]
+    pub fn reserve(&mut self, additional: usize) {
+        self.pairs.reserve(additional);
     }
     pub fn try_from_pairs<N: AsRef<str>, V: AsRef<[u8]>>(
         pairs: impl IntoIterator<Item = (N, V)>,

@@ -64,7 +64,7 @@ The request parser validates every line first and records the span of each field
 
 Building each element while validating it, by pushing bytes into inline string storage, was considered. It does not beat one whole-head conversion, which reads a word at a time.
 
-`Fields::add` is now the largest cost for requests with many fields, at about 590 instructions per field. It checks the name as a token again, scans each value byte for CR, LF and NUL with a short-circuiting loop, copies the value, and grows its storage several times. Reducing it is a change to `base-http` and follows separately.
+`Fields::add` was then the largest cost for requests with many fields. It still checks each name as a token and scans each value for CR, LF and NUL, because `Field` guarantees both for every caller, but both checks are now branch-free folds that the compiler vectorizes, with a full token check only for names containing bytes other than letters, digits and `-`. For a head with more than three field lines, the reader reserves storage for every line before adding fields, so the collection no longer grows and copies its fields repeatedly. Shorter heads grow as needed, so a head that stores a single field still needs no allocation. Together these remove about 4,400 instructions per request with 12 fields. Values longer than 24 bytes still need their own allocation.
 
 ## Incomplete input
 
@@ -93,7 +93,7 @@ Median user instructions per request, from five interleaved samples of each buil
 | 12 fields | 64 | 22,525 | 17,929 | 15,331 |
 | 12 fields | 1 | 25,012 | 20,417 | 18,143 |
 
-With 12 fields, every Base build alternates between two levels about 600 instructions apart, so the medians there are less precise than the hello figures. The field scan itself now costs less than httparse with AVX2. Most of the saving with 12 fields comes from parsing the first read directly: the terminator search it replaces compares four bytes at every position and cost about 3,700 instructions for that head. The remaining gap to Hyper is mostly `Fields::add`, described above.
+With 12 fields, every Base build alternates between two levels about 600 instructions apart, so the medians there are less precise than the hello figures. The field scan itself now costs less than httparse with AVX2. Most of the saving with 12 fields comes from parsing the first read directly: the terminator search it replaces compares four bytes at every position and cost about 3,700 instructions for that head. After the `Fields::add` changes described above, the 12-field request costs 13,591 instructions at 64 connections and 16,150 at 1, below Hyper in both, and the two levels no longer appear.
 
 ## Stages
 
