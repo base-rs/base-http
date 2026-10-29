@@ -421,6 +421,7 @@ impl<W: WritableStream> InterimHandler for InterimWriter<'_, W> {
         {
             return Err(Error::Invalid("invalid interim framing"));
         }
+        wire::output_fields(response.fields.pairs())?;
         response.version = Some(self.version);
         self.output.usable = false;
         self.output.write_head(&response, cancellation).await?;
@@ -505,6 +506,7 @@ impl BodyEncoder {
                     return Err(Error::Invalid("trailers require chunked framing"));
                 }
                 validate_trailer_fields(fields.pairs())?;
+                wire::output_fields(fields.pairs())?;
                 self.trailers = Some(fields);
             }
             BodyFrame::End => {}
@@ -552,6 +554,7 @@ fn plan<'a>(
         return Err(Error::Invalid("final response required"));
     }
     let fields = &response.fields;
+    wire::output_fields(fields.pairs())?;
     let version = exchange.version();
     if response.version.is_some_and(|v| v != version) {
         return Err(Error::Invalid("response version differs from request"));

@@ -275,6 +275,7 @@ fn request_plan(
         && (version == Version::Http11
             || head.persistent == Some(true)
             || wire::has_token(fields, "connection", b"keep-alive"));
+    wire::output_fields(fields.pairs())?;
     // Validate first, then encode directly into the connection's reusable buffer.
     bytes.clear();
     use std::io::Write;

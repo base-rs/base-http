@@ -401,7 +401,11 @@ impl<R: ReadableStream> RequestReader<R> {
                 .ok_or(Error::Invalid("invalid trailer"))?;
             let name = std::str::from_utf8(&line[..colon])
                 .map_err(|_| Error::Invalid("invalid trailer name"))?;
-            fields.add(name, wire::trim(&line[colon + 1..line.len() - 2]))?;
+            let value = wire::trim(&line[colon + 1..line.len() - 2]);
+            if !wire::field_value(value) {
+                return Err(Error::Invalid("invalid trailer value"));
+            }
+            fields.add(name, value)?;
         }
     }
 }

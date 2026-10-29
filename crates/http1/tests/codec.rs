@@ -2876,3 +2876,114 @@ fn outbound_validation_preserves_target_host_and_connection_rules() {
         }
     });
 }
+
+#[test]
+fn values_that_would_change_http1_framing_are_never_sent() {
+    block_on(async {
+        for value in [b"a\r\nInjected: b".as_slice(), b"a\nb", b"a\rb", b"a\0b"] {
+            let fields = || Fields::try_from_pairs([("x-value", value)]).unwrap();
+
+            let (mut writer, bytes) = output(2);
+            let mut response = Response::empty(Status::OK);
+            response.fields = fields();
+            assert!(
+                writer
+                    .write_response(&exchange(), &mut response, &Cancellation::never())
+                    .await
+                    .is_err()
+            );
+            assert!(bytes.lock().unwrap().is_empty());
+            assert!(writer.is_usable());
+
+            let (mut writer, bytes) = output(2);
+            let mut hint = ResponseMetadata::new(Status::EARLY_HINTS);
+            hint.fields = fields();
+            assert!(
+                writer
+                    .interim(Version::Http11)
+                    .on_interim_response(hint, &Cancellation::never())
+                    .await
+                    .is_err()
+            );
+            assert!(bytes.lock().unwrap().is_empty());
+
+            let (mut writer, bytes) = output(2);
+            let mut response = Response::new(Status::OK, trailing_body([], fields()));
+            assert!(
+                writer
+                    .write_response(&exchange(), &mut response, &Cancellation::never())
+                    .await
+                    .is_err()
+            );
+            assert!(!String::from_utf8_lossy(&bytes.lock().unwrap()).contains("x-value"));
+
+            let (mut writer, bytes) = client_output(2);
+            let mut request = Request::get("/");
+            request.authority = Some("example".into());
+            request.fields = fields();
+            assert!(
+                writer
+                    .write_request(&mut request, &Cancellation::never())
+                    .await
+                    .is_err()
+            );
+            assert!(bytes.lock().unwrap().is_empty());
+
+            let (mut writer, bytes) = client_output(2);
+            let mut request = Request::new(Method::POST, "/", trailing_body([], fields()));
+            request.authority = Some("example".into());
+            assert!(
+                writer
+                    .write_request(&mut request, &Cancellation::never())
+                    .await
+                    .is_err()
+            );
+            assert!(!String::from_utf8_lossy(&bytes.lock().unwrap()).contains("x-value"));
+        }
+
+        // Other control bytes and obs-text are not framing, and pass through.
+        let (mut writer, bytes) = output(2);
+        let mut response = Response::empty(Status::OK);
+        response.fields.add("x-value", b"a\x01\x7f\xffb").unwrap();
+        writer
+            .write_response(&exchange(), &mut response, &Cancellation::never())
+            .await
+            .unwrap();
+        assert!(
+            bytes
+                .lock()
+                .unwrap()
+                .windows(10)
+                .any(|window| window == b"x-value: a")
+        );
+    });
+}
+
+#[test]
+fn received_trailer_values_follow_the_field_value_grammar() {
+    block_on(async {
+        for (trailer, valid) in [
+            (b"x-tail: caf\xc3\xa9\x80\tok".as_slice(), true),
+            (b"x-tail: a\x01b", false),
+            (b"x-tail: a\x7fb", false),
+            (b"x-tail: a\0b", false),
+        ] {
+            let mut bytes =
+                b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n".to_vec();
+            bytes.extend_from_slice(trailer);
+            bytes.extend_from_slice(b"\r\n\r\n");
+            let mut input = reader(bytes.leak(), 3);
+            let (mut request, _) = input
+                .read_request(&Cancellation::never())
+                .await
+                .unwrap()
+                .unwrap();
+            let mut headers = HttpHeaders::new(request.fields.clone());
+            let result = read_data(&mut request.body, &mut headers, &Cancellation::never()).await;
+            assert_eq!(result.is_ok(), valid, "{}", trailer.escape_ascii());
+            if valid {
+                assert_eq!(headers.trailers()[0].value(), &trailer[8..]);
+            }
+        }
+    });
+}

@@ -159,7 +159,7 @@ Port `protocol-http` into Base-owned `Request<B>` and `Response<B>` types, adapt
 | Protocol intent | Typed Base metadata, separate from HTTP version, covering upgrades and extended CONNECT. |
 | Version | Optional before negotiation; records the wire version on received messages. Outbound protocol policy belongs in execution options. |
 | Status | Base status value and Socketry-style classification predicates; informational/final response sequencing is explicit. |
-| Message metadata | `RequestMetadata` / `ResponseMetadata`, raw ordered `Fields`, and typed representation/protocol controls. Optional `HttpHeaders` interpretation owns its index and trailer provenance. |
+| Message metadata | `RequestMetadata` / `ResponseMetadata`, raw ordered `Fields` (token names and opaque byte values; each protocol driver enforces which value bytes it can carry, so negotiated binary values remain representable), and typed representation/protocol controls. Optional `HttpHeaders` interpretation owns its index and trailer provenance. |
 | Body | Generic `B` implementing native Base body contracts; `EmptyBody` provides a cheap empty representation. |
 | Peer/security information | Typed descriptive metadata or the operation context. |
 | Interim responses | Explicit exchange callbacks/responder capabilities carrying Socketry's behavior outside the head. |
@@ -171,7 +171,7 @@ The initial implementation provides constructors, public `RequestMetadata`/`Resp
 
 ### Raw fields and explicit header interpretation
 
-`Fields` owns an ordered sequence of syntax-checked `Field` pairs. Preserve supplied name spelling, duplicate pairs, spacing and opaque value bytes. Raw lookup/mutation is case-insensitive by name, without combining or parsing values. Storage has no trailer marker, policy or semantic index.
+`Fields` owns an ordered sequence of `Field` pairs with token names and opaque byte values. Preserve supplied name spelling, duplicate pairs, spacing and opaque value bytes. Raw lookup/mutation is case-insensitive by name, without combining or parsing values. Storage has no trailer marker, policy or semantic index.
 
 `HttpHeaders::new(fields)` explicitly interprets an owned initial section. It caches lookup lazily and applies `headers::Policy`: comma lists, semicolon-joined cookies, separately emitted cookies/challenges, singleton checks and trailer eligibility. Custom overrides let application interpreters change these choices; a different protocol can also interpret raw `Fields` independently. Lookup takes `&mut self`, with no interior mutability or shared message ownership.
 

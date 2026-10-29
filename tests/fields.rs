@@ -327,24 +327,39 @@ fn cloning_does_not_share_raw_or_indexed_mutation() {
 }
 
 #[test]
-fn names_and_values_reject_wire_injection_but_allow_opaque_bytes() {
+fn names_are_tokens_and_values_are_opaque_bytes() {
     for name in ["", ":status", "bad name", "bad:name", "bad\nname", "café"] {
         assert_eq!(Field::new(name, "value"), Err(FieldError::InvalidName));
     }
+    // Protocol drivers decide which value bytes they can carry.
     for value in [
         b"line\r\nnext".as_slice(),
         b"nul\0byte",
         b"delete\x7f",
-        b"vertical\x0btab",
+        &[0x80, 0xff, b'\t'],
     ] {
-        assert_eq!(Field::new("x-value", value), Err(FieldError::InvalidValue));
+        assert_eq!(
+            Field::new("X_!#$%&'*+-.^`|~", value).unwrap().value(),
+            value
+        );
     }
-    assert_eq!(
-        Field::new("X_!#$%&'*+-.^`|~", [0x80, 0xff, b'\t'])
-            .unwrap()
-            .value(),
-        [0x80, 0xff, b'\t']
-    );
+    let long = b"x".repeat(30);
+    for (value, dangerous) in [
+        (b"a\rb".as_slice(), true),
+        (b"a\nb", true),
+        (b"a\0b", true),
+        (b"a\x01\x7f\xffb", false),
+        (&long, false),
+        (&[long.as_slice(), b"\n"].concat(), true),
+        // The last inline byte and the first heap byte.
+        (&[&long[..23], b"\r"].concat(), true),
+        (&[&long[..24], b"\0"].concat(), true),
+    ] {
+        assert_eq!(
+            Field::new("x", value).unwrap().has_dangerous_bytes(),
+            dangerous
+        );
+    }
 }
 
 #[test]
