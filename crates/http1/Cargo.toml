@@ -12,11 +12,15 @@ readme = "readme.md"
 base-endpoint = { version = "0.0.0", path = "../../../base-endpoint" }
 base-http = { version = "0.0.0", path = "../.." }
 base-scheduler = "0.2.0"
-httparse = "1.10.1"
 smallvec = "1.15.1"
 
 [dev-dependencies]
 futures-lite = "2.6.1"
+httparse = "1.10.1"
+
+# The differential oracle compares against the previous httparse pipeline.
+[target.'cfg(fuzzing)'.dependencies]
+httparse = "1.10.1"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fuzzing)"] }

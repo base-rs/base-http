@@ -260,33 +260,38 @@ impl<R: ReadableStream> RequestReader<R> {
         data
     }
 
-    pub(crate) async fn read_head(
+    /// Parse a response head or trailer section with `parse`, which returns
+    /// the section's length once it is complete. As for requests, the first
+    /// read is parsed directly, and an incomplete section is parsed again only
+    /// once its end arrives. `Ok(None)` means the input ended cleanly first.
+    pub(crate) async fn read_section<T>(
         &mut self,
         cancellation: &Cancellation,
-    ) -> Result<Option<&[u8]>, Error> {
-        self.poisoned = true;
-        let mut scanned = 0;
+        limit: &'static str,
+        parse: impl Fn(&[u8]) -> Result<Option<(T, usize)>, Error>,
+    ) -> Result<Option<T>, Error> {
+        let max_head_bytes = self.options.max_head_bytes;
+        let mut scanned = None;
         loop {
-            if let Some(end) = self.available()[scanned..]
-                .windows(4)
-                .position(|w| w == b"\r\n\r\n")
-                .map(|p| scanned + p + 4)
-            {
-                if end > self.options.max_head_bytes {
-                    return Err(Error::Limit("message head"));
+            let available = self.available();
+            let window = &available[..available.len().min(max_head_bytes)];
+            // A trailer section can be only the empty line.
+            let terminated = window.starts_with(b"\r\n")
+                || scanned.is_none_or(|scanned: usize| {
+                    window[scanned..].windows(4).any(|w| w == b"\r\n\r\n")
+                });
+            if terminated && !window.is_empty() {
+                if let Some((section, n)) = parse(window)? {
+                    self.start += n;
+                    return Ok(Some(section));
                 }
-                wire::strict_lines(&self.available()[..end])?;
-                if matches!(self.available().first(), Some(b'\r' | b'\n' | b' ' | b'\t')) {
-                    return Err(Error::Invalid("invalid start line prefix"));
-                }
-                let start = self.start;
-                self.start += end;
-                return Ok(Some(&self.buffer[start..start + end]));
             }
-            if self.available().len() >= self.options.max_head_bytes {
-                return Err(Error::Limit("message head"));
+            if available.len() >= max_head_bytes {
+                return Err(Error::Limit(limit));
             }
-            scanned = self.available().len().saturating_sub(3);
+            if !available.is_empty() {
+                scanned = Some(available.len().saturating_sub(3));
+            }
             if !self.fill(cancellation).await? {
                 if self.available().is_empty() {
                     return Ok(None);
@@ -393,33 +398,15 @@ impl<R: ReadableStream> RequestReader<R> {
     }
 
     async fn trailers(&mut self, cancellation: &Cancellation) -> Result<Fields, Error> {
-        let mut fields = Fields::new();
-        let mut size = 0usize;
-        loop {
-            let line = self
-                .line(self.options.max_head_bytes - size, cancellation)
-                .await?;
-            size += line.len();
-            if line == b"\r\n" {
-                crate::output::validate_trailer_fields(fields.pairs())?;
-                return Ok(fields);
-            }
-            if fields.len() >= self.options.max_fields {
-                return Err(Error::Limit("trailer count"));
-            }
-            wire::strict_lines(&line)?;
-            let colon = line
-                .iter()
-                .position(|b| *b == b':')
-                .ok_or(Error::Invalid("invalid trailer"))?;
-            let name = std::str::from_utf8(&line[..colon])
-                .map_err(|_| Error::Invalid("invalid trailer name"))?;
-            let value = wire::trim(&line[colon + 1..line.len() - 2]);
-            if !wire::field_value(value) {
-                return Err(Error::Invalid("invalid trailer value"));
-            }
-            fields.add(name, value)?;
-        }
+        let max_fields = self.options.max_fields;
+        let fields = self
+            .read_section(cancellation, "trailer section", |bytes| {
+                wire::trailers(bytes, max_fields)
+            })
+            .await?
+            .ok_or(Error::Truncated)?;
+        crate::output::validate_trailer_fields(fields.pairs())?;
+        Ok(fields)
     }
 }
 
@@ -601,8 +588,8 @@ impl<R> Drop for IncomingBody<'_, R> {
 }
 
 // Validate extension grammar rather than trusting ignored bytes after ';'.
+// A line ends at its first CRLF, and this grammar rejects any other CR or LF.
 fn chunk_size(line: &[u8]) -> Result<u64, Error> {
-    wire::strict_lines(line)?;
     let bytes = &line[..line.len() - 2];
     let end = bytes
         .iter()
@@ -666,4 +653,25 @@ fn chunk_size(line: &[u8]) -> Result<u64, Error> {
         }
     }
     Ok(size)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::chunk_size;
+
+    #[test]
+    fn chunk_lines_reject_stray_line_controls() {
+        assert_eq!(chunk_size(b"1a;name=\"v\\\"\";flag\r\n").unwrap(), 26);
+        for line in [
+            &b"1\r;x\r\n"[..],
+            b"1\n\r\n",
+            b"1;x\r\r\n",
+            b"1;x=\r\r\n",
+            b"1;x=\"\r\"\r\n",
+            b"1;x=\"\\\n\"\r\n",
+            b"1;x\0\r\n",
+        ] {
+            assert!(chunk_size(line).is_err(), "{line:?}");
+        }
+    }
 }

@@ -13,40 +13,6 @@ use base_http::{
 use base_scheduler::Cancellation;
 use std::io;
 
-// Parser scratch storage is needed only synchronously. Keeping it outside
-// read_response prevents it from occupying every suspended response future.
-fn parse_response_head(bytes: &[u8], max_fields: usize) -> Result<ResponseMetadata, Error> {
-    let mut local = [std::mem::MaybeUninit::uninit(); 100];
-    let mut overflow;
-    let headers = if max_fields <= local.len() {
-        &mut local[..max_fields]
-    } else {
-        overflow = vec![std::mem::MaybeUninit::uninit(); max_fields];
-        &mut overflow
-    };
-    let mut parsed = httparse::Response::new(&mut []);
-    match httparse::ParserConfig::default().parse_response_with_uninit_headers(
-        &mut parsed,
-        bytes,
-        headers,
-    ) {
-        Ok(httparse::Status::Complete(n)) if n == bytes.len() => {}
-        Err(httparse::Error::TooManyHeaders) => return Err(Error::Limit("field count")),
-        _ => return Err(Error::Invalid("invalid response head")),
-    }
-    let mut head = ResponseMetadata::new(
-        Status::new(parsed.code.ok_or(Error::Invalid("missing status"))?)
-            .map_err(|_| Error::Invalid("invalid status"))?,
-    );
-    head.version = Some(match parsed.version {
-        Some(0) => Version::Http10,
-        Some(1) => Version::Http11,
-        _ => return Err(Error::Invalid("unsupported response version")),
-    });
-    head.fields = wire::fields(parsed.headers)?;
-    Ok(head)
-}
-
 /// Sequential client output. Drive this lane concurrently with `ResponseReader`
 /// so an upstream response can arrive before request production completes.
 /// No dialing, pooling, detached task or Expect/Continue wait policy is hidden.
@@ -353,12 +319,14 @@ impl<R: ReadableStream> ResponseReader<R> {
         }
         let max_fields = self.input.options.max_fields;
         let head = loop {
-            let bytes = self
+            self.input.poisoned = true;
+            let mut head = self
                 .input
-                .read_head(cancellation)
+                .read_section(cancellation, "message head", |bytes| {
+                    wire::response(bytes, max_fields)
+                })
                 .await?
                 .ok_or(Error::Truncated)?;
-            let mut head = parse_response_head(bytes, max_fields)?;
             if head.status.is_final() {
                 interim.finish();
                 break head;

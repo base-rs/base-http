@@ -13,7 +13,7 @@ The deciding property of a dependency is whether we retain control of execution,
 | Component | Recommended starting point | Main reason |
 | --- | --- | --- |
 | `base-http` | Native port of `protocol-http` semantics | One message, field and body model for all versions. |
-| `base-http1` | Native connection/framing state; evaluate `httparse` for parsing heads | Own persistence, body framing and I/O progress while reusing a focused parser. |
+| `base-http1` | Native connection/framing state and head parser | Own persistence, body framing, I/O progress and HTTP/1 syntax; `httparse` remains a test oracle. |
 | `base-http-hpack` | Base-owned interface over a selected private dependency, focused fork or native port; use `protocol-hpack` as a behavioral reference | Small, independently testable codec whose implementation can change without changing protocol consumers. |
 | `base-http2` | Native connection/stream state with `base-http-hpack` | Own batching, flow control, cancellation and buffer lifetime. |
 | `base-http-qpack` | Base-owned interface over a private dependency, focused fork or native codec, initially with dynamic-table capacity zero | Deliver a working HTTP/3 path before adding cross-stream compression dependencies. |
@@ -33,7 +33,7 @@ A facade over a dependency is a valid first implementation when it satisfies the
 
 ## HTTP/1: keep the framing owner native
 
-[`httparse`](https://docs.rs/httparse/1.10.1/httparse/) parses request/response heads and includes helpers for fields and chunk sizes. It is a plausible focused dependency. It does not supply our exchange lifecycle, persistence rules, body-length validation, chunked-body state or output driver; those remain Base code.
+[`httparse`](https://docs.rs/httparse/1.10.1/httparse/) parses request/response heads and includes helpers for fields and chunk sizes. It was the initial focused dependency and is now replaced by a native single-pass parser (see [the parser design](http1-parser.md)), remaining only as a differential test oracle. It does not supply our exchange lifecycle, persistence rules, body-length validation, chunked-body state or output driver; those remain Base code.
 
 Start with borrowed parser results and deliberately choose which bytes the message retains. Preserve the ordered field sequence and supplied spelling. The earlier `String`/`Vec<u8>` field sketch is a simple owned representation, not a promise of one new allocation for every name and value on the optimized path. Keep raw storage behind the collection API while evaluating compact ownership and retained ranges.
 
@@ -118,4 +118,4 @@ The [build roadmap](roadmap.md) is the canonical sequence. Scheduler release, HT
 
 Compare compression CPU, compressed bytes and retained memory separately from I/O throughput. End-to-end comparisons need the same protocol, TLS/crypto configuration, payloads, concurrency, connection reuse, machine and memory limits. Include application consumers that retain data, early responses, cancellation during pending I/O, and shutdown. Record actual wins and regressions; neither a native implementation nor io_uring establishes an end-to-end speedup without those results.
 
-The first implementation now adds sibling `base-http1` and `base-http-server` packages. HTTP/1 uses private `httparse` head parsing over published scheduler stream capabilities, with native framing and lifecycle ownership. Real TCP and deterministic framing tests exercise the pull-body design. The separate [static hello benchmark](../benchmarks/hello/readme.md) now measures small persistent responses against Hyper/Tokio on macOS; its [results](../benchmarks/hello/results.md) delimit that workload. Compression, TLS, QUIC and Linux io_uring performance remain unmeasured here.
+The first implementation now adds sibling `base-http1` and `base-http-server` packages. HTTP/1 uses a native head parser over published scheduler stream capabilities, with native framing and lifecycle ownership. Real TCP and deterministic framing tests exercise the pull-body design. The separate [static hello benchmark](../benchmarks/hello/readme.md) now measures small persistent responses against Hyper/Tokio on macOS; its [results](../benchmarks/hello/results.md) delimit that workload. Compression, TLS, QUIC and Linux io_uring performance remain unmeasured here.
