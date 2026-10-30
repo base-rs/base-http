@@ -170,30 +170,25 @@ where
         let writer = match scheduler.socket_stream_writer(&socket) {
             Ok(writer) => writer,
             Err(error) => {
-                ReadableStream::close(&mut reader).await?;
+                // Report the construction failure in preference to a retirement failure.
+                let _ = ReadableStream::close(&mut reader).await;
                 return Err(Error::Io(error));
             }
         };
-        let (mut input, mut output) = base_http_protocol::HttpProtocols::default()
+        // The plaintext engine is HTTP/1, whose codecs fail to construct only when `options.validate` above fails.
+        let (input, output) = base_http_protocol::HttpProtocols::default()
             .plaintext()
-            .server(reader, writer, options.clone())?;
-        let result = exchanges(
-            &mut input,
-            &mut output,
+            .server(reader, writer, options.clone())
+            .expect("validated HTTP/1 options construct server codecs");
+        serve_codecs(
+            input,
+            output,
             handler,
             cancellation,
             &mut requests,
             &Scheme::HTTP,
         )
-        .await;
-        // Both cleanups run regardless of the exchange or the other cleanup result.
-        let input_closed = input.close().await;
-        let output_closed = output.close().await;
-        result.and_then(|()| {
-            input_closed?;
-            output_closed?;
-            Ok(())
-        })
+        .await
     }
     .await;
     let closed = scheduler.socket_close(socket).await;
@@ -201,6 +196,38 @@ where
         requests,
         result: result.and_then(|()| Ok(closed?)),
     }
+}
+
+/// Serve exchanges over established codecs, then retire both directions.
+async fn serve_codecs<R, W, H>(
+    mut input: RequestReader<R>,
+    mut output: ResponseWriter<W>,
+    handler: &H,
+    cancellation: &Cancellation,
+    count: &mut u64,
+    scheme: &Scheme,
+) -> Result<(), Error>
+where
+    R: ReadableStream,
+    W: WritableStream,
+    H: Handler,
+{
+    let result = exchanges(
+        &mut input,
+        &mut output,
+        handler,
+        cancellation,
+        count,
+        scheme,
+    )
+    .await;
+    // Both cleanups run regardless of the exchange or the other cleanup result.
+    let input_closed = input.close().await;
+    let output_closed = output.close().await;
+    result?;
+    input_closed?;
+    output_closed?;
+    Ok(())
 }
 
 async fn exchanges<R, W, H>(
@@ -415,23 +442,16 @@ where
     let result = connection
         .with_duplex(scheduler, cancellation, |reader, writer| async {
             let protocol = options.protocols.negotiated(selected.as_deref())?;
-            options.http1.validate()?;
-            let (mut input, mut output) = protocol.server(reader, writer, options.http1.clone())?;
-            let result = exchanges(
-                &mut input,
-                &mut output,
+            let (input, output) = protocol.server(reader, writer, options.http1.clone())?;
+            serve_codecs(
+                input,
+                output,
                 handler,
                 cancellation,
                 &mut requests,
                 &Scheme::HTTPS,
             )
-            .await;
-            let a = input.close().await;
-            let b = output.close().await;
-            result?;
-            a?;
-            b?;
-            Ok::<_, Error>(())
+            .await
         })
         .await;
     Outcome { requests, result }
@@ -516,5 +536,35 @@ mod tests {
         let error = Error::Handler(Box::new(io::Error::other("database unavailable")));
         assert_eq!(error.to_string(), "request handler failed");
         assert_eq!(error.source().unwrap().to_string(), "database unavailable");
+    }
+
+    #[test]
+    fn scheduler_operation_errors_keep_cancellation_distinct() {
+        let error = Error::from(base_scheduler::OperationError::from(
+            base_scheduler::Cancelled,
+        ));
+        assert_eq!(format!("{error:?}"), "Cancelled");
+        assert_eq!(error.to_string(), "HTTP server cancelled");
+        assert!(error.source().is_none());
+
+        let error = Error::from(base_scheduler::OperationError::from(io::Error::from(
+            io::ErrorKind::ConnectionReset,
+        )));
+        let expected = Error::Protocol(base_http1::Error::Io(io::Error::from(
+            io::ErrorKind::ConnectionReset,
+        )));
+        assert_eq!(format!("{error:?}"), format!("{expected:?}"));
+        assert_eq!(error.source().unwrap().to_string(), "connection reset");
+    }
+
+    #[test]
+    fn negotiation_errors_are_transparent() {
+        let error = Error::from(base_http_protocol::NegotiationError::Missing);
+        assert_eq!(format!("{error:?}"), "Negotiation(Missing)");
+        assert_eq!(
+            error.to_string(),
+            "HTTP application protocol was not negotiated"
+        );
+        assert!(error.source().is_none());
     }
 }

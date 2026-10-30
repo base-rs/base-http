@@ -85,7 +85,11 @@ impl fmt::Display for NegotiationError {
         match self {
             Self::Missing => formatter.write_str("HTTP application protocol was not negotiated"),
             Self::Unsupported(name) => {
-                write!(formatter, "unsupported HTTP application protocol: {name:?}")
+                let name = name.escape_ascii();
+                write!(
+                    formatter,
+                    "unsupported HTTP application protocol: \"{name}\""
+                )
             }
         }
     }
@@ -114,5 +118,30 @@ mod tests {
             );
             assert_eq!(protocols.plaintext(), HttpProtocol::Http1);
         }
+    }
+
+    #[test]
+    fn http1_is_advertised_and_absent_negotiation_follows_policy() {
+        let optional = HttpProtocols::default();
+        assert_eq!(optional.alpn_protocols(), vec![b"http/1.1".to_vec()]);
+        assert_eq!(optional.negotiated(None), Ok(HttpProtocol::Http1));
+        let required = HttpProtocols { require_alpn: true };
+        assert_eq!(required.negotiated(None), Err(NegotiationError::Missing));
+    }
+
+    #[test]
+    fn negotiation_errors_describe_the_selection() {
+        assert_eq!(
+            NegotiationError::Missing.to_string(),
+            "HTTP application protocol was not negotiated"
+        );
+        assert_eq!(
+            NegotiationError::Unsupported(b"h2".to_vec()).to_string(),
+            "unsupported HTTP application protocol: \"h2\""
+        );
+        assert_eq!(
+            NegotiationError::Unsupported(b"\xff\"".to_vec()).to_string(),
+            r#"unsupported HTTP application protocol: "\xff\"""#
+        );
     }
 }
