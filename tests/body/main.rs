@@ -1,6 +1,10 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
+mod error;
+mod readable;
+mod writable;
+
 use base_http::body::{BufferedBody, EmptyBody, HeadBody, ReadableBody};
 use base_scheduler::{Cancellation, Cancelled};
 use futures_lite::future::block_on;
