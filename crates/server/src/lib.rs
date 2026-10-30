@@ -175,6 +175,7 @@ where
                 return Err(Error::Io(error));
             }
         };
+        // The plaintext engine is HTTP/1, whose codecs fail to construct only when `options.validate` above fails.
         let (input, output) = base_http_protocol::HttpProtocols::default()
             .plaintext()
             .server(reader, writer, options.clone())
