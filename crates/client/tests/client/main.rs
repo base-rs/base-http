@@ -1,6 +1,12 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
+#[path = "../support/mod.rs"]
+mod support;
+
+mod call;
+mod options;
+
 use base_http::{
     Method, Request,
     body::{BodyFrame, BufferedBody, EmptyBody, ReadableBody},
@@ -15,12 +21,8 @@ use std::{
     thread,
     time::Duration,
 };
+use support::{chain, head, payload, peer, remainder, run_endpoint, unconnected};
 
-fn peer(work: impl FnOnce(TcpListener) + Send + 'static) -> (SocketAddr, thread::JoinHandle<()>) {
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let address = listener.local_addr().unwrap();
-    (address, thread::spawn(move || work(listener)))
-}
 fn accept(listener: &TcpListener) -> BufReader<TcpStream> {
     listener.set_nonblocking(true).unwrap();
     let deadline = std::time::Instant::now() + Duration::from_secs(10);
@@ -45,34 +47,6 @@ fn accept(listener: &TcpListener) -> BufReader<TcpStream> {
         .set_write_timeout(Some(Duration::from_secs(10)))
         .unwrap();
     BufReader::new(stream)
-}
-fn head(stream: &mut BufReader<TcpStream>) -> String {
-    let mut result = String::new();
-    loop {
-        let mut line = String::new();
-        assert_ne!(
-            stream.read_line(&mut line).unwrap(),
-            0,
-            "EOF before request fields"
-        );
-        result.push_str(&line);
-        if line == "\r\n" {
-            return result;
-        }
-    }
-}
-async fn payload(body: &mut impl ReadableBody) -> Vec<u8> {
-    let mut bytes = Vec::new();
-    loop {
-        let frame = body.read(&Cancellation::never()).await.unwrap();
-        let end = frame.is_end();
-        if let BodyFrame::Data { data, .. } = frame {
-            bytes.extend_from_slice(data.as_ref());
-        }
-        if end {
-            return bytes;
-        }
-    }
 }
 fn run<'scope>(
     scheduler: &'scope DirectScheduler,

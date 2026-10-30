@@ -164,15 +164,15 @@ mod tests {
             Error::connect("127.0.0.1:9".parse().unwrap(), refused().into()),
             Error::from(base_http_protocol::NegotiationError::Missing),
         ];
-        for error in &errors {
-            let messages = chain(error);
-            let unique: std::collections::HashSet<_> = messages.iter().collect();
-            assert_eq!(
-                unique.len(),
-                messages.len(),
-                "{error:?} repeats {messages:?}"
-            );
-        }
+        let repeating: Vec<_> = errors
+            .iter()
+            .map(|error| chain(error))
+            .filter(|messages| {
+                let unique: std::collections::HashSet<_> = messages.iter().collect();
+                unique.len() != messages.len()
+            })
+            .collect();
+        assert_eq!(repeating, Vec::<Vec<String>>::new());
     }
 
     #[test]
@@ -183,10 +183,8 @@ mod tests {
             ["connecting to 10.0.0.5:9292 failed", "connection refused"]
         );
         let cancelled = base_scheduler::OperationError::Cancelled(base_scheduler::Cancelled);
-        assert!(matches!(
-            Error::connect("10.0.0.5:9292".parse().unwrap(), cancelled),
-            Error::Cancelled
-        ));
+        let error = Error::connect("10.0.0.5:9292".parse().unwrap(), cancelled);
+        assert_eq!(chain(&error), ["HTTP client request cancelled"]);
     }
 
     #[test]

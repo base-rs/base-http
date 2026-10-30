@@ -157,7 +157,8 @@ impl<'scope> Client<'scope> {
             pool,
             driver,
             context,
-        } = driver::make(scheduler, endpoint.clone(), options)?;
+        } = driver::make(scheduler, endpoint.clone(), options)
+            .expect("validated options construct the connection pool");
         Ok((
             Self {
                 endpoint,
@@ -255,7 +256,8 @@ impl<'scope> Client<'scope> {
             lifetime: cancellation.clone(),
             _pending: Some(pending),
         };
-        self.queue.push(operation)?;
+        // A queue closed since admission drops the operation and its reply sender, so the response reports `Closed`, as for calls queued when the driver stops.
+        let _ = self.queue.push(operation);
         let response = checked(
             async { response.await.map_err(|_| Error::Closed)? },
             cancellation,

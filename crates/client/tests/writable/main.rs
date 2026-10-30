@@ -1,6 +1,11 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
+#[path = "../support/mod.rs"]
+mod support;
+
+mod open;
+
 use base_http::{
     Fields, Method, Request, RequestMetadata, Scheme,
     body::{BodyFrame, EmptyBody, ReadableBody, WritableBody},
@@ -15,12 +20,8 @@ use std::{
     thread,
     time::Duration,
 };
+use support::{chain, head, payload, peer, remainder, run_endpoint, unconnected};
 
-fn peer(work: impl FnOnce(TcpListener) + Send + 'static) -> (SocketAddr, thread::JoinHandle<()>) {
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let address = listener.local_addr().unwrap();
-    (address, thread::spawn(move || work(listener)))
-}
 fn accept(listener: &TcpListener) -> BufReader<TcpStream> {
     let (stream, _) = listener.accept().unwrap();
     stream
@@ -30,17 +31,6 @@ fn accept(listener: &TcpListener) -> BufReader<TcpStream> {
         .set_write_timeout(Some(Duration::from_secs(10)))
         .unwrap();
     BufReader::new(stream)
-}
-fn head(stream: &mut impl BufRead) -> String {
-    let mut fields = String::new();
-    loop {
-        let mut line = String::new();
-        assert_ne!(stream.read_line(&mut line).unwrap(), 0);
-        fields.push_str(&line);
-        if line == "\r\n" {
-            return fields;
-        }
-    }
 }
 fn chunks(stream: &mut impl BufRead) -> (Vec<u8>, String) {
     let mut body = Vec::new();
@@ -59,49 +49,8 @@ fn chunks(stream: &mut impl BufRead) -> (Vec<u8>, String) {
         assert_eq!(crlf, *b"\r\n");
     }
 }
-async fn payload(body: &mut impl ReadableBody) -> Vec<u8> {
-    let mut bytes = Vec::new();
-    loop {
-        let frame = body.read(&Cancellation::never()).await.unwrap();
-        let end = frame.is_end();
-        if let BodyFrame::Data { data, .. } = frame {
-            bytes.extend_from_slice(data.as_ref());
-        }
-        if end {
-            return bytes;
-        }
-    }
-}
 fn run(address: SocketAddr, application: impl for<'scope> AsyncFnOnce(Client<'scope>)) {
-    run_endpoint(Endpoint::new(address), application);
-}
-fn run_endpoint(endpoint: Endpoint, application: impl for<'scope> AsyncFnOnce(Client<'scope>)) {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
-    block_on(async {
-        let lifetime = Cancellation::new();
-        let watchdog = lifetime.clone();
-        let (done, wait) = std::sync::mpsc::channel();
-        let timer = thread::spawn(move || {
-            if wait.recv_timeout(Duration::from_secs(15)).is_err() {
-                watchdog.cancel();
-            }
-        });
-        let options = Options {
-            pool: base_pool::Options {
-                max_resources: 1,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        let (client, driver) = Client::new(&scheduler, endpoint, options).unwrap();
-        let stats = client.clone();
-        let (driven, ()) = zip(driver.run(&lifetime), application(client)).await;
-        let _ = done.send(());
-        timer.join().unwrap();
-        driven.unwrap();
-        assert_eq!(stats.pool_stats().total(), 0);
-        scheduler.shutdown().await;
-    });
+    run_endpoint(Endpoint::new(address), Options::default(), application);
 }
 
 #[test]
@@ -1101,6 +1050,7 @@ fn direct_https_upload_progresses_while_response_consumption_is_paused() {
     });
     run_endpoint(
         Endpoint::new(address).with_tls(Arc::new(client), "localhost"),
+        Options::default(),
         async move |client| {
             paused_input_application(client, complete).await;
         },
