@@ -124,3 +124,11 @@ The [performance notes](performance.md) collect the cost model, latest HTTP/HTTP
 The separate [static hello benchmark](benchmarks/hello/readme.md) compares the current HTTP/1 server with Hyper/Tokio using matched responses and persistent connections. Its [macOS results](benchmarks/hello/results.md) include native readiness, Tokio and Direct backends, configuration and raw measurements. They do not measure Linux io_uring.
 
 The [echo workload comparison](benchmarks/echo/results.md) isolates scheduler and socket behavior with useful per-connection work, validated payloads, and client-placement controls. The [overhead notes](overhead.md) distinguish those results from the synthetic self-waking tests.
+
+## Contributing
+
+Please open an issue or pull request on [GitHub](https://github.com/base-rs/base-http).
+
+### Agent Context
+
+Run `cargo bake agent:context:install` to install shared context and skills. Use `cargo bake agent:context:list` and `cargo bake agent:context:show` to discover guidance. Follow `agents.md` and the relevant skills under `.agents/skills/`.
