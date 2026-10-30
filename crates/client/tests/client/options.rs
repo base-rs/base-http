@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::chain;
+use super::{chain, unconnected};
 use base_http_client::{Client, Endpoint, Error, Options};
 use base_scheduler_direct::DirectScheduler;
 
@@ -74,7 +74,7 @@ fn clients_reject_invalid_options_before_construction() {
 
 #[test]
 fn clients_report_their_endpoint() {
-    crate::unconnected(async |client| {
+    unconnected(async |client| {
         let endpoint = client.endpoint();
         assert_eq!(endpoint.address, "127.0.0.1:1".parse().unwrap());
         assert_eq!(endpoint.authority.as_str(), "127.0.0.1:1");

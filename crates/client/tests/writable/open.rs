@@ -1,12 +1,12 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::{accept, chain, head, payload, peer, remainder, run, unconnected};
+use super::{accept, chain, head, payload, peer, remainder, run, run_endpoint, unconnected};
 use base_http::{
     Method, RequestMetadata,
     body::{BodyFrame, ReadableBody, WritableBody},
 };
-use base_http_client::{Error, Options};
+use base_http_client::{Endpoint, Error, Options};
 use base_scheduler::Cancellation;
 use std::io::{Read, Write};
 
@@ -57,7 +57,7 @@ fn opens_beyond_the_request_limit_or_after_closing_are_rejected() {
         max_requests: 1,
         ..Default::default()
     };
-    run(address, options, async |client| {
+    run_endpoint(Endpoint::new(address), options, async |client| {
         let never = Cancellation::never();
         let first = client
             .open_request(empty_get("/first"), &never)
@@ -96,7 +96,7 @@ fn invalid_request_heads_fail_open_and_retire_the_connection() {
             .unwrap();
         assert!(remainder(&mut stream).is_empty());
     });
-    run(address, Options::default(), async |client| {
+    run(address, async |client| {
         let never = Cancellation::never();
         let mut metadata = empty_get("/invalid");
         metadata.fields.add("host", "elsewhere.example").unwrap();
@@ -147,7 +147,7 @@ fn request_output_flushes_and_rejects_writes_after_its_final_frame() {
             .unwrap();
         assert!(remainder(&mut stream).is_empty());
     });
-    run(address, Options::default(), async |client| {
+    run(address, async |client| {
         let never = Cancellation::never();
         let mut request = client.open(Method::POST, "/upload", &never).await.unwrap();
         request.write(b"data", &never).await.unwrap();
@@ -175,7 +175,7 @@ fn aborted_request_output_cancels_the_exchange() {
         // The client disconnects without final chunked framing.
         assert!(remainder(&mut stream).is_empty());
     });
-    run(address, Options::default(), async |client| {
+    run(address, async |client| {
         let never = Cancellation::never();
         let request = client.open(Method::POST, "/aborted", &never).await.unwrap();
         let (mut writer, response) = request.split();
@@ -207,7 +207,7 @@ fn reads_after_a_failed_response_read_report_closed() {
             .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\npart")
             .unwrap();
     });
-    run(address, Options::default(), async |client| {
+    run(address, async |client| {
         let never = Cancellation::never();
         let request = client.open_request(empty_get("/"), &never).await.unwrap();
         let mut response = request.finish(&never).await.unwrap();

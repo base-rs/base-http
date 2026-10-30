@@ -1,12 +1,12 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::{Tracked, accept, chain, head, payload, peer, remainder, run, unconnected};
+use super::{Tracked, accept, chain, head, payload, peer, remainder, run_endpoint, unconnected};
 use base_http::{
     Method, Protocol, Request, Scheme,
     body::{BodyError, EmptyBody, ReadableBody},
 };
-use base_http_client::{Error, Options};
+use base_http_client::{Endpoint, Error, Options};
 use base_scheduler::Cancellation;
 use std::{
     io::Write,
@@ -74,7 +74,7 @@ fn calls_skip_interim_responses_and_report_response_framing() {
             .unwrap();
         assert!(remainder(&mut stream).is_empty());
     });
-    run(address, Options::default(), async |client| {
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let never = Cancellation::never();
         let mut request = Request::new(Method::GET, "/fixed", EmptyBody);
         // An explicit scheme matching the endpoint is accepted.
@@ -116,7 +116,7 @@ fn closing_a_response_body_abandons_its_connection() {
             .unwrap();
         assert!(remainder(&mut stream).is_empty());
     });
-    run(address, Options::default(), async |client| {
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let never = Cancellation::never();
         let mut response = client
             .call(Request::new(Method::GET, "/", EmptyBody), &never)
@@ -144,7 +144,7 @@ fn truncated_response_bodies_report_the_protocol_failure() {
             .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\npart")
             .unwrap();
     });
-    run(address, Options::default(), async |client| {
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let never = Cancellation::never();
         let mut response = client
             .call(Request::new(Method::GET, "/", EmptyBody), &never)
