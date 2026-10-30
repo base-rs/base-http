@@ -455,8 +455,7 @@ where
     // Construction runs one session, and reports readiness itself only if the session never does.
     let ready = ready.take().expect("a session reports readiness once");
     let _ = ready.send(Ok(()));
-    // Only queued pull-body calls run here. Imperative open/write/read
-    // acquires the retained state directly on the calling task.
+    // Only queued pull-body calls run here. Imperative open/write/read acquires the retained state directly on the calling task.
     while let Some(Assigned {
         mut operation,
         active,

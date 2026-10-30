@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Report a request body that fails while it is being sent as `base_http_client::Error::Body`, with the chain `body failed`, then the body's own error, instead of `Error::Protocol` wrapping `base_http1::Error::Body`. Code that matched `Protocol` for an upload failure must match `Body` instead.
+- Return `Ok` from the client driver when a connection that finishes establishing during shutdown closes cleanly, instead of `Err(Closed)`. A failure to close that connection's reader or writer is now returned instead of ignored.
 - Report a chunked HTTP/1 body whose chunk data is not followed by CRLF as `Invalid("missing chunk delimiter")` instead of `Limit("line length")`.
 - Enable `base_http1::RequestWriter::write_frame` only after `begin_request` has written and flushed the whole request head. Previously, a `begin_request` that failed or was cancelled while sending the head left the body enabled, so a later `write_frame` could put body bytes on the wire after a partial head. It now returns `Invalid("request output is not active")`.
 - Report a failure to create the stream writer from `base_http_server::serve_connection` and `serve` even when closing the stream reader then also fails. Previously the close error replaced the cause.

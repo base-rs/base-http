@@ -3,7 +3,7 @@
 
 use std::{fmt, io, net::SocketAddr, sync::Arc};
 
-/// A client failure. A response body that fails with a client error reports it as the source of a `BodyError`, or as the original `BodyError` when a request body failed.
+/// A client failure. A request body or interim observer that fails is reported as `Body`, never as a `Protocol` error. A response body that fails with a client error reports it as the source of a `BodyError`, or as the original `BodyError` when a request body failed.
 ///
 /// `Negotiation`, `Pool`, `Protocol` and `Body` wrap another layer's error transparently: they display it and report its source. `Connect` and `Io` describe the failure and report the I/O error as their source. A cause chain therefore never repeats a message.
 #[derive(Clone, Debug)]
@@ -95,6 +95,17 @@ impl From<base_http1::Error> for Error {
     fn from(error: base_http1::Error) -> Self {
         match error {
             base_http1::Error::Cancelled => Self::Cancelled,
+            // The codec reports a failed request body or interim observer as its own body error, but the client classified that failure already.
+            base_http1::Error::Body(error) => match error.downcast::<Self>() {
+                Ok(error) => *error,
+                Err(error) => match error.downcast::<base_http::InterimError<Self>>() {
+                    Ok(error) => match *error {
+                        base_http::InterimError::Handler(error) => error,
+                        error => Self::Protocol(Arc::new(base_http1::Error::Body(Box::new(error)))),
+                    },
+                    Err(error) => Self::Protocol(Arc::new(base_http1::Error::Body(error))),
+                },
+            },
             error => Self::Protocol(Arc::new(error)),
         }
     }
@@ -185,6 +196,33 @@ mod tests {
         let cancelled = base_scheduler::OperationError::Cancelled(base_scheduler::Cancelled);
         let error = Error::connect("10.0.0.5:9292".parse().unwrap(), cancelled);
         assert_eq!(chain(&error), ["HTTP client request cancelled"]);
+    }
+
+    #[test]
+    fn codec_body_failures_keep_the_client_classification() {
+        let upload = base_http1::Error::Body(Box::new(Error::body(refused())));
+        assert_eq!(
+            chain(&Error::from(upload)),
+            ["body failed", "connection refused"]
+        );
+        let observer = base_http1::Error::Body(Box::new(base_http::InterimError::Handler(
+            Error::body(refused()),
+        )));
+        assert_eq!(
+            chain(&Error::from(observer)),
+            ["body failed", "connection refused"]
+        );
+        let finished =
+            base_http1::Error::Body(Box::new(base_http::InterimError::<Error>::Finished));
+        assert_eq!(
+            chain(&Error::from(finished)),
+            ["HTTP/1 body failed", "interim responses have finished"]
+        );
+        let other = base_http1::Error::Body(Box::new(refused()));
+        assert_eq!(
+            chain(&Error::from(other)),
+            ["HTTP/1 body failed", "connection refused"]
+        );
     }
 
     #[test]

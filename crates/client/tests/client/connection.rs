@@ -666,9 +666,9 @@ fn request_body_failure_before_a_response_fails_the_call_with_that_error() {
             .await
             .err()
             .unwrap();
-        // The request codec reports the upload failure it observed.
-        assert!(matches!(error, Error::Protocol(_)), "{error:?}");
-        assert!(format!("{error:?}").contains("upload failed"), "{error:?}");
+        // The caller's own body failure is reported as a body error, once.
+        assert!(matches!(error, Error::Body(_)), "{error:?}");
+        assert_eq!(chain(&error), ["body failed", "upload failed"]);
         client.begin_close();
     });
     peer.join().unwrap();
