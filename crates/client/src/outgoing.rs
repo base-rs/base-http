@@ -45,11 +45,7 @@ impl<'scope> OutgoingBody<'scope> {
                 if end {
                     return Ok(None);
                 }
-                let frame = body
-                    .0
-                    .read(&cancellation)
-                    .await
-                    .map_err(|error| Error::Body(base_http::body::BodyError::new(error)))?;
+                let frame = body.0.read(&cancellation).await.map_err(Error::body)?;
                 let end = frame.is_end();
                 Ok(Some((
                     frame.map_data(Into::into),
@@ -110,7 +106,7 @@ impl<I: InterimHandler> Observer for I {
         Box::pin(async move {
             self.on_interim_response(metadata, cancellation)
                 .await
-                .map_err(|error| Error::Body(base_http::body::BodyError::new(error)))
+                .map_err(Error::body)
         })
     }
 }

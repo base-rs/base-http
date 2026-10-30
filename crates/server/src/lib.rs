@@ -57,6 +57,7 @@ impl Default for Options {
     }
 }
 
+/// A server failure. Protocol and negotiation errors are transparent; other wrapping variants describe this layer and report their cause as the source, so a cause chain never repeats a message.
 #[derive(Debug)]
 pub enum Error {
     Protocol(base_http1::Error),
@@ -69,8 +70,8 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Protocol(e) => e.fmt(f),
-            Self::Handler(e) => e.fmt(f),
-            Self::Io(e) => e.fmt(f),
+            Self::Handler(_) => f.write_str("request handler failed"),
+            Self::Io(_) => f.write_str("HTTP server I/O failed"),
             Self::Cancelled => f.write_str("HTTP server cancelled"),
             Self::Negotiation(error) => error.fmt(f),
         }
@@ -79,11 +80,11 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Self::Protocol(e) => Some(e),
+            Self::Protocol(e) => e.source(),
             Self::Handler(e) => Some(e.as_ref()),
             Self::Io(e) => Some(e),
             Self::Cancelled => None,
-            Self::Negotiation(error) => Some(error),
+            Self::Negotiation(error) => error.source(),
         }
     }
 }
@@ -489,5 +490,31 @@ where
 impl From<base_http_protocol::NegotiationError> for Error {
     fn from(error: base_http_protocol::NegotiationError) -> Self {
         Self::Negotiation(error)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{error::Error as _, io};
+
+    #[test]
+    fn protocol_errors_are_transparent_and_io_errors_have_context() {
+        let error = Error::from(base_http1::Error::Io(io::Error::from(
+            io::ErrorKind::ConnectionReset,
+        )));
+        assert_eq!(error.to_string(), "HTTP/1 connection I/O failed");
+        assert_eq!(error.source().unwrap().to_string(), "connection reset");
+
+        let error = Error::from(io::Error::from(io::ErrorKind::ConnectionReset));
+        assert_eq!(error.to_string(), "HTTP server I/O failed");
+        assert_eq!(error.source().unwrap().to_string(), "connection reset");
+    }
+
+    #[test]
+    fn handler_errors_are_reported_as_the_source() {
+        let error = Error::Handler(Box::new(io::Error::other("database unavailable")));
+        assert_eq!(error.to_string(), "request handler failed");
+        assert_eq!(error.source().unwrap().to_string(), "database unavailable");
     }
 }

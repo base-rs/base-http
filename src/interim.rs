@@ -33,6 +33,7 @@ where
     }
 }
 
+/// An interim response failure. `Handler` is transparent: it displays the handler's error and reports that error's source.
 #[derive(Debug)]
 pub enum InterimError<E> {
     InvalidStatus(Status),
@@ -54,7 +55,7 @@ impl<E: fmt::Display> fmt::Display for InterimError<E> {
 impl<E: Error + 'static> Error for InterimError<E> {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::Handler(error) => Some(error),
+            Self::Handler(error) => error.source(),
             _ => None,
         }
     }
@@ -114,5 +115,20 @@ impl<H: InterimHandler> InterimResponses<H> {
         .map_err(InterimError::Handler)?;
         self.finished = false;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io;
+
+    #[test]
+    fn handler_errors_are_transparent() {
+        let error = InterimError::Handler(crate::body::BodyError::new(io::Error::other(
+            "observer failed",
+        )));
+        assert_eq!(error.to_string(), "body failed");
+        assert_eq!(error.source().unwrap().to_string(), "observer failed");
     }
 }

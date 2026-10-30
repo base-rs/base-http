@@ -403,10 +403,8 @@ fn https_client_does_not_send_http_after_server_identity_verification_fails() {
                             &Cancellation::never(),
                         )
                         .await;
-                    assert!(matches!(
-                        result,
-                        Err(Error::Protocol(_)) | Err(Error::Io(_))
-                    ));
+                    // Verification fails during establishment, before HTTP.
+                    assert!(matches!(result, Err(Error::Connect { .. })));
                     assert_eq!(client.pool_stats().total(), 0);
                     client.begin_close();
                 };
