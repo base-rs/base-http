@@ -743,3 +743,30 @@ fn failed_construction_releases_capacity_and_preserves_client_admission() {
         },
     );
 }
+
+#[test]
+fn refused_connection_reports_connect_with_the_address() {
+    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    // A port that was just released refuses connections.
+    let address = TcpListener::bind("127.0.0.1:0")
+        .unwrap()
+        .local_addr()
+        .unwrap();
+    run(&scheduler, address, Options::default(), async |client| {
+        let result = client
+            .call(
+                Request::new(Method::GET, "/", EmptyBody),
+                &Cancellation::never(),
+            )
+            .await;
+        match result {
+            Err(base_http_client::Error::Connect {
+                address: failed, ..
+            }) => assert_eq!(failed, address),
+            Err(error) => panic!("expected a connect error, got {error:?}"),
+            Ok(_) => panic!("expected a connect error"),
+        }
+        assert_eq!(client.pool_stats().total(), 0);
+        client.begin_close();
+    });
+}

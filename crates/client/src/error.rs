@@ -10,8 +10,11 @@ use std::{fmt, io, net::SocketAddr, sync::Arc};
 /// message.
 #[derive(Clone, Debug)]
 pub enum Error {
-    /// Establishing the transport, including any TLS handshake, failed before
-    /// any request was sent.
+    /// Opening the transport to `address` failed, including the TLS handshake
+    /// and server verification, so no request was sent. A rejected protocol
+    /// selection is `Negotiation`, which also precedes any request. With TLS
+    /// 1.3, a server that rejects the client after the handshake is reported
+    /// by the first exchange instead.
     Connect {
         address: SocketAddr,
         source: Arc<io::Error>,
@@ -144,9 +147,12 @@ mod tests {
         ];
         for error in &errors {
             let messages = chain(error);
-            for pair in messages.windows(2) {
-                assert_ne!(pair[0], pair[1], "{error:?} repeats {messages:?}");
-            }
+            let unique: std::collections::HashSet<_> = messages.iter().collect();
+            assert_eq!(
+                unique.len(),
+                messages.len(),
+                "{error:?} repeats {messages:?}"
+            );
         }
     }
 
