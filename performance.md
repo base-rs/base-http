@@ -1,10 +1,10 @@
 # HTTP performance
 
-Updated 2026-10-29. This document records the performance model, measured results and open questions for the Base HTTP stack. Dated reports and raw artifacts remain the evidence for individual experiments.
+Updated 2026-10-30. This document records the performance model, measured results and open questions for the Base HTTP stack. Dated reports and raw artifacts remain the evidence for individual experiments.
 
 The current HTTP/1 client has a measurable orchestration cost above its connection-only codec/transport path. Isolated pool admission accounts for a small part of that cost. Recent changes remove unnecessary maintenance wakes, cancellation subscriptions and copies of inactive future storage without changing public HTTP interfaces or duplex ownership.
 
-The latest full comparison puts pooled Base **6.4% behind Hyper for HTTP and 11.0% for HTTPS at 32 persistent connections**. An earlier run of the same executables showed 2.1%/2.3% gaps. The approximately 2% result did not reproduce consistently; neither cohort establishes a stable performance gap or a general backend ordering.
+The latest full comparison on macOS puts pooled Base **6.4% behind Hyper for HTTP and 11.0% for HTTPS at 32 persistent connections**. An earlier run of the same executables showed 2.1%/2.3% gaps. The approximately 2% result did not reproduce consistently; neither cohort establishes a stable performance gap or a general backend ordering. On Linux with the [released dependencies](#uncontended-admission-cancellation-registration-and-scheme-defaults-2026-10-30), pooled Base completes about 10.6% fewer HTTP responses per second than Hyper while executing 30% fewer user instructions per response.
 
 ## Scope and architecture
 
@@ -128,16 +128,16 @@ History and measured limitations are preserved in the [connection/TLS work](benc
 
 ### Uncontended admission, cancellation registration and scheme defaults (2026-10-30)
 
-This was measured on Linux with the direct HTTP/1 client over TCP at 32 concurrent requests. The server ran on CPUs 2, 3, 6 and 7 and the client on CPU 1, and the builds were interleaved over 10 rounds. Each figure is the median per response:
+This was measured before the pool and scheduler changes were released, on the Linux host described below, with the pooled HTTP/1 client over TCP at 32 concurrent requests. The server ran on CPUs 2, 3, 6 and 7 and the client on CPU 1. The base-pool and base-scheduler changes were applied as Cargo path patches from unreleased working trees that were copied without git metadata, so their exact revisions were not recorded; the [environment notes](benchmarks/client/results/admission-scheme-20261030/environment.txt) list the patches, binary hashes and commands. The first three builds were interleaved over 10 rounds of four seconds. The scheme change was measured in an earlier six-round interleaving of the same binaries plus the scheme build. Each figure is the median per response, with the range in brackets:
 
 | Build | User instructions | Cycles | L1 data misses |
 |---|---:|---:|---:|
-| Baseline | 19,479 | 17,835 | 586 |
-| Pool takes available capacity before listening and skips busy slots | 18,907 | 17,713 | 562 |
-| Cancellation children in reusable slots | 18,663 | 17,482 | 554 |
-| Requests take scheme constants | 18,576 | — | 550 |
+| Baseline | 19,479 [19,476–19,481] | 17,835 [17,541–18,377] | 586 [578–593] |
+| Pool takes available capacity before listening and skips busy slots | 18,907 [18,903–18,911] | 17,713 [17,376–18,866] | 562 [551–567] |
+| Cancellation children in reusable slots | 18,663 [18,660–18,666] | 17,482 [17,244–18,369] | 554 [548–558] |
+| Requests take scheme constants (six rounds) | 18,576 [18,574–18,577] | 17,739 [17,327–18,456] | 550 [545–554] |
 
-Instruction counts vary by less than 10 between runs. Responses per second varied by about ±3% between runs of the same build, which is larger than the cycle differences, so throughput is not claimed. The pool and cancellation changes are in base-pool and base-scheduler. The client now fills a request's default scheme from the `Scheme::HTTP` and `Scheme::HTTPS` constants, instead of converting the endpoint's text with a case-insensitive comparison.
+In the six-round run the cancellation build measured 18,663 instructions and 17,280 cycles, so the scheme change saves about 87 instructions while its cycle difference is within noise. The [10-round rows](benchmarks/client/results/admission-scheme-20261030/pool-cancellation.txt) and [six-round rows](benchmarks/client/results/admission-scheme-20261030/scheme.txt) are kept. Instruction counts vary by less than 10 between runs. Responses per second varied by about ±3% between runs of the same build, which is larger than the cycle differences, so throughput is not claimed. The pool and cancellation changes are in base-pool and base-scheduler. The client now fills a request's default scheme from the `Scheme::HTTP` and `Scheme::HTTPS` constants, instead of converting the endpoint's text with a case-insensitive comparison.
 
 These attempts were rejected:
 
@@ -145,9 +145,9 @@ These attempts were rejected:
 - **One exchange cancellation per connection.** This is unsafe: `RequestBodyWriter::abort()` and other late handles can cancel after completion, and would cancel the next exchange on that connection.
 - **Yielding before each direct request write, to batch sends.** It reduced server sleep and wake cycles from about 0.43 to 0.33–0.37 per response. However, client user time rose from about 4.1 to 4.7 µs per response and throughput fell slightly.
 
-After these changes, pooled Base uses less user CPU per response than Hyper: about 4.0 µs against 4.3 µs. Hyper still completes more responses, about 117,000 per second against about 103,000. The remaining difference is system time, about 3.56 µs against 3.07 µs per response. Both clients make one send and one receive per response, with matching TCP segment counts, so the syscall count does not explain it. However, the server sleeps and wakes about 0.47 times per response under Base and 0.16 under Hyper, which suggests the cost is in wakeups.
+The following observations come from exploratory `perf stat`, `strace -c` and `nstat` samples of the cancellation build whose rows were not archived, so they have no ranges and guide the next investigation rather than establishing a result. After these changes, pooled Base used less user CPU per response than Hyper: about 4.0 µs against 4.3 µs. Hyper still completes more responses, about 117,000 per second against about 103,000. The remaining difference is system time, about 3.56 µs against 3.07 µs per response. Both clients make one send and one receive per response, with matching TCP segment counts, so the syscall count does not explain it. However, the server sleeps and wakes about 0.47 times per response under Base and 0.16 under Hyper, which suggests the cost is in wakeups.
 
-The [released-dependency measurement](benchmarks/client/results/released-dependencies-20261030/environment.txt) repeats the comparison with frozen builds from published crates. The baseline is base-http 519d476 with base-scheduler 0.2.0 and base-pool 0.2.0. The candidate is this revision with base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, and includes the scheme change. The host is an otherwise idle Intel Xeon E3-1240 v6 on Linux 7.2.11 with rustc 1.99.1, using release builds and the CPU placement above. The two builds were interleaved over 10 rounds of four seconds after one second of warmup, followed by 10 rounds of Hyper from the candidate binary. Each figure is the median per response, with the range in brackets:
+The [released-dependency measurement](benchmarks/client/results/released-dependencies-20261030/environment.txt) repeats the comparison with frozen builds. The baseline is base-http 519d476 with the published base-scheduler 0.2.0 and base-pool 0.2.0, and with base-endpoint d7625aa from a path checkout, because base-endpoint was not yet published. The candidate is this revision with base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, and includes the scheme change. The host is an otherwise idle Intel Xeon E3-1240 v6 on Linux 7.2.11 with rustc 1.99.1, using release builds and the CPU placement above. The two builds were interleaved over 10 rounds of four seconds after one second of warmup, followed by 10 rounds of Hyper from the candidate binary. Each figure is the median per response, with the range in brackets:
 
 | Build | User instructions | Cycles | L1 data misses | Responses per second |
 |---|---:|---:|---:|---:|
@@ -155,7 +155,7 @@ The [released-dependency measurement](benchmarks/client/results/released-depende
 | Released dependencies | 18,552 [18,549–18,556] | 16,787 [15,941–17,403] | 546 [543–550] | 105,126 [102,517–108,241] |
 | Hyper | 26,457 [26,405–26,512] | 16,570 [16,311–16,860] | 350 [345–357] | 117,570 [115,965–119,342] |
 
-User instructions fall by 6.9% and cycles by 8.9%, and neither range overlaps. Throughput rises by about 5%, and its ranges do not overlap either, but this run did not repeat the baseline against itself, so treat the throughput figure with the ±3% variation between identical builds in mind. The baseline counts more instructions than the earlier baseline above because the two experiments started from different builds; compare figures only within one table. This run recorded counters and throughput only, not system time or context switches. The [raw rows](benchmarks/client/results/released-dependencies-20261030/base-open.txt), [Hyper rows](benchmarks/client/results/released-dependencies-20261030/hyper.txt), binary hashes, the baseline lockfile and the measurement scripts are kept beside it. The baseline lockfile adds the `smallvec` entry for `base-http1` that its revision omitted, without changing any version.
+User instructions fall by 6.9% and cycles by 8.9%, and neither range overlaps. Throughput rises by about 5%, and its ranges do not overlap either. The paired gain in each round ranges from 1.8% to 9.4%, and two of the 10 pairs are within the ±3% variation. This run did not repeat the baseline against itself, so the throughput gain is not claimed. The baseline counts more instructions than the earlier baseline above because it is a different build: base-http 519d476 with the released 0.2 pool and scheduler, rather than the unreleased working trees that the earlier experiment patched in; compare figures only within one table. This run recorded counters and throughput only, not system time or context switches. The [raw rows](benchmarks/client/results/released-dependencies-20261030/base-open.txt), [Hyper rows](benchmarks/client/results/released-dependencies-20261030/hyper.txt), binary hashes, the baseline lockfile and the measurement scripts are kept beside it. The Hyper rounds ran after the Base rounds rather than interleaved with them. The baseline lockfile adds the `smallvec` entry for `base-http1` that its revision omitted, without changing any version.
 
 ## Scheduler, transport and HTTP controls
 
@@ -191,7 +191,7 @@ For every new timing claim:
 
 ## Reproduction and dependency status
 
-The workspace and benchmarks depend on the published base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, so ordinary locked builds reproduce the released-dependency measurement without Cargo patches or sibling checkouts. The full client comparison above was measured earlier with a local base-pool patch; its frozen executables are listed below.
+The workspace and benchmarks depend on the published base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, so ordinary locked builds reproduce the released-dependency candidate without Cargo patches or sibling checkouts. Rebuilding its baseline needs a base-endpoint checkout at d7625aa, as its environment notes record. The full client comparison above was measured earlier with a local base-pool patch; its frozen executables are listed below.
 
 Frozen normal executables:
 
@@ -218,7 +218,7 @@ To measure a newly built candidate from the current working tree:
 
 ```sh
 CARGO_INCREMENTAL=0 CARGO_TARGET_DIR=/tmp/base-http-validation-target \
-  cargo build --locked --manifest-path benchmarks/client/Cargo.toml --release
+  rustup run 1.87.0 cargo build --locked --manifest-path benchmarks/client/Cargo.toml --release
 cp /tmp/base-http-validation-target/release/base-http-client-benchmark /tmp/base-http-client-candidate
 
 python3 benchmarks/client/run.py \
@@ -230,7 +230,7 @@ python3 benchmarks/client/run.py \
   --implementations before-open,base-open
 ```
 
-Preserve the measured lockfile in the result archive. A new working-tree build is a new experiment, even when it uses the same command. On a Linux host, `cmp.sh` in the [released-dependency results](benchmarks/client/results/released-dependencies-20261030/) interleaves frozen binaries under `perf stat` with the CPU placement above.
+`run.py` records metadata with the Rust 1.87.0 toolchain and macOS `sysctl`, so build with the same toolchain on macOS. Substitute a frozen baseline binary and its source archive; the paths shown are those of the earlier experiment and are not kept in the repository. Preserve the measured lockfile in the result archive. A new working-tree build is a new experiment, even when it uses the same command. On a Linux host, `cmp.sh` in the [released-dependency results](benchmarks/client/results/released-dependencies-20261030/) interleaves frozen binaries under `perf stat` with the CPU placement above.
 
 For isolated pool cycles, use `binary pool --implementation pool-observed --concurrency 32 --seconds 2 --warmup 0.3`, or `--implementation pool` without the observer. For allocations, build separately with `--features count-allocations`, preserve that executable under a different name and do not use its throughput for performance claims.
 

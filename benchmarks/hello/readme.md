@@ -77,7 +77,7 @@ Before every sample, an independent Python HTTP client checks body/status/fields
 | `tokio-task-raw` | Same raw loop | Direct Tokio TCP, supervisor spawned as one task. |
 | `base-direct` | Same Base HTTP implementation | Published Direct backend, with its synchronous work/cleanup/retry services. |
 
-The benchmark pins the interface and Direct, Native, Selector, Tokio and Linux io_uring packages to registry release 0.1.2; its lockfile fixes the transitive timer crate to the same release. Historical local-patch and 0.1.0 results retain their original provenance. Libraries in the parent directories retain their own development patches, which do not override this benchmark package's dependency resolution. The lockfile pins Hyper 1.12.0 and Tokio 1.54.1. Base/Tokio is a useful control, but a comparison against Hyper still includes differences in HTTP handling, I/O bindings, allocation and write batching. It does not isolate the semantic message model's cost.
+The benchmark pins the interface and Direct, Native, Selector, Tokio and Linux io_uring packages to registry release 0.3.0; its lockfile fixes the transitive timer crate to the same release. Historical local-patch, 0.1.0 and 0.1.2 results retain their original provenance. Libraries in the parent directories retain their own development patches, which do not override this benchmark package's dependency resolution. The lockfile pins Hyper 1.12.0 and Tokio 1.54.1. Base/Tokio is a useful control, but a comparison against Hyper still includes differences in HTTP handling, I/O bindings, allocation and write batching. It does not isolate the semantic message model's cost.
 
 ## Interpretation
 
