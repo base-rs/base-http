@@ -5,6 +5,7 @@
 mod support;
 
 mod call;
+mod connection;
 mod options;
 
 use base_http::{

@@ -158,7 +158,8 @@ impl<T: Sink<I> + Recycle + ?Sized, I> Sink<I> for Reused<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use futures_util::task::noop_waker;
+    use futures_lite::future::block_on;
+    use futures_util::{SinkExt, task::noop_waker};
     use std::{
         marker::PhantomPinned,
         sync::atomic::{AtomicUsize, Ordering},
@@ -176,7 +177,7 @@ mod tests {
             let this = self.as_ref().get_ref();
             let address = this as *const Self as usize;
             let previous = this.address.swap(address, Ordering::SeqCst);
-            assert!(previous == 0 || previous == address);
+            assert!([0, address].contains(&previous));
             Poll::Ready(())
         }
     }
@@ -303,5 +304,42 @@ mod tests {
         });
         assert_eq!(drops.load(Ordering::SeqCst), 400);
         assert_eq!(Arc::strong_count(&capture), 1);
+    }
+
+    // A sink recording what it received and whether it was closed.
+    #[derive(Default)]
+    struct Recorder {
+        sent: Vec<u8>,
+        closed: bool,
+    }
+    impl Sink<u8> for Recorder {
+        type Error = ();
+        fn poll_ready(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<(), ()>> {
+            Poll::Ready(Ok(()))
+        }
+        fn start_send(self: Pin<&mut Self>, item: u8) -> Result<(), ()> {
+            self.get_mut().sent.push(item);
+            Ok(())
+        }
+        fn poll_flush(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<(), ()>> {
+            Poll::Ready(Ok(()))
+        }
+        fn poll_close(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Result<(), ()>> {
+            self.get_mut().closed = true;
+            Poll::Ready(Ok(()))
+        }
+    }
+
+    #[test]
+    fn reused_sinks_forward_sends_and_close() {
+        let cache = Cache::new();
+        let mut sink = Reused::new(cache.take(Recorder::default));
+        block_on(async {
+            sink.send(1).await.unwrap();
+            sink.close().await.unwrap();
+        });
+        let recorder = sink.0.as_mut().unwrap().as_mut().work();
+        assert_eq!(recorder.sent, [1]);
+        assert!(recorder.closed);
     }
 }

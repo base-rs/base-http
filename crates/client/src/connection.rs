@@ -69,14 +69,11 @@ impl<'scope> Connection<'scope> {
         self.inner.changed.notify(usize::MAX);
     }
     pub(crate) fn open(&self, opening: Open<'scope>) -> Opening<'scope> {
-        let direct = lock(&self.inner.direct).clone();
-        match direct {
-            Some(direct) => direct.open(opening),
-            None => {
-                opening.active.complete();
-                crate::writable::failed_open(Error::Closed)
-            }
-        }
+        // Admission is published only after the session installs its direct state, which it never removes.
+        let direct = lock(&self.inner.direct)
+            .clone()
+            .expect("an admitted connection has direct state");
+        direct.open(opening)
     }
     async fn next(&self, lifetime: &Cancellation) -> Option<Assigned<'scope>> {
         loop {
@@ -180,7 +177,9 @@ pub(crate) async fn run<'scope, S>(
             return transport
                 .with_duplex(scheduler, &lifetime, |reader, writer| async {
                     let protocol = options.protocols.negotiated(selected.as_deref())?;
-                    let (input, output) = protocol.client(reader, writer, options.http1.clone())?;
+                    let (input, output) = protocol
+                        .client(reader, writer, options.http1.clone())
+                        .expect("Client::new validated the HTTP/1 options");
                     session(
                         input,
                         output,
@@ -209,11 +208,13 @@ pub(crate) async fn run<'scope, S>(
                     return Err(Error::from(error));
                 }
             };
-            Ok::<_, Error>(options.protocols.plaintext().client(
-                reader,
-                writer,
-                options.http1.clone(),
-            )?)
+            Ok::<_, Error>(
+                options
+                    .protocols
+                    .plaintext()
+                    .client(reader, writer, options.http1.clone())
+                    .expect("Client::new validated the HTTP/1 options"),
+            )
         }
         .await;
         let result = match initialized {
@@ -360,7 +361,11 @@ impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope>
         completion: Arc<ExchangeCompletion<'scope>>,
     ) {
         if mode == FINALIZE {
-            let queue = self.queue.upgrade();
+            // The exchange's pending admission retains the queue until both directions return.
+            let queue = self
+                .queue
+                .upgrade()
+                .expect("an unfinished exchange retains its queue");
             let cancellation = completion.cancellation().clone();
             let mut owner = Return::new(output, completion, self, true);
             let work = Box::pin(async move {
@@ -376,9 +381,8 @@ impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope>
                 }
                 // Failure/drop returns the poisoned writer through the guard.
             });
-            if let Some(queue) = queue {
-                let _ = queue.push_work(work);
-            }
+            // An abandoned driver drops the work, whose guard abandons the output.
+            let _ = queue.push_work(work);
             return;
         }
         let reusable = mode == COMPLETE && output.is_reusable();
@@ -419,17 +423,19 @@ where
     }
     // Set the direct interface before publication; no admitted caller can see
     // a connection without its codec storage.
-    let registration = match build
+    let Ok(registration) = build
         .take()
         .unwrap()
         .commit(owner.connection.clone(), Admission::concurrent(0))
-    {
-        Ok(registration) => registration,
-        Err(error) => {
-            let _ = input.close().await;
-            let _ = output.close().await;
-            return Err(error.into());
-        }
+    else {
+        // Commit fails only once shutdown has closed the pool, which queues this connection for retirement. Its waiter sees the closed client, and only a failed close is a driver failure.
+        let ready = ready.take().expect("a session reports readiness once");
+        let _ = ready.send(Err(Error::Closed));
+        let input = input.close().await;
+        let output = output.close().await;
+        input?;
+        output?;
+        return Ok(());
     };
     owner.registration = Some(registration.clone());
     let state = Arc::new(Http1Connection {
@@ -444,68 +450,55 @@ where
         open: crate::writable::factory(),
     });
     *lock(&owner.connection.inner.direct) = Some(state.clone());
-    if !state.registration.update(Admission::concurrent(1)) {
-        state.close().await?;
-        return Err(Error::Closed);
-    }
-    if let Some(ready) = ready.take() {
-        let _ = ready.send(Ok(()));
-    }
-    let result = async {
-        // Only queued pull-body calls run here. Imperative open/write/read
-        // acquires the retained state directly on the calling task.
-        while let Some(Assigned {
-            mut operation,
-            active,
-        }) = owner.connection.next(lifetime).await
-        {
-            let (mut input, mut output) = match state.take() {
-                Ok(codecs) => codecs,
-                Err(error) => {
-                    state.registration.retire();
-                    active.complete();
-                    return Err(error);
-                }
-            };
-            let local = operation.cancellation.clone();
-            let caller = operation.lifetime.clone();
-            let outcome = linked(
-                exchange(&mut input, &mut output, &mut operation, options),
-                &local,
-                &caller,
-                lifetime,
-            )
-            .await;
-            operation.request.body.close(None);
-            if let Some(reply) = operation.reply.take() {
-                let _ = reply.send(Err(outcome
-                    .as_ref()
-                    .err()
-                    .cloned()
-                    .unwrap_or(Error::Closed)));
-            }
-            let reusable = matches!(outcome, Ok(true));
-            if !reusable {
-                state.registration.retire();
-            }
-            {
-                let mut codecs = lock(&state.codecs);
-                codecs.input = Some(input);
-                codecs.output = Some(output);
-            }
-            drop(operation);
-            active.complete();
-            if !reusable {
-                break;
-            }
+    // A registration that is already draining publishes no admission; its retirement stops the session below.
+    state.registration.update(Admission::concurrent(1));
+    // Construction runs one session, and reports readiness itself only if the session never does.
+    let ready = ready.take().expect("a session reports readiness once");
+    let _ = ready.send(Ok(()));
+    // Only queued pull-body calls run here. Imperative open/write/read acquires the retained state directly on the calling task.
+    while let Some(Assigned {
+        mut operation,
+        active,
+    }) = owner.connection.next(lifetime).await
+    {
+        // Direct exchanges restore both directions before releasing their use, and closing begins only after this loop.
+        let (mut input, mut output) = state
+            .take()
+            .expect("an admitted exchange finds both codec directions");
+        let local = operation.cancellation.clone();
+        let caller = operation.lifetime.clone();
+        let outcome = linked(
+            exchange(&mut input, &mut output, &mut operation, options),
+            &local,
+            &caller,
+            lifetime,
+        )
+        .await;
+        operation.request.body.close(None);
+        if let Some(reply) = operation.reply.take() {
+            let _ = reply.send(Err(outcome
+                .as_ref()
+                .err()
+                .cloned()
+                .unwrap_or(Error::Closed)));
         }
-        Ok::<_, Error>(())
+        let reusable = matches!(outcome, Ok(true));
+        if !reusable {
+            state.registration.retire();
+        }
+        {
+            let mut codecs = lock(&state.codecs);
+            codecs.input = Some(input);
+            codecs.output = Some(output);
+        }
+        drop(operation);
+        active.complete();
+        if !reusable {
+            break;
+        }
     }
-    .await;
     state.registration.retire();
-    let closed = state.close().await;
-    result?;
-    closed
+    state.close().await
 }
 
 async fn exchange<R: ReadableStream, W: WritableStream>(
@@ -588,8 +581,7 @@ async fn exchange<R: ReadableStream, W: WritableStream>(
                         }
                     }
                 }
-                consumption.wait().await?;
-                Ok::<_, Error>(())
+                consumption.wait().await
             },
             cancellation,
         )
@@ -611,5 +603,60 @@ async fn exchange<R: ReadableStream, W: WritableStream>(
         (Err(_), Ok(())) => Ok(false),
         (Err(error), Err(Error::Cancelled)) if !matches!(error, Error::Cancelled) => Err(error),
         (_, Err(error)) => Err(error),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Client, driver::Pending, outgoing::tests::ignore};
+    use base_http::{Method, RequestMetadata};
+    use base_scheduler_direct::DirectScheduler;
+    use futures_lite::future::{block_on, yield_now, zip};
+    use std::{io::Read, net::TcpListener, thread};
+
+    #[test]
+    fn opening_an_admitted_use_after_the_session_closes_fails_and_releases_it() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        let peer = thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut bytes = Vec::new();
+            stream.read_to_end(&mut bytes).unwrap();
+            assert!(bytes.is_empty());
+        });
+        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let (client, driver) =
+            Client::new(&scheduler, Endpoint::new(address), Options::default()).unwrap();
+        let lifetime = Cancellation::new();
+        let application = async {
+            let active = client
+                .context
+                .acquire(&Cancellation::never())
+                .await
+                .unwrap();
+            let connection = active.clone_handle();
+            let pending = Pending::new(client.queue.clone()).unwrap();
+            // Another thread can close the session between admission and opening its codecs.
+            lifetime.cancel();
+            while lock(&connection.inner.result).is_none() {
+                yield_now().await;
+            }
+            let opening = Open {
+                metadata: RequestMetadata::new(Method::GET),
+                interim: Box::new(ignore),
+                active,
+                pending,
+                cancellation: Cancellation::new(),
+                lifetime: Cancellation::never(),
+            };
+            let error = connection.open(opening).await.err().unwrap();
+            assert_eq!(error.to_string(), Error::Closed.to_string());
+        };
+        let (result, ()) = block_on(zip(driver.run(&lifetime), application));
+        result.unwrap();
+        assert_eq!(client.pool_stats().total(), 0);
+        peer.join().unwrap();
+        block_on(scheduler.shutdown());
     }
 }
