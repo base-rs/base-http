@@ -65,7 +65,9 @@ impl<D: AsRef<[u8]> + Clone + Send> BufferedBody<D> {
             },
         };
         let length = chunks.as_slice().iter().try_fold(0u64, |sum, chunk| {
-            sum.checked_add(u64::try_from(chunk.as_ref().len()).ok()?)
+            u64::try_from(chunk.as_ref().len())
+                .ok()
+                .and_then(|length| sum.checked_add(length))
         });
         Self {
             chunks,
@@ -99,7 +101,8 @@ impl<D: AsRef<[u8]> + Clone + Send> BufferedBody<D> {
     pub fn write(&mut self, chunk: D) {
         self.length = self
             .length
-            .and_then(|length| length.checked_add(u64::try_from(chunk.as_ref().len()).ok()?));
+            .zip(u64::try_from(chunk.as_ref().len()).ok())
+            .and_then(|(length, added)| length.checked_add(added));
         self.chunks.push(chunk);
     }
 
