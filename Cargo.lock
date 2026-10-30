@@ -83,7 +83,9 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "base-endpoint"
-version = "0.0.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5486363e111b27b2822657168f4cbd5875ce10528be61ad2f158e6715862732f"
 dependencies = [
  "base-scheduler",
  "event-listener",
@@ -164,9 +166,9 @@ dependencies = [
 
 [[package]]
 name = "base-pool"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10260e50b8b0c4576e9d509c7fab367e2c8e9569d655c5a978f03bde55f069e8"
+checksum = "1fbb697bdc1804e12f1cf6eede9ce7d14b0d615d265b596bdfcf571a9749779b"
 dependencies = [
  "base-scheduler",
  "event-listener",
@@ -174,18 +176,18 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30df8b2201e81ef4e8a0dc58491fc0302f4551bd6e080c15bac77d401c955a37"
+checksum = "705d8e4437d3c979a8ed14d8c0da110cb93ee2857a5bd4d3c6ec0fd17a2152d5"
 dependencies = [
  "event-listener",
 ]
 
 [[package]]
 name = "base-scheduler-direct"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7d6dec1274f1fd85fb208ea8b1aafeaf17815a8aaf7da5156ae608ffbc047d4"
+checksum = "a97f3917a7a217ce0921ab2789b5b40206ee011a99652c00cf883be6649df21e"
 dependencies = [
  "async-task",
  "base-scheduler",

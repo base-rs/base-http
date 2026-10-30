@@ -116,7 +116,9 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "base-endpoint"
-version = "0.0.0"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5486363e111b27b2822657168f4cbd5875ce10528be61ad2f158e6715862732f"
 dependencies = [
  "base-scheduler",
  "event-listener",
@@ -196,13 +198,14 @@ dependencies = [
  "base-http",
  "base-scheduler",
  "httparse",
+ "smallvec",
 ]
 
 [[package]]
 name = "base-pool"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10260e50b8b0c4576e9d509c7fab367e2c8e9569d655c5a978f03bde55f069e8"
+checksum = "1fbb697bdc1804e12f1cf6eede9ce7d14b0d615d265b596bdfcf571a9749779b"
 dependencies = [
  "base-scheduler",
  "event-listener",
@@ -210,18 +213,18 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30df8b2201e81ef4e8a0dc58491fc0302f4551bd6e080c15bac77d401c955a37"
+checksum = "705d8e4437d3c979a8ed14d8c0da110cb93ee2857a5bd4d3c6ec0fd17a2152d5"
 dependencies = [
  "event-listener",
 ]
 
 [[package]]
 name = "base-scheduler-native"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0438c4a9300d1462627c7299b59ece1512c0c27a206f7c0f8f3c6dab5281f509"
+checksum = "ec595072fc746f43eca228e0d0da476dd017e208c7c8a198a93438b4201c4094"
 dependencies = [
  "async-task",
  "base-scheduler",
@@ -235,9 +238,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-selector"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "064c88dcb3d4f25e2002c3b70e7a076bdfb214ab6c055a46057932573da35d47"
+checksum = "e84713bf409330a78d998649e8435824f4be9ff50c86c016a38b292690b73b16"
 dependencies = [
  "async-io",
  "base-scheduler",
@@ -253,9 +256,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-timers"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "208be6d9011d7d31198cb4c3d60e59c8d41d0b420b747ff7baf300232eb490c1"
+checksum = "3630e48c714f7ce6a6c882ef86c7f490d92cf1c445c511160e53bdc74d9f5d91"
 
 [[package]]
 name = "base64"

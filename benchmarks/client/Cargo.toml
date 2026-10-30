@@ -13,11 +13,11 @@ count-allocations = []
 [dependencies]
 base-http = { path = "../.." }
 base-http1 = { path = "../../crates/http1" }
-base-endpoint = { path = "../../../base-endpoint", features = ["rustls"] }
+base-endpoint = { version = "0.1.0", features = ["rustls"] }
 base-http-client = { path = "../../crates/client", features = ["rustls"] }
-base-pool = "=0.2.0"
-base-scheduler = "=0.2.0"
-base-scheduler-native = "=0.2.0"
+base-pool = "=0.3.0"
+base-scheduler = "=0.3.0"
+base-scheduler-native = "=0.3.0"
 futures-lite = "2.6.1"
 futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await"] }
 hdrhistogram = { version = "7.5", default-features = false }

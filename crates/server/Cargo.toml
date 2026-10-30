@@ -10,15 +10,15 @@ readme = "readme.md"
 
 [dependencies]
 base-http-protocol = { version = "0.0.0", path = "../protocol" }
-base-endpoint = { version = "0.0.0", path = "../../../base-endpoint" }
+base-endpoint = "0.1.0"
 base-http = { version = "0.0.0", path = "../.." }
 base-http1 = { version = "0.0.0", path = "../http1" }
-base-scheduler = "0.2.0"
+base-scheduler = "0.3.0"
 futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await"] }
 rustls = { version = "0.23.46", default-features = false, features = ["std", "ring", "tls12"], optional = true }
 
 [dev-dependencies]
-base-scheduler-direct = "0.2.0"
+base-scheduler-direct = "0.3.0"
 futures-lite = "2.6.1"
 
 [features]
