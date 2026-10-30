@@ -126,6 +126,37 @@ The current orchestration improvement does not reduce allocation count or reques
 
 History and measured limitations are preserved in the [connection/TLS work](benchmarks/client/performance-20261028.md), [exchange allocation work](benchmarks/client/exchange-overhead-20261029.md), [storage reuse investigation](benchmarks/client/exchange-reuse-20261029.md) and [current allocation diagnostic](benchmarks/client/results/orchestration-final-allocations-20261029/).
 
+### Uncontended admission, cancellation registration and scheme defaults (2026-10-30)
+
+This was measured on Linux with the direct HTTP/1 client over TCP at 32 concurrent requests. The server ran on CPUs 2, 3, 6 and 7 and the client on CPU 1, and the builds were interleaved over 10 rounds. Each figure is the median per response:
+
+| Build | User instructions | Cycles | L1 data misses |
+|---|---:|---:|---:|
+| Baseline | 19,479 | 17,835 | 586 |
+| Pool takes available capacity before listening and skips busy slots | 18,907 | 17,713 | 562 |
+| Cancellation children in reusable slots | 18,663 | 17,482 | 554 |
+| Requests take scheme constants | 18,576 | — | 550 |
+
+Instruction counts vary by less than 10 between runs. Responses per second varied by about ±3% between runs of the same build, which is larger than the cycle differences, so throughput is not claimed. The pool and cancellation changes are in base-pool and base-scheduler. The client now fills a request's default scheme from the `Scheme::HTTP` and `Scheme::HTTPS` constants, instead of converting the endpoint's text with a case-insensitive comparison.
+
+These attempts were rejected:
+
+- **A synchronous `try_acquire` for established connections.** It saved about 245 more instructions per response, but cycles did not fall, and it added pool API.
+- **One exchange cancellation per connection.** This is unsafe: `RequestBodyWriter::abort()` and other late handles can cancel after completion, and would cancel the next exchange on that connection.
+- **Yielding before each direct request write, to batch sends.** It reduced server sleep and wake cycles from about 0.43 to 0.33–0.37 per response. However, client user time rose from about 4.1 to 4.7 µs per response and throughput fell slightly.
+
+After these changes, pooled Base uses less user CPU per response than Hyper: about 4.0 µs against 4.3 µs. Hyper still completes more responses, about 117,000 per second against about 103,000. The remaining difference is system time, about 3.56 µs against 3.07 µs per response. Both clients make one send and one receive per response, with matching TCP segment counts, so the syscall count does not explain it. However, the server sleeps and wakes about 0.47 times per response under Base and 0.16 under Hyper, which suggests the cost is in wakeups.
+
+The [released-dependency measurement](benchmarks/client/results/released-dependencies-20261030/environment.txt) repeats the comparison with frozen builds from published crates. The baseline is base-http 519d476 with base-scheduler 0.2.0 and base-pool 0.2.0. The candidate is this revision with base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, and includes the scheme change. The host is an otherwise idle Intel Xeon E3-1240 v6 on Linux 7.2.11 with rustc 1.99.1, using release builds and the CPU placement above. The two builds were interleaved over 10 rounds of four seconds after one second of warmup, followed by 10 rounds of Hyper from the candidate binary. Each figure is the median per response, with the range in brackets:
+
+| Build | User instructions | Cycles | L1 data misses | Responses per second |
+|---|---:|---:|---:|---:|
+| Baseline | 19,932 [19,931–19,935] | 18,432 [18,113–19,132] | 589 [586–594] | 100,052 [96,483–101,533] |
+| Released dependencies | 18,552 [18,549–18,556] | 16,787 [15,941–17,403] | 546 [543–550] | 105,126 [102,517–108,241] |
+| Hyper | 26,457 [26,405–26,512] | 16,570 [16,311–16,860] | 350 [345–357] | 117,570 [115,965–119,342] |
+
+User instructions fall by 6.9% and cycles by 8.9%, and neither range overlaps. Throughput rises by about 5%, and its ranges do not overlap either, but this run did not repeat the baseline against itself, so treat the throughput figure with the ±3% variation between identical builds in mind. The baseline counts more instructions than the earlier baseline above because the two experiments started from different builds; compare figures only within one table. This run recorded counters and throughput only, not system time or context switches. The [raw rows](benchmarks/client/results/released-dependencies-20261030/base-open.txt), [Hyper rows](benchmarks/client/results/released-dependencies-20261030/hyper.txt), binary hashes, the baseline lockfile and the measurement scripts are kept beside it. The baseline lockfile adds the `smallvec` entry for `base-http1` that its revision omitted, without changing any version.
+
 ## Scheduler, transport and HTTP controls
 
 Different workloads answer different questions. Their backend versions, task layouts, hosts, buffer ownership and CPU accounting can differ; use each report's metadata and matched controls.
@@ -160,7 +191,7 @@ For every new timing claim:
 
 ## Reproduction and dependency status
 
-The latest frozen candidate includes a **local, unreleased `base-pool` optimization**, applied as an explicit Cargo patch to version 0.2.0. Scheduler 0.2.0, endpoint and HTTP codec sources remain fixed for this client experiment. The pool registry cache was not edited. Ordinary project lockfiles were restored after measurement; ordinary dependency builds do not include the local pool changes. The client changes require no dependency update.
+The workspace and benchmarks depend on the published base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, so ordinary locked builds reproduce the released-dependency measurement without Cargo patches or sibling checkouts. The full client comparison above was measured earlier with a local base-pool patch; its frozen executables are listed below.
 
 Frozen normal executables:
 
@@ -183,33 +214,32 @@ python3 benchmarks/client/results/orchestration-full-rerun-20261029/rerun.py \
 
 The [wrapper](benchmarks/client/results/orchestration-full-rerun-20261029/rerun.py) verifies binary hashes and retains the original measured sources. It does not rebuild or snapshot a different working tree as though it produced those binaries.
 
-To measure a newly built candidate from the current working tree with the local pool changes:
+To measure a newly built candidate from the current working tree:
 
 ```sh
 CARGO_INCREMENTAL=0 CARGO_TARGET_DIR=/tmp/base-http-validation-target \
-  rustup run 1.87.0 cargo build --manifest-path benchmarks/client/Cargo.toml --release \
-  --config 'patch.crates-io.base-pool.path="/Users/samuel/Developer/base-rs/base-pool"'
+  cargo build --locked --manifest-path benchmarks/client/Cargo.toml --release
 cp /tmp/base-http-validation-target/release/base-http-client-benchmark /tmp/base-http-client-candidate
 
 python3 benchmarks/client/run.py \
   --binary /tmp/base-http-client-candidate \
   --output benchmarks/client/results/performance-candidate-new \
-  --cargo-config 'patch.crates-io.base-pool.path="/Users/samuel/Developer/base-rs/base-pool"' \
   --baseline-binary /tmp/base-http-exchange-reuse-final-20261029 \
   --baseline-sources benchmarks/client/results/exchange-reuse-final-20261029/sources.tar.gz \
   --repeats 5 --seconds 4 --warmup 0.5 --concurrency 32 \
   --implementations before-open,base-open
 ```
 
-The patch can update lockfiles; preserve the measured lockfile in the result archive and restore ordinary dependency resolution afterward. Without the patch, build and capture an unpatched candidate consistently. A new working-tree build is a new experiment, even when it uses the same command.
+Preserve the measured lockfile in the result archive. A new working-tree build is a new experiment, even when it uses the same command. On a Linux host, `cmp.sh` in the [released-dependency results](benchmarks/client/results/released-dependencies-20261030/) interleaves frozen binaries under `perf stat` with the CPU placement above.
 
 For isolated pool cycles, use `binary pool --implementation pool-observed --concurrency 32 --seconds 2 --warmup 0.3`, or `--implementation pool` without the observer. For allocations, build separately with `--features count-allocations`, preserve that executable under a different name and do not use its throughput for performance claims.
 
 ## Next investigations
 
 1. **Stabilize comparison conditions.** Use longer balanced interleaving, control task/client placement and investigate the unequal variation between identical builds. Repeat on idle physical Linux hardware with explicit CPU placement before claiming epoll/io_uring performance from this client work.
-2. **Separate the remaining client costs.** Isolate metadata defaults, cancellation-tree registration, completion state, codec ownership transfer and adapter construction. Connection-only bypasses all of these as well as pooling, so subtracting its CPU from pooled CPU does not identify pool overhead.
-3. **Reduce construction without weakening ownership.** Inspect remaining metadata cloning, allocation traffic and generated copies. Preserve distinct exchange identities while old handles remain alive. Test candidate changes independently against the same frozen baseline.
-4. **Broaden the workload after a confirmed gain.** Measure known/unknown-length POST bodies, larger responses, concurrent upload/download, proxy backpressure, fresh connections and TLS handshakes. Test independently scheduled multiworker connections before drawing scaling conclusions.
+2. **Reduce server wakeups from pooled requests.** Compare when Base and Hyper issue requests across connections within one scheduler turn. Base polls every lane in one task; Hyper spawns one task per lane. Measure the change with system time and server context switches, not only with user instructions.
+3. **Separate the remaining client costs.** Isolate metadata defaults, cancellation-tree registration, completion state, codec ownership transfer and adapter construction. Connection-only bypasses all of these as well as pooling, so subtracting its CPU from pooled CPU does not identify pool overhead.
+4. **Reduce construction without weakening ownership.** Inspect remaining metadata cloning, allocation traffic and generated copies. Preserve distinct exchange identities while old handles remain alive. Test candidate changes independently against the same frozen baseline.
+5. **Broaden the workload after a confirmed gain.** Measure known/unknown-length POST bodies, larger responses, concurrent upload/download, proxy backpressure, fresh connections and TLS handshakes. Test independently scheduled multiworker connections before drawing scaling conclusions.
 
 HTTP/2 multiplexing, QUIC and HTTP/3 will introduce different progress and flow-control costs. The current small-response HTTP/1 results do not establish their performance or justify changing their interfaces.
