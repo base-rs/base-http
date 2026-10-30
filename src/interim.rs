@@ -2,6 +2,24 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Per-exchange interim-response hooks, independent of message heads and bodies.
+//!
+//! [`InterimResponses`] supplies per-exchange send and receive hooks using the same [`ResponseMetadata`] as final responses. Its handler can be a protocol writer or an async observer. It validates interim status codes, excludes final `101`, and stops delivery after `finish` or a failed or abandoned started send. Drivers call `finish` when committing or receiving the final metadata.
+//!
+//! ```rust
+//! use base_http::{InterimResponses, ResponseMetadata, Status};
+//! use base_scheduler::Cancellation;
+//! use std::convert::Infallible;
+//!
+//! let mut interim = InterimResponses::new(|head: ResponseMetadata| async move {
+//!     assert_eq!(head.status, Status::EARLY_HINTS);
+//!     Ok::<_, Infallible>(())
+//! });
+//! futures_lite::future::block_on(interim.send_interim_response(
+//!     ResponseMetadata::new(Status::EARLY_HINTS), &Cancellation::never(),
+//! ))?;
+//! interim.finish();
+//! # Ok::<(), base_http::InterimError<Infallible>>(())
+//! ```
 use crate::{ResponseMetadata, Status, future::cancellable};
 use base_scheduler::Cancellation;
 use std::{error::Error, fmt, future::Future};

@@ -1,6 +1,6 @@
 # Base HTTP Client
 
-An unpublished endpoint-scoped HTTP client, inspired by Socketry's `Async::HTTP::Client`. It uses the `base-pool 0.3` multiplex pool with capacity one for HTTP/1 connections. The API is experimental.
+An endpoint-scoped HTTP client, inspired by Socketry's `Async::HTTP::Client`. It uses the `base-pool 0.3` multiplex pool with capacity one for HTTP/1 connections. The API is experimental.
 
 `Client::new(&scheduler, Endpoint::new(address), options)` returns a request handle and an explicit `Driver`. Poll `driver.run(&lifetime_cancellation)` concurrently with calls and application body consumers. The connection retains transport directions, framing state and reusable codec buffers. The driver supervises dialing, queued calls, TLS progress and retirement. The client provides pull-body `call` and direct writable `open` operations; clones share one endpoint pool.
 

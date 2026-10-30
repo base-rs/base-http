@@ -1,8 +1,25 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-//! Explicit HTTP interpretation of raw fields. Other application protocols can
-//! interpret `Fields` independently or configure their own combination policy.
+//! Explicit HTTP interpretation of raw fields. Other application protocols can interpret `Fields` independently or configure their own combination policy.
+//!
+//! [`Fields`] stores ordered raw pairs with token names and opaque values, preserving original name spelling, duplicate pairs and byte-valued content. It has no trailer marker, combination policy or cached index. [`HttpHeaders::new`] provides explicit HTTP interpretation: lazy lookup combines lists and cookies, preserves separate `set-cookie` values, and checks singleton and trailer rules. [`Policy`] supports application overrides. [`HttpHeaders::append_trailers`] accepts an explicit trailing section, including an empty one, and [`HttpHeaders::into_parts`] recovers the initial and trailing sections without losing provenance. Protocol codecs independently enforce mandatory wire restrictions.
+//!
+//! A received body `Headers` frame can contribute trailers to an interpreter without changing the message's initial fields:
+//!
+//! ```rust
+//! use base_http::{Fields, HttpHeaders, Response, Status, body::EmptyBody};
+//!
+//! let mut response = Response::new(Status::OK, EmptyBody);
+//! response.fields.add("Content-Type", "text/plain")?;
+//!
+//! let mut headers = HttpHeaders::new(response.fields.clone());
+//! headers.append_trailers(Fields::try_from_pairs([("x-checksum", "example")])?)?;
+//! assert_eq!(headers.headers().len(), 1);
+//! assert_eq!(headers.trailers().len(), 1);
+//! assert_eq!(response.fields.len(), 1);
+//! # Ok::<(), base_http::FieldError>(())
+//! ```
 use crate::{
     Field, FieldError, Fields,
     syntax::{is_token, trim_ows},
