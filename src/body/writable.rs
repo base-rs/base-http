@@ -33,12 +33,10 @@ impl<D> Shared<D> {
         self.state.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
+    // The unique writer calls this at most once, from `close_write` or its drop, and never after accepting a terminal frame, so output is still open here.
     pub(crate) fn finish(&self, mut error: Option<BodyError>) {
         let discarded = {
             let mut state = self.lock();
-            if state.write_closed {
-                return;
-            }
             let discarded = if error.is_some() {
                 if state.error.is_none() {
                     state.error = error.take();
@@ -219,7 +217,6 @@ impl<D: AsRef<[u8]> + Send> BodyWriter<D> {
             });
         }
         loop {
-            cancellation.check()?;
             event_listener::listener!(self.shared.writable => listener);
             {
                 let mut state = self.shared.lock();

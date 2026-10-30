@@ -82,9 +82,9 @@ mod tests {
         let error = BodyError::new(BodyError::new(io::Error::other("producer failed")));
         assert_eq!(error.to_string(), "body failed");
         assert_eq!(error.source().unwrap().to_string(), "producer failed");
-        assert!(matches!(
-            BodyError::new(BodyError::Closed),
-            BodyError::Closed
-        ));
+        assert_eq!(
+            BodyError::new(BodyError::Closed).to_string(),
+            "body output is closed"
+        );
     }
 }
