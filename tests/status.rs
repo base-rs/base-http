@@ -40,7 +40,7 @@ fn redirection_covers_exactly_the_3xx_class() {
 }
 
 #[test]
-fn registered_codes_have_conventional_descriptions() {
+fn codes_have_conventional_descriptions() {
     let descriptions = [
         (100, "Continue"),
         (101, "Switching Protocols"),

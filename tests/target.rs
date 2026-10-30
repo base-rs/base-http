@@ -37,7 +37,7 @@ fn owned_cows_are_normalized_like_strings() {
 fn display_and_as_ref_use_the_normalized_text() {
     assert_eq!(Scheme::from("HTTPS").to_string(), "https");
     assert_eq!(Authority::from("[::ABCD]:443").to_string(), "[::abcd]:443");
-    assert_eq!(Path::from("/A B").to_string(), "/A B");
+    assert_eq!(Path::from("/A%20B").to_string(), "/A%20B");
     assert_eq!(
         format!(
             "{}://{}{}",
