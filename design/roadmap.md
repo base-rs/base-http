@@ -10,7 +10,7 @@ The semantic core and pull-body model are implemented, together with the first n
 
 The scheduler rename and release are complete: `base-scheduler` and its seven companion crates are published at `0.2.0`. The HTTP packages now use the `0.3.0` family and Rust 1.87, including the corrected socket-handle lifetime contract. See the [published interface](https://crates.io/crates/base-scheduler/0.2.0) and [scheduler release](https://github.com/base-rs/base-scheduler/releases/tag/v0.2.0).
 
-`base-pool 0.2.0` was published via `aiko.local` on 2026-10-28 and verified through the registry-backed client on macOS and Linux. It adopts scheduler 0.2 and Rust 1.87; its API remains experimental. The scoped HTTP/1 client now exercises its admission and retirement contracts; pool performance measurements and shorter-lived borrowed-body forwarding remain required. The HTTP packages now use `base-pool 0.3.0` and `base-endpoint 0.1.0`. See the [pool release notes](https://github.com/base-rs/base-pool/blob/main/releases.md).
+`base-pool 0.2.0` was published via `aiko.local` on 2026-10-28 and verified through the registry-backed client on macOS and Linux. It adopts scheduler 0.2 and Rust 1.87; its API remains experimental. The scoped HTTP/1 client now exercises its admission and retirement contracts; pool performance measurements and shorter-lived borrowed-body forwarding remain required. The HTTP packages now use `base-pool 0.3.0` and `base-endpoint 0.1.0`; with them the workspace tests pass on macOS, and the client benchmark runs on Linux. See the [pool release notes](https://github.com/base-rs/base-pool/blob/main/releases.md).
 
 The planned package boundaries are:
 
