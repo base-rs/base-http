@@ -2,7 +2,6 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Reuse storage for pinned operations, never their live state.
-
 use crossbeam_utils::atomic::AtomicCell;
 use futures_util::{Sink, Stream};
 use pin_project_lite::pin_project;

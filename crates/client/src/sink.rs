@@ -6,7 +6,6 @@
 //! Equivalent to sink::unfold at this boundary, with pinned replacement on
 //! every transition. Pin::set emitted copies of inactive future storage on
 //! Rust 1.87, including when a completed write restored its small codec owner.
-
 use futures_util::Sink;
 use pin_project_lite::pin_project;
 use std::{

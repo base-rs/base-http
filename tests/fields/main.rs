@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2026, by Samuel Williams.
 
 mod construction;
 mod headers;

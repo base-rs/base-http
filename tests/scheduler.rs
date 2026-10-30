@@ -3,7 +3,6 @@
 
 //! A borrowed bound reader exercises bodies against the released scheduler API.
 //! The caller owns reader retirement and exclusive file closure.
-
 use base_http::body::{BodyFrame, ReadableBody};
 use base_scheduler::{
     Cancellation, FileClose, FileOpen, FileOptions, FileReader, FileReading, OperationError,

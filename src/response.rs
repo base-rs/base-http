@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2019-2026, by Samuel Williams.
+// Copyright, 2026, by Samuel Williams.
 
 use crate::{Fields, Protocol, Status, Version, body::EmptyBody};
 use std::ops::{Deref, DerefMut};

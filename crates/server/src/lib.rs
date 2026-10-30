@@ -3,7 +3,6 @@
 
 //! Application handlers and supervised HTTP/1 connections over Base scheduler
 //! capabilities. All connection futures are owned and joined by the server.
-
 #![doc = include_str!("../readme.md")]
 #![forbid(unsafe_code)]
 

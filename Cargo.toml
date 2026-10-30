@@ -1,13 +1,13 @@
 [package]
 name = "base-http"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.87"
 license = "MIT"
 repository = "https://github.com/base-rs/base-http"
 description = "Runtime-independent HTTP semantics and bodies for Base"
 readme = "readme.md"
-include = ["src/**", "tests/**", "design/**", "Cargo.toml", "readme.md", "license.md"]
+include = ["src/**", "tests/**", "design/**", "/Cargo.toml", "/readme.md", "/license.md"]
 
 [workspace]
 members = ["crates/http1", "crates/protocol", "crates/server", "crates/client", "bake"]

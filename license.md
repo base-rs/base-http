@@ -1,9 +1,6 @@
 # MIT License
 
-Copyright, 2018-2026, by Samuel Williams.
-Copyright, 2020, by Bryan Powell.
-Copyright, 2023, by Bruno Sutic.
-Copyright, 2025, by William T. Nelson.
+Copyright, 2026, by Samuel Williams.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

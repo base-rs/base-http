@@ -1,6 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2019-2026, by Samuel Williams.
-// Copyright, 2023, by Bruno Sutic.
+// Copyright, 2026, by Samuel Williams.
 
 //! Native HTTP bodies, following `Protocol::HTTP::Body`.
 //!
@@ -15,7 +14,6 @@
 //!
 //! [`BodyReader`] and [`BodyWriter`] are bounded consumer/producer halves.
 //! A protocol driver pulls data directly; bodies do not spawn tasks.
-
 use base_scheduler::Cancellation;
 use std::future::Future;
 

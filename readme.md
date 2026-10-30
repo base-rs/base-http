@@ -1,8 +1,12 @@
-# Base HTTP
+# `base-http`
 
-A runtime-independent HTTP semantic layer, porting Socketry's `protocol-http` model to Rust. The package is unpublished and its API is a prototype. It depends on the released `base-scheduler` interface; the Direct backend is a development dependency.
+A runtime-independent HTTP semantic layer, porting Socketry's `protocol-http` model to Rust. It depends on the released `base-scheduler` interface; the Direct backend is a development dependency.
 
 The crate provides `Request<B>`, `Response<B>`, `Method`, `Status`, `Version`, application `Protocol` intent, ordered `Fields`, and native bodies in `base_http::body`. Message construction and body mapping perform no I/O. The sibling [base-http1](crates/http1/readme.md), [base-http-client](crates/client/readme.md) and [base-http-server](crates/server/readme.md) packages implement native HTTP/1 framing, pooled client calls and application serving over Base scheduler sockets.
+
+## Usage
+
+Add `base-http` for the semantic types, and `base-http-client` or `base-http-server` for the HTTP/1 client and server. Enable the `rustls` feature of either for TLS.
 
 The [pooled client/server example](crates/client/examples/client_server.rs) sends two POST requests through one endpoint pool to a local echo server, then joins driver and transport cleanup. Run `cargo run --locked --manifest-path crates/client/Cargo.toml --example client_server`. Add `--features rustls` and `-- --https` to run the pooled example with TLS. The [low-level example](crates/server/examples/client_server.rs) demonstrates direct ownership of the HTTP/1 lanes.
 
@@ -115,15 +119,52 @@ interim.finish();
 
 The native HTTP/1 server transmits interim heads and supports managed `101` and successful CONNECT exchanges using these bodies. HTTP ownership continues through lane retirement and socket closure. See the [source review](design/source-review.md#bidirectional-bodies-upgrades-and-interim-responses).
 
-The stack uses native protocol engines over scheduler I/O capabilities. The prototype has real TCP tests against independent raw peers, including full-duplex proxy forwarding and reuse after an early response (see the [experiment](design/duplex.md)). The HTTP/1 client integrates the released [base-pool](../base-pool/readme.md); HTTP/1 HTTPS is also implemented; forwarding transient borrowed server input through a longer-lived client remains follow-up work. Linux io_uring is the target performance backend. The [proposal](design/proposal.md) defines package boundaries, the [roadmap](design/roadmap.md) orders streaming bodies and transport ownership through HTTP/1, TLS, HTTP/2, QUIC and HTTP/3, and the [component evaluation](design/components.md) describes parsing/compression/TLS implementation choices. The [source review](design/source-review.md) records provenance and reference behavior.
+## Development
 
-Run `cargo test --locked` and `cargo clippy --locked --all-targets -- -D warnings`. The crate declares Rust 1.87. No concrete scheduler backend, `http`, `http-body`, Hyper or protocol engine is a production dependency.
+The stack uses native protocol engines over scheduler I/O capabilities. The tests use real TCP against independent raw peers, including full-duplex proxy forwarding and reuse after an early response (see the [experiment](design/duplex.md)). The HTTP/1 client integrates the released [base-pool](https://docs.rs/base-pool); HTTP/1 HTTPS is also implemented; forwarding transient borrowed server input through a longer-lived client remains follow-up work. Linux io\_uring is the target performance backend. The [proposal](design/proposal.md) defines package boundaries, the [roadmap](design/roadmap.md) orders streaming bodies and transport ownership through HTTP/1, TLS, HTTP/2, QUIC and HTTP/3, and the [component evaluation](design/components.md) describes parsing/compression/TLS implementation choices. The [source review](design/source-review.md) records provenance and reference behavior.
+
+The private `bake/` package depends on `base-project` for shared tooling:
+
+```sh
+cargo bake test
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo bake test:coverage --all-targets true --all-features true
+```
+
+The crates declare Rust 1.87. No concrete scheduler backend, `http`, `http-body`, Hyper or protocol engine is a production dependency.
 
 The [performance notes](performance.md) collect the cost model, latest HTTP/HTTPS client comparisons, optimization history, benchmark evidence and reproduction commands, including variation between identical builds.
 
-The separate [static hello benchmark](benchmarks/hello/readme.md) compares the current HTTP/1 server with Hyper/Tokio using matched responses and persistent connections. Its [macOS results](benchmarks/hello/results.md) include native readiness, Tokio and Direct backends, configuration and raw measurements. They do not measure Linux io_uring.
+The separate [static hello benchmark](benchmarks/hello/readme.md) compares the current HTTP/1 server with Hyper/Tokio using matched responses and persistent connections. Its [macOS results](benchmarks/hello/results.md) include native readiness, Tokio and Direct backends, configuration and raw measurements. They do not measure Linux io\_uring.
 
 The [echo workload comparison](benchmarks/echo/results.md) isolates scheduler and socket behavior with useful per-connection work, validated payloads, and client-placement controls. The [overhead notes](overhead.md) distinguish those results from the synthetic self-waking tests.
+
+## Releasing
+
+Prepare a release with `cargo bake cargo:version:patch` (or `minor`, `major`, or `bump --version X.Y.Z`), commit it with a `Release: vVERSION` trailer, then run `cargo bake cargo:release` and open a pull request. After review and merge, GitHub Actions publishes the release when the configured `crates-io` environment approves it, then creates or updates the matching GitHub Release from `releases.md`. Follow the shared [Releasing skill](https://github.com/base-rs/base-project/blob/main/context/releasing.md) for the standard process.
+
+## Releases
+
+<!-- bake-readme:releases:start -->
+
+See [releases.md](releases.md) for the full release history.
+
+### v0.1.0
+
+- First release of `base-http`, `base-http1`, `base-http-protocol`, `base-http-client` and `base-http-server`. `base-http` defines runtime-independent HTTP semantics: requests and responses, methods, statuses, versions, request targets, ordered fields with header interpretation and combination policies, interim responses, and buffered and streaming bodies. Constructing messages and mapping bodies performs no I/O.
+- `base-http1` implements native HTTP/1.0 and HTTP/1.1 framing over Base scheduler streams. It parses heads with a hand-written parser and handles fixed-length, chunked and close-delimited bodies, trailers and interim responses. The server side also manages `101` upgrades and CONNECT. `base-http-protocol` selects the protocol for a connection, including through ALPN.
+- `base-http-client` provides a cloneable client with an explicit driver that pools HTTP/1 connections through `base-pool`, over plain TCP or, with the `rustls` feature, TLS. `base-http-server` serves connections and listeners with a connection limit, over plain TCP or, with the `rustls` feature, TLS.
+- Errors report each cause once: an error either describes its cause in its message or returns it from `source`. A connection that fails to open is `base_http_client::Error::Connect`, which carries the endpoint address.
+- Requires Rust 1.87, `base-scheduler 0.3`, `base-pool 0.3` and `base-endpoint 0.1`.
+
+<!-- bake-readme:releases:end -->
+
+## See Also
+
+- [`base-scheduler`](https://docs.rs/base-scheduler) defines the runtime-independent scheduler and socket capabilities these crates use.
+- [`base-pool`](https://docs.rs/base-pool) provides the connection pool behind the client.
+- [`base-endpoint`](https://docs.rs/base-endpoint) binds and connects endpoints through scheduler capabilities, including TLS.
 
 ## Contributing
 

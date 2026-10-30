@@ -3,7 +3,6 @@
 
 //! A deliberately small protocol-driver experiment, not a gateway policy API.
 //! Upload and download futures remain separately owned and polled until joined.
-
 mod support;
 use support::*;
 

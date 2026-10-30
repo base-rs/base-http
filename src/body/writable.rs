@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2024-2026, by Samuel Williams.
+// Copyright, 2026, by Samuel Williams.
 
 use super::{BodyError, BodyFrame, ReadableBody, WritableBody};
 use crate::future::cancellable;
