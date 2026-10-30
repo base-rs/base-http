@@ -85,10 +85,12 @@ impl<W: WritableStream> RequestWriter<W> {
         let (framing, persistent) =
             request_plan(&mut self.buffer, metadata, metadata.content_length, false)?;
         self.output.begin()?;
+        self.output.write_all(&self.buffer, cancellation).await?;
+        self.output.flush(cancellation).await?;
+        // Activate the body only once the whole head is sent, so frames cannot follow a failed or dropped head.
         self.persistent = persistent;
         self.body = Some(output::BodyEncoder::new(framing, false));
-        self.output.write_all(&self.buffer, cancellation).await?;
-        self.output.flush(cancellation).await
+        Ok(())
     }
 
     /// Directly encode and flush one frame. Taking the encoder before awaiting
@@ -245,7 +247,8 @@ fn request_plan(
     // Validate first, then encode directly into the connection's reusable buffer.
     bytes.clear();
     use std::io::Write;
-    write!(bytes, "{} {target} {label}\r\n", head.method.as_str())?;
+    // Writing into a `Vec` cannot fail.
+    write!(bytes, "{} {target} {label}\r\n", head.method.as_str()).expect("writing to a Vec");
     for field in fields.pairs() {
         if chunked && field.name().eq_ignore_ascii_case("content-length") {
             continue;
@@ -266,17 +269,16 @@ fn request_plan(
         ),
     ] {
         if let Some(value) = value {
-            write!(bytes, "{name}: {value}\r\n")?;
+            write!(bytes, "{name}: {value}\r\n").expect("writing to a Vec");
         }
     }
-    if !chunked && raw_length.is_none() {
-        if let output::Framing::Fixed(length) = framing {
-            if declared.is_some()
+    if let output::Framing::Fixed(length) = framing {
+        if raw_length.is_none()
+            && (declared.is_some()
                 || length != 0
-                || matches!(head.method.as_str(), "POST" | "PUT" | "PATCH")
-            {
-                write!(bytes, "Content-Length: {length}\r\n")?;
-            }
+                || matches!(head.method.as_str(), "POST" | "PUT" | "PATCH"))
+        {
+            write!(bytes, "Content-Length: {length}\r\n").expect("writing to a Vec");
         }
     }
     bytes.extend_from_slice(b"\r\n");

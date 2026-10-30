@@ -28,12 +28,28 @@ fn strict_lines(bytes: &[u8]) -> Result<(), Error> {
     Ok(())
 }
 
-fn fields(headers: &[httparse::Header<'_>]) -> Result<Fields, Error> {
+/// httparse only accepts token names and values without controls other than HTAB, which `Fields` always accepts.
+fn add(fields: &mut Fields, field: &httparse::Header<'_>) {
+    fields
+        .add(field.name, field.value)
+        .expect("httparse accepted a valid field");
+}
+
+fn fields(headers: &[httparse::Header<'_>]) -> Fields {
     let mut fields = Fields::new();
     for field in headers {
-        fields.add(field.name, field.value)?;
+        add(&mut fields, field);
     }
-    Ok(fields)
+    fields
+}
+
+/// httparse only parses HTTP/1.0 and HTTP/1.1.
+fn version(minor: Option<u8>) -> Version {
+    match minor {
+        Some(0) => Version::Http10,
+        Some(1) => Version::Http11,
+        _ => unreachable!("httparse accepted an unsupported HTTP version"),
+    }
 }
 
 /// Received values may contain SP, HTAB, VCHAR and obs-text (RFC 9110, section
@@ -63,26 +79,12 @@ pub(crate) fn read(
 }
 
 fn request(parsed: &httparse::Request<'_, '_>) -> Result<(RequestMetadata, RequestFraming), Error> {
-    let method = match parsed.method.ok_or(Error::Invalid("missing method"))? {
-        "GET" => Method::GET,
-        "HEAD" => Method::HEAD,
-        "POST" => Method::POST,
-        "PUT" => Method::PUT,
-        "DELETE" => Method::DELETE,
-        "CONNECT" => Method::CONNECT,
-        "OPTIONS" => Method::OPTIONS,
-        "TRACE" => Method::TRACE,
-        "PATCH" => Method::PATCH,
-        "QUERY" => Method::QUERY,
-        other => Method::new(other).map_err(|_| Error::Invalid("invalid method"))?,
-    };
-    let target = parsed.path.ok_or(Error::Invalid("missing target"))?;
+    // A complete httparse request always has a method token, a target and a version.
+    let method = Method::new(parsed.method.expect("complete request has a method"))
+        .expect("httparse accepted a method token");
+    let target = parsed.path.expect("complete request has a target");
     request_target(&method, target)?;
-    let version = match parsed.version {
-        Some(0) => Version::Http10,
-        Some(1) => Version::Http11,
-        _ => return Err(Error::Invalid("unsupported HTTP version")),
-    };
+    let version = version(parsed.version);
     let mut head = RequestMetadata::new(method);
     head.version = Some(version);
     let mut host = None;
@@ -129,7 +131,7 @@ fn request(parsed: &httparse::Request<'_, '_>) -> Result<(RequestMetadata, Reque
                         .split(|b| *b == b',')
                         .any(|v| trim(v).eq_ignore_ascii_case(b"100-continue"));
                 }
-                head.fields.add(field.name, field.value)?;
+                add(&mut head.fields, field);
             }
         }
     }
@@ -151,17 +153,16 @@ fn request(parsed: &httparse::Request<'_, '_>) -> Result<(RequestMetadata, Reque
         authority(host, false)?;
         head.authority = Some(host.into());
     }
+    // `request_target` has already checked the target form, including the CONNECT authority, the scheme and the absolute-form authority.
     if head.method == Method::CONNECT {
-        authority(target, true)?;
         head.authority = Some(target.into());
-    } else if target.starts_with('/') || (target == "*" && head.method == Method::OPTIONS) {
+    } else if target.starts_with('/') || target == "*" {
         head.path = Some(target.into());
-    } else if let Some((scheme, rest)) = target.split_once("://") {
-        if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
-            return Err(Error::Invalid("unsupported target scheme"));
-        }
+    } else {
+        let (scheme, rest) = target
+            .split_once("://")
+            .expect("request_target accepted an absolute-form target");
         let end = rest.find(['/', '?']).unwrap_or(rest.len());
-        authority(&rest[..end], false)?;
         head.authority = Some(rest[..end].into());
         head.scheme = Some(scheme.into());
         let suffix = &rest[end..];
@@ -172,8 +173,6 @@ fn request(parsed: &httparse::Request<'_, '_>) -> Result<(RequestMetadata, Reque
         } else {
             suffix.into()
         });
-    } else {
-        return Err(Error::Invalid("invalid request target form"));
     }
     let upgrade = if connection_upgrade {
         if version == Version::Http11 {
@@ -243,15 +242,11 @@ fn response(bytes: &[u8], max_fields: usize) -> Result<Option<(ResponseMetadata,
         _ => return Err(Error::Invalid("invalid response head")),
     }
     let mut head = ResponseMetadata::new(
-        Status::new(parsed.code.ok_or(Error::Invalid("missing status"))?)
+        Status::new(parsed.code.expect("complete response has a status"))
             .map_err(|_| Error::Invalid("invalid status"))?,
     );
-    head.version = Some(match parsed.version {
-        Some(0) => Version::Http10,
-        Some(1) => Version::Http11,
-        _ => return Err(Error::Invalid("unsupported response version")),
-    });
-    head.fields = fields(parsed.headers)?;
+    head.version = Some(version(parsed.version));
+    head.fields = fields(parsed.headers);
     Ok(Some((head, end)))
 }
 
@@ -341,7 +336,14 @@ pub(crate) fn compare_trailers(bytes: &[u8], max_fields: usize) {
 
 /// Check that the parser and the previous pipeline agree on `bytes`.
 pub(crate) fn compare(bytes: &[u8], max_fields: usize) {
-    let parsed = crate::wire::request(bytes, max_fields);
+    compare_request(bytes, max_fields, crate::wire::request);
+}
+
+type RequestParser =
+    fn(&[u8], usize) -> Result<Option<(RequestMetadata, RequestFraming, usize)>, Error>;
+
+fn compare_request(bytes: &[u8], max_fields: usize, parser: RequestParser) {
+    let parsed = parser(bytes, max_fields);
     let Some(end) = terminator(bytes) else {
         // Without a terminator the old reader waited for more input. The
         // parser may reject a prefix early, but only one no completion of
@@ -366,7 +368,7 @@ pub(crate) fn compare(bytes: &[u8], max_fields: usize) {
             );
             assert_eq!(framing, expected_framing, "{bytes:?}");
             incomplete_before(&bytes[..end], |prefix| {
-                matches!(crate::wire::request(prefix, max_fields), Ok(None))
+                matches!(parser(prefix, max_fields), Ok(None))
             });
         }
         (Err(_), Err(_)) => {}
@@ -380,14 +382,19 @@ pub(crate) fn compare(bytes: &[u8], max_fields: usize) {
 
 #[cfg(test)]
 mod tests {
-    use super::{compare as compare_with, compare_response, compare_trailers, read, strict_lines};
-    use crate::wire;
+    use super::{
+        compare as compare_with, compare_request, compare_response, compare_section,
+        compare_trailers, read, strict_lines,
+    };
+    use crate::{Error, wire};
+    use base_http::{Fields, Method, RequestMetadata};
 
     const SEEDS: &[&[u8]] = &[
         b"GET / HTTP/1.1\r\nHost: example.com\r\n\r\n",
         b"POST /upload?x=1 HTTP/1.1\r\nHost: a:80\r\nContent-Length: 5\r\nExpect: 100-continue\r\n\r\n",
         b"PUT /x HTTP/1.1\r\nHost: h\r\nTransfer-Encoding: chunked\r\nTrailer: x\r\n\r\n",
         b"GET http://Example.COM:8080/p?q HTTP/1.1\r\nHost: example.com:8080\r\n\r\n",
+        b"GET https://example.com HTTP/1.1\r\nHost: example.com\r\n\r\n",
         b"CONNECT example.com:443 HTTP/1.1\r\nHost: example.com:443\r\n\r\n",
         b"OPTIONS * HTTP/1.0\r\n\r\n",
         b"GET /chat HTTP/1.1\r\nHost: h\r\nConnection: keep-alive, Upgrade, x-drop\r\nUpgrade: websocket\r\nX-Drop: 1\r\nUpgrade: h2c\r\n\r\n",
@@ -550,6 +557,132 @@ mod tests {
             read(&head(MAX_FIELDS + 1), MAX_FIELDS),
             Err(crate::Error::Limit("field count"))
         ));
+    }
+
+    #[test]
+    fn response_and_trailer_field_limits_apply_at_the_boundary() {
+        let lines = |count: usize| {
+            let mut lines = b"X: v\r\n".repeat(count);
+            lines.extend_from_slice(b"\r\n");
+            lines
+        };
+        let response = |count: usize| [b"HTTP/1.1 200 OK\r\n".as_slice(), &lines(count)].concat();
+        for count in [MAX_FIELDS, MAX_FIELDS + 1] {
+            compare_response(&response(count), MAX_FIELDS);
+            compare_trailers(&lines(count), MAX_FIELDS);
+        }
+        let (head, end) = super::response(&response(MAX_FIELDS), MAX_FIELDS)
+            .unwrap()
+            .unwrap();
+        assert_eq!(head.fields.len(), MAX_FIELDS);
+        assert_eq!(end, response(MAX_FIELDS).len());
+        assert!(matches!(
+            super::response(&response(MAX_FIELDS + 1), MAX_FIELDS),
+            Err(Error::Limit("field count"))
+        ));
+        let (fields, end) = super::trailers(&lines(MAX_FIELDS), MAX_FIELDS)
+            .unwrap()
+            .unwrap();
+        assert_eq!(fields.len(), MAX_FIELDS);
+        assert_eq!(end, lines(MAX_FIELDS).len());
+        assert!(matches!(
+            super::trailers(&lines(MAX_FIELDS + 1), MAX_FIELDS),
+            Err(Error::Limit("trailer count"))
+        ));
+    }
+
+    /// Run a comparison expected to detect a divergent parser and return its panic message.
+    fn divergence(compare: impl FnOnce() + std::panic::UnwindSafe) -> String {
+        let payload =
+            std::panic::catch_unwind(compare).expect_err("the oracle accepted a divergent parser");
+        payload
+            .downcast_ref::<String>()
+            .cloned()
+            .expect("the oracle reports a formatted message")
+    }
+
+    const TRAILER: &[u8] = b"X: v\r\n\r\n";
+
+    #[test]
+    fn section_comparison_detects_divergent_parsers() {
+        // Accepting only a complete section rejects its valid prefixes.
+        let message = divergence(|| {
+            compare_section::<Fields>(
+                TRAILER,
+                MAX_FIELDS,
+                |bytes, max_fields| match wire::trailers(bytes, max_fields) {
+                    Ok(None) => Err(Error::Invalid("early rejection")),
+                    result => result,
+                },
+                super::trailers,
+            )
+        });
+        assert!(message.contains("rejected as a prefix"), "{message}");
+        let message = divergence(|| {
+            compare_section::<Fields>(
+                b"X\r\n\r\n",
+                MAX_FIELDS,
+                |_, _| Ok(Some((Fields::new(), 3))),
+                super::trailers,
+            )
+        });
+        assert!(
+            message.contains("parser Ok(Some(3)), previous Err("),
+            "{message}"
+        );
+        let message = divergence(|| {
+            compare_section::<Fields>(TRAILER, MAX_FIELDS, |_, _| Ok(None), super::trailers)
+        });
+        assert!(
+            message.contains("parser Ok(None), previous Ok(Some(8))"),
+            "{message}"
+        );
+    }
+
+    fn accept_everything(
+        bytes: &[u8],
+        _: usize,
+    ) -> Result<Option<(RequestMetadata, wire::RequestFraming, usize)>, Error> {
+        let framing = wire::RequestFraming {
+            length: None,
+            chunked: false,
+            persistent: true,
+            expect_continue: false,
+            trailer_options: Vec::new(),
+            upgrade: None,
+        };
+        Ok(Some((
+            RequestMetadata::new(Method::GET),
+            framing,
+            bytes.len(),
+        )))
+    }
+
+    #[test]
+    fn request_comparison_detects_divergent_parsers() {
+        let head = SEEDS[0];
+        // Accepting only a complete head rejects its valid prefixes.
+        let message = divergence(|| {
+            compare_request(head, MAX_FIELDS, |bytes, max_fields| {
+                match wire::request(bytes, max_fields) {
+                    Ok(None) => Err(Error::Invalid("early rejection")),
+                    result => result,
+                }
+            })
+        });
+        assert!(message.contains("rejected as a prefix"), "{message}");
+        let message = divergence(|| {
+            compare_request(b"GET / HTTP/1.1\r\n\r\n", MAX_FIELDS, accept_everything)
+        });
+        assert!(
+            message.contains("parser Ok(Some(18)), pipeline Err("),
+            "{message}"
+        );
+        let message = divergence(|| compare_request(head, MAX_FIELDS, |_, _| Ok(None)));
+        assert!(
+            message.contains("parser Ok(None), pipeline Ok(())"),
+            "{message}"
+        );
     }
 
     const RESPONSES: &[&[u8]] = &[
