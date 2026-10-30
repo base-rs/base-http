@@ -3,18 +3,24 @@
 
 use std::{fmt, io, net::SocketAddr, sync::Arc};
 
-/// A client failure. Errors delivered to a response body retain the same cause.
+/// A client failure. A response body that fails with a client error reports
+/// it as the source of a `BodyError`, or as the original `BodyError` when a
+/// request body failed.
 ///
-/// Variants converted from other layers' errors are transparent: they display
-/// the inner error and report its source, so a cause chain never repeats a
-/// message.
+/// `Negotiation`, `Pool`, `Protocol` and `Body` wrap another layer's error
+/// transparently: they display it and report its source. `Connect` and `Io`
+/// describe the failure and report the I/O error as their source. A cause
+/// chain therefore never repeats a message.
 #[derive(Clone, Debug)]
 pub enum Error {
     /// Opening the transport to `address` failed, including the TLS handshake
-    /// and server verification, so no request was sent. A rejected protocol
-    /// selection is `Negotiation`, which also precedes any request. With TLS
-    /// 1.3, a server that rejects the client after the handshake is reported
-    /// by the first exchange instead.
+    /// and server verification, so no request was sent. The source can also
+    /// be a local failure, such as exhausted file descriptors or an invalid
+    /// TLS server name. Cancellation while connecting, including a caller's
+    /// deadline, is `Cancelled`. A rejected protocol selection is
+    /// `Negotiation`, which also precedes any request. With TLS 1.3, a server
+    /// that rejects the client after the handshake is reported by the first
+    /// exchange instead.
     Connect {
         address: SocketAddr,
         source: Arc<io::Error>,
@@ -140,6 +146,16 @@ mod tests {
             Error::from(base_http::body::BodyError::new(refused())),
             Error::from(base_http::body::BodyError::new(base_http1::Error::Io(
                 refused(),
+            ))),
+            // A request body relaying another body's failure.
+            Error::from(base_http::body::BodyError::new(
+                base_http::body::BodyError::new(refused()),
+            )),
+            // A failed interim response observer.
+            Error::from(base_http1::Error::Body(Box::new(
+                base_http::InterimError::Handler(Error::from(base_http::body::BodyError::new(
+                    refused(),
+                ))),
             ))),
             Error::Pool(base_pool::Error::WaitersFull),
             Error::connect("127.0.0.1:9".parse().unwrap(), refused().into()),

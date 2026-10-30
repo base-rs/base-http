@@ -2,7 +2,7 @@
 // Copyright, 2026, by Samuel Williams.
 
 use base_scheduler::Cancelled;
-use std::{error, fmt, sync::Arc};
+use std::{any::Any, error, fmt, sync::Arc};
 
 /// Failures shared by writable bodies and their producers. `Failed` reports
 /// the producer's error as its source, so callers can downcast it.
@@ -17,8 +17,14 @@ pub enum BodyError {
 }
 
 impl BodyError {
-    pub fn new(error: impl error::Error + Send + Sync + 'static) -> Self {
-        Self::Failed(Arc::new(error))
+    /// Wrap a producer failure. A `BodyError` is returned unchanged, so a
+    /// failure relayed through several bodies is reported once.
+    pub fn new<E: error::Error + Send + Sync + 'static>(error: E) -> Self {
+        let mut error = Some(error);
+        if let Some(body) = (&mut error as &mut dyn Any).downcast_mut::<Option<Self>>() {
+            return body.take().unwrap();
+        }
+        Self::Failed(Arc::new(error.unwrap()))
     }
 }
 
@@ -71,5 +77,16 @@ mod tests {
         let error = BodyError::new(io::Error::from(io::ErrorKind::TimedOut));
         assert_eq!(error.to_string(), "body failed");
         assert_eq!(error.source().unwrap().to_string(), "timed out");
+    }
+
+    #[test]
+    fn wrapping_a_body_error_returns_it_unchanged() {
+        let error = BodyError::new(BodyError::new(io::Error::other("producer failed")));
+        assert_eq!(error.to_string(), "body failed");
+        assert_eq!(error.source().unwrap().to_string(), "producer failed");
+        assert!(matches!(
+            BodyError::new(BodyError::Closed),
+            BodyError::Closed
+        ));
     }
 }

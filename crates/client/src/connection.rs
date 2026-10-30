@@ -596,7 +596,10 @@ async fn exchange<R: ReadableStream, W: WritableStream>(
         .await;
         if let Err(error) = &result {
             if let Some(writer) = &mut writer {
-                writer.close_write(Some(BodyError::new(error.clone())));
+                writer.close_write(Some(match error {
+                    Error::Body(error) => error.clone(),
+                    error => BodyError::new(error.clone()),
+                }));
             }
             cancellation.cancel();
         }
