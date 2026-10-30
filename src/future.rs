@@ -25,3 +25,27 @@ pub(crate) async fn cancellable<F: Future>(
     })
     .await
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures_lite::future::block_on;
+    use std::cell::Cell;
+
+    #[test]
+    fn cancelled_work_is_not_polled_even_when_ready() {
+        let polls = Cell::new(0);
+        let work = || {
+            poll_fn(|_| {
+                polls.set(polls.get() + 1);
+                Poll::Ready(1)
+            })
+        };
+        let cancellation = Cancellation::new();
+        cancellation.cancel();
+        assert_eq!(block_on(cancellable(work(), &cancellation)), Err(Cancelled));
+        assert_eq!(polls.get(), 0);
+        assert_eq!(block_on(cancellable(work(), &Cancellation::never())), Ok(1));
+        assert_eq!(polls.get(), 1);
+    }
+}
