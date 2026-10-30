@@ -10,11 +10,11 @@ readme = "readme.md"
 
 [dependencies]
 base-http-protocol = { version = "0.0.0", path = "../protocol" }
-base-endpoint = { version = "0.0.0", path = "../../../base-endpoint" }
+base-endpoint = "0.1.0"
 base-http = { version = "0.0.0", path = "../.." }
 base-http1 = { version = "0.0.0", path = "../http1" }
-base-pool = "0.2.0"
-base-scheduler = "0.2.0"
+base-pool = "0.3.0"
+base-scheduler = "0.3.0"
 event-listener = "5.4.2"
 async-stream = "0.3.6"
 pin-project-lite = "0.2.17"
@@ -25,7 +25,7 @@ rustls = { version = "0.23.46", default-features = false, features = ["std", "ri
 
 [dev-dependencies]
 base-http-server = { version = "0.0.0", path = "../server" }
-base-scheduler-direct = "0.2.0"
+base-scheduler-direct = "0.3.0"
 futures-lite = "2.6.1"
 rcgen = "0.14.7"
 

@@ -10,7 +10,7 @@ The [layered Linux investigation](layer-breakdown.md) separately compares task e
 
 The [remaining Linux gap follow-up](raw-gap-followup.md) matches task context, counts socket/event/task operations and isolates HTTP processing in memory. Seven field-construction inline hints improve in-memory processing time by 10.7% and full HTTP user CPU per response by 3–9% across two cohorts. The longer paired throughput comparison still puts Base about 1.5% behind spawned Hyper, with mixed rounds. Scheduler experiments were reverted.
 
-The [0.1.2 release comparison on Hana](scheduler-release-0.1.2.md) measures published scheduler 0.1.1 against 0.1.2 for Linux epoll and io_uring, with Hyper/Tokio as an interleaved control. The benchmark now resolves published 0.1.2 scheduler packages, so local scheduler edits do not affect it. The [previous release comparison](scheduler-release-0.1.1.md) covers 0.1.0 against 0.1.1 on macOS and a Linux VM.
+The [0.1.2 release comparison on Hana](scheduler-release-0.1.2.md) measures published scheduler 0.1.1 against 0.1.2 for Linux epoll and io_uring, with Hyper/Tokio as an interleaved control. The benchmark now resolves published 0.3.0 scheduler packages, so local scheduler edits do not affect it. The [previous release comparison](scheduler-release-0.1.1.md) covers 0.1.0 against 0.1.1 on macOS and a Linux VM.
 
 The [Hana Linux investigation](hana-linux.md) measures epoll and io_uring on physical x86_64 hardware. It identifies redundant fallback accept/rearm calls, validates a default io_uring improvement, and evaluates opt-in TCP queue hints with their throughput and latency tradeoff. The experimental scheduler changes are preserved separately from this benchmark's published dependencies.
 
@@ -63,12 +63,12 @@ Before every sample, an independent Python HTTP client checks body/status/fields
 
 | Mode | HTTP implementation | I/O and execution |
 | --- | --- | --- |
-| `base-native` | Base HTTP/1 and application handler | Published `base-scheduler-native` 0.1.2, worker-owned readiness selector (direct kqueue on macOS and epoll on Linux), one native task worker. |
-| `base-iouring` (Linux) | Same Base HTTP implementation | Published `base-scheduler-iouring` 0.1.2 with one Native task/ring worker and one readiness fallback worker. Default ring settings; borrowed payload buffers use nonblocking receive/send syscalls. |
+| `base-native` | Base HTTP/1 and application handler | Published `base-scheduler-native` 0.3.0, worker-owned readiness selector (direct kqueue on macOS and epoll on Linux), one native task worker. |
+| `base-iouring` (Linux) | Same Base HTTP implementation | Published `base-scheduler-iouring` 0.3.0 with one Native task/ring worker and one readiness fallback worker. Default ring settings; borrowed payload buffers use nonblocking receive/send syscalls. |
 | `base-iouring-raw` (Linux) | One read then one fixed response write | Same released io_uring configuration. |
 | `base-iouring-owned-raw` (Linux) | Same raw loop | Uses `read_owned` with one reusable 16 KiB buffer; response writes remain borrowed. The borrowed Base raw controls use identical buffer storage. |
 | `base-native-background` | Same Base HTTP implementation | Published Native executor with the standalone `async-io` readiness selector, preserving the previous reactor handoff for comparison. |
-| `base-tokio` | Same Base HTTP implementation | Published `base-scheduler-tokio` 0.1.2 on a current-thread Tokio runtime. |
+| `base-tokio` | Same Base HTTP implementation | Published `base-scheduler-tokio` 0.3.0 on a current-thread Tokio runtime. |
 | `hyper-tokio` | Hyper HTTP/1 and `Full<Bytes>` body | Tokio TCP stream through `hyper-util::rt::TokioIo`, current-thread runtime. |
 | `hyper-task-tokio` | Same Hyper HTTP implementation | Connection supervisor runs in one spawned task on the current-thread Tokio runtime, matching Base's spawned supervisor context. |
 | `base-native-raw` | One read then one fixed response write | Native bound reader/writer, one native worker. |
@@ -77,7 +77,7 @@ Before every sample, an independent Python HTTP client checks body/status/fields
 | `tokio-task-raw` | Same raw loop | Direct Tokio TCP, supervisor spawned as one task. |
 | `base-direct` | Same Base HTTP implementation | Published Direct backend, with its synchronous work/cleanup/retry services. |
 
-The benchmark pins the interface and Direct, Native, Selector, Tokio and Linux io_uring packages to registry release 0.1.2; its lockfile fixes the transitive timer crate to the same release. Historical local-patch and 0.1.0 results retain their original provenance. Libraries in the parent directories retain their own development patches, which do not override this benchmark package's dependency resolution. The lockfile pins Hyper 1.12.0 and Tokio 1.54.1. Base/Tokio is a useful control, but a comparison against Hyper still includes differences in HTTP handling, I/O bindings, allocation and write batching. It does not isolate the semantic message model's cost.
+The benchmark pins the interface and Direct, Native, Selector, Tokio and Linux io_uring packages to registry release 0.3.0; its lockfile fixes the transitive timer crate to the same release. Historical local-patch, 0.1.0 and 0.1.2 results retain their original provenance. Libraries in the parent directories retain their own development patches, which do not override this benchmark package's dependency resolution. The lockfile pins Hyper 1.12.0 and Tokio 1.54.1. Base/Tokio is a useful control, but a comparison against Hyper still includes differences in HTTP handling, I/O bindings, allocation and write batching. It does not isolate the semantic message model's cost.
 
 ## Interpretation
 

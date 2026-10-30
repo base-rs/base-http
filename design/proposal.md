@@ -67,7 +67,7 @@ No new executor, reactor, system resolver, or runtime-selection feature belongs 
 | `base-quic` (later) | Native QUIC transport state and scheduler-driven UDP packet/timer progress. | Scheduler interface; rustls QUIC handshake/key support and selected algorithm code. No HTTP dependency. |
 | `base-http3` (later) | Native HTTP/3 mapping, connection/control streams and client/server protocol drivers over QUIC. | `base-http`, `base-http-qpack`, `base-quic`. |
 
-The initial HTTP packages are standalone siblings with local path dependencies. Avoid introducing a parent workspace over unrelated Base projects. `base-pool` is a standalone sibling, released at `0.2.0` with an experimental API, generic conformance tests and a TCP reuse/retirement test. Exercise its contracts through actual HTTP connection consumers before stabilizing the API. It is not a prerequisite for the first server prototype.
+The initial HTTP packages are standalone siblings with local path dependencies. Avoid introducing a parent workspace over unrelated Base projects. `base-pool` is a standalone sibling, now released at `0.3.0` with an experimental API, generic conformance tests and a TCP reuse/retirement test. Exercise its contracts through actual HTTP connection consumers before stabilizing the API. It is not a prerequisite for the first server prototype.
 
 Start bodies as `base_http::body` inside the semantic root, following `protocol-http`. A separate `base-http-body` package needs an independent consumer or dependency benefit. The initial implementation keeps body interfaces and adapters in a module while their scheduler contracts are exercised.
 
@@ -491,7 +491,7 @@ The first usable application milestone is streaming HTTP/1 over plain TCP with r
 
 This is dependency ordering, not a calendar estimate. Native HTTP/2 and QUIC are separately substantial implementations. TLS, cancellation and full-duplex ownership remain significant work even when focused parsing or compression libraries are reused.
 
-`base-scheduler` and all seven companion packages are published at `0.2.0`, with declared Rust minimum 1.87 and precise socket-handle lifetime captures. The HTTP prototype uses registry dependencies, including `base-pool 0.2.0`, and passes the bound-reader and pooled-client integration tests. Use the released family consistently across the graph; make any local overrides deliberate.
+`base-scheduler` and all seven companion packages are published at `0.3.0`, with declared Rust minimum 1.87 and precise socket-handle lifetime captures. The HTTP prototype uses registry dependencies, including `base-pool 0.3.0` and `base-endpoint 0.1.0`, and passes the bound-reader and pooled-client integration tests. Use the released family consistently across the graph; make any local overrides deliberate.
 
 ### Validation strategy
 

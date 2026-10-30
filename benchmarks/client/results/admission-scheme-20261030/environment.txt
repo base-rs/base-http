@@ -1,0 +1,21 @@
+host: hana.oriontransfer.co.nz
+model name	: Intel(R) Xeon(R) CPU E3-1240 v6 @ 3.70GHz
+kernel: 7.2.11-arch1-1
+rustc 1.99.1 (58cf8f9c3 2026-10-13) (Arch Linux rust 1:1.99.1-1)
+perf version 7.2.11-1
+sources: unreleased working trees copied with rsync, without git metadata, so exact revisions were not recorded. base-scheduler and base-pool were applied as Cargo path patches (patch-*.toml); base-http, base-endpoint and the HTTP crates were local trees. The pool and scheduler changes were later released as base-pool 0.3.0 and base-scheduler 0.3.0.
+target-pool (baseline): built earlier with patch-pool.toml while the base-pool tree predated the admission change; base-http before the scheme change
+target-poolonly: patch-pool.toml after the base-pool tree was replaced with the admission change
+target-final: plus reusable cancellation slots in the scheduler (patch-x.toml)
+target-scheme: target-final plus the client scheme change
+build: cargo build --release --config PATCH --target-dir TARGET in benchmarks/client
+placement: server taskset 2,3,6,7; client taskset 1
+pool-cancellation.txt: bash cmp.sh 10 base-open target-pool target-poolonly target-final
+scheme.txt: bash cmp.sh 6 base-open target-pool target-poolonly target-final target-scheme (run first, with the same binaries; performance.md uses its target-scheme and target-final rows)
+row label: the directory two levels above the binary
+task-clock: printed in milliseconds per response and rounds to 0.0; ignore it
+sha256:
+14c0169971e21ae4e1866869dde8a4529da69be1705d47ed57a7d462a96cd492  target-pool
+a33b9e6b87fc3e21ac4b5ca5dad28bd6fecc6ac470b62555bc6f370fc49622b5  target-poolonly
+1fc06ea45fef5936aca382a64fdc0d62c2676f2c6e0fe0e6bd4a0fd6a90db55e  target-final
+96cf08398b4a7c757fc2bebb11e1593b833b1214eae81a01b77d2a5a0ae486d6  target-scheme

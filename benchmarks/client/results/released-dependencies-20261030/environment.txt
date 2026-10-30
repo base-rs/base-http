@@ -1,0 +1,12 @@
+host: hana.oriontransfer.co.nz
+model name	: Intel(R) Xeon(R) CPU E3-1240 v6 @ 3.70GHz
+kernel: 7.2.11-arch1-1
+rustc 1.99.1 (58cf8f9c3 2026-10-13) (Arch Linux rust 1:1.99.1-1)
+perf version 7.2.11-1
+before: base-http 519d476f46be5146cecf6ceffe68d9266c58972a with released base-scheduler 0.2.0 and base-pool 0.2.0, base-endpoint d7625aa9802aebf69ac7c4959732aac5621810a4 by path; benchmarks/client/Cargo.lock gained the missing smallvec entry for base-http1
+after: base-http cfbf00812dc200d9eacd80e6cfcca2cd262ea1a6 with released base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0
+build: cargo build --release --locked in benchmarks/client, separate CARGO_TARGET_DIR per variant
+placement: server taskset 2,3,6,7; client taskset 1
+command: bash cmp.sh 10 base-open BEFORE AFTER; bash cmp.sh 10 hyper AFTER (rows alternate before, after)
+row label: "target" for every row; rows alternate before, after (the label is the directory two levels above the binary)
+task-clock: printed in milliseconds per response and rounds to 0.0; ignore it
