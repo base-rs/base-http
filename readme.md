@@ -128,7 +128,3 @@ The [echo workload comparison](benchmarks/echo/results.md) isolates scheduler an
 ## Contributing
 
 Please open an issue or pull request on [GitHub](https://github.com/base-rs/base-http).
-
-### Agent Context
-
-Run `cargo bake agent:context:install` to install shared context and skills. Use `cargo bake agent:context:list` and `cargo bake agent:context:show` to discover guidance. Follow `agents.md` and the relevant skills under `.agents/skills/`.
