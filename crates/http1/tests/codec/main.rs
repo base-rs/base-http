@@ -1,6 +1,11 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
+mod client;
+mod input;
+mod output;
+mod support;
+
 use base_http::{
     Fields, HttpHeaders, InterimHandler, InterimResponses, Method, Request, RequestMetadata,
     Response, ResponseMetadata, Status, Version,
