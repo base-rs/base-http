@@ -3,24 +3,12 @@
 
 use std::{fmt, io, net::SocketAddr, sync::Arc};
 
-/// A client failure. A response body that fails with a client error reports
-/// it as the source of a `BodyError`, or as the original `BodyError` when a
-/// request body failed.
+/// A client failure. A response body that fails with a client error reports it as the source of a `BodyError`, or as the original `BodyError` when a request body failed.
 ///
-/// `Negotiation`, `Pool`, `Protocol` and `Body` wrap another layer's error
-/// transparently: they display it and report its source. `Connect` and `Io`
-/// describe the failure and report the I/O error as their source. A cause
-/// chain therefore never repeats a message.
+/// `Negotiation`, `Pool`, `Protocol` and `Body` wrap another layer's error transparently: they display it and report its source. `Connect` and `Io` describe the failure and report the I/O error as their source. A cause chain therefore never repeats a message.
 #[derive(Clone, Debug)]
 pub enum Error {
-    /// Opening the transport to `address` failed, including the TLS handshake
-    /// and server verification, so no request was sent. The source can also
-    /// be a local failure, such as exhausted file descriptors or an invalid
-    /// TLS server name. Cancellation while connecting, including a caller's
-    /// deadline, is `Cancelled`. A rejected protocol selection is
-    /// `Negotiation`, which also precedes any request. With TLS 1.3, a server
-    /// that rejects the client after the handshake is reported by the first
-    /// exchange instead.
+    /// Opening the transport to `address` failed, including the TLS handshake and server verification, so no request was sent. The source can also be a local failure, such as exhausted file descriptors or an invalid TLS server name. Cancellation while connecting, including a caller's deadline, is `Cancelled`. A rejected protocol selection is `Negotiation`, which also precedes any request. With TLS 1.3, a server that rejects the client after the handshake is reported by the first exchange instead.
     Connect {
         address: SocketAddr,
         source: Arc<io::Error>,
@@ -78,6 +66,19 @@ impl Error {
                 source: Arc::new(error),
             },
         }
+    }
+}
+
+impl Error {
+    /// Classify a failure of a caller's body or interim observer. A relayed client body failure is kept as is, so it is reported once.
+    pub(crate) fn body<E: std::error::Error + Send + Sync + 'static>(error: E) -> Self {
+        let mut error = Some(error);
+        if let Some(Some(Self::Body(body))) =
+            (&mut error as &mut dyn std::any::Any).downcast_mut::<Option<Self>>()
+        {
+            return Self::Body(body.clone());
+        }
+        Self::Body(base_http::body::BodyError::new(error.unwrap()))
     }
 }
 
@@ -157,6 +158,8 @@ mod tests {
                     refused(),
                 ))),
             ))),
+            // A client body relaying another client's failed body.
+            Error::body(Error::body(refused())),
             Error::Pool(base_pool::Error::WaitersFull),
             Error::connect("127.0.0.1:9".parse().unwrap(), refused().into()),
             Error::from(base_http_protocol::NegotiationError::Missing),

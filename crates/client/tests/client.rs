@@ -745,13 +745,10 @@ fn failed_construction_releases_capacity_and_preserves_client_admission() {
 }
 
 #[test]
-fn refused_connection_reports_connect_with_the_address() {
+fn failed_connection_reports_connect_with_the_address() {
     let scheduler = DirectScheduler::new(Default::default()).unwrap();
-    // A port that was just released refuses connections.
-    let address = TcpListener::bind("127.0.0.1:0")
-        .unwrap()
-        .local_addr()
-        .unwrap();
+    // TCP destination port zero cannot designate a listening endpoint.
+    let address: SocketAddr = "127.0.0.1:0".parse().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
         let result = client
             .call(

@@ -57,9 +57,7 @@ impl Default for Options {
     }
 }
 
-/// A server failure. Protocol and negotiation errors are transparent; other
-/// wrapping variants describe this layer and report their cause as the source,
-/// so a cause chain never repeats a message.
+/// A server failure. Protocol and negotiation errors are transparent; other wrapping variants describe this layer and report their cause as the source, so a cause chain never repeats a message.
 #[derive(Debug)]
 pub enum Error {
     Protocol(base_http1::Error),

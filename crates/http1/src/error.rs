@@ -4,8 +4,7 @@
 use base_scheduler::{Cancelled, OperationError};
 use std::{fmt, io};
 
-/// An HTTP/1 failure. Variants wrapping a cause describe this layer and report
-/// the cause as their source.
+/// An HTTP/1 failure. Variants wrapping a cause describe this layer and report the cause as their source.
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),

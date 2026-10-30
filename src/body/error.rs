@@ -4,8 +4,7 @@
 use base_scheduler::Cancelled;
 use std::{any::Any, error, fmt, sync::Arc};
 
-/// Failures shared by writable bodies and their producers. `Failed` reports
-/// the producer's error as its source, so callers can downcast it.
+/// Failures shared by writable bodies and their producers. `Failed` reports the producer's error as its source, so callers can downcast it.
 #[derive(Clone, Debug)]
 pub enum BodyError {
     Cancelled,
@@ -17,8 +16,7 @@ pub enum BodyError {
 }
 
 impl BodyError {
-    /// Wrap a producer failure. A `BodyError` is returned unchanged, so a
-    /// failure relayed through several bodies is reported once.
+    /// Wrap a producer failure. A `BodyError` is returned unchanged, so a failure relayed through several bodies is reported once.
     pub fn new<E: error::Error + Send + Sync + 'static>(error: E) -> Self {
         let mut error = Some(error);
         if let Some(body) = (&mut error as &mut dyn Any).downcast_mut::<Option<Self>>() {

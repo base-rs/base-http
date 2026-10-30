@@ -33,8 +33,7 @@ where
     }
 }
 
-/// An interim response failure. `Handler` is transparent: it displays the
-/// handler's error and reports that error's source.
+/// An interim response failure. `Handler` is transparent: it displays the handler's error and reports that error's source.
 #[derive(Debug)]
 pub enum InterimError<E> {
     InvalidStatus(Status),
