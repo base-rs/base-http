@@ -1,6 +1,6 @@
 # Base HTTP/1
 
-An unpublished native HTTP/1 codec over published Base scheduler stream capabilities. This crate owns head and trailer syntax, framing, read-ahead, persistence and body lifecycle.
+A native HTTP/1 codec over published Base scheduler stream capabilities. This crate owns head and trailer syntax, framing, read-ahead, persistence and body lifecycle.
 
 `RequestReader<R>::read_request` returns a `Request<IncomingBody<'_, R>>` and an `Exchange`. The body borrows the input lane. `ResponseWriter<W>` owns an independent output lane, sends interim responses and writes a generic `Response<B>` where `B: ReadableBody`. Returning the incoming body gives streaming echo without an extra task or dynamic dispatch.
 

@@ -1,6 +1,6 @@
 # Base HTTP Server
 
-An unpublished application server using native `base-http1`, `base-http` semantics and published Base scheduler capabilities. The server owns and joins its connection futures; it requires no hidden tasks, boxed bodies or concrete runtime.
+An application server using native `base-http1`, `base-http` semantics and published Base scheduler capabilities. The server owns and joins its connection futures; it requires no hidden tasks, boxed bodies or concrete runtime.
 
 Handlers are generic over incoming body and interim-response hook types. The associated `Body<B>` selects the outgoing representation. For a streaming echo, it is simply `B`:
 

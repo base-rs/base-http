@@ -3,17 +3,66 @@
 
 //! Native HTTP bodies, following `Protocol::HTTP::Body`.
 //!
-//! [`ReadableBody`] combines synchronous observations and abandonment with
-//! asynchronous frame reads using explicit cancellation. I/O-backed
-//! implementations retain explicitly constructed scheduler-bound capabilities.
+//! [`ReadableBody`] combines synchronous observations and abandonment with asynchronous frame reads using explicit cancellation. I/O-backed implementations retain explicitly constructed scheduler-bound capabilities; asynchronous retirement remains with the resource or driver owner, and [`ReadableBody::close`] signals abandonment without proving retirement. Memory bodies need no scheduler. Readiness, exhaustion, total representation length and replayability have separate meanings.
 //!
-//! Body length describes the whole representation. It does not decrease as chunks
-//! are consumed, and a [`HeadBody`] body may report a nonzero length while emitting no
-//! data. Reads move owned [`BodyFrame`] events, including trailing fields and
-//! completion. An empty data chunk is distinct from completion.
+//! Body length describes the whole representation. It does not decrease as chunks are consumed, and a [`HeadBody`] body may report a nonzero length while emitting no data:
 //!
-//! [`BodyReader`] and [`BodyWriter`] are bounded consumer/producer halves.
-//! A protocol driver pulls data directly; bodies do not spawn tasks.
+//! ```rust
+//! use base_http::body::{BufferedBody, HeadBody, ReadableBody};
+//!
+//! let mut body = BufferedBody::from(b"hello".to_vec());
+//! assert!(body.is_ready());
+//! assert_eq!(body.length(), Some(5));
+//! assert_eq!(body.read_chunk(), Some(b"hello".to_vec()));
+//! assert_eq!(body.length(), Some(5));
+//! assert!(body.rewind());
+//!
+//! let head = HeadBody::for_body(&mut body);
+//! assert!(head.is_empty());
+//! assert_eq!(head.length(), Some(5));
+//! ```
+//!
+//! Reads move owned [`BodyFrame`] events: `Data { data, end }`, `Headers { fields, end }` and `End`; [`BodyFrame::is_end`] handles both payload-associated and separate completion. Initial fields stay in the message metadata; a body `Headers` frame contains trailers, and no data or further headers may follow it. An empty data payload is ordinary data unless `end` is true. After completion, reads return `End`. `Request::read` and `Response::read` return these frames without mutating the initial fields; forward a frame with [`WritableBody::write_frame`] or collect its fields with `HttpHeaders::append_trailers`. [`BodyFrame::map_data`] changes the data owner while preserving fields and completion, so forwarding does not require a common allocation, cloning, boxing or copying payload bytes.
+//!
+//! [`BodyReader`] and [`BodyWriter`] are bounded consumer/producer halves implementing [`ReadableBody`] and [`WritableBody`]. [`BodyReader::bounded`] applies backpressure under both a byte and a frame limit. Normal write closure drains accepted frames and marks the last queued payload as final; failure discards queued data and preserves the cause.
+//!
+//! ```rust
+//! use base_http::body::{BodyFrame, BodyReader, BodyError, ReadableBody};
+//! use base_scheduler::Cancellation;
+//! use futures_lite::future::{block_on, zip};
+//!
+//! let (mut reader, mut writer) = BodyReader::bounded(1024, 16);
+//! let producer = async {
+//!     writer.write_frame(
+//!         BodyFrame::Data { data: b"hello".to_vec(), end: true },
+//!         &Cancellation::never(),
+//!     ).await?;
+//!     Ok::<_, BodyError>(())
+//! };
+//! let consumer = async {
+//!     let mut bytes = Vec::new();
+//!     loop {
+//!         let frame = reader.read(&Cancellation::never()).await?;
+//!         let end = frame.is_end();
+//!         match frame {
+//!             BodyFrame::Data { data, .. } => bytes.extend(data),
+//!             BodyFrame::Headers { fields, .. } => {
+//!                 // Forward fields, inspect them, or explicitly collect them.
+//!                 assert!(fields.is_empty());
+//!             }
+//!             BodyFrame::End => {}
+//!         }
+//!         if end { break; }
+//!     }
+//!     Ok::<_, BodyError>(bytes)
+//! };
+//! let (sent, received) = block_on(zip(producer, consumer));
+//! sent?;
+//! assert_eq!(received?, b"hello");
+//! # Ok::<(), BodyError>(())
+//! ```
+//!
+//! There is one pull-body abstraction. A protocol driver reads bodies directly in its existing future, so bodies do not spawn tasks. Custom bodies can read incoming input while producing outgoing chunks. Imperative producers can use the bounded pair with explicitly supervised concurrent work.
 use base_scheduler::Cancellation;
 use std::future::Future;
 
