@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Report a chunked HTTP/1 body whose chunk data is not followed by CRLF as `Invalid("missing chunk delimiter")` instead of `Limit("line length")`.
 - Enable `base_http1::RequestWriter::write_frame` only after `begin_request` has written and flushed the whole request head. Previously, a `begin_request` that failed or was cancelled while sending the head left the body enabled, so a later `write_frame` could put body bytes on the wire after a partial head. It now returns `Invalid("request output is not active")`.
 - Report a failure to create the stream writer from `base_http_server::serve_connection` and `serve` even when closing the stream reader then also fails. Previously the close error replaced the cause.
 - Display the protocol name in `NegotiationError::Unsupported` as escaped, quoted text, such as `unsupported HTTP application protocol: "h2"`, instead of a list of byte values.

@@ -133,16 +133,22 @@ fn input_failures_while_reading_a_body_are_reported() {
 
 #[test]
 fn a_chunk_without_its_delimiter_is_invalid_at_every_fragment_size() {
-    const BYTES: &[u8] =
-        b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n1\r\naXY0\r\n\r\n";
-    for step in 1..=BYTES.len() {
-        assert!(
-            is_invalid(
-                body_result(BYTES, step, Options::default()),
-                "missing chunk delimiter"
-            ),
-            "step {step}"
-        );
+    // Other bytes, a bare LF, and a CR followed by anything but LF.
+    for bytes in [
+        &b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n1\r\naXY0\r\n\r\n"[..],
+        b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n1\r\na\n0\r\n\r\n",
+        b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n1\r\na\rX0\r\n\r\n",
+    ] {
+        let bytes: &'static [u8] = bytes;
+        for step in 1..=bytes.len() {
+            assert!(
+                is_invalid(
+                    body_result(bytes, step, Options::default()),
+                    "missing chunk delimiter"
+                ),
+                "{bytes:?} at step {step}"
+            );
+        }
     }
     // A delimiter that is merely incomplete still waits for more input.
     const SPLIT: &[u8] =
