@@ -249,7 +249,7 @@ impl RequestBodyWriter<'_> {
             guard
                 .sink
                 .as_mut()
-                .ok_or(Error::Closed)?
+                .expect("unended output retains its sink until the exchange is cancelled")
                 .send((frame, cancellation.clone())),
             cancellation,
         )
@@ -671,7 +671,9 @@ where
                                     owner
                                         .value
                                         .as_mut()
-                                        .ok_or(Error::Closed)?
+                                        .expect(
+                                            "request output drops its sink after the final frame",
+                                        )
                                         .write_frame(frame, &owner.completion.cancellation)
                                         .await
                                         .map_err(Error::from)
@@ -765,4 +767,16 @@ where
             Ok(adapters(input, output, metadata, observer, lifetime))
         }))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn failed_opening_reports_its_error() {
+        let opening = failed_open(Error::Closed);
+        let error = futures_lite::future::block_on(opening).err().unwrap();
+        assert_eq!(error.to_string(), "HTTP client is closed");
+    }
 }

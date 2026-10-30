@@ -98,3 +98,21 @@ impl Drop for ResponseBody {
         self.consumption.abandon();
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use futures_lite::future::block_on;
+
+    #[test]
+    fn abandonment_is_final_and_cancels_the_exchange() {
+        let cancellation = Cancellation::new();
+        let consumption = Consumption::new(cancellation.clone());
+        consumption.abandon();
+        assert!(cancellation.is_cancelled());
+        // A late end of input cannot turn an abandoned body into a reusable exchange.
+        consumption.complete();
+        let error = block_on(consumption.wait()).unwrap_err();
+        assert_eq!(error.to_string(), "HTTP client response abandoned");
+    }
+}
