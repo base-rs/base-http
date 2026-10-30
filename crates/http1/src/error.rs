@@ -4,6 +4,8 @@
 use base_scheduler::{Cancelled, OperationError};
 use std::{fmt, io};
 
+/// An HTTP/1 failure. Variants wrapping a cause describe this layer and report
+/// the cause as their source.
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),
@@ -18,13 +20,13 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Io(error) => error.fmt(f),
+            Self::Io(_) => f.write_str("HTTP/1 connection I/O failed"),
             Self::Cancelled => f.write_str("HTTP exchange cancelled"),
             Self::Invalid(reason) => write!(f, "invalid HTTP/1 message: {reason}"),
             Self::Limit(reason) => write!(f, "HTTP/1 limit exceeded: {reason}"),
             Self::Truncated => f.write_str("truncated HTTP/1 message"),
             Self::LengthMismatch => f.write_str("body does not match its declared length"),
-            Self::Body(error) => error.fmt(f),
+            Self::Body(_) => f.write_str("HTTP/1 body failed"),
         }
     }
 }
@@ -58,5 +60,22 @@ impl From<OperationError> for Error {
 impl From<base_http::FieldError> for Error {
     fn from(error: base_http::FieldError) -> Self {
         Self::Body(Box::new(error))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::error::Error as _;
+
+    #[test]
+    fn wrapping_variants_describe_their_own_layer() {
+        let error = Error::Io(io::Error::from(io::ErrorKind::ConnectionRefused));
+        assert_eq!(error.to_string(), "HTTP/1 connection I/O failed");
+        assert_eq!(error.source().unwrap().to_string(), "connection refused");
+
+        let error = Error::from(base_http::FieldError::InvalidTrailer("host".to_owned()));
+        assert_eq!(error.to_string(), "HTTP/1 body failed");
+        assert!(error.source().is_some());
     }
 }

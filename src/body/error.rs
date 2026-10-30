@@ -4,7 +4,8 @@
 use base_scheduler::Cancelled;
 use std::{error, fmt, sync::Arc};
 
-/// Failures shared by writable bodies and their producers.
+/// Failures shared by writable bodies and their producers. `Failed` reports
+/// the producer's error as its source, so callers can downcast it.
 #[derive(Clone, Debug)]
 pub enum BodyError {
     Cancelled,
@@ -46,7 +47,7 @@ impl fmt::Display for BodyError {
                 formatter,
                 "body frame has {length} bytes, exceeding queue limit {limit}"
             ),
-            Self::Failed(error) => error.fmt(formatter),
+            Self::Failed(_) => formatter.write_str("body failed"),
         }
     }
 }
@@ -57,5 +58,18 @@ impl error::Error for BodyError {
             Self::Failed(error) => Some(error.as_ref()),
             _ => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{error::Error as _, io};
+
+    #[test]
+    fn failed_reports_the_producer_error_as_its_source() {
+        let error = BodyError::new(io::Error::from(io::ErrorKind::TimedOut));
+        assert_eq!(error.to_string(), "body failed");
+        assert_eq!(error.source().unwrap().to_string(), "timed out");
     }
 }

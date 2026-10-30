@@ -160,7 +160,8 @@ pub(crate) async fn run<'scope, S>(
     let mut build = Some(build);
     let mut ready = Some(ready);
     let result = async {
-        let endpoint_transport = AddressEndpoint::new(endpoint.address);
+        let address = endpoint.address;
+        let endpoint_transport = AddressEndpoint::new(address);
         #[cfg(feature = "rustls")]
         if let Some(tls) = endpoint.tls {
             use base_endpoint::tls::{TlsClientEndpoint, TlsSession, rustls::RustlsConnector};
@@ -171,7 +172,10 @@ pub(crate) async fn run<'scope, S>(
                 RustlsConnector::new(Arc::new(config)),
                 tls.server_name,
             );
-            let transport = endpoint.connect(scheduler, &cancellation).await?;
+            let transport = endpoint
+                .connect(scheduler, &cancellation)
+                .await
+                .map_err(|error| Error::connect(address, error))?;
             let selected = transport.negotiated_protocol().map(<[u8]>::to_vec);
             return transport
                 .with_duplex(scheduler, &lifetime, |reader, writer| async {
@@ -192,7 +196,10 @@ pub(crate) async fn run<'scope, S>(
                 })
                 .await;
         }
-        let socket = endpoint_transport.connect(scheduler, &cancellation).await?;
+        let socket = endpoint_transport
+            .connect(scheduler, &cancellation)
+            .await
+            .map_err(|error| Error::connect(address, error))?;
         let initialized = async {
             let mut reader = scheduler.socket_stream_reader(&socket)?;
             let writer = match scheduler.socket_stream_writer(&socket) {
