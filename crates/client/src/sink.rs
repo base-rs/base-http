@@ -203,4 +203,16 @@ mod tests {
             assert_eq!(owners.load(Ordering::SeqCst), 1);
         }
     }
+
+    #[test]
+    #[should_panic(expected = "write started before previous write completed")]
+    fn overlapping_writes_are_rejected() {
+        let drops = Arc::new(AtomicUsize::new(0));
+        let sink = owned_sink(Owner(drops.clone()), |owner, ()| {
+            Write::new(owner, false, drops.clone())
+        });
+        let mut sink = pin!(sink);
+        sink.as_mut().start_send(()).unwrap();
+        let _ = sink.as_mut().start_send(());
+    }
 }

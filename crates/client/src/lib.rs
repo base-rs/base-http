@@ -157,8 +157,7 @@ impl<'scope> Client<'scope> {
             pool,
             driver,
             context,
-        } = driver::make(scheduler, endpoint.clone(), options)
-            .expect("validated options construct the connection pool");
+        } = driver::make(scheduler, endpoint.clone(), options);
         Ok((
             Self {
                 endpoint,

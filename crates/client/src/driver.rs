@@ -145,19 +145,27 @@ impl<'scope> Context<'scope> {
         cancellation: &Cancellation,
     ) -> Result<MultiplexUse<Connection<'scope>>, Error> {
         loop {
-            match self.pool.acquire_or_reserve(cancellation).await? {
-                Acquisition::Existing(reservation) => match reservation.activate() {
-                    Ok(active) => return Ok(active),
-                    Err(base_pool::Error::AdmissionChanged) => continue,
-                    Err(error) => return Err(error.into()),
-                },
-                Acquisition::Build(build) => (self.factory)(build, cancellation.clone()).await?,
+            // Admission can change between reservation and activation. Either outcome without a use acquires again, which reports a closed pool.
+            let active = match self.pool.acquire_or_reserve(cancellation).await? {
+                Acquisition::Existing(reservation) => reservation.activate().ok(),
+                Acquisition::Build(build) => {
+                    (self.factory)(build, cancellation.clone()).await?;
+                    None
+                }
+            };
+            if let Some(active) = active {
+                return Ok(active);
             }
         }
     }
     async fn cleanup(&self) -> Result<(), Error> {
         let mut failure = None;
-        while let Some(retired) = self.pool.next_retirement(&Cancellation::never()).await? {
+        while let Some(retired) = self
+            .pool
+            .next_retirement(&Cancellation::never())
+            .await
+            .expect("an uncancellable retirement wait cannot fail")
+        {
             retired.stop();
             if let Err(error) = retired.wait_closed().await {
                 failure.get_or_insert(error);
@@ -211,7 +219,7 @@ pub(crate) fn make<'scope, S>(
     scheduler: &'scope S,
     endpoint: Endpoint,
     options: Options,
-) -> Result<ClientParts<'scope>, Error>
+) -> ClientParts<'scope>
 where
     S: SocketOpen
         + SocketConnect
@@ -221,7 +229,8 @@ where
         + 'scope,
     S::Socket: 'static,
 {
-    let pool = MultiplexPool::new(options.pool.clone())?;
+    let pool =
+        MultiplexPool::new(options.pool.clone()).expect("Client::new validated the pool options");
     let queue = Arc::new(Queue {
         state: Mutex::new(State {
             requests: VecDeque::new(),
@@ -241,9 +250,9 @@ where
         let options = options.clone();
         let endpoint = endpoint.clone();
         let lifetime = connection_lifetime.clone();
-        let queue = weak_queue.upgrade();
+        // Acquirers hold the queue: the driver's assignment jobs and client handles both retain it.
+        let queue = weak_queue.upgrade().expect("an acquirer retains the queue");
         Box::pin(async move {
-            let queue = queue.ok_or(Error::Closed)?;
             let (ready, established) = oneshot::channel();
             queue.push_work(Box::pin(connection::run(
                 scheduler,
@@ -255,7 +264,8 @@ where
                 ready,
                 Arc::downgrade(&queue),
             )))?;
-            established.await.map_err(|_| Error::Closed)?
+            // Only an abandoned driver drops construction before it reports readiness.
+            established.await.unwrap_or(Err(Error::Closed))
         }) as Work<'scope, _>
     });
     let context = Arc::new(Context {
@@ -273,12 +283,12 @@ where
             abandoned_pool.begin_close();
         }),
     };
-    Ok(ClientParts {
+    ClientParts {
         queue,
         pool,
         driver,
         context,
-    })
+    }
 }
 
 async fn assign<'scope>(mut operation: Operation<'scope>, context: Arc<Context<'scope>>) {
@@ -290,9 +300,11 @@ async fn assign<'scope>(mut operation: Operation<'scope>, context: Arc<Context<'
         }
         Err(error) => {
             operation.request.body.close(None);
-            if let Some(reply) = operation.reply.take() {
-                let _ = reply.send(Err(error));
-            }
+            let reply = operation
+                .reply
+                .take()
+                .expect("an unassigned operation retains its reply");
+            let _ = reply.send(Err(error));
         }
     }
 }
@@ -441,6 +453,9 @@ impl Drop for CancelOnDrop {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Endpoint, Options};
+    use base_http::{Method, body::EmptyBody};
+    use base_scheduler_direct::DirectScheduler;
     use std::{
         sync::atomic::Ordering,
         task::{Context, Wake, Waker},
@@ -448,6 +463,16 @@ mod tests {
 
     #[derive(Default)]
     struct Wakes(AtomicUsize);
+
+    // Work which records whether it was polled.
+    struct Probe<'a>(&'a std::cell::Cell<bool>);
+    impl Future for Probe<'_> {
+        type Output = Result<(), Error>;
+        fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
+            self.0.set(true);
+            Poll::Ready(Ok(()))
+        }
+    }
     impl Wake for Wakes {
         fn wake(self: Arc<Self>) {
             self.0.fetch_add(1, Ordering::Relaxed);
@@ -458,17 +483,15 @@ mod tests {
     fn checked_prioritizes_existing_cancellation_and_wakes_blocked_work() {
         use futures_lite::future::{block_on, poll_once};
         use std::cell::Cell;
+        let polled = Cell::new(false);
+        block_on(checked(Probe(&polled), &Cancellation::new())).unwrap();
+        assert!(polled.get());
+
         let cancel = Cancellation::new();
         cancel.cancel();
         let polled = Cell::new(false);
-        let work = std::future::poll_fn(|_| {
-            polled.set(true);
-            Poll::Ready(Ok::<_, Error>(()))
-        });
-        assert!(matches!(
-            block_on(checked(work, &cancel)),
-            Err(Error::Cancelled)
-        ));
+        let error = block_on(checked(Probe(&polled), &cancel)).unwrap_err();
+        assert_eq!(error.to_string(), Error::Cancelled.to_string());
         assert!(!polled.get());
 
         let cancel = Cancellation::new();
@@ -482,10 +505,10 @@ mod tests {
         assert!(work.as_mut().poll(&mut cx).is_pending());
         cancel.cancel();
         assert!(wakes.0.load(Ordering::Relaxed) > 0);
-        assert!(matches!(
-            work.as_mut().poll(&mut cx),
-            Poll::Ready(Err(Error::Cancelled))
-        ));
+        assert_eq!(
+            format!("{:?}", work.as_mut().poll(&mut cx)),
+            "Ready(Err(Cancelled))"
+        );
 
         // Cancellation occurring during a Pending poll must be noticed in
         // that poll, even before a listener has ever been registered.
@@ -495,10 +518,10 @@ mod tests {
             Poll::Pending::<Result<(), Error>>
         });
         let mut work = pin!(checked(pending, &cancel));
-        assert!(matches!(
-            block_on(poll_once(work.as_mut())),
-            Some(Err(Error::Cancelled))
-        ));
+        assert_eq!(
+            format!("{:?}", block_on(poll_once(work.as_mut()))),
+            "Some(Err(Cancelled))"
+        );
     }
 
     #[test]
@@ -523,7 +546,8 @@ mod tests {
 
         let first = Pending::new(queue.clone()).unwrap();
         let second = Pending::new(queue.clone()).unwrap();
-        assert!(matches!(Pending::new(queue.clone()), Err(Error::Busy)));
+        let error = Pending::new(queue.clone()).err().unwrap();
+        assert_eq!(error.to_string(), Error::Busy.to_string());
         drop(first);
         assert_eq!(wakes.0.load(Ordering::Relaxed), 0);
         // Admission is a synchronous check; completion restores it without
@@ -534,7 +558,8 @@ mod tests {
         let mut changed = pin!(queue.changed.listen());
         assert!(changed.as_mut().poll(&mut cx).is_pending());
         wakes.0.store(0, Ordering::Relaxed);
-        assert!(matches!(Pending::new(queue.clone()), Err(Error::Closed)));
+        let error = Pending::new(queue.clone()).err().unwrap();
+        assert_eq!(error.to_string(), Error::Closed.to_string());
         drop(second);
         assert_eq!(wakes.0.load(Ordering::Relaxed), 0);
         assert!(changed.as_mut().poll(&mut cx).is_pending());
@@ -542,5 +567,45 @@ mod tests {
         assert_eq!(wakes.0.load(Ordering::Relaxed), 1);
         assert!(changed.as_mut().poll(&mut cx).is_ready());
         assert_eq!(lock(&queue.state).pending, 0);
+    }
+
+    fn parts(scheduler: &DirectScheduler) -> ClientParts<'_> {
+        let endpoint = Endpoint::new("127.0.0.1:1".parse().unwrap());
+        make(scheduler, endpoint, Options::default())
+    }
+
+    #[test]
+    fn requests_pushed_after_close_are_rejected() {
+        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let parts = parts(&scheduler);
+        parts.queue.begin_close();
+        let operation = Operation {
+            request: Request::new(
+                Method::GET,
+                "/",
+                OutgoingBody::new(EmptyBody, Cancellation::never()),
+            ),
+            interim: Box::new(crate::outgoing::tests::ignore),
+            reply: None,
+            cancellation: Cancellation::new(),
+            lifetime: Cancellation::never(),
+            _pending: None,
+        };
+        let error = parts.queue.push(operation).unwrap_err();
+        assert_eq!(error.to_string(), Error::Closed.to_string());
+        assert!(lock(&parts.queue.state).requests.is_empty());
+    }
+
+    #[test]
+    fn construction_after_the_queue_is_abandoned_releases_its_build() {
+        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let parts = parts(&scheduler);
+        // Abandonment closes the queue before the pool; a build reserved between the two cannot start.
+        parts.queue.abandon();
+        let error = futures_lite::future::block_on(parts.context.acquire(&Cancellation::never()))
+            .err()
+            .unwrap();
+        assert_eq!(error.to_string(), Error::Closed.to_string());
+        assert_eq!(parts.pool.stats().total(), 0);
     }
 }

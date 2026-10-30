@@ -121,3 +121,62 @@ impl InterimHandler for Interim<'_> {
         self.0.response(metadata, cancellation).await
     }
 }
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use super::*;
+    use base_http::{
+        Status,
+        body::{BufferedBody, EmptyBody},
+    };
+    use futures_lite::future::block_on;
+    use std::convert::Infallible;
+
+    // An interim handler which ignores informational responses.
+    pub(crate) fn ignore(_: ResponseMetadata) -> std::future::Ready<Result<(), Infallible>> {
+        std::future::ready(Ok(()))
+    }
+
+    #[test]
+    fn interim_forwarding_reaches_the_observer() {
+        let mut observer = ignore;
+        let mut interim = Interim(&mut observer);
+        let metadata = ResponseMetadata::new(Status::CONTINUE);
+        block_on(interim.on_interim_response(metadata, &Cancellation::never())).unwrap();
+    }
+
+    #[test]
+    fn reads_after_completion_or_close_report_the_end() {
+        let never = Cancellation::never();
+        let mut body = OutgoingBody::new(BufferedBody::new([b"hello".to_vec()]), never.clone());
+        assert_eq!(body.length(), Some(5));
+        assert!(!body.is_empty());
+        let mut bytes = Vec::new();
+        loop {
+            let frame = block_on(body.read(&never)).unwrap();
+            let end = frame.is_end();
+            if let BodyFrame::Data { data, .. } = frame {
+                bytes.extend(data);
+            }
+            if end {
+                break;
+            }
+        }
+        assert_eq!(bytes, b"hello");
+        assert!(body.is_empty());
+        // The producer already finished; another read reports the end again.
+        assert_eq!(format!("{:?}", block_on(body.read(&never)).unwrap()), "End");
+        body.close(None);
+        assert_eq!(format!("{:?}", block_on(body.read(&never)).unwrap()), "End");
+    }
+
+    #[test]
+    fn cancelled_reads_fail_before_reading_the_body() {
+        let cancellation = Cancellation::new();
+        let mut body = OutgoingBody::new(EmptyBody, cancellation.clone());
+        assert!(body.is_empty());
+        cancellation.cancel();
+        let error = block_on(body.read(&cancellation)).unwrap_err();
+        assert_eq!(error.to_string(), Error::Cancelled.to_string());
+    }
+}
