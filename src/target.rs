@@ -276,10 +276,10 @@ mod tests {
 
     #[test]
     fn schemes_use_constants() {
-        assert!(matches!(Scheme::from("http").0, Cow::Borrowed(_)));
+        assert!(matches!(Scheme::from("http").0, Cow::Borrowed("http")));
         assert!(matches!(
             Scheme::from(String::from("https")).0,
-            Cow::Borrowed(_)
+            Cow::Borrowed("https")
         ));
         assert!(matches!(Scheme::from("HTTP").0, Cow::Borrowed("http")));
         assert!(matches!(
