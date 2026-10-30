@@ -88,14 +88,10 @@ impl<W: WritableStream> ResponseWriter<W> {
         if !self.usable {
             return Err(Error::Invalid("response output is not reusable"));
         }
-        let mut head = ResponseMetadata::new(status);
-        head.version = Some(Version::Http11);
-        head.fields.add("Content-Length", "0")?;
-        head.fields.add("Connection", "close")?;
         self.usable = false;
-        self.write_head(&head, cancellation).await?;
-        self.flush(cancellation).await?;
-        Ok(())
+        self.write_start_line(status, Version::Http11);
+        self.buffer(b"Content-Length: 0\r\nConnection: close\r\n\r\n");
+        self.flush(cancellation).await
     }
 
     pub(crate) async fn write_all(
@@ -111,8 +107,7 @@ impl<W: WritableStream> ResponseWriter<W> {
             // Large chunks retain their existing owner and are not copied.
             return send_all(&mut self.writer, bytes, cancellation).await;
         }
-        self.reserve(bytes.len());
-        self.pending.extend_from_slice(bytes);
+        self.buffer(bytes);
         Ok(())
     }
 
@@ -134,36 +129,21 @@ impl<W: WritableStream> ResponseWriter<W> {
         Ok(())
     }
 
-    async fn write_head(
-        &mut self,
-        head: &ResponseMetadata,
-        cancellation: &Cancellation,
-    ) -> Result<(), Error> {
-        self.write_start_line(head.status, head.version, cancellation)
-            .await?;
-        self.write_fields(head.fields.pairs(), cancellation).await?;
-        self.write_all(b"\r\n", cancellation).await
+    fn buffer(&mut self, bytes: &[u8]) {
+        self.reserve(bytes.len());
+        self.pending.extend_from_slice(bytes);
     }
 
-    async fn write_start_line(
-        &mut self,
-        status: Status,
-        version: Option<Version>,
-        cancellation: &Cancellation,
-    ) -> Result<(), Error> {
-        if status == Status::OK && version == Some(Version::Http11) {
-            let line = b"HTTP/1.1 200 OK\r\n";
-            if line.len() <= OUTPUT_BATCH_LIMIT - self.pending.len() {
-                self.reserve(line.len());
-                self.pending.extend_from_slice(line);
-                return Ok(());
-            }
-            return self.write_all(line, cancellation).await;
+    // Every message starts with an empty batch, since the previous message or interim head was flushed, so its start line always fits.
+    fn write_start_line(&mut self, status: Status, version: Version) {
+        if status == Status::OK && version == Version::Http11 {
+            self.buffer(b"HTTP/1.1 200 OK\r\n");
+            return;
         }
         let version = match version {
-            Some(Version::Http10) => b"HTTP/1.0 ",
-            Some(Version::Http11) => b"HTTP/1.1 ",
-            _ => return Err(Error::Invalid("unsupported response version")),
+            Version::Http10 => b"HTTP/1.0 ",
+            Version::Http11 => b"HTTP/1.1 ",
+            _ => unreachable!("HTTP/1 exchanges and interim writers are HTTP/1.0 or HTTP/1.1"),
         };
         let status_code = status.as_u16();
         let code = [
@@ -173,19 +153,11 @@ impl<W: WritableStream> ResponseWriter<W> {
             b' ',
         ];
         let reason = status.description().unwrap_or("").as_bytes();
-        let size = version.len() + code.len() + reason.len() + 2;
-        if size <= OUTPUT_BATCH_LIMIT - self.pending.len() {
-            self.reserve(size);
-            self.pending.extend_from_slice(version);
-            self.pending.extend_from_slice(&code);
-            self.pending.extend_from_slice(reason);
-            self.pending.extend_from_slice(b"\r\n");
-            return Ok(());
-        }
-        self.write_all(version, cancellation).await?;
-        self.write_all(&code, cancellation).await?;
-        self.write_all(reason, cancellation).await?;
-        self.write_all(b"\r\n", cancellation).await
+        self.reserve(version.len() + code.len() + reason.len() + 2);
+        self.pending.extend_from_slice(version);
+        self.pending.extend_from_slice(&code);
+        self.pending.extend_from_slice(reason);
+        self.pending.extend_from_slice(b"\r\n");
     }
 
     async fn write_fields(
@@ -226,8 +198,7 @@ impl<W: WritableStream> ResponseWriter<W> {
         plan: &Plan<'_>,
         cancellation: &Cancellation,
     ) -> Result<(), Error> {
-        self.write_start_line(plan.response.status, Some(plan.version), cancellation)
-            .await?;
+        self.write_start_line(plan.response.status, plan.version);
         for field in plan.response.fields.pairs() {
             if (plan.upgrade.is_some() && field.name().eq_ignore_ascii_case("upgrade"))
                 || (matches!(plan.framing, Framing::Chunked(_))
@@ -401,7 +372,7 @@ impl<W: WritableStream> InterimHandler for InterimWriter<'_, W> {
     type Error = Error;
     async fn on_interim_response(
         &mut self,
-        mut response: ResponseMetadata,
+        response: ResponseMetadata,
         cancellation: &Cancellation,
     ) -> Result<(), Error> {
         cancellation.check()?;
@@ -422,9 +393,12 @@ impl<W: WritableStream> InterimHandler for InterimWriter<'_, W> {
             return Err(Error::Invalid("invalid interim framing"));
         }
         wire::output_fields(response.fields.pairs())?;
-        response.version = Some(self.version);
         self.output.usable = false;
-        self.output.write_head(&response, cancellation).await?;
+        self.output.write_start_line(response.status, self.version);
+        self.output
+            .write_fields(response.fields.pairs(), cancellation)
+            .await?;
+        self.output.write_all(b"\r\n", cancellation).await?;
         self.output.flush(cancellation).await?;
         if response.status == Status::CONTINUE {
             self.output.continue_sent = true;
@@ -474,10 +448,8 @@ impl BodyEncoder {
                     return Err(Error::Invalid("data after trailing headers"));
                 }
                 let bytes = data.as_ref();
-                self.total = self
-                    .total
-                    .checked_add(bytes.len() as u64)
-                    .ok_or(Error::LengthMismatch)?;
+                // No transport carries `u64::MAX` bytes, so saturation only guards the arithmetic.
+                self.total = self.total.saturating_add(bytes.len() as u64);
                 if self.forbid_content && self.total != 0 {
                     return Err(Error::Invalid("content on 205"));
                 }
@@ -722,4 +694,216 @@ pub(crate) fn validate_trailer_fields(fields: &[base_http::Field]) -> Result<(),
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Options, RequestReader};
+    use base_endpoint::stream::ReadableStream;
+    use base_http::{Fields, Protocol, body::BufferedBody};
+    use base_scheduler::OperationResult;
+    use futures_lite::future::block_on;
+
+    struct Bytes(&'static [u8]);
+    impl ReadableStream for Bytes {
+        async fn read_into(
+            &mut self,
+            buffer: &mut [u8],
+            _: &Cancellation,
+        ) -> OperationResult<usize> {
+            let n = self.0.len().min(buffer.len());
+            buffer[..n].copy_from_slice(&self.0[..n]);
+            self.0 = &self.0[n..];
+            Ok(n)
+        }
+        async fn close(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    // Accepts no bytes, so the first transport write fails and reveals where a batch boundary fell.
+    struct Refusing;
+    impl WritableStream for Refusing {
+        async fn write(&mut self, _: &[u8], _: &Cancellation) -> OperationResult<usize> {
+            Err(io::Error::from(io::ErrorKind::BrokenPipe).into())
+        }
+        async fn flush(&mut self, _: &Cancellation) -> OperationResult<()> {
+            Ok(())
+        }
+        async fn close(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    fn exchange(bytes: &'static [u8]) -> Exchange {
+        let mut input = RequestReader::new(Bytes(bytes), Options::default()).unwrap();
+        let exchange = block_on(input.read_request(&Cancellation::never()))
+            .unwrap()
+            .unwrap()
+            .1;
+        block_on(input.close()).unwrap();
+        exchange
+    }
+
+    // A field occupying exactly `size` bytes of the batch.
+    fn filler(size: usize) -> (&'static str, Vec<u8>) {
+        ("x", vec![b'v'; size - 5])
+    }
+
+    fn is_broken_pipe(result: Result<impl Sized, Error>) -> bool {
+        matches!(result, Err(Error::Io(error)) if error.kind() == io::ErrorKind::BrokenPipe)
+    }
+
+    #[test]
+    fn a_head_field_crossing_the_batch_limit_sends_the_batch_first() {
+        const GET: &[u8] = b"GET / HTTP/1.1\r\nHost: x\r\n\r\n";
+        const UPGRADE: &[u8] =
+            b"GET / HTTP/1.1\r\nHost: x\r\nConnection: upgrade\r\nUpgrade: echo\r\n\r\n";
+        const OK: usize = b"HTTP/1.1 200 OK\r\n".len();
+        const SWITCHING: usize = b"HTTP/1.1 101 Switching Protocols\r\n".len();
+        // Each response leaves one free byte in the batch before the generated field.
+        let full = |start: usize| filler(OUTPUT_BATCH_LIMIT - 1 - start);
+        type Case = (&'static [u8], Response<BufferedBody<Vec<u8>>>);
+        let mut cases: Vec<Case> = Vec::new();
+
+        let mut upgrade = Response::new(Status::SWITCHING_PROTOCOLS, BufferedBody::default());
+        upgrade.protocol = Some(Protocol::new("echo").unwrap());
+        let (name, value) = full(SWITCHING);
+        upgrade.fields.add(name, value).unwrap();
+        cases.push((UPGRADE, upgrade));
+
+        let mut advertised = Response::new(Status::OK, BufferedBody::default());
+        advertised.fields.add("Upgrade", "h2c").unwrap();
+        let (name, value) = full(OK + "Upgrade: h2c\r\n".len());
+        advertised.fields.add(name, value).unwrap();
+        cases.push((GET, advertised));
+
+        let mut length = Response::new(Status::OK, BufferedBody::from(b"hi".to_vec()));
+        let (name, value) = full(OK);
+        length.fields.add(name, value).unwrap();
+        cases.push((GET, length));
+
+        let mut chunked = Response::new(Status::OK, BufferedBody::default());
+        chunked.fields.add("Trailer", "x-digest").unwrap();
+        let (name, value) = full(OK + "Trailer: x-digest\r\n".len());
+        chunked.fields.add(name, value).unwrap();
+        cases.push((GET, chunked));
+
+        let mut close = Response::new(Status::OK, BufferedBody::default());
+        close.persistent = Some(false);
+        close.fields.add("Content-Length", "0").unwrap();
+        let (name, value) = full(OK + "Content-Length: 0\r\n".len());
+        close.fields.add(name, value).unwrap();
+        cases.push((GET, close));
+
+        // A large value, a name filling the batch, and a name leaving no room for its separator.
+        let mut value = Response::new(Status::OK, BufferedBody::default());
+        value
+            .fields
+            .add("x", vec![b'v'; OUTPUT_BATCH_LIMIT + 1])
+            .unwrap();
+        cases.push((GET, value));
+        let mut name = Response::new(Status::OK, BufferedBody::default());
+        name.fields
+            .add("x".repeat(OUTPUT_BATCH_LIMIT), "v")
+            .unwrap();
+        cases.push((GET, name));
+        let mut separator = Response::new(Status::OK, BufferedBody::default());
+        separator
+            .fields
+            .add("x".repeat(OUTPUT_BATCH_LIMIT - 1 - OK), "v")
+            .unwrap();
+        cases.push((GET, separator));
+
+        for (index, (request, mut response)) in cases.into_iter().enumerate() {
+            let mut output = ResponseWriter::new(Refusing);
+            let result = block_on(output.write_response(
+                &exchange(request),
+                &mut response,
+                &Cancellation::never(),
+            ));
+            assert!(is_broken_pipe(result), "case {index}");
+            assert!(!output.is_usable());
+        }
+    }
+
+    #[test]
+    fn interim_heads_crossing_the_batch_limit_send_the_batch_first() {
+        const EARLY_HINTS: usize = b"HTTP/1.1 103 Early Hints\r\n".len();
+        let large = ("link", vec![b'v'; OUTPUT_BATCH_LIMIT + 1]);
+        let full = filler(OUTPUT_BATCH_LIMIT - 1 - EARLY_HINTS);
+        for (name, value) in [large, full] {
+            let mut output = ResponseWriter::new(Refusing);
+            let mut response = ResponseMetadata::new(Status::new(103).unwrap());
+            response.fields.add(name, value).unwrap();
+            let result = block_on(
+                output
+                    .interim(Version::Http11)
+                    .on_interim_response(response, &Cancellation::never()),
+            );
+            assert!(is_broken_pipe(result));
+            assert!(!output.is_usable());
+        }
+    }
+
+    #[test]
+    fn body_frames_crossing_the_batch_limit_send_the_batch_first() {
+        let data = |bytes: &[u8]| BodyFrame::Data {
+            data: bytes.to_vec(),
+            end: false,
+        };
+        let mut trailers = Fields::new();
+        trailers
+            .add("x-digest", vec![b'v'; OUTPUT_BATCH_LIMIT + 1])
+            .unwrap();
+        let large = vec![b'v'; OUTPUT_BATCH_LIMIT];
+        // Each case batches `pending` bytes from earlier frames before writing its frame.
+        let cases = [
+            (Framing::Chunked(None), OUTPUT_BATCH_LIMIT - 2, data(b"abc")),
+            (Framing::Chunked(None), 1, data(&large)),
+            (Framing::Chunked(None), OUTPUT_BATCH_LIMIT - 7, data(b"abc")),
+            (Framing::Fixed(OUTPUT_BATCH_LIMIT as u64), 1, data(&large)),
+            (
+                Framing::Chunked(None),
+                OUTPUT_BATCH_LIMIT - 2,
+                BodyFrame::End,
+            ),
+            (
+                Framing::Chunked(None),
+                OUTPUT_BATCH_LIMIT - 4,
+                BodyFrame::End,
+            ),
+            (
+                Framing::Chunked(None),
+                1,
+                BodyFrame::Headers {
+                    fields: trailers,
+                    end: true,
+                },
+            ),
+        ];
+        for (index, (framing, pending, frame)) in cases.into_iter().enumerate() {
+            let never = Cancellation::never();
+            let mut output = ResponseWriter::new(Refusing);
+            block_on(output.write_all(&vec![b'.'; pending], &never)).unwrap();
+            let mut encoder = BodyEncoder::new(framing, false);
+            let result = block_on(encoder.write_frame(&mut output, frame, &never));
+            assert!(is_broken_pipe(result), "case {index}");
+        }
+    }
+
+    #[test]
+    fn empty_fixed_data_needs_no_transport_write() {
+        let never = Cancellation::never();
+        let mut output = ResponseWriter::new(Refusing);
+        let mut encoder = BodyEncoder::new(Framing::Fixed(0), false);
+        let frame = BodyFrame::Data {
+            data: Vec::new(),
+            end: true,
+        };
+        block_on(encoder.write_frame(&mut output, frame, &never)).unwrap();
+        block_on(output.flush(&never)).unwrap();
+        block_on(output.close()).unwrap();
+    }
 }

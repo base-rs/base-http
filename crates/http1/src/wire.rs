@@ -375,7 +375,7 @@ pub(crate) fn request(
         b"QUERY" => Method::QUERY,
         // The parser accepts only token bytes, which are ASCII.
         other => Method::new(std::str::from_utf8(other).unwrap())
-            .map_err(|_| Error::Invalid("invalid method"))?,
+            .expect("the parser accepts only token methods"),
     };
     // Validate every line before interpreting any, recording where each
     // field is, so that one UTF-8 check covers the target and all names.
@@ -455,7 +455,9 @@ pub(crate) fn request(
                         .split(|b| *b == b',')
                         .any(|v| trim(v).eq_ignore_ascii_case(b"100-continue"));
                 }
-                head.fields.add(field.name.ascii(text, bytes), value)?;
+                head.fields
+                    .add(field.name.ascii(text, bytes), value)
+                    .expect("the parser accepts only token field names");
             }
         }
     }
@@ -477,17 +479,16 @@ pub(crate) fn request(
         authority(host, false)?;
         head.authority = Some(host.into());
     }
+    // `target_form` has already validated the target's form and authority.
     if head.method == Method::CONNECT {
-        authority(target, true)?;
         head.authority = Some(target.into());
     } else if target.starts_with('/') || (target == "*" && head.method == Method::OPTIONS) {
         head.path = Some(target.into());
-    } else if let Some((scheme, rest)) = target.split_once("://") {
-        if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
-            return Err(Error::Invalid("unsupported target scheme"));
-        }
+    } else {
+        let (scheme, rest) = target
+            .split_once("://")
+            .expect("other accepted targets are absolute");
         let end = rest.find(['/', '?']).unwrap_or(rest.len());
-        authority(&rest[..end], false)?;
         head.authority = Some(rest[..end].into());
         head.scheme = Some(scheme.into());
         let suffix = &rest[end..];
@@ -498,8 +499,6 @@ pub(crate) fn request(
         } else {
             suffix.into()
         });
-    } else {
-        return Err(Error::Invalid("invalid request target form"));
     }
     let upgrade = if connection_upgrade {
         if version == Version::Http11 {
@@ -547,7 +546,9 @@ fn field_section(
     let text = std::str::from_utf8(&bytes[..end]).ok();
     let mut fields = Fields::with_capacity(spans.len());
     for field in &spans {
-        fields.add(field.name.ascii(text, bytes), field.value.of(bytes))?;
+        fields
+            .add(field.name.ascii(text, bytes), field.value.of(bytes))
+            .expect("the parser accepts only token field names");
     }
     Ok(Some((fields, end)))
 }

@@ -51,29 +51,7 @@ pub(crate) fn request_persistent(head: &RequestMetadata) -> bool {
 
 impl Exchange {
     pub(crate) fn new(head: &RequestMetadata, trailer_options: Vec<Vec<u8>>) -> Self {
-        // Retain only protocol decisions. Ordinary fields and target strings
-        // belong solely to the application request; mutations cannot change
-        // already established framing. Upgrade offers and trailer exclusions retain
-        // only the bytes needed for later protocol processing.
-        let upgrade = if let Some(protocol) = &head.protocol {
-            Some(protocol.as_str().as_bytes().into())
-        } else {
-            wire::has_token(&head.fields, "connection", b"upgrade").then(|| {
-                let mut offers = Vec::new();
-                for field in head
-                    .fields
-                    .pairs()
-                    .iter()
-                    .filter(|field| field.name().eq_ignore_ascii_case("upgrade"))
-                {
-                    if !offers.is_empty() {
-                        offers.push(b',');
-                    }
-                    offers.extend_from_slice(field.value());
-                }
-                offers.into_boxed_slice()
-            })
-        };
+        // Retain only protocol decisions. Ordinary fields and target strings belong solely to the application request; mutations cannot change already established framing. Trailer exclusions retain only the bytes needed for later protocol processing. The client selects upgrades from its own request, so its exchange retains no upgrade offers.
         Self {
             facts: ExchangeFacts {
                 version: head.version.unwrap_or(Version::Http11),
@@ -85,7 +63,6 @@ impl Exchange {
             // Client response completion depends on incoming response framing,
             // independently of the matching outgoing request's body length.
             state: Some(Arc::new(ExchangeState {
-                upgrade,
                 trailer_options,
                 ..Default::default()
             })),
@@ -118,14 +95,16 @@ impl Exchange {
     }
 
     fn filter_trailers(&self, fields: &mut Fields) {
-        if let Some(state) = &self.state {
-            fields.retain(|field| {
-                !state
-                    .trailer_options
-                    .iter()
-                    .any(|option| field.name().as_bytes().eq_ignore_ascii_case(option))
-            });
-        }
+        let state = self
+            .state
+            .as_ref()
+            .expect("chunked input retains shared state");
+        fields.retain(|field| {
+            !state
+                .trailer_options
+                .iter()
+                .any(|option| field.name().as_bytes().eq_ignore_ascii_case(option))
+        });
     }
 
     pub fn version(&self) -> Version {
@@ -187,9 +166,12 @@ impl Exchange {
         }
     }
     fn abandon(&self) {
-        if let Some(state) = &self.state {
-            state.abandoned.store(true, Ordering::Release);
-        }
+        // Input without shared state is complete from the start, so it is never abandoned.
+        self.state
+            .as_ref()
+            .expect("incomplete input retains shared state")
+            .abandoned
+            .store(true, Ordering::Release);
     }
 }
 
@@ -237,10 +219,8 @@ impl<R: ReadableStream> RequestReader<R> {
             self.end -= self.start;
             self.start = 0;
         }
-        let limit = self
-            .end
-            .checked_add(self.options.read_size)
-            .ok_or(Error::Limit("receive buffer"))?;
+        // Neither the buffer nor its initial `read_size` allocation can exceed `isize::MAX`, so this cannot overflow.
+        let limit = self.end + self.options.read_size;
         if self.buffer.len() < limit {
             // Keep initialized spare capacity across reads. A pending/cancelled
             // read never publishes it: only a successful count advances end.
@@ -507,10 +487,15 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
                         });
                     }
                     if *delimiter {
-                        let line = self.input.line(2, cancellation).await?;
-                        if line != b"\r\n" {
+                        while self.input.available().len() < 2 {
+                            if !self.input.fill(cancellation).await? {
+                                return Err(Error::Truncated);
+                            }
+                        }
+                        if !self.input.available().starts_with(b"\r\n") {
                             return Err(Error::Invalid("missing chunk delimiter"));
                         }
+                        self.input.start += 2;
                     }
                     let line = self
                         .input
@@ -672,6 +657,21 @@ mod tests {
             b"1;x\0\r\n",
         ] {
             assert!(chunk_size(line).is_err(), "{line:?}");
+        }
+    }
+
+    #[test]
+    fn chunk_lines_accept_token_extension_values_and_reject_malformed_ones() {
+        assert_eq!(chunk_size(b"ff ; name = value ; flag\r\n").unwrap(), 255);
+        for (line, reason) in [
+            (&b"11111111111111111\r\n"[..], "chunk size overflow"),
+            (b"1;x=\"open\r\n", "unterminated chunk extension"),
+            (b"1;x=\"\\\r\n", "invalid quoted escape"),
+        ] {
+            assert!(
+                matches!(chunk_size(line), Err(crate::Error::Invalid(r)) if r == reason),
+                "{line:?}"
+            );
         }
     }
 }

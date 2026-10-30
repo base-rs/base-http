@@ -77,4 +77,27 @@ mod tests {
         assert_eq!(error.to_string(), "HTTP/1 body failed");
         assert!(error.source().is_some());
     }
+
+    #[test]
+    fn leaf_variants_describe_the_failure_without_a_source() {
+        for (error, message) in [
+            (Error::Cancelled, "HTTP exchange cancelled"),
+            (
+                Error::Invalid("missing host"),
+                "invalid HTTP/1 message: missing host",
+            ),
+            (
+                Error::Limit("message head"),
+                "HTTP/1 limit exceeded: message head",
+            ),
+            (Error::Truncated, "truncated HTTP/1 message"),
+            (
+                Error::LengthMismatch,
+                "body does not match its declared length",
+            ),
+        ] {
+            assert_eq!(error.to_string(), message);
+            assert!(error.source().is_none());
+        }
+    }
 }
