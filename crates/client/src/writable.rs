@@ -2,7 +2,6 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Imperative HTTP/1 output with direct, independently owned codec directions.
-
 use crate::{
     Client, Error,
     driver::{CancelOnDrop, Pending, checked, lock},

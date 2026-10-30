@@ -4,7 +4,6 @@
 //! The pipelines used before the single-pass parser: line checks, httparse,
 //! then field classification for heads, and a line-by-line reader for trailer
 //! sections. Tests and fuzz targets compare the parser with them.
-
 use crate::Error;
 use crate::wire::*;
 use base_http::{Fields, Method, Protocol, RequestMetadata, ResponseMetadata, Status, Version};

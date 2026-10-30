@@ -1,6 +1,6 @@
 [package]
 name = "base-http-server"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.87"
 license = "MIT"
@@ -9,10 +9,10 @@ description = "Supervised native HTTP servers for Base scheduler capabilities"
 readme = "readme.md"
 
 [dependencies]
-base-http-protocol = { version = "0.0.0", path = "../protocol" }
+base-http-protocol = { version = "0.1.0", path = "../protocol" }
 base-endpoint = "0.1.0"
-base-http = { version = "0.0.0", path = "../.." }
-base-http1 = { version = "0.0.0", path = "../http1" }
+base-http = { version = "0.1.0", path = "../.." }
+base-http1 = { version = "0.1.0", path = "../http1" }
 base-scheduler = "0.3.0"
 futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await"] }
 rustls = { version = "0.23.46", default-features = false, features = ["std", "ring", "tls12"], optional = true }

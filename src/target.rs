@@ -7,7 +7,6 @@
 //! Percent-encoded authority bytes are lowercased too, which is equivalent
 //! though RFC 3986 prefers uppercase hexadecimal digits. Drivers validate target
 //! combinations and wire syntax before transmission.
-
 use arrayvec::ArrayString;
 use std::{
     borrow::{Borrow, Cow},

@@ -3,7 +3,6 @@
 
 //! Run with `cargo run --example client_server` from base-http-server.
 //! Starts one local HTTP/1 connection, echoes a POST body, then joins cleanup.
-
 use base_http::{
     InterimHandler, InterimResponses, Method, Request, Response, ResponseMetadata, Status,
     body::{BodyFrame, BufferedBody, ReadableBody},

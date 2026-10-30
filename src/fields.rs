@@ -1,11 +1,10 @@
 // Released under the MIT License.
-// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2026, by Samuel Williams.
 
 //! Ordered pairs of token names and opaque byte values, without interpretation
 //! or section state. Protocol drivers decide which value bytes each protocol can
 //! carry: HTTP/2 and HTTP/3 extensions can negotiate binary values, so the
 //! semantic model does not restrict them.
-
 use crate::syntax::is_token;
 use arrayvec::{ArrayString, ArrayVec};
 use smallvec::SmallVec;

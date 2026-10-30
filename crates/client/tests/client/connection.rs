@@ -2,7 +2,6 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Connection construction, cleanup and exchange failures, using a scheduler with injected faults where the real one cannot fail on demand.
-
 use super::{Stalled, accept, chain, head, peer, remainder, run_endpoint};
 use base_http::{
     Method, Request,

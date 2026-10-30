@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2026, by Samuel Williams.
 
 use crate::syntax::is_token;
 use std::{borrow::Cow, error::Error, fmt, str::FromStr};

@@ -1,8 +1,7 @@
 // Released under the MIT License.
-// Copyright, 2019-2026, by Samuel Williams.
+// Copyright, 2026, by Samuel Williams.
 
 //! Per-exchange interim-response hooks, independent of message heads and bodies.
-
 use crate::{ResponseMetadata, Status, future::cancellable};
 use base_scheduler::Cancellation;
 use std::{error::Error, fmt, future::Future};

@@ -1,6 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2020-2026, by Samuel Williams.
-// Copyright, 2025, by William T. Nelson.
+// Copyright, 2026, by Samuel Williams.
 
 use super::{BodyFrame, ReadableBody};
 use base_scheduler::{Cancellation, Cancelled};

@@ -3,7 +3,6 @@
 
 //! Direct client handles forward a transient borrowed server body. The proxy
 //! always polls both directions; it never selects the sequential convenience.
-
 use base_endpoint::{AddressEndpoint, BindEndpoint, BindOptions};
 use base_http::body::ReadableBody;
 use base_http_client::{Client, Endpoint, Error, Options};

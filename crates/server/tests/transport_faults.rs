@@ -2,7 +2,6 @@
 // Copyright, 2026, by Samuel Williams.
 
 // A scripted in-memory scheduler serves one connection whose transport capabilities can fail deterministically. The input script is followed by EOF, so every exchange completes without timing assumptions.
-
 use base_http::{
     InterimHandler, InterimResponses, Request, Response, Status,
     body::{BufferedBody, ReadableBody},

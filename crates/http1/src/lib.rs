@@ -3,7 +3,6 @@
 
 //! HTTP/1 framing over independently owned scheduler I/O lanes.
 //! No runtime, tasks or transport ownership are hidden inside this crate.
-
 #![doc = include_str!("../readme.md")]
 #![forbid(unsafe_code)]
 

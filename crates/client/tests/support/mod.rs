@@ -2,7 +2,6 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Helpers shared by the `client` and `writable` test suites.
-
 use base_http::body::{BodyFrame, ReadableBody};
 use base_http_client::{Client, Endpoint, Options};
 use base_scheduler::Cancellation;

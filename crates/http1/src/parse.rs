@@ -5,7 +5,6 @@
 //! receive validated start-line elements and field lines without a separate
 //! line-ending, name or value scan. See `design/http1-parser.md` for the
 //! accepted grammar.
-
 use crate::Error;
 use base_http::Version;
 
