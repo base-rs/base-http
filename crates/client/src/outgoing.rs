@@ -151,18 +151,12 @@ pub(crate) mod tests {
         let mut body = OutgoingBody::new(BufferedBody::new([b"hello".to_vec()]), never.clone());
         assert_eq!(body.length(), Some(5));
         assert!(!body.is_empty());
-        let mut bytes = Vec::new();
-        loop {
-            let frame = block_on(body.read(&never)).unwrap();
-            let end = frame.is_end();
-            if let BodyFrame::Data { data, .. } = frame {
-                bytes.extend(data);
-            }
-            if end {
-                break;
-            }
-        }
-        assert_eq!(bytes, b"hello");
+        let frame = block_on(body.read(&never)).unwrap();
+        let expected = BodyFrame::Data {
+            data: b"hello".to_vec(),
+            end: true,
+        };
+        assert_eq!(format!("{frame:?}"), format!("{expected:?}"));
         assert!(body.is_empty());
         // The producer already finished; another read reports the end again.
         assert_eq!(format!("{:?}", block_on(body.read(&never)).unwrap()), "End");

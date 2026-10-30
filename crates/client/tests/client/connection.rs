@@ -1,6 +1,9 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
+//! Connection construction, cleanup and exchange failures, using a scheduler with injected faults where the real one cannot fail on demand.
+
+use super::{Stalled, accept, chain, head, peer, remainder, run_endpoint};
 use base_http::{
     Method, Request,
     body::{BodyFrame, EmptyBody, ReadableBody},
@@ -18,8 +21,8 @@ use futures_channel::oneshot;
 use futures_lite::future::{block_on, or, poll_once, yield_now, zip};
 use std::{
     future::Future,
-    io::{self, BufRead, BufReader, IoSlice, IoSliceMut, Read, Write},
-    net::{SocketAddr, TcpListener, TcpStream},
+    io::{self, IoSlice, IoSliceMut, Write},
+    net::{SocketAddr, TcpListener},
     pin::pin,
     sync::{
         Arc, Mutex,
@@ -30,38 +33,6 @@ use std::{
     time::Duration,
 };
 
-fn peer(work: impl FnOnce(TcpListener) + Send + 'static) -> (SocketAddr, thread::JoinHandle<()>) {
-    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-    let address = listener.local_addr().unwrap();
-    (address, thread::spawn(move || work(listener)))
-}
-fn accept(listener: &TcpListener) -> BufReader<TcpStream> {
-    let (stream, _) = listener.accept().unwrap();
-    stream
-        .set_read_timeout(Some(Duration::from_secs(10)))
-        .unwrap();
-    stream
-        .set_write_timeout(Some(Duration::from_secs(10)))
-        .unwrap();
-    BufReader::new(stream)
-}
-fn head(stream: &mut impl BufRead) -> String {
-    let mut result = String::new();
-    loop {
-        let mut line = String::new();
-        assert_ne!(stream.read_line(&mut line).unwrap(), 0, "EOF before fields");
-        result.push_str(&line);
-        if line == "\r\n" {
-            return result;
-        }
-    }
-}
-// Read until the client closes the connection, returning everything it sent.
-fn remaining(stream: &mut impl Read) -> Vec<u8> {
-    let mut bytes = Vec::new();
-    stream.read_to_end(&mut bytes).unwrap();
-    bytes
-}
 fn respond_no_content(listener: &TcpListener) {
     let mut stream = accept(listener);
     assert!(head(&mut stream).starts_with("GET /next HTTP/1.1\r\n"));
@@ -69,7 +40,7 @@ fn respond_no_content(listener: &TcpListener) {
         .get_mut()
         .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
         .unwrap();
-    assert!(remaining(&mut stream).is_empty());
+    assert!(remainder(&mut stream).is_empty());
 }
 async fn next_call(client: &Client<'_>) {
     let response = client
@@ -81,27 +52,8 @@ async fn next_call(client: &Client<'_>) {
         .unwrap();
     assert!(response.body.is_empty());
 }
-async fn payload(body: &mut impl ReadableBody) -> Result<Vec<u8>, String> {
-    let mut bytes = Vec::new();
-    loop {
-        let frame = body
-            .read(&Cancellation::never())
-            .await
-            .map_err(|error| error.to_string())?;
-        let end = frame.is_end();
-        if let BodyFrame::Data { data, .. } = frame {
-            bytes.extend_from_slice(data.as_ref());
-        }
-        if end {
-            return Ok(bytes);
-        }
-    }
-}
 fn injected(name: &str) -> io::Error {
     io::Error::other(format!("injected {name} failure"))
-}
-fn source(error: &Error) -> String {
-    std::error::Error::source(error).unwrap().to_string()
 }
 async fn wait_until(condition: impl Fn() -> bool) {
     while !condition() {
@@ -448,7 +400,7 @@ fn failed_stream_setup_closes_the_socket_and_releases_construction() {
     for writer in [false, true] {
         let (address, peer) = peer(|listener| {
             // The failed attempt connects, then closes without sending a request.
-            assert!(remaining(&mut accept(&listener)).is_empty());
+            assert!(remainder(&mut accept(&listener)).is_empty());
             respond_no_content(&listener);
         });
         let scheduler = DirectScheduler::new(Default::default()).unwrap();
@@ -467,7 +419,7 @@ fn failed_stream_setup_closes_the_socket_and_releases_construction() {
                 .unwrap();
             assert!(matches!(error, Error::Io(_)), "{error:?}");
             let expected = if writer { "writer" } else { "reader" };
-            assert_eq!(source(&error), format!("injected {expected} failure"));
+            assert_eq!(chain(&error)[1], format!("injected {expected} failure"));
             // A reader created before the writer failed is closed, not leaked.
             assert_eq!(
                 plan.reader_closes.load(Ordering::SeqCst),
@@ -503,7 +455,7 @@ fn cleanup_failures_are_reported_by_the_driver_after_closing_everything() {
         });
         let error = result.unwrap_err();
         assert!(matches!(error, Error::Io(_)), "{error:?}");
-        assert_eq!(source(&error), format!("injected {fault} failure"));
+        assert_eq!(chain(&error)[1], format!("injected {fault} failure"));
         // Each direction is closed once even when the other one fails.
         assert_eq!(plan.reader_closes.load(Ordering::SeqCst), 1);
         assert_eq!(plan.writer_closes.load(Ordering::SeqCst), 1);
@@ -518,7 +470,7 @@ fn cancellation_during_and_after_tcp_connect_releases_construction() {
         let (address, peer) = peer(move |listener| {
             if after {
                 // The connected but unpublished transport is closed without a request.
-                assert!(remaining(&mut accept(&listener)).is_empty());
+                assert!(remainder(&mut accept(&listener)).is_empty());
             }
             respond_no_content(&listener);
         });
@@ -545,11 +497,37 @@ fn cancellation_during_and_after_tcp_connect_releases_construction() {
 }
 
 #[test]
+fn driver_cancellation_during_tcp_connect_waits_for_construction_to_stop() {
+    let (address, peer) = peer(drop);
+    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let faults = Faults::new(&scheduler);
+    let (reached, release) = faults.plan.gate(false);
+    let lifetime = Cancellation::new();
+    let result = drive(&faults, address, &lifetime, async |client| {
+        let never = Cancellation::never();
+        let mut call = pin!(client.call(Request::new(Method::GET, "/", EmptyBody), &never));
+        assert!(poll_once(call.as_mut()).await.is_none());
+        reached.await.unwrap();
+        lifetime.cancel();
+        // Retirement cleanup has nothing to join, but the driver still waits for the construction job.
+        wait_until(|| client.pool_stats().closed).await;
+        yield_now().await;
+        assert_eq!(client.pool_stats().building, 1);
+        release.send(()).unwrap();
+        let error = call.await.err().unwrap();
+        assert!(matches!(error, Error::Cancelled), "{error:?}");
+    });
+    result.unwrap();
+    peer.join().unwrap();
+    block_on(scheduler.shutdown());
+}
+
+#[test]
 fn driver_shutdown_during_establishment_retires_a_late_connection() {
     // A clean close of the late connection is not a driver failure; its close errors still are.
     for fault in [None, Some("reader close"), Some("writer close")] {
         let (address, peer) = peer(|listener| {
-            assert!(remaining(&mut accept(&listener)).is_empty());
+            assert!(remainder(&mut accept(&listener)).is_empty());
         });
         let scheduler = DirectScheduler::new(Default::default()).unwrap();
         let faults = Faults::new(&scheduler);
@@ -575,7 +553,7 @@ fn driver_shutdown_during_establishment_retires_a_late_connection() {
         match fault {
             Some(fault) => {
                 let error = result.unwrap_err();
-                assert_eq!(source(&error), format!("injected {fault} failure"));
+                assert_eq!(chain(&error)[1], format!("injected {fault} failure"));
             }
             None => result.unwrap(),
         }
@@ -592,7 +570,7 @@ fn driver_cancellation_waits_for_direct_handles_to_return_their_codecs() {
     let (address, peer) = peer(|listener| {
         let mut stream = accept(&listener);
         assert!(head(&mut stream).starts_with("POST / HTTP/1.1\r\n"));
-        assert_eq!(remaining(&mut stream), b"5\r\nhello\r\n");
+        assert_eq!(remainder(&mut stream), b"5\r\nhello\r\n");
     });
     let scheduler = DirectScheduler::new(Default::default()).unwrap();
     let lifetime = Cancellation::new();
@@ -621,7 +599,7 @@ fn dropping_the_driver_discards_deferred_finalization() {
         let mut stream = accept(&listener);
         assert!(head(&mut stream).starts_with("POST / HTTP/1.1\r\n"));
         // The final chunk is never sent once the supervisor is gone.
-        assert_eq!(remaining(&mut stream), b"5\r\nhello\r\n");
+        assert_eq!(remainder(&mut stream), b"5\r\nhello\r\n");
     });
     let scheduler = DirectScheduler::new(Default::default()).unwrap();
     block_on(async {
@@ -677,10 +655,9 @@ fn request_body_failure_before_a_response_fails_the_call_with_that_error() {
         let mut stream = accept(&listener);
         assert!(head(&mut stream).contains("chunked"));
         // The connection is retired with the request unfinished.
-        assert_eq!(remaining(&mut stream), b"5\r\nhello\r\n");
+        assert_eq!(remainder(&mut stream), b"5\r\nhello\r\n");
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
-    let result = drive(&scheduler, address, &Cancellation::new(), async |client| {
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let error = client
             .call(
                 Request::new(Method::POST, "/", Failing(false)),
@@ -694,19 +671,7 @@ fn request_body_failure_before_a_response_fails_the_call_with_that_error() {
         assert!(format!("{error:?}").contains("upload failed"), "{error:?}");
         client.begin_close();
     });
-    result.unwrap();
     peer.join().unwrap();
-    block_on(scheduler.shutdown());
-}
-
-struct Stalled;
-impl ReadableBody for Stalled {
-    type Data = Vec<u8>;
-    type Error = std::convert::Infallible;
-    fn close(&mut self, _: Option<Self::Error>) {}
-    async fn read(&mut self, _: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Self::Error> {
-        std::future::pending().await
-    }
 }
 
 #[test]
@@ -716,11 +681,10 @@ fn cancelling_during_upload_and_response_wait_retires_the_connection() {
         let mut stream = accept(&listener);
         assert!(head(&mut stream).starts_with("POST / HTTP/1.1\r\n"));
         sent.send(()).unwrap();
-        assert!(remaining(&mut stream).is_empty());
+        assert!(remainder(&mut stream).is_empty());
         respond_no_content(&listener);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
-    let result = drive(&scheduler, address, &Cancellation::new(), async |client| {
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let cancel = Cancellation::new();
         let mut call = pin!(client.call(Request::new(Method::POST, "/", Stalled), &cancel));
         assert!(poll_once(call.as_mut()).await.is_none());
@@ -730,9 +694,7 @@ fn cancelling_during_upload_and_response_wait_retires_the_connection() {
         next_call(&client).await;
         client.begin_close();
     });
-    result.unwrap();
     peer.join().unwrap();
-    block_on(scheduler.shutdown());
 }
 
 #[test]
@@ -741,11 +703,10 @@ fn malformed_response_fails_the_call_and_retires_the_connection() {
         let mut stream = accept(&listener);
         head(&mut stream);
         stream.get_mut().write_all(b"NOT HTTP\r\n\r\n").unwrap();
-        assert!(remaining(&mut stream).is_empty());
+        assert!(remainder(&mut stream).is_empty());
         respond_no_content(&listener);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
-    let result = drive(&scheduler, address, &Cancellation::new(), async |client| {
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let error = client
             .call(
                 Request::new(Method::GET, "/", EmptyBody),
@@ -758,9 +719,7 @@ fn malformed_response_fails_the_call_and_retires_the_connection() {
         next_call(&client).await;
         client.begin_close();
     });
-    result.unwrap();
     peer.join().unwrap();
-    block_on(scheduler.shutdown());
 }
 
 #[test]
@@ -775,8 +734,7 @@ fn truncated_response_body_reports_an_error_to_its_reader() {
         drop(stream);
         respond_no_content(&listener);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
-    let result = drive(&scheduler, address, &Cancellation::new(), async |client| {
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let mut response = client
             .call(
                 Request::new(Method::GET, "/", EmptyBody),
@@ -784,14 +742,18 @@ fn truncated_response_body_reports_an_error_to_its_reader() {
             )
             .await
             .unwrap();
-        assert!(payload(&mut response.body).await.is_err());
+        let error = loop {
+            match response.body.read(&Cancellation::never()).await {
+                Ok(frame) => assert!(!frame.is_end(), "a truncated body never ends"),
+                Err(error) => break error,
+            }
+        };
+        assert_eq!(chain(&error), ["body failed", "truncated HTTP/1 message"]);
         drop(response);
         next_call(&client).await;
         client.begin_close();
     });
-    result.unwrap();
     peer.join().unwrap();
-    block_on(scheduler.shutdown());
 }
 
 // Run the driver on another thread, so the application can act while a driver poll is held inside a read.
@@ -820,7 +782,7 @@ fn call_dropped_as_its_response_arrives_retires_the_connection() {
             .get_mut()
             .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello")
             .unwrap();
-        assert!(remaining(&mut stream).is_empty());
+        assert!(remainder(&mut stream).is_empty());
         respond_no_content(&listener);
     });
     let scheduler = DirectScheduler::new(Default::default()).unwrap();
@@ -854,7 +816,7 @@ fn response_dropped_while_its_body_arrives_retires_the_connection() {
             .unwrap();
         body_requested.recv().unwrap();
         stream.get_mut().write_all(b"hello").unwrap();
-        assert!(remaining(&mut stream).is_empty());
+        assert!(remainder(&mut stream).is_empty());
         respond_no_content(&listener);
     });
     let scheduler = DirectScheduler::new(Default::default()).unwrap();
@@ -886,6 +848,7 @@ fn response_dropped_while_its_body_arrives_retires_the_connection() {
 mod tls {
     use super::*;
     use rustls::{ClientConfig, RootCertStore};
+    use std::io::Read;
 
     fn client_config() -> Arc<ClientConfig> {
         let identity = rcgen::generate_simple_self_signed(vec!["localhost".to_owned()]).unwrap();
