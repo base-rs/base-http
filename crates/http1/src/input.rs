@@ -176,7 +176,8 @@ impl Exchange {
 }
 
 /// Sequential request admission. Input read-ahead survives body completion and
-/// protocol switches. Dropped/failed partial reads prohibit further admission.
+/// protocol switches. Failed reads and dropped head reads prohibit further
+/// admission; a dropped or cancelled body read loses no input.
 pub struct RequestReader<R> {
     reader: R,
     buffer: Vec<u8>,
@@ -329,10 +330,7 @@ impl<R: ReadableStream> RequestReader<R> {
             return Err(Error::Invalid("HTTP/1.0 transfer-encoding"));
         }
         let framing = if chunked {
-            Framing::Chunked {
-                remaining: 0,
-                delimiter: false,
-            }
+            Framing::CHUNKED
         } else {
             Framing::Fixed(length.unwrap_or(0))
         };
@@ -392,12 +390,32 @@ impl<R: ReadableStream> RequestReader<R> {
 
 pub(crate) enum Framing {
     Fixed(u64),
-    Chunked { remaining: u64, delimiter: bool },
+    /// Chunked input position: the unread data of the current chunk, whether
+    /// its CRLF delimiter remains unread, and whether the last-chunk line has
+    /// been read so that only the trailer section remains.
+    Chunked {
+        remaining: u64,
+        delimiter: bool,
+        trailers: bool,
+    },
+}
+
+impl Framing {
+    pub(crate) const CHUNKED: Self = Self::Chunked {
+        remaining: 0,
+        delimiter: false,
+        trailers: false,
+    };
 }
 
 /// A pull body borrowing the connection's input lane. Returning it as the
 /// response body provides streaming echo and managed duplex tunnels without
 /// boxing, queueing, spawning, or transferring socket ownership.
+///
+/// Reads are cancellation safe: dropping a pending read, or cancelling its
+/// wait, loses no input, and a later read resumes at the same position. This
+/// relies on `R` transferring bytes only within a `read_into` poll that returns
+/// them, as scheduler socket readers and the TLS stream do.
 pub struct IncomingBody<'a, R> {
     input: &'a mut RequestReader<R>,
     exchange: Exchange,
@@ -472,6 +490,7 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
                 Framing::Chunked {
                     remaining,
                     delimiter,
+                    trailers,
                 } => {
                     if *remaining != 0 {
                         if self.input.available().is_empty()
@@ -486,30 +505,38 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
                             end: false,
                         });
                     }
-                    if *delimiter {
-                        while self.input.available().len() < 2 {
-                            if !self.input.fill(cancellation).await? {
-                                return Err(Error::Truncated);
+                    // Each wait below consumes no input, and consumption is
+                    // recorded before the next wait, so a dropped read resumes
+                    // at the same position.
+                    if !*trailers {
+                        if *delimiter {
+                            while self.input.available().len() < 2 {
+                                if !self.input.fill(cancellation).await? {
+                                    return Err(Error::Truncated);
+                                }
                             }
+                            if !self.input.available().starts_with(b"\r\n") {
+                                return Err(Error::Invalid("missing chunk delimiter"));
+                            }
+                            self.input.start += 2;
+                            *delimiter = false;
                         }
-                        if !self.input.available().starts_with(b"\r\n") {
-                            return Err(Error::Invalid("missing chunk delimiter"));
+                        let line = self
+                            .input
+                            .line(self.input.options.max_chunk_line_bytes, cancellation)
+                            .await?;
+                        let size = chunk_size(&line)?;
+                        if size != 0 {
+                            *remaining = size;
+                            *delimiter = true;
+                            continue;
                         }
-                        self.input.start += 2;
+                        *trailers = true;
                     }
-                    let line = self
-                        .input
-                        .line(self.input.options.max_chunk_line_bytes, cancellation)
-                        .await?;
-                    let size = chunk_size(&line)?;
-                    if size == 0 {
-                        let mut fields = self.input.trailers(cancellation).await?;
-                        self.exchange.filter_trailers(&mut fields);
-                        self.complete = true;
-                        return Ok(BodyFrame::Headers { fields, end: true });
-                    }
-                    *remaining = size;
-                    *delimiter = true;
+                    let mut fields = self.input.trailers(cancellation).await?;
+                    self.exchange.filter_trailers(&mut fields);
+                    self.complete = true;
+                    return Ok(BodyFrame::Headers { fields, end: true });
                 }
             }
         }
@@ -544,9 +571,11 @@ impl<R: ReadableStream> ReadableBody for IncomingBody<'_, R> {
     async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Error> {
         cancellation.check()?;
         if self.input.poisoned {
-            return Err(Error::Invalid("previous body read failed or was abandoned"));
+            return Err(Error::Invalid("previous body read failed"));
         }
-        self.input.poisoned = true;
+        // `read_inner` records each consumption before its next wait, so a
+        // dropped read or a cancelled wait loses nothing and a later read
+        // resumes. Any other failure leaves the input position unknown.
         let result = self.read_inner(cancellation).await.and_then(|chunk| {
             if self.forbid_content
                 && matches!(&chunk, BodyFrame::Data { data, .. } if !data.is_empty())
@@ -556,9 +585,10 @@ impl<R: ReadableStream> ReadableBody for IncomingBody<'_, R> {
                 Ok(chunk)
             }
         });
-        if result.is_ok() {
-            self.input.poisoned = false;
-            self.exchange.set_complete(self.complete);
+        match &result {
+            Ok(_) => self.exchange.set_complete(self.complete),
+            Err(Error::Cancelled) => {}
+            Err(_) => self.input.poisoned = true,
         }
         result
     }

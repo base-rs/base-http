@@ -1,15 +1,15 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::support::{failing_input, input, is_invalid, is_io, reader};
+use crate::support::{Segments, failing_input, input, is_invalid, is_io, reader};
 use base_http::{
     Method,
     body::{BodyFrame, ReadableBody},
 };
 use base_http1::{Error, Options, RequestReader};
 use base_scheduler::Cancellation;
-use futures_lite::future::block_on;
-use std::io;
+use futures_lite::future::{block_on, poll_once};
+use std::{io, pin::pin};
 
 #[test]
 fn limits_that_cannot_hold_a_minimal_message_are_rejected() {
@@ -221,7 +221,7 @@ fn a_failed_body_read_cannot_be_retried() {
         ));
         assert!(is_invalid(
             request.body.read(&never).await,
-            "previous body read failed or was abandoned"
+            "previous body read failed"
         ));
     });
     assert!(!input.is_reusable());
@@ -253,4 +253,193 @@ fn a_cancelled_body_read_consumes_no_input() {
         assert_eq!((data.as_slice(), end), (&b"ab"[..], true));
     });
     assert!(input.is_reusable());
+}
+
+const CHUNKED_HEAD: &[u8] = b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n";
+
+fn segmented(head: &'static [u8]) -> (RequestReader<Segments>, Segments) {
+    let segments = Segments::default();
+    segments.push(head);
+    (
+        RequestReader::new(segments.clone(), Options::default()).unwrap(),
+        segments,
+    )
+}
+
+// Poll a read once, dropping it if it waits.
+async fn try_read(
+    body: &mut impl ReadableBody<Data = Vec<u8>, Error = Error>,
+) -> Option<BodyFrame<Vec<u8>>> {
+    poll_once(pin!(body.read(&Cancellation::never())))
+        .await
+        .map(Result::unwrap)
+}
+
+// Before each segment arrives, start a read, let it wait and drop it. Then
+// collect every frame the segment completes.
+async fn read_dropping_pending_reads(
+    body: &mut impl ReadableBody<Data = Vec<u8>, Error = Error>,
+    segments: &Segments,
+    arrivals: &[&'static [u8]],
+) -> Vec<BodyFrame<Vec<u8>>> {
+    let mut frames = Vec::new();
+    for segment in arrivals {
+        assert!(
+            try_read(body).await.is_none(),
+            "read waits before {segment:?}"
+        );
+        segments.push(segment);
+        while let Some(frame) = try_read(body).await {
+            let end = frame.is_end();
+            frames.push(frame);
+            if end {
+                break;
+            }
+        }
+    }
+    frames
+}
+
+#[test]
+fn dropping_a_pending_chunked_read_at_any_position_loses_no_input() {
+    let (mut input, segments) = segmented(CHUNKED_HEAD);
+    block_on(async {
+        let (mut request, exchange) = input
+            .read_request(&Cancellation::never())
+            .await
+            .unwrap()
+            .unwrap();
+        let frames = read_dropping_pending_reads(
+            &mut request.body,
+            &segments,
+            &[
+                // Each segment ends where the next read waits: within a chunk
+                // size line, within data, before and within a delimiter, after
+                // a delimiter, after the last-chunk line and within trailers.
+                b"5",
+                b"\r\nhel",
+                b"lo",
+                b"\r",
+                b"\n",
+                b"3;name=value\r\nabc",
+                b"\r\n0\r\n",
+                b"X-Trailer: 1\r\n",
+                b"\r\n",
+            ],
+        )
+        .await;
+        let [
+            BodyFrame::Data {
+                data: first,
+                end: false,
+            },
+            BodyFrame::Data {
+                data: second,
+                end: false,
+            },
+            BodyFrame::Data {
+                data: third,
+                end: false,
+            },
+            BodyFrame::Headers { fields, end: true },
+        ] = frames.as_slice()
+        else {
+            panic!("unexpected frames: {frames:?}");
+        };
+        assert_eq!(
+            [first.as_slice(), second, third],
+            [&b"hel"[..], b"lo", b"abc"]
+        );
+        let [trailer] = fields.pairs() else {
+            panic!("unexpected trailers: {fields:?}");
+        };
+        assert_eq!((trailer.name(), trailer.value()), ("X-Trailer", &b"1"[..]));
+        assert!(exchange.is_complete());
+    });
+    assert!(input.is_reusable());
+}
+
+#[test]
+fn dropping_a_pending_fixed_length_read_loses_no_input() {
+    let (mut input, segments) =
+        segmented(b"POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\n");
+    block_on(async {
+        let (mut request, _) = input
+            .read_request(&Cancellation::never())
+            .await
+            .unwrap()
+            .unwrap();
+        let frames =
+            read_dropping_pending_reads(&mut request.body, &segments, &[b"he", b"llo"]).await;
+        let [
+            BodyFrame::Data {
+                data: first,
+                end: false,
+            },
+            BodyFrame::Data {
+                data: second,
+                end: true,
+            },
+        ] = frames.as_slice()
+        else {
+            panic!("unexpected frames: {frames:?}");
+        };
+        assert_eq!([first.as_slice(), second], [&b"he"[..], b"llo"]);
+    });
+    assert!(input.is_reusable());
+}
+
+#[test]
+fn cancelling_a_waiting_body_read_loses_no_input() {
+    let (mut input, segments) = segmented(CHUNKED_HEAD);
+    segments.push(b"5\r\nhello\r\n");
+    block_on(async {
+        let (mut request, _) = input
+            .read_request(&Cancellation::never())
+            .await
+            .unwrap()
+            .unwrap();
+        assert!(matches!(
+            try_read(&mut request.body).await,
+            Some(BodyFrame::Data { .. })
+        ));
+        // The read consumes the delimiter, then waits for the next size line.
+        let cancellation = Cancellation::new();
+        {
+            let mut read = pin!(request.body.read(&cancellation));
+            assert!(poll_once(read.as_mut()).await.is_none());
+            cancellation.cancel();
+            assert!(matches!(
+                poll_once(read.as_mut()).await,
+                Some(Err(Error::Cancelled))
+            ));
+        }
+        segments.push(b"0\r\n\r\n");
+        assert!(matches!(
+            try_read(&mut request.body).await,
+            Some(BodyFrame::Headers { end: true, .. })
+        ));
+    });
+    assert!(input.is_reusable());
+}
+
+#[test]
+fn dropping_a_body_after_a_dropped_read_prevents_reuse() {
+    let (mut input, segments) = segmented(CHUNKED_HEAD);
+    block_on(async {
+        let (mut request, exchange) = input
+            .read_request(&Cancellation::never())
+            .await
+            .unwrap()
+            .unwrap();
+        segments.push(b"5\r\nhel");
+        assert!(matches!(
+            try_read(&mut request.body).await,
+            Some(BodyFrame::Data { .. })
+        ));
+        assert!(try_read(&mut request.body).await.is_none());
+        drop(request);
+        assert!(exchange.is_abandoned());
+    });
+    assert!(!input.is_reusable());
 }

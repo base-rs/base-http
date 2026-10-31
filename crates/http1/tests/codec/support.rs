@@ -6,8 +6,11 @@ use base_http1::{Error, Exchange, RequestReader, ResponseWriter};
 use base_scheduler::{Cancellation, OperationResult};
 use futures_lite::future::block_on;
 use std::{
+    collections::VecDeque,
+    future::poll_fn,
     io,
     sync::{Arc, Mutex},
+    task::Poll,
 };
 
 /// Delivers `bytes` in reads of at most `step` bytes, then ends cleanly or, when `fail` is set, fails.
@@ -31,6 +34,47 @@ impl ReadableStream for Input {
         buffer[..n].copy_from_slice(&self.bytes[..n]);
         self.bytes = &self.bytes[n..];
         Ok(n)
+    }
+    async fn close(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+/// Delivers each queued segment in one read and waits while none is queued, so
+/// a test can leave a read pending at a chosen position. A pending read is
+/// never woken; tests poll it explicitly.
+#[derive(Clone, Default)]
+pub struct Segments(Arc<Mutex<VecDeque<&'static [u8]>>>);
+
+impl Segments {
+    pub fn push(&self, segment: &'static [u8]) {
+        self.0.lock().unwrap().push_back(segment);
+    }
+}
+
+impl ReadableStream for Segments {
+    async fn read_into(
+        &mut self,
+        buffer: &mut [u8],
+        cancellation: &Cancellation,
+    ) -> OperationResult<usize> {
+        poll_fn(|_| {
+            if let Err(cancelled) = cancellation.check() {
+                return Poll::Ready(Err(cancelled.into()));
+            }
+            let mut queue = self.0.lock().unwrap();
+            let Some(segment) = queue.front_mut() else {
+                return Poll::Pending;
+            };
+            let n = segment.len().min(buffer.len());
+            buffer[..n].copy_from_slice(&segment[..n]);
+            *segment = &segment[n..];
+            if segment.is_empty() {
+                queue.pop_front();
+            }
+            Poll::Ready(Ok(n))
+        })
+        .await
     }
     async fn close(&mut self) -> io::Result<()> {
         Ok(())
