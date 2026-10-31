@@ -35,6 +35,7 @@ Prepare a release with `cargo bake cargo:version:patch` (or `minor`, `major`, or
 ## Releases
 
 <!-- bake-readme:releases:start -->
+
 See [releases.md](releases.md) for the full release history.
 
 ### v0.1.0
@@ -44,6 +45,7 @@ See [releases.md](releases.md) for the full release history.
 - `base-http-client` provides a cloneable client with an explicit driver that pools HTTP/1 connections through `base-pool`, over plain TCP or, with the `rustls` feature, TLS. `base-http-server` serves connections and listeners with a connection limit, over plain TCP or, with the `rustls` feature, TLS.
 - Errors report each cause once: an error either describes its cause in its message or returns it from `source`. A connection that fails to open is `base_http_client::Error::Connect`, which carries the endpoint address.
 - Requires Rust 1.87, `base-scheduler 0.3`, `base-pool 0.3` and `base-endpoint 0.1`.
+
 <!-- bake-readme:releases:end -->
 
 ## See Also
