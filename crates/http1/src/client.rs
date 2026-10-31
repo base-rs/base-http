@@ -407,10 +407,7 @@ impl<R: ReadableStream> ResponseReader<R> {
         let framing = if absent || raw {
             input::Framing::Fixed(0)
         } else if chunked {
-            input::Framing::Chunked {
-                remaining: 0,
-                delimiter: false,
-            }
+            input::Framing::CHUNKED
         } else {
             input::Framing::Fixed(length.unwrap())
         };

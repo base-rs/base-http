@@ -7,7 +7,7 @@ use base_http::{
     body::{BodyFrame, BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_server::{Error, Handler};
-use base_scheduler::Cancellation;
+use base_scheduler::{Cancellation, Clock};
 use futures_lite::future::block_on;
 use std::{
     io::{self, Read, Write},
@@ -788,4 +788,85 @@ fn partial_chunk_delimiter_does_not_hold_back_an_echo_response() {
         assert_eq!(body(&mut peer, &response).0, b"two");
     });
     assert_eq!(served.unwrap(), 1);
+}
+
+// Races every body read against a short timer, as a duplex handler racing
+// input against outgoing frames does, dropping each read that loses.
+struct Racing {
+    clock: Arc<base_scheduler_direct::DirectScheduler>,
+    timeouts: Arc<AtomicUsize>,
+}
+impl Handler for Racing {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = BufferedBody;
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        mut request: Request<B>,
+        _: &mut InterimResponses<I>,
+        cancellation: &Cancellation,
+    ) -> Result<Response<BufferedBody>, io::Error> {
+        let mut data = Vec::new();
+        loop {
+            let read = self
+                .clock
+                .timeout(Duration::from_millis(2), request.read(cancellation))
+                .await;
+            let Ok(frame) = read else {
+                self.timeouts.fetch_add(1, Ordering::Relaxed);
+                continue;
+            };
+            let frame = frame.map_err(io::Error::other)?;
+            let end = frame.is_end();
+            match frame {
+                BodyFrame::Data { data: chunk, .. } => data.extend_from_slice(chunk.as_ref()),
+                BodyFrame::Headers { fields, .. } => {
+                    for field in fields.pairs() {
+                        data.extend_from_slice(field.value());
+                    }
+                }
+                BodyFrame::End => {}
+            }
+            if end {
+                break;
+            }
+        }
+        Ok(Response::new(Status::OK, BufferedBody::from(data)))
+    }
+}
+
+#[test]
+fn body_reads_dropped_by_a_timer_race_lose_no_input() {
+    let clock = Arc::new(scheduler());
+    let timeouts = Arc::new(AtomicUsize::new(0));
+    let handler = Racing {
+        clock: clock.clone(),
+        timeouts: timeouts.clone(),
+    };
+    let (served, ()) = connection(handler, |mut peer, _| {
+        peer.get_mut().set_nodelay(true).unwrap();
+        let fragments: [&[u8]; 10] = [
+            b"POST / HTTP/1.1\r\nHost: example\r\nTransfer-Encoding: chunked\r\n\r\n",
+            b"5",
+            b"\r\nhel",
+            b"lo",
+            b"\r",
+            b"\n",
+            b"3\r\nabc",
+            b"\r\n0\r\n",
+            b"X-Trailer: !\r\n",
+            b"\r\nPOST / HTTP/1.1\r\nHost: example\r\nContent-Length: 4\r\nConnection: close\r\n\r\nne",
+        ];
+        for fragment in fragments {
+            peer.get_mut().write_all(fragment).unwrap();
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        let response = head(&mut peer);
+        assert_eq!(body(&mut peer, &response).0, b"helloabc!");
+        peer.get_mut().write_all(b"xt").unwrap();
+        let response = head(&mut peer);
+        assert_eq!(body(&mut peer, &response).0, b"next");
+    });
+    block_on(clock.shutdown());
+    assert_eq!(served.unwrap(), 2);
+    assert!(timeouts.load(Ordering::Relaxed) > 0);
 }
