@@ -337,7 +337,6 @@ fn accept_failure(error: &io::Error) -> AcceptFailure {
     match error.kind() {
         ConnectionAborted | ConnectionReset | ConnectionRefused | Interrupted | WouldBlock
         | NetworkDown | NetworkUnreachable | HostUnreachable => return AcceptFailure::Retry,
-        PermissionDenied => return os::PERMISSION_DENIED,
         OutOfMemory => return AcceptFailure::Backoff,
         _ => {}
     }
@@ -352,9 +351,13 @@ fn accept_failure(error: &io::Error) -> AcceptFailure {
 #[cfg(unix)]
 mod os {
     /// Linux reports pending network errors of the new connection from
-    /// `accept`, and documents that they should be retried.
+    /// `accept`, and documents that they should be retried, and reports a
+    /// firewall rejection of the pending peer as `EPERM`. `EACCES`, which
+    /// shares its `io::ErrorKind`, is left fatal: a security module denying
+    /// every accept would otherwise loop silently.
     #[cfg(any(target_os = "linux", target_os = "android"))]
     pub const RETRY: &[i32] = &[
+        libc::EPERM,
         libc::EPROTO,
         libc::ENOPROTOOPT,
         libc::EHOSTDOWN,
@@ -362,11 +365,7 @@ mod os {
     ];
     #[cfg(not(any(target_os = "linux", target_os = "android")))]
     pub const RETRY: &[i32] = &[libc::EPROTO];
-    /// Linux reports a firewall rejection of the pending peer as `EPERM`.
-    #[cfg(any(target_os = "linux", target_os = "android"))]
-    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Retry;
-    #[cfg(not(any(target_os = "linux", target_os = "android")))]
-    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Fatal;
+
     pub const BACKOFF: &[i32] = &[libc::EMFILE, libc::ENFILE, libc::ENOBUFS];
 }
 
@@ -375,7 +374,6 @@ mod os {
 mod os {
     /// `WSAEINTR`.
     pub const RETRY: &[i32] = &[10004];
-    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Fatal;
     /// `WSAEMFILE` and `WSAENOBUFS`.
     pub const BACKOFF: &[i32] = &[10024, 10055];
 }
@@ -383,7 +381,6 @@ mod os {
 #[cfg(not(any(unix, windows)))]
 mod os {
     pub const RETRY: &[i32] = &[];
-    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Fatal;
     pub const BACKOFF: &[i32] = &[];
 }
 
@@ -743,17 +740,10 @@ mod tests {
             accept_failure(&io::ErrorKind::OutOfMemory.into()),
             AcceptFailure::Backoff
         );
-        assert_eq!(
-            accept_failure(&io::ErrorKind::PermissionDenied.into()),
-            os::PERMISSION_DENIED
-        );
-        #[cfg(any(target_os = "linux", target_os = "android"))]
-        assert_eq!(os::PERMISSION_DENIED, AcceptFailure::Retry);
-        #[cfg(not(any(target_os = "linux", target_os = "android")))]
-        assert_eq!(os::PERMISSION_DENIED, AcceptFailure::Fatal);
         for kind in [
             io::ErrorKind::InvalidInput,
             io::ErrorKind::BrokenPipe,
+            io::ErrorKind::PermissionDenied,
             io::ErrorKind::Other,
         ] {
             assert_eq!(
@@ -771,7 +761,13 @@ mod tests {
             assert_eq!(accept_failure(&error), AcceptFailure::Backoff, "{error}");
         }
         #[cfg(unix)]
-        for code in [libc::EBADF, libc::EINVAL, libc::ENOTSOCK, libc::EOPNOTSUPP] {
+        for code in [
+            libc::EBADF,
+            libc::EINVAL,
+            libc::ENOTSOCK,
+            libc::EOPNOTSUPP,
+            libc::EACCES,
+        ] {
             let error = io::Error::from_raw_os_error(code);
             assert_eq!(accept_failure(&error), AcceptFailure::Fatal, "{error}");
         }
