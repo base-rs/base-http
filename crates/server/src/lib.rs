@@ -12,7 +12,8 @@ use base_http::{
 };
 use base_http1::{RequestReader, ResponseWriter};
 use base_scheduler::{
-    Cancellation, SocketAccept, SocketClose, SocketStreamReading, SocketStreamWriting,
+    Cancellation, SocketAccept, SocketClose, SocketSetOption, SocketStreamReading,
+    SocketStreamWriting, TcpNoDelay,
 };
 use futures_util::{
     future::{Either, select},
@@ -45,6 +46,11 @@ pub struct Options {
     /// HTTP engine selection, shared by plain and encrypted establishment.
     pub protocols: base_http_protocol::HttpProtocols,
     pub max_connections: usize,
+    /// Disable Nagle's algorithm on each accepted connection, so small writes
+    /// such as streamed frames are not held back waiting for acknowledgement.
+    /// This is a best-effort latency hint: a socket that rejects it is still
+    /// served.
+    pub tcp_nodelay: bool,
 }
 impl Default for Options {
     fn default() -> Self {
@@ -52,6 +58,7 @@ impl Default for Options {
             http1: base_http1::Options::default(),
             protocols: base_http_protocol::HttpProtocols::default(),
             max_connections: 256,
+            tcp_nodelay: true,
         }
     }
 }
@@ -308,7 +315,11 @@ pub async fn serve<S, H>(
     cancellation: &Cancellation,
 ) -> Result<Statistics, Error>
 where
-    S: SocketAccept + SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketAccept
+        + SocketSetOption<TcpNoDelay>
+        + SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose,
     S::Socket: 'static,
     H: Handler,
 {
@@ -332,7 +343,7 @@ async fn serve_with<S, F, Fut>(
     connection: F,
 ) -> Result<Statistics, Error>
 where
-    S: SocketAccept + SocketClose,
+    S: SocketAccept + SocketSetOption<TcpNoDelay> + SocketClose,
     F: Fn(S::Socket, Cancellation) -> Fut,
     Fut: Future<Output = Outcome>,
 {
@@ -377,7 +388,16 @@ where
             };
             let (socket, _) = accepted.map_err(base_http1::Error::from)?;
             statistics.connections += 1;
-            connections.push(connection(socket, connections_cancel.clone()));
+            let cancellation = connections_cancel.clone();
+            connections.push(async {
+                if options.tcp_nodelay {
+                    // A latency hint only: the connection is served without it.
+                    let _ = scheduler
+                        .socket_set_option(&socket, TcpNoDelay, true, &cancellation)
+                        .await;
+                }
+                connection(socket, cancellation).await
+            });
         }
     }
     .await;
@@ -468,7 +488,11 @@ pub async fn serve_tls<S, H>(
     cancellation: &Cancellation,
 ) -> Result<Statistics, Error>
 where
-    S: SocketAccept + SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketAccept
+        + SocketSetOption<TcpNoDelay>
+        + SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose,
     S::Socket: 'static,
     H: Handler,
 {

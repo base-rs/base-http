@@ -8,7 +8,8 @@ use crate::{
 use base_http::{Request, Response, body::ReadableBody};
 use base_pool::{Acquisition, MultiplexBuildPermit, MultiplexPool, MultiplexUse};
 use base_scheduler::{
-    Cancellation, SocketClose, SocketConnect, SocketOpen, SocketStreamReading, SocketStreamWriting,
+    Cancellation, SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
+    SocketStreamWriting, TcpNoDelay,
 };
 use event_listener::Event;
 use futures_channel::oneshot;
@@ -224,6 +225,7 @@ where
     S: SocketOpen
         + SocketConnect
         + SocketClose
+        + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
         + 'scope,

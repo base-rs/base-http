@@ -11,7 +11,8 @@ use base_scheduler::{
     BufferLease, BufferPoolOptions, BufferPooling, Cancellation, Cancelled, HeapBufferPool, IoBuf,
     IoBufSequence, IoBufSequenceMut, OperationError, OperationResult, SocketAccept, SocketAddress,
     SocketClose, SocketOperation, SocketRecvFlags, SocketRecvResult, SocketSendFlags,
-    SocketStreamReader, SocketStreamReading, SocketStreamWriter, SocketStreamWriting,
+    SocketSetOption, SocketStreamReader, SocketStreamReading, SocketStreamWriter,
+    SocketStreamWriting, TcpNoDelay,
 };
 use futures_lite::future::block_on;
 use std::{
@@ -45,6 +46,10 @@ struct Memory {
     reader_closes: AtomicUsize,
     writer_closes: AtomicUsize,
     socket_closes: AtomicUsize,
+    // Accept one connection, then wait for cancellation, which closing that connection requests.
+    accept: Mutex<Option<Cancellation>>,
+    closing: Mutex<Option<Cancellation>>,
+    nodelay_attempts: AtomicUsize,
 }
 
 impl Memory {
@@ -261,14 +266,34 @@ impl SocketAccept for Memory {
         _: &(),
         cancellation: &Cancellation,
     ) -> OperationResult<((), SocketAddress)> {
+        if let Some(closing) = self.accept.lock().unwrap().take() {
+            *self.closing.lock().unwrap() = Some(closing);
+            return Ok(((), "127.0.0.1:1".parse().unwrap()));
+        }
         cancellation.cancelled().await;
         Err(Cancelled.into())
+    }
+}
+
+impl SocketSetOption<TcpNoDelay> for Memory {
+    async fn socket_set_option(
+        &self,
+        _: &(),
+        _: TcpNoDelay,
+        _: bool,
+        _: &Cancellation,
+    ) -> OperationResult<()> {
+        self.nodelay_attempts.fetch_add(1, Ordering::SeqCst);
+        Err(io::Error::from(io::ErrorKind::Unsupported).into())
     }
 }
 
 impl SocketClose for Memory {
     async fn socket_close(&self, _: ()) -> io::Result<()> {
         self.socket_closes.fetch_add(1, Ordering::SeqCst);
+        if let Some(closing) = self.closing.lock().unwrap().take() {
+            closing.cancel();
+        }
         if self.faults().socket_close_error {
             Err(io::Error::other("socket close failed"))
         } else {
@@ -518,4 +543,38 @@ fn protocol_codecs_reject_invalid_limits_at_construction() {
         protocol.client(reader, writer, options),
         Err(base_http1::Error::Invalid(_))
     ));
+}
+
+#[test]
+fn a_listener_serves_connections_that_reject_nodelay() {
+    for tcp_nodelay in [true, false] {
+        let memory = Memory::new(REQUEST);
+        let cancellation = Cancellation::new();
+        *memory.accept.lock().unwrap() = Some(cancellation.clone());
+        let options = base_http_server::Options {
+            tcp_nodelay,
+            ..Default::default()
+        };
+        let statistics = block_on(base_http_server::serve(
+            &memory,
+            (),
+            &Hello::default(),
+            &options,
+            &cancellation,
+        ))
+        .unwrap();
+        assert_eq!(
+            (
+                statistics.connections,
+                statistics.requests,
+                statistics.failed_connections
+            ),
+            (1, 1, 0)
+        );
+        assert!(memory.output().ends_with("\r\n\r\nhello"));
+        assert_eq!(
+            memory.nodelay_attempts.load(Ordering::SeqCst),
+            usize::from(tcp_nodelay)
+        );
+    }
 }

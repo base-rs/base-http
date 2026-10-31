@@ -34,7 +34,7 @@ HTTP policy -> selected HTTP factory -> codecs and supervised connection
 application bodies <-> HTTP plaintext framing <-> optional TLS <-> socket I/O
 ```
 
-The high-level client currently uses a resolved `AddressEndpoint`. `Endpoint::with_tls` adds explicit trust configuration and server identity; the identity and HTTP authority are independent of the routing address. The server accepts TCP first and performs TLS handshakes within bounded connection futures, so a stalled handshake does not block further acceptance. Neither TLS nor the endpoint library chooses an HTTP handler.
+The high-level client currently uses a resolved `AddressEndpoint`. `Endpoint::with_tls` adds explicit trust configuration and server identity; the identity and HTTP authority are independent of the routing address. The server accepts TCP first and performs TLS handshakes within bounded connection futures, so a stalled handshake does not block further acceptance. Both the client and the listener servers disable Nagle's algorithm on each TCP connection by default, before TLS or HTTP bytes are sent, because duplex exchanges stream small frames whose latency Nagle's algorithm and delayed acknowledgements would otherwise increase. Setting `Options::tcp_nodelay` to false leaves the socket options unchanged, so a client socket keeps the operating system default and an accepted socket keeps whatever it inherits from the listener. Setting it is a best-effort hint that never fails a connection; the option is applied within each connection future, so it does not delay further acceptance. Neither TLS nor the endpoint library chooses an HTTP handler.
 
 ## TLS progress over a socket
 

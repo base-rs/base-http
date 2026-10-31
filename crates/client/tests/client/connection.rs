@@ -9,11 +9,11 @@ use base_http::{
 };
 use base_http_client::{Client, Endpoint, Error, Options};
 use base_scheduler::{
-    BufferPool, BufferPoolOptions, BufferPooling, Cancellation, IoBuf, IoBufSequence,
+    BufferPool, BufferPoolOptions, BufferPooling, Cancellation, Cancelled, IoBuf, IoBufSequence,
     IoBufSequenceMut, OperationError, OperationResult, SocketAddress, SocketClose, SocketConnect,
-    SocketDomain, SocketOpen, SocketOperation, SocketProtocol, SocketRecvFlags, SocketRecvResult,
-    SocketSendFlags, SocketStreamReader, SocketStreamReading, SocketStreamWriter,
-    SocketStreamWriting, SocketType,
+    SocketDomain, SocketGetOption, SocketOpen, SocketOperation, SocketProtocol, SocketRecvFlags,
+    SocketRecvResult, SocketSendFlags, SocketSetOption, SocketStreamReader, SocketStreamReading,
+    SocketStreamWriter, SocketStreamWriting, SocketType, TcpNoDelay,
 };
 use base_scheduler_direct::{DirectScheduler, DirectSocket};
 use futures_channel::oneshot;
@@ -68,7 +68,12 @@ fn drive<'scope, S>(
     application: impl AsyncFnOnce(Client<'scope>),
 ) -> Result<(), Error>
 where
-    S: SocketOpen + SocketConnect + SocketClose + SocketStreamReading + SocketStreamWriting,
+    S: SocketOpen
+        + SocketConnect
+        + SocketClose
+        + SocketSetOption<TcpNoDelay>
+        + SocketStreamReading
+        + SocketStreamWriting,
     S::Socket: 'static,
 {
     let options = Options {
@@ -78,6 +83,25 @@ where
         },
         ..Default::default()
     };
+    drive_with(scheduler, address, lifetime, options, application)
+}
+
+fn drive_with<'scope, S>(
+    scheduler: &'scope S,
+    address: SocketAddr,
+    lifetime: &Cancellation,
+    options: Options,
+    application: impl AsyncFnOnce(Client<'scope>),
+) -> Result<(), Error>
+where
+    S: SocketOpen
+        + SocketConnect
+        + SocketClose
+        + SocketSetOption<TcpNoDelay>
+        + SocketStreamReading
+        + SocketStreamWriting,
+    S::Socket: 'static,
+{
     let (client, driver) = Client::new(scheduler, Endpoint::new(address), options).unwrap();
     let stats = client.clone();
     let watchdog = lifetime.clone();
@@ -110,6 +134,12 @@ struct Plan {
     socket_close: AtomicBool,
     reader_closes: AtomicUsize,
     writer_closes: AtomicUsize,
+    // Reject the next attempt to disable Nagle's algorithm.
+    nodelay: AtomicBool,
+    // Report the next attempt to disable Nagle's algorithm as cancelled.
+    nodelay_cancelled: AtomicBool,
+    // TCP_NODELAY as read back from each socket just before it closes.
+    nodelay_values: Mutex<Vec<OperationResult<bool>>>,
     // Pause the next connect until released, before or after the TCP handshake.
     connect: Mutex<Option<Gate>>,
     // Block the polling thread after the next nonempty read until another thread proceeds.
@@ -198,8 +228,32 @@ impl SocketConnect for Faults<'_> {
         }
     }
 }
+impl SocketSetOption<TcpNoDelay> for Faults<'_> {
+    async fn socket_set_option(
+        &self,
+        socket: &DirectSocket,
+        option: TcpNoDelay,
+        value: bool,
+        cancellation: &Cancellation,
+    ) -> OperationResult<()> {
+        if self.plan.nodelay.swap(false, Ordering::SeqCst) {
+            return Err(injected("nodelay").into());
+        }
+        if self.plan.nodelay_cancelled.swap(false, Ordering::SeqCst) {
+            return Err(OperationError::Cancelled(Cancelled));
+        }
+        self.inner
+            .socket_set_option(socket, option, value, cancellation)
+            .await
+    }
+}
 impl SocketClose for Faults<'_> {
     async fn socket_close(&self, socket: DirectSocket) -> io::Result<()> {
+        let nodelay = self
+            .inner
+            .socket_get_option(&socket, TcpNoDelay, &Cancellation::never())
+            .await;
+        self.plan.nodelay_values.lock().unwrap().push(nodelay);
         self.inner.socket_close(socket).await?;
         if self.plan.socket_close.load(Ordering::SeqCst) {
             return Err(injected("socket close"));
@@ -465,7 +519,9 @@ fn cleanup_failures_are_reported_by_the_driver_after_closing_everything() {
 
 #[test]
 fn cancellation_during_and_after_tcp_connect_releases_construction() {
-    for after in [false, true] {
+    // Cancellation after connecting ends establishment while disabling Nagle's
+    // algorithm or, without it, before the session starts.
+    for (after, tcp_nodelay) in [(false, true), (true, true), (true, false)] {
         let (address, peer) = peer(move |listener| {
             if after {
                 // The connected but unpublished transport is closed without a request.
@@ -476,19 +532,30 @@ fn cancellation_during_and_after_tcp_connect_releases_construction() {
         let scheduler = DirectScheduler::new(Default::default()).unwrap();
         let faults = Faults::new(&scheduler);
         let (reached, release) = faults.plan.gate(after);
-        let result = drive(&faults, address, &Cancellation::new(), async |client| {
-            let cancel = Cancellation::new();
-            let mut call = pin!(client.call(Request::new(Method::GET, "/", EmptyBody), &cancel));
-            assert!(poll_once(call.as_mut()).await.is_none());
-            reached.await.unwrap();
-            assert_eq!(client.pool_stats().building, 1);
-            cancel.cancel();
-            assert!(matches!(call.await, Err(Error::Cancelled)));
-            release.send(()).unwrap();
-            wait_until(|| client.pool_stats().total() == 0).await;
-            next_call(&client).await;
-            client.begin_close();
-        });
+        let options = Options {
+            tcp_nodelay,
+            ..Default::default()
+        };
+        let result = drive_with(
+            &faults,
+            address,
+            &Cancellation::new(),
+            options,
+            async |client| {
+                let cancel = Cancellation::new();
+                let mut call =
+                    pin!(client.call(Request::new(Method::GET, "/", EmptyBody), &cancel));
+                assert!(poll_once(call.as_mut()).await.is_none());
+                reached.await.unwrap();
+                assert_eq!(client.pool_stats().building, 1);
+                cancel.cancel();
+                assert!(matches!(call.await, Err(Error::Cancelled)));
+                release.send(()).unwrap();
+                wait_until(|| client.pool_stats().total() == 0).await;
+                next_call(&client).await;
+                client.begin_close();
+            },
+        );
         result.unwrap();
         peer.join().unwrap();
         block_on(scheduler.shutdown());
@@ -538,7 +605,16 @@ fn driver_shutdown_during_establishment_retires_a_late_connection() {
         }
         let (reached, release) = plan.gate(true);
         let lifetime = Cancellation::new();
-        let result = drive(&faults, address, &lifetime, async |client| {
+        // Setting TCP_NODELAY would add a wait between connecting and constructing the codecs.
+        let options = Options {
+            pool: base_pool::Options {
+                max_resources: 1,
+                ..Default::default()
+            },
+            tcp_nodelay: false,
+            ..Default::default()
+        };
+        let result = drive_with(&faults, address, &lifetime, options, async |client| {
             let never = Cancellation::never();
             let mut call = pin!(client.call(Request::new(Method::GET, "/", EmptyBody), &never));
             assert!(poll_once(call.as_mut()).await.is_none());
@@ -901,4 +977,83 @@ mod tls {
             block_on(scheduler.shutdown());
         }
     }
+}
+
+fn nodelay_values(plan: &Plan) -> Vec<bool> {
+    let values = std::mem::take(&mut *plan.nodelay_values.lock().unwrap());
+    values.into_iter().map(Result::unwrap).collect()
+}
+
+#[test]
+fn connections_disable_nagle_unless_configured_otherwise() {
+    for tcp_nodelay in [true, false] {
+        let (address, peer) = peer(|listener| respond_no_content(&listener));
+        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let faults = Faults::new(&scheduler);
+        let plan = faults.plan.clone();
+        let options = Options {
+            tcp_nodelay,
+            ..Default::default()
+        };
+        drive_with(
+            &faults,
+            address,
+            &Cancellation::new(),
+            options,
+            async |client| {
+                next_call(&client).await;
+                client.begin_close();
+            },
+        )
+        .unwrap();
+        peer.join().unwrap();
+        assert_eq!(nodelay_values(&plan), [tcp_nodelay]);
+        block_on(scheduler.shutdown());
+    }
+}
+
+#[test]
+fn a_connection_that_rejects_nodelay_remains_usable() {
+    let (address, peer) = peer(|listener| respond_no_content(&listener));
+    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let faults = Faults::new(&scheduler);
+    let plan = faults.plan.clone();
+    plan.nodelay.store(true, Ordering::SeqCst);
+    drive(&faults, address, &Cancellation::new(), async |client| {
+        next_call(&client).await;
+        client.begin_close();
+    })
+    .unwrap();
+    peer.join().unwrap();
+    assert_eq!(nodelay_values(&plan), [false]);
+    block_on(scheduler.shutdown());
+}
+
+#[test]
+fn cancellation_while_disabling_nagle_closes_the_new_socket() {
+    let (address, peer) = peer(|listener| {
+        assert!(remainder(&mut accept(&listener)).is_empty());
+    });
+    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let faults = Faults::new(&scheduler);
+    let plan = faults.plan.clone();
+    plan.nodelay_cancelled.store(true, Ordering::SeqCst);
+    drive(&faults, address, &Cancellation::new(), async |client| {
+        let error = client
+            .call(
+                Request::new(Method::GET, "/", EmptyBody),
+                &Cancellation::never(),
+            )
+            .await
+            .err()
+            .unwrap();
+        assert!(matches!(error, Error::Cancelled), "{error:?}");
+        client.begin_close();
+    })
+    .unwrap();
+    peer.join().unwrap();
+    // The socket closes without constructing codecs.
+    assert_eq!(nodelay_values(&plan), [false]);
+    assert_eq!(plan.reader_closes.load(Ordering::SeqCst), 0);
+    block_on(scheduler.shutdown());
 }

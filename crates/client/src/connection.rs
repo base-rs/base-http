@@ -21,7 +21,8 @@ use base_http::{
 use base_http1::{RequestWriter, ResponseReader};
 use base_pool::{Admission, MultiplexBuildPermit, MultiplexResource};
 use base_scheduler::{
-    Cancellation, SocketClose, SocketConnect, SocketOpen, SocketStreamReading, SocketStreamWriting,
+    Cancellation, OperationError, OperationResult, SocketClose, SocketConnect, SocketOpen,
+    SocketSetOption, SocketStreamReading, SocketStreamWriting, TcpNoDelay,
 };
 use event_listener::Event;
 use futures_channel::oneshot;
@@ -146,7 +147,12 @@ pub(crate) async fn run<'scope, S>(
     ready: oneshot::Sender<Result<(), Error>>,
     queue: Weak<Queue<'scope>>,
 ) where
-    S: SocketOpen + SocketConnect + SocketClose + SocketStreamReading + SocketStreamWriting,
+    S: SocketOpen
+        + SocketConnect
+        + SocketClose
+        + SocketSetOption<TcpNoDelay>
+        + SocketStreamReading
+        + SocketStreamWriting,
     S::Socket: 'static,
 {
     let connection = Connection::new();
@@ -158,7 +164,10 @@ pub(crate) async fn run<'scope, S>(
     let mut ready = Some(ready);
     let result = async {
         let address = endpoint.address;
-        let endpoint_transport = AddressEndpoint::new(address);
+        let endpoint_transport = TcpEndpoint {
+            address: AddressEndpoint::new(address),
+            nodelay: options.tcp_nodelay,
+        };
         #[cfg(feature = "rustls")]
         if let Some(tls) = endpoint.tls {
             use base_endpoint::tls::{TlsClientEndpoint, TlsSession, rustls::RustlsConnector};
@@ -246,6 +255,38 @@ pub(crate) async fn run<'scope, S>(
         let _ = ready.send(Err(result.as_ref().err().cloned().unwrap_or(Error::Closed)));
     }
     connection.finish(result);
+}
+
+/// A TCP connection, configured before any plaintext or TLS bytes are sent.
+struct TcpEndpoint {
+    address: AddressEndpoint,
+    nodelay: bool,
+}
+impl<S> ConnectEndpoint<S> for TcpEndpoint
+where
+    S: SocketOpen + SocketConnect + SocketClose + SocketSetOption<TcpNoDelay>,
+{
+    type Connection = S::Socket;
+
+    async fn connect(
+        &self,
+        scheduler: &S,
+        cancellation: &Cancellation,
+    ) -> OperationResult<S::Socket> {
+        let socket = self.address.connect(scheduler, cancellation).await?;
+        if self.nodelay {
+            // A latency hint only: the connection remains usable without it.
+            // Cancellation still ends establishment without further work.
+            let result = scheduler
+                .socket_set_option(&socket, TcpNoDelay, true, cancellation)
+                .await;
+            if let Err(error @ OperationError::Cancelled(_)) = result {
+                let _ = scheduler.socket_close(socket).await;
+                return Err(error);
+            }
+        }
+        Ok(socket)
+    }
 }
 
 // A connection retains its typed HTTP buffers and transport directions. Only

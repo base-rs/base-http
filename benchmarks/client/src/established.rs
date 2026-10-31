@@ -221,7 +221,7 @@ pub(super) async fn hyper(args: &Args) -> Result<serde_json::Value> {
         let phases = phases.clone();
         jobs.push(tokio::spawn(async move {
             let socket = tokio::net::TcpStream::connect(args.address).await?;
-            socket.set_nodelay(false)?;
+            socket.set_nodelay(true)?;
             if args.tls {
                 let mut config = client_config(&args)?;
                 config.alpn_protocols = vec![b"http/1.1".to_vec()];
