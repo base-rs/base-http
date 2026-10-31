@@ -313,6 +313,12 @@ pub struct Statistics {
 /// may release descriptors or memory meanwhile.
 const ACCEPT_BACKOFF: Duration = Duration::from_millis(100);
 
+/// Consecutive immediate retries before acceptance backs off anyway. A
+/// failure which completes without suspending would otherwise spin within one
+/// poll, starving connections and cancellation, if it persists rather than
+/// belonging to one peer.
+const ACCEPT_RETRIES: u32 = 16;
+
 /// How a listener responds to a failed accept.
 #[derive(Debug, PartialEq, Eq)]
 enum AcceptFailure {
@@ -329,8 +335,9 @@ enum AcceptFailure {
 fn accept_failure(error: &io::Error) -> AcceptFailure {
     use io::ErrorKind::*;
     match error.kind() {
-        ConnectionAborted | ConnectionReset | Interrupted | WouldBlock | NetworkDown
-        | NetworkUnreachable | HostUnreachable => return AcceptFailure::Retry,
+        ConnectionAborted | ConnectionReset | ConnectionRefused | Interrupted | WouldBlock
+        | NetworkDown | NetworkUnreachable | HostUnreachable => return AcceptFailure::Retry,
+        PermissionDenied => return os::PERMISSION_DENIED,
         OutOfMemory => return AcceptFailure::Backoff,
         _ => {}
     }
@@ -355,13 +362,20 @@ mod os {
     ];
     #[cfg(not(any(target_os = "linux", target_os = "android")))]
     pub const RETRY: &[i32] = &[libc::EPROTO];
-    pub const BACKOFF: &[i32] = &[libc::EMFILE, libc::ENFILE, libc::ENOBUFS, libc::ENOMEM];
+    /// Linux reports a firewall rejection of the pending peer as `EPERM`.
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Retry;
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Fatal;
+    pub const BACKOFF: &[i32] = &[libc::EMFILE, libc::ENFILE, libc::ENOBUFS];
 }
 
 /// Winsock codes which `io::ErrorKind` leaves uncategorized.
 #[cfg(windows)]
 mod os {
-    pub const RETRY: &[i32] = &[];
+    /// `WSAEINTR`.
+    pub const RETRY: &[i32] = &[10004];
+    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Fatal;
     /// `WSAEMFILE` and `WSAENOBUFS`.
     pub const BACKOFF: &[i32] = &[10024, 10055];
 }
@@ -369,30 +383,38 @@ mod os {
 #[cfg(not(any(unix, windows)))]
 mod os {
     pub const RETRY: &[i32] = &[];
+    pub const PERMISSION_DENIED: super::AcceptFailure = super::AcceptFailure::Fatal;
     pub const BACKOFF: &[i32] = &[];
 }
 
 /// Accept one peer, surviving transient failures. Cancellation and scheduler
-/// closure arrive as errors from the accept or the backoff wait.
+/// closure arrive as errors from the accept or the backoff wait; a failed
+/// backoff wait also ends acceptance, since retrying without one could spin.
 async fn accept<S: SocketAccept + Clock>(
     scheduler: &S,
     listener: &S::Socket,
     accept_errors: &mut u64,
     cancellation: &Cancellation,
 ) -> Result<S::Socket, OperationError> {
+    let mut retries = 0;
     loop {
         let error = match scheduler.socket_accept(listener, cancellation).await {
             Ok((socket, _)) => return Ok(socket),
             Err(OperationError::Io(error)) => error,
             Err(error) => return Err(error),
         };
-        match accept_failure(&error) {
-            AcceptFailure::Retry => *accept_errors += 1,
-            AcceptFailure::Backoff => {
-                *accept_errors += 1;
-                scheduler.sleep(ACCEPT_BACKOFF, cancellation).await?;
+        let backoff = match accept_failure(&error) {
+            AcceptFailure::Retry => {
+                retries += 1;
+                retries > ACCEPT_RETRIES
             }
+            AcceptFailure::Backoff => true,
             AcceptFailure::Fatal => return Err(error.into()),
+        };
+        *accept_errors += 1;
+        if backoff {
+            retries = 0;
+            scheduler.sleep(ACCEPT_BACKOFF, cancellation).await?;
         }
     }
 }
@@ -406,9 +428,11 @@ async fn accept<S: SocketAccept + Clock>(
 /// Transient accept failures do not stop the listener: those belonging to one
 /// pending peer, such as `ECONNABORTED`, are retried immediately, and resource
 /// exhaustion, such as `EMFILE`, pauses acceptance briefly on the scheduler's
-/// clock while existing connections continue. Both are counted in
-/// [`Statistics::accept_errors`]. Any other accept failure, including scheduler
-/// closure, is returned after the same shutdown sequence.
+/// clock while existing connections continue. Repeated per-peer failures also
+/// pause after a few immediate retries, so a persistent one cannot spin. Both
+/// are counted in [`Statistics::accept_errors`]. Any other accept failure,
+/// including scheduler closure or a failed backoff wait, is returned after the
+/// same shutdown sequence, in preference to a listener close failure.
 pub async fn serve<S, H>(
     scheduler: &S,
     listener: S::Socket,
@@ -519,9 +543,12 @@ where
     while let Some(result) = connections.next().await {
         record(&mut statistics, result);
     }
-    closed?;
+    // The failure which ended serving explains a consequent close failure.
     match result {
-        Ok(()) | Err(Error::Cancelled) => Ok(statistics),
+        Ok(()) | Err(Error::Cancelled) => {
+            closed?;
+            Ok(statistics)
+        }
         Err(error) => Err(error),
     }
 }
@@ -699,6 +726,7 @@ mod tests {
         for kind in [
             io::ErrorKind::ConnectionAborted,
             io::ErrorKind::ConnectionReset,
+            io::ErrorKind::ConnectionRefused,
             io::ErrorKind::Interrupted,
             io::ErrorKind::WouldBlock,
             io::ErrorKind::NetworkDown,
@@ -715,10 +743,17 @@ mod tests {
             accept_failure(&io::ErrorKind::OutOfMemory.into()),
             AcceptFailure::Backoff
         );
+        assert_eq!(
+            accept_failure(&io::ErrorKind::PermissionDenied.into()),
+            os::PERMISSION_DENIED
+        );
+        #[cfg(any(target_os = "linux", target_os = "android"))]
+        assert_eq!(os::PERMISSION_DENIED, AcceptFailure::Retry);
+        #[cfg(not(any(target_os = "linux", target_os = "android")))]
+        assert_eq!(os::PERMISSION_DENIED, AcceptFailure::Fatal);
         for kind in [
             io::ErrorKind::InvalidInput,
             io::ErrorKind::BrokenPipe,
-            io::ErrorKind::PermissionDenied,
             io::ErrorKind::Other,
         ] {
             assert_eq!(
