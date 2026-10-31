@@ -23,7 +23,8 @@ pub use error::Error;
 use base_http::{Authority, InterimHandler, Method, Request, Response, Scheme, body::ReadableBody};
 use base_pool::MultiplexPool;
 use base_scheduler::{
-    Cancellation, SocketClose, SocketConnect, SocketOpen, SocketStreamReading, SocketStreamWriting,
+    Cancellation, SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
+    SocketStreamWriting, TcpNoDelay,
 };
 use driver::{CancelOnDrop, Operation, Pending, Queue, checked};
 use std::{
@@ -97,6 +98,10 @@ pub struct Options {
     pub max_requests: usize,
     pub response_buffer_bytes: usize,
     pub response_buffer_frames: usize,
+    /// Disable Nagle's algorithm on each TCP connection, so small writes such
+    /// as streamed frames are not held back waiting for acknowledgement. This
+    /// is a best-effort latency hint: a socket that rejects it remains usable.
+    pub tcp_nodelay: bool,
 }
 impl Default for Options {
     fn default() -> Self {
@@ -107,6 +112,7 @@ impl Default for Options {
             max_requests: 1024,
             response_buffer_bytes: 64 * 1024,
             response_buffer_frames: 16,
+            tcp_nodelay: true,
         }
     }
 }
@@ -146,6 +152,7 @@ impl<'scope> Client<'scope> {
         S: SocketOpen
             + SocketConnect
             + SocketClose
+            + SocketSetOption<TcpNoDelay>
             + SocketStreamReading
             + SocketStreamWriting
             + 'scope,

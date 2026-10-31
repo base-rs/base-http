@@ -67,7 +67,7 @@ fn connection_finished<T, E: std::fmt::Display>(result: std::result::Result<T, E
 
 // HTTP variants have one application worker and one FuturesUnordered supervisor.
 // Connections are polled in that supervisor, matching base_http_server::serve.
-// This small accept loop additionally sets TCP_NODELAY on every accepted socket.
+// Like serve, this small accept loop sets TCP_NODELAY on every accepted socket.
 async fn base_server<S>(scheduler: &S) -> Result<()>
 where
     S: SocketRegistration

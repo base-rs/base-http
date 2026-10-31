@@ -354,8 +354,8 @@ async fn base_client(scheduler: &NativeScheduler, args: &Args) -> Result<serde_j
 async fn hyper_client(args: &Args) -> Result<serde_json::Value> {
     let mut http = HttpConnector::new();
     http.enforce_http(false);
-    // Match Base's current TCP socket default; the server uses NODELAY.
-    http.set_nodelay(false);
+    // Match the Base client's default; the server uses NODELAY.
+    http.set_nodelay(true);
     let mut tls = client_config(args)?;
     tls.alpn_protocols = vec![b"http/1.1".to_vec()];
     let connector = hyper_rustls::HttpsConnector::from((http, Arc::new(tls)));
