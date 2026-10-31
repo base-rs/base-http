@@ -17,6 +17,9 @@ base-scheduler = "0.3.0"
 futures-util = { version = "0.3.31", default-features = false, features = ["alloc", "async-await"] }
 rustls = { version = "0.23.46", default-features = false, features = ["std", "ring", "tls12"], optional = true }
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.172"
+
 [dev-dependencies]
 base-scheduler-direct = "0.3.0"
 futures-lite = "2.6.1"

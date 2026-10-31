@@ -8,10 +8,10 @@ use base_http::{
 };
 use base_http_server::{Error, Handler};
 use base_scheduler::{
-    BufferLease, BufferPoolOptions, BufferPooling, Cancellation, Cancelled, HeapBufferPool, IoBuf,
-    IoBufSequence, IoBufSequenceMut, OperationError, OperationResult, SocketAccept, SocketAddress,
-    SocketClose, SocketOperation, SocketRecvFlags, SocketRecvResult, SocketSendFlags,
-    SocketSetOption, SocketStreamReader, SocketStreamReading, SocketStreamWriter,
+    BufferLease, BufferPoolOptions, BufferPooling, Cancellation, Cancelled, Clock, HeapBufferPool,
+    IoBuf, IoBufSequence, IoBufSequenceMut, OperationError, OperationResult, SocketAccept,
+    SocketAddress, SocketClose, SocketOperation, SocketRecvFlags, SocketRecvResult,
+    SocketSendFlags, SocketSetOption, SocketStreamReader, SocketStreamReading, SocketStreamWriter,
     SocketStreamWriting, TcpNoDelay,
 };
 use futures_lite::future::block_on;
@@ -24,6 +24,7 @@ use std::{
         Mutex,
         atomic::{AtomicBool, AtomicUsize, Ordering},
     },
+    time::Instant,
 };
 
 const REQUEST: &[u8] = b"GET / HTTP/1.1\r\nHost: example\r\nConnection: close\r\n\r\n";
@@ -272,6 +273,16 @@ impl SocketAccept for Memory {
         }
         cancellation.cancelled().await;
         Err(Cancelled.into())
+    }
+}
+
+// Accept never fails transiently here, so serving never waits on the clock.
+impl Clock for Memory {
+    fn now(&self) -> Instant {
+        unreachable!("no accept backoff")
+    }
+    async fn sleep_until(&self, _: Instant, _: &Cancellation) -> OperationResult<()> {
+        unreachable!("no accept backoff")
     }
 }
 
