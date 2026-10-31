@@ -29,7 +29,7 @@ A subsequent [replacement cohort](results/exchange-reuse-replace-repeat-20261029
 A separate final build with `count-allocations` measures whole-process allocation calls and requested bytes during a one-second timed phase after 0.3 seconds of warmup, at concurrency 32. Setup/warmup are excluded; phase scaffolding and cleanup workers remain included. Small fractional counts reflect that amortized work. These bytes measure allocation **traffic**, not retained/live memory, and the counting executable is not used for throughput claims. The [raw diagnostic](results/exchange-reuse-final-allocations-20261029/) compares the preserved previous counting binary with the final implementation against the same common server.
 
 | Transport | Client | Allocations/response, rounded | Requested bytes/response, approximately |
-|---|---|---:|---:|
+| --- | --- | ---: | ---: |
 | HTTP | Connection-only Base | 6 | 322 |
 | HTTP | Updated pooled Base | 12 | 839 |
 | HTTP | Previous pooled Base | 15 | 14,766 |
@@ -46,7 +46,7 @@ This removes **three allocation calls per response**, reducing calls by 20% for 
 The final five-pair repeat uses four-second timed phases, 0.5 seconds of warmup and 32 persistent connections. Median per-pair throughput rises **1.4% for HTTP and 1.4% for HTTPS**; all five pairs improve for each transport. Median per-pair CPU/response falls about 1.3% for both. One plaintext baseline sample is unusually slow (a 22.7% pair improvement), so the aggregate medians are misleading: use the paired median, preserve every sample, and treat the speedup as modest evidence on a shared development host. Individual before/after ranges overlap substantially.
 
 | Transport | Concurrency | Client | Median responses/s | Range | CPU µs/response |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 32 | `base-open` | 87,968 | 86,960–102,259 | 11.29 |
 | HTTP | 32 | `before-open` | 86,577 | 82,960–98,280 | 11.47 |
 | HTTPS | 32 | `base-open` | 83,181 | 81,729–92,550 | 11.94 |
@@ -55,7 +55,7 @@ The final five-pair repeat uses four-second timed phases, 0.5 seconds of warmup 
 The broader comparison uses three repetitions, two-second timed phases and 0.5 seconds of warmup, at concurrency one and 32. It uses the same frozen final executable, the same independent two-worker Hyper server and the [existing harness method](readme.md#method): an empty GET, a checked 11-byte response, one client worker, no pipelining, and matched TLS identity/ALPN/version settings. Base direct requests run in their application futures; Hyper retains its connection driver tasks. CPU includes each client's actual orchestration. There were no concurrent builds, tests or profilers during normal timing.
 
 | Transport | Concurrency | Client | Median responses/s | Range | CPU µs/response |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 1 | `base-connection` | 38,321 | 38,205–41,365 | 12.69 |
 | HTTP | 1 | `base-open` | 36,102 | 35,180–36,144 | 15.31 |
 | HTTP | 1 | `before-open` | 36,199 | 33,154–36,347 | 15.63 |
@@ -115,4 +115,3 @@ Final diagnostic executable: `/tmp/base-http-exchange-reuse-final-allocation-202
 Normal baseline: `/tmp/base-http-exchange-compact-20261029`, SHA-256 `fc18f5d5acd901dd303bf00350895711fe565db9df39efca4d077647988c0bd6`. Diagnostic baseline: `/tmp/base-http-exchange-allocation-compact-20261029`, SHA-256 `3da3e911e5fef4eec4c98c9accc2c5d1c30438fcfc7183bac61882794d94518f`.
 
 The [validation supplement](results/exchange-reuse-final-20261029/validation-supplement.tar.gz) preserves the final tests, documentation and production review diff alongside the measured source archives and hashes. Documentation edited after timing is separate from the frozen measured snapshot.
-

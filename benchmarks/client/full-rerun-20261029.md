@@ -9,7 +9,7 @@ This repeats the previous full matrix with unchanged frozen executables: three r
 Rates are responses/second. CPU is client process CPU µs per completed response. Each median and range uses three samples. `before-open` is the preserved Base implementation before operation-storage reuse; `base-open` is the retained current pooled client. The `*-connection` paths retain a connection and codec state without the high-level pool.
 
 | Transport | Connections | Client | Median responses/s | Range | Median CPU µs/response |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 1 | `before-open` | 32,320 | 32,290–32,408 | 17.17 |
 | HTTP | 1 | `base-open` | 32,395 | 32,207–32,469 | 16.90 |
 | HTTP | 1 | `hyper` | 31,417 | 31,155–31,705 | 15.76 |
