@@ -7,7 +7,7 @@ The updated direct HTTP/1 client is faster and uses one persistent connection pe
 Median completed requests/second, three repetitions of one second warmup plus three seconds measurement. The original executable (`before-open`) and updated clients run in alternating order against the same current server implementation and shared, verified self-signed certificate. Both clients use one worker, HTTP/1 without pipelining, an empty GET, and an 11-byte response. Hardware and TLS configuration match the [initial comparison](results-20261028.md).
 
 | Transport | Concurrency | Direct Base before | Direct Base after | Improvement | Hyper pooled |
-|---|---:|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: | ---: |
 | HTTP | 1 | 21,507 | 22,462 | +4.4% | 31,621 |
 | HTTP | 32 | 94,402 | 103,981 | +10.1% | 125,686 |
 | HTTPS | 1 | 20,318 | 20,790 | +2.3% | 30,299 |
@@ -18,7 +18,7 @@ The direct path now accepts exactly one connection per lane (1 or 32). The prese
 ## CPU cost and ranges
 
 | Transport | Concurrency | Client | Median client CPU µs/request | Median requests/s | Requests/s range |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 1 | `before-open` | 22.03 | 21,507 | 21,505–21,686 |
 | HTTP | 1 | `base-open` | 19.92 | 22,462 | 22,345–22,577 |
 | HTTP | 1 | `base-call` | 20.41 | 21,913 | 21,901–21,952 |
@@ -41,7 +41,7 @@ The direct path now accepts exactly one connection per lane (1 or 32). The prese
 Each lane retains its own established connection and codec state across warmup and measurement. The Base path invokes `RequestWriter`/`ResponseReader` directly; the Hyper path uses its HTTP/1 connection API and connection driver. Both still perform real socket I/O, parse every response and validate its full body. TLS progress remains supervised. Shared barriers synchronize phases and exclude connection setup/cleanup from measurement.
 
 | Transport | Concurrency | Base connection requests/s | Hyper connection requests/s | Base CPU µs/request | Hyper CPU µs/request |
-|---|---:|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: | ---: |
 | HTTP | 1 | 36,153 | 39,681 | 13.88 | 12.10 |
 | HTTP | 32 | 146,033 | 140,657 | 6.81 | 7.10 |
 | HTTPS | 1 | 22,903 | 31,281 | 16.90 | 15.85 |

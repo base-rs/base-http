@@ -11,7 +11,7 @@ An established direct exchange acquires a pool use, takes the retained connectio
 The isolated pool benchmark measures completion, reacquisition and activation of capacity-one resources, with one or 32 occupied registrations. It performs no HTTP, socket I/O, exchange construction or erased body polling. The optional retirement observer is explicitly repolled after each cycle. This makes its cost useful for isolation, rather than an exact model of HTTP task scheduling.
 
 | Resources | Retirement observer | Before CPU µs/cycle | After CPU µs/cycle |
-|---|---|---:|---:|
+| --- | --- | ---: | ---: |
 | 1 | No | 0.1074 | 0.0842 |
 | 1 | Yes | 0.1578 | 0.0953 |
 | 32 | No | 0.1557 | 0.1267 |
@@ -41,7 +41,7 @@ The [allocation diagnostic](results/orchestration-final-allocations-20261029/) r
 Five alternating pairs per transport use 32 persistent connections, four-second timed phases and 0.5 seconds of warmup. The frozen previous implementation is compared against the final implementation through the same common independent Hyper server. Response bodies and server request/connection accounting are checked for every sample. No builds, tests, profilers or assembly extraction run alongside this final timing cohort.
 
 | Transport | Median per-pair throughput change | Median per-pair CPU change | Improving pairs |
-|---|---:|---:|---:|
+| --- | ---: | ---: | ---: |
 | HTTP | +2.15% | −2.12% | 4/5 |
 | HTTPS | +1.54% | −1.52% | 4/5 |
 
@@ -54,7 +54,7 @@ Raw [repeat summary](results/orchestration-final-repeat-20261029/summary.json), 
 The full run uses three repetitions, two-second timed phases and 0.5 seconds of warmup, at concurrency one and 32. It uses the same frozen final executable, an independent two-worker Hyper server, an empty GET, a validated 11-byte response, one client worker and no pipelining. TLS identity, ALPN, version and resumption settings match. No builds, tests, profilers or assembly extraction run alongside this timing cohort.
 
 | Transport | Concurrency | Client | Median responses/s | CPU µs/response |
-|---|---:|---|---:|---:|
+| --- | ---: | --- | ---: | ---: |
 | HTTP | 1 | Previous Base pooled | 32,446 | 16.809 |
 | HTTP | 1 | Updated Base pooled | 33,048 | 16.058 |
 | HTTP | 1 | Hyper pooled | 31,222 | 15.967 |

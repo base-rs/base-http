@@ -88,7 +88,7 @@ Instructions per request are measured on hana with the hello request at 1 and 64
 Median user instructions per request, from five interleaved samples of each build:
 
 | Request | Connections | Previous | This parser | Hyper |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | hello | 64 | 6,217 | 5,483 | 5,877 |
 | hello | 1 | 8,814 | 8,071 | 8,739 |
 | 12 fields | 64 | 22,525 | 17,929 | 15,331 |

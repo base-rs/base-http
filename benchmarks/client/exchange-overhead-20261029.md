@@ -21,7 +21,7 @@ The harness has an optional `count-allocations` feature forwarding to the system
 The [final diagnostic](results/exchange-allocations-compact-20261029/) compares the preserved original and updated executables against the same independent server, at concurrency 32. These are one-second diagnostics after 0.3 seconds of warmup; response contents and server request/connection accounting are validated as in normal runs. Small fractional allocation counts reflect phase overhead amortized over responses.
 
 | Transport | Client | Allocations/response, rounded | Requested bytes/response, approximately |
-|---|---|---:|---:|
+| --- | --- | ---: | ---: |
 | HTTP | Previous pooled Base | 19 | 15,200 |
 | HTTP | Updated pooled Base | 15 | 14,774 |
 | HTTP | Connection-only Base | 6 | 324 |
@@ -42,7 +42,7 @@ The initial broad comparison showed substantial variability even within an uncha
 The repeat uses the frozen final binary, five repetitions, four seconds of measurement and 0.5 seconds of warmup, with 32 persistent connections. Order alternates between the original and updated clients. Each sample uses the same independent Hyper server implementation and verified self-signed TLS identity. Both clients use one worker, real loopback HTTP/1 with no pipelining, an empty GET and an 11-byte response. See the [harness method](readme.md#method) for task placement and configuration.
 
 | Transport | Concurrency | Client | Median responses/s | Responses/s range | Client CPU µs/response |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 32 | `base-open` | 110,960 | 107,033–111,586 | 8.99 |
 | HTTP | 32 | `before-open` | 106,128 | 93,740–109,718 | 9.40 |
 | HTTPS | 32 | `base-open` | 101,768 | 85,018–101,843 | 9.81 |
@@ -59,7 +59,7 @@ The preceding 60-sample cohort used three repetitions, two seconds of measuremen
 The wide ranges limit conclusions, especially concurrent pooled HTTP. Single-connection pooled HTTP remains close in throughput; HTTPS connection-only remains competitive. Concurrent high-level Base still trails pooled Hyper. Use the repeat above for the before/after estimate, and retain this table to show the variability and remaining gap.
 
 | Transport | Concurrency | Client | Median responses/s | Responses/s range | Client CPU µs/response |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 1 | `base-connection` | 40,323 | 39,669–40,903 | 12.06 |
 | HTTP | 1 | `base-open` | 34,559 | 34,342–34,971 | 15.99 |
 | HTTP | 1 | `before-open` | 34,988 | 34,590–35,660 | 15.72 |

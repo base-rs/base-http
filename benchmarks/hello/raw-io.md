@@ -133,7 +133,6 @@ python3 compare_candidates.py --wrk /absolute/path/to/wrk \
 
 The initial [build provenance](results/raw-io/build-provenance.json) and [preserved executable](results/raw-io/server), plus the final [provenance](results/raw-io/scheduler/final/provenance.json), [executable](results/raw-io/scheduler/final/server), [source snapshot](results/raw-io/scheduler/final/source/readiness_driver.rs), validation/check logs and raw sample files retain the measured revisions. The scope remains persistent plaintext loopback on one macOS application worker; Linux/io_uring, TLS, streaming and production HTTP conformance are outside this control.
 
-
 ## Continued investigation: ready writes and direct event dispatch
 
 Continued profiling and controlled source swaps found additional work in our adapter. These changes are private to selector readiness; HTTP semantics, service ownership, body backpressure and socket operation contracts remain the same.

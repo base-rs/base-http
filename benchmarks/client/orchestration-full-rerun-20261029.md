@@ -9,7 +9,7 @@ Three repetitions use two-second timed phases, 0.5 seconds of warmup, one or 32 
 Median validated responses per second:
 
 | Client | HTTP C1 | HTTP C32 | HTTPS C1 | HTTPS C32 |
-|---|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: |
 | Previous Base pooled | 34,797 | 96,578 | 30,716 | 91,989 |
 | Updated Base pooled | 35,191 | 106,733 | 31,142 | 93,690 |
 | Hyper pooled | 38,551 | 114,018 | 31,100 | 105,254 |
@@ -23,7 +23,7 @@ The updated pooled Base client is 8.7% behind Hyper for HTTP at C1 and approxima
 Median client CPU microseconds per response at concurrency 32:
 
 | Client | HTTP | HTTPS |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Previous Base pooled | 10.325 | 10.837 |
 | Updated Base pooled | 9.352 | 10.642 |
 | Hyper pooled | 8.751 | 9.478 |
@@ -33,7 +33,7 @@ Median client CPU microseconds per response at concurrency 32:
 Concurrent throughput ranges across the three repetitions:
 
 | Client | HTTP responses/s | HTTPS responses/s |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Updated Base pooled | 90,759–107,316 | 88,539–101,408 |
 | Hyper pooled | 110,599–118,072 | 101,159–108,782 |
 

@@ -90,13 +90,11 @@ The [static hello comparison](../benchmarks/hello/results.md) adds a release-bui
 
 Fields, messages and body semantics follow `protocol-http` revision `dcbc0fe7ad6b9a55986f003d25c0c0023228db0b`; MIT attribution remains preserved. The [source review](source-review.md) retains historical scheduler and Ruby implementation evidence. The simplified pull-body design is now exercised by an actual server path, with further production validation still required.
 
-
 ### Owned frame validation
 
 The frame migration passes the `base-http`, `base-http1`, and `base-http-server` suites, including end-to-end duplex proxying, fragmented trailers and connection reuse. New cases cover final-data completion without another read, separate completion after headers, terminal-write cancellation, frame ordering, header byte/item limits, non-Clone/non-Default data owners, and forwarding without copying heap-backed data or field values. Clippy and Rust 1.85.1 all-target checks pass.
 
 The hello-world release allocation probe, compared against the pre-migration source snapshot over 10,000 requests, remains at 2 allocations and 15 allocated bytes per request, with one transport write per response. On this aarch64 build, `IncomingBody` shrinks from 176 to 64 bytes because it no longer stores trailers, while the generic response-write future grows from 976 to 1,248 bytes as it retains frame and trailer state. These are allocation/layout observations, not a throughput comparison.
-
 
 ### Metadata and header interpretation separation
 
@@ -125,7 +123,6 @@ The registry-backed dependency graph uses `base-scheduler 0.3.0`, `base-pool 0.3
 `base-http-protocol` owns enabled engine policy and client/server codec factories, following Async::HTTP. `base-http1` consumes plaintext stream capabilities and has no TLS or ALPN logic. `base-endpoint` uses scheduler 0.3 and adds supervised rustls duplex progress over persistent directional handles. The client accepts explicit TLS configuration and identity with `Endpoint::with_tls`; the server exposes `serve_tls` and `serve_tls_connection`.
 
 Five HTTPS tests cover TLS 1.2/1.3 echo/reuse, stalled-handshake acceptance, missing-ALPN policy before pool publication, response backpressure with independent upload, an independent HTTP client and identity-verification failure. Three endpoint duplex regressions cover independent blocking-peer echo, lifetime cancellation and truncation. Existing plain HTTP framing and lifecycle tests pass. The pooled single-file example supports `--features rustls -- --https`. These are correctness checks, without a TLS performance claim.
-
 
 ## TLS client progress and future layout
 

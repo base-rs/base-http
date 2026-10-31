@@ -9,7 +9,7 @@ The strongest measured gain is single-connection plaintext HTTP: about 44% highe
 Median validated responses/second, three repetitions per scenario. Each sample has one second of warmup and three seconds of measurement, after finite connection preparation. The preserved previous optimized executable and current clients are interleaved against the same independent Hyper server and verified self-signed TLS identity. Both use one client worker, persistent HTTP/1 connections, an empty GET and an 11-byte response. See the [harness method](readme.md#method) for exact TLS, pooling and scheduling configuration.
 
 | Transport | Concurrency | Previous direct Base | Connection-owned Base | Change | Hyper pooled |
-|---|---:|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: | ---: |
 | HTTP | 1 | 22,112 | 31,848 | +44.0% | 31,108 |
 | HTTP | 32 | 99,409 | 97,168 | -2.3% | 119,348 |
 | HTTPS | 1 | 20,769 | 20,953 | +0.9% | 29,939 |
@@ -20,7 +20,7 @@ The concurrent plaintext medians differ by −2.3%, with overlapping ranges and 
 ## CPU cost and ranges
 
 | Transport | Concurrency | Client | CPU µs/request, median | Requests/s, median | Requests/s range |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 1 | `before-open` | 20.42 | 22,112 | 22,006–22,329 |
 | HTTP | 1 | `base-open` | 17.59 | 31,848 | 31,641–31,866 |
 | HTTP | 1 | `base-call` | 19.91 | 22,075 | 22,062–22,138 |

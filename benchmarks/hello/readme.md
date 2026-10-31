@@ -103,7 +103,6 @@ The historical `experiment.py` builds four disposable codec copies under `target
 
 The [follow-up findings](profiling-followup.md) cover worker-owned readiness and the remaining HTTP ownership costs. `experiment_next.py` builds further disposable HTTP/scheduler variants, `validate_http.py` checks general HTTP changes independently of the static benchmark patches, and `profile.py --no-sample --seconds 0` records five seconds of process user/kernel CPU accounting without a stack sampler. `summarize_profile.py --directory ... --backends ...` handles the additional profiles. Full reproduction commands and limitations are in the follow-up document.
 
-
 ## Local scheduler implementation
 
 The [worker-owned kqueue implementation and results](scheduler.md) describe the local scheduler fix, lifecycle validation, and unchanged-HTTP comparisons. `compare_local_scheduler.py` includes the previous background-reactor arrangement as a matched control. Historical result directories retain their original registry/experimental provenance.

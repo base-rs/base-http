@@ -17,7 +17,7 @@ The baseline here is the executable from the [connection-owned-state investigati
 `base-open` takes codec directions in the caller and drives writes/response reads directly. `base-call` retains the existing queued pull-body path. `hyper` is Hyper's pooled client. `before-open` is the preserved baseline's direct client.
 
 | Transport | Concurrency | Client | Median responses/s | Responses/s range | CPU µs/response |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 1 | `before-open` | 35,983 | 35,844–36,177 | 16.15 |
 | HTTP | 1 | `base-open` | 35,930 | 35,710–36,089 | 15.85 |
 | HTTP | 1 | `base-call` | 22,623 | 22,458–22,942 | 18.96 |
@@ -42,7 +42,7 @@ Single-connection HTTPS moves from **21,876 to 33,714 responses/s**; Hyper reach
 Each lane retains one codec/transport pair. Both implementations still perform full HTTP/TLS processing, and Hyper retains its connection driver. Connection setup and retirement are excluded. The application/task orchestration differs as described in the harness; this is not an isolated pool microbenchmark.
 
 | Transport | Concurrency | Client | Median responses/s | Responses/s range | CPU µs/response |
-|---|---:|---|---:|---:|---:|
+| --- | ---: | --- | ---: | ---: | ---: |
 | HTTP | 1 | `base-connection` | 41,014 | 40,258–41,374 | 11.83 |
 | HTTP | 1 | `hyper-connection` | 40,688 | 40,389–41,313 | 11.85 |
 | HTTP | 32 | `base-connection` | 103,393 | 103,092–104,117 | 9.64 |

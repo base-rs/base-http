@@ -13,7 +13,7 @@ The goal is native HTTP over Base scheduler capabilities, including Linux io_uri
 The established client path has these layers:
 
 | Layer | Responsibility | Performance boundary |
-|---|---|---|
+| --- | --- | --- |
 | `base-http` | Message metadata, ordered fields and body frames | Semantic construction and mapping perform no I/O. Header interpretation is explicit application work. |
 | `base-http-client` | Remote endpoint, admission, exchange ownership and supervision | Direct HTTP/1 operations run in the application future. |
 | `base-pool` | Connection construction, reservations, active uses and retirement | HTTP/1 uses multiplex admission with capacity one; admission is separate from protocol progress. |
@@ -38,7 +38,7 @@ All clients use the same independent two-worker Hyper server. Each client has on
 Median validated responses per second:
 
 | Client | HTTP C1 | HTTP C32 | HTTPS C1 | HTTPS C32 |
-|---|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: |
 | Previous Base pooled | 34,797 | 96,578 | 30,716 | 91,989 |
 | Updated Base pooled | 35,191 | 106,733 | 31,142 | 93,690 |
 | Hyper pooled | 38,551 | 114,018 | 31,100 | 105,254 |
@@ -48,7 +48,7 @@ Median validated responses per second:
 Median client CPU microseconds per response at C32:
 
 | Client | HTTP | HTTPS |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Previous Base pooled | 10.325 | 10.837 |
 | Updated Base pooled | 9.352 | 10.642 |
 | Hyper pooled | 8.751 | 9.478 |
@@ -64,7 +64,7 @@ Raw [summary and ranges](benchmarks/client/results/orchestration-full-rerun-2026
 Both full cohorts use the same frozen client executables and original measured source archive:
 
 | Cohort, C32 | Base HTTP | Hyper HTTP | Base gap | Base HTTPS | Hyper HTTPS | Base gap |
-|---|---:|---:|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | First full comparison | 116,873 | 119,370 | 2.1% | 107,420 | 109,901 | 2.3% |
 | Latest rerun | 106,733 | 114,018 | 6.4% | 93,690 | 105,254 | 11.0% |
 
@@ -83,7 +83,7 @@ The isolated pool workload completes an active use, reacquires its capacity and 
 Median CPU microseconds per cycle across three repetitions:
 
 | Resources | Retirement observer | Before | After |
-|---|---|---:|---:|
+| --- | --- | ---: | ---: |
 | 1 | No | 0.1074 | 0.0842 |
 | 1 | Yes | 0.1578 | 0.0953 |
 | 32 | No | 0.1557 | 0.1267 |
@@ -115,7 +115,7 @@ Earlier client work retained connection codecs and their buffers, released admis
 Rounded whole-client allocation calls per steady-state response in the documented diagnostic stages:
 
 | Stage | HTTP | HTTPS |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Before exchange/layout reductions | 19 | 21 |
 | Compact exchange adapters | 15 | 17 |
 | Reused operation storage | 12 | 14 |
@@ -131,7 +131,7 @@ History and measured limitations are preserved in the [connection/TLS work](benc
 This was measured before the pool and scheduler changes were released, on the Linux host described below, with the pooled HTTP/1 client over TCP at 32 concurrent requests. The server ran on CPUs 2, 3, 6 and 7 and the client on CPU 1. All sources were working trees copied without git metadata, so none of the base-http, base-endpoint, base-pool or base-scheduler revisions were recorded. The pool and scheduler trees were applied as Cargo path patches; the [environment notes](benchmarks/client/results/admission-scheme-20261030/environment.txt) list the patches, binary hashes and commands. The first three builds were interleaved over 10 rounds of four seconds. The scheme change was measured in an earlier six-round interleaving of the same binaries plus the scheme build. Each figure is the median per response, with the range in brackets:
 
 | Build | User instructions | Cycles | L1 data misses |
-|---|---:|---:|---:|
+| --- | ---: | ---: | ---: |
 | Baseline | 19,479 [19,476–19,481] | 17,835 [17,541–18,377] | 586 [578–593] |
 | Pool takes available capacity before listening and skips busy slots | 18,907 [18,903–18,911] | 17,713 [17,376–18,866] | 562 [551–567] |
 | Cancellation children in reusable slots | 18,663 [18,660–18,666] | 17,482 [17,244–18,369] | 554 [548–558] |
@@ -150,7 +150,7 @@ The following observations come from exploratory `perf stat`, `strace -c` and `n
 The [released-dependency measurement](benchmarks/client/results/released-dependencies-20261030/environment.txt) repeats the comparison with frozen builds. The baseline is base-http 519d476 with the published base-scheduler 0.2.0 and base-pool 0.2.0, and with base-endpoint d7625aa from a path checkout, because base-endpoint was not yet published. The candidate is this revision with base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, and includes the scheme change. The host is an otherwise idle Intel Xeon E3-1240 v6 on Linux 7.2.11 with rustc 1.99.1, using release builds and the CPU placement above. The two builds were interleaved over 10 rounds of four seconds after one second of warmup, followed by 10 rounds of Hyper from the candidate binary. Each figure is the median per response, with the range in brackets:
 
 | Build | User instructions | Cycles | L1 data misses | Responses per second |
-|---|---:|---:|---:|---:|
+| --- | ---: | ---: | ---: | ---: |
 | Baseline | 19,932 [19,931–19,935] | 18,432 [18,113–19,132] | 589 [586–594] | 100,052 [96,483–101,533] |
 | Released dependencies | 18,552 [18,549–18,556] | 16,787 [15,941–17,403] | 546 [543–550] | 105,126 [102,517–108,241] |
 | Hyper | 26,457 [26,405–26,512] | 16,570 [16,311–16,860] | 350 [345–357] | 117,570 [115,965–119,342] |
@@ -162,7 +162,7 @@ User instructions fall by 6.9% and cycles by 8.9%, and neither range overlaps. T
 Different workloads answer different questions. Their backend versions, task layouts, hosts, buffer ownership and CPU accounting can differ; use each report's metadata and matched controls.
 
 | Benchmark | Question | Evidence |
-|---|---|---|
+| --- | --- | --- |
 | Pooled client versus connection-only | What does admission, exchange ownership and client orchestration add? | [Client harness](benchmarks/client/readme.md) and the full comparisons above. |
 | Static HTTP/1 server | What does the complete server cost against Hyper with an independent load generator? | [Hello harness](benchmarks/hello/readme.md). |
 | Raw read/fixed-response server | Does a gap remain when parsing and application semantics are removed? | [Raw I/O control](benchmarks/hello/raw-io.md). |
@@ -196,7 +196,7 @@ The workspace and benchmarks depend on the published base-scheduler 0.3.0, base-
 Frozen normal executables:
 
 | Implementation | Local artifact | SHA-256 |
-|---|---|---|
+| --- | --- | --- |
 | Updated | `/tmp/base-http-orchestration-final-20261029` | `66fe13a6e9305f41fac8bf21cf20653c461ffed8b4b366d24ce8e8c378ba2dd2` |
 | Previous | `/tmp/base-http-exchange-reuse-final-20261029` | `d6e9658443587be61afa277065f39c962c23e28d5196581eb3d07fd091c42329` |
 
