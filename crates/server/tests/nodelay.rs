@@ -8,7 +8,7 @@ use base_http::{
 };
 use base_http_server::{Handler, Options};
 use base_scheduler::{
-    BufferPool, BufferPoolOptions, BufferPooling, Cancellation, IoBuf, OperationResult,
+    BufferPool, BufferPoolOptions, BufferPooling, Cancellation, Clock, IoBuf, OperationResult,
     SocketAccept, SocketAddress, SocketClose, SocketGetOption, SocketOperation, SocketSetOption,
     SocketStreamReader, SocketStreamReading, SocketStreamWriter, SocketStreamWriting, TcpNoDelay,
 };
@@ -18,6 +18,7 @@ use std::{
     future::Future,
     io::{self, Read, Write},
     sync::Mutex,
+    time::Instant,
 };
 
 mod support;
@@ -43,6 +44,18 @@ impl SocketAccept for Recording<'_> {
         cancellation: &Cancellation,
     ) -> impl Future<Output = OperationResult<(DirectSocket, SocketAddress)>> + Send {
         self.inner.socket_accept(socket, cancellation)
+    }
+}
+impl Clock for Recording<'_> {
+    fn now(&self) -> Instant {
+        self.inner.now()
+    }
+    fn sleep_until(
+        &self,
+        deadline: Instant,
+        cancellation: &Cancellation,
+    ) -> impl Future<Output = OperationResult<()>> + Send {
+        self.inner.sleep_until(deadline, cancellation)
     }
 }
 impl SocketSetOption<TcpNoDelay> for Recording<'_> {

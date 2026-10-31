@@ -12,8 +12,8 @@ use base_http::{
 };
 use base_http1::{RequestReader, ResponseWriter};
 use base_scheduler::{
-    Cancellation, SocketAccept, SocketClose, SocketSetOption, SocketStreamReading,
-    SocketStreamWriting, TcpNoDelay,
+    Cancellation, Clock, OperationError, SocketAccept, SocketClose, SocketSetOption,
+    SocketStreamReading, SocketStreamWriting, TcpNoDelay,
 };
 use futures_util::{
     future::{Either, select},
@@ -22,8 +22,10 @@ use futures_util::{
 use std::{
     fmt,
     future::{Future, poll_fn},
+    io,
     pin::pin,
     task::Poll,
+    time::Duration,
 };
 
 /// Generic bodies and hooks keep handlers independent of the HTTP wire version
@@ -301,12 +303,133 @@ pub struct Statistics {
     pub connections: u64,
     pub requests: u64,
     pub failed_connections: u64,
+    /// Transient accept failures which the listener survived, such as a peer
+    /// aborting before acceptance or descriptor exhaustion.
+    pub accept_errors: u64,
+}
+
+/// How long acceptance pauses after a resource-exhaustion failure. The pending
+/// peer stays queued in the backlog, while existing connections progress and
+/// may release descriptors or memory meanwhile.
+const ACCEPT_BACKOFF: Duration = Duration::from_millis(100);
+
+/// Consecutive immediate retries before acceptance backs off anyway. A
+/// failure which completes without suspending would otherwise spin within one
+/// poll, starving connections and cancellation, if it persists rather than
+/// belonging to one peer.
+const ACCEPT_RETRIES: u32 = 16;
+
+/// How a listener responds to a failed accept.
+#[derive(Debug, PartialEq, Eq)]
+enum AcceptFailure {
+    /// The failure belongs to one pending peer or interrupted the call; the
+    /// next accept can succeed immediately.
+    Retry,
+    /// The process or system lacks descriptors, buffers or memory; wait before
+    /// accepting again so the loop does not spin.
+    Backoff,
+    /// The listener itself or the scheduler failed; stop serving.
+    Fatal,
+}
+
+fn accept_failure(error: &io::Error) -> AcceptFailure {
+    use io::ErrorKind::*;
+    match error.kind() {
+        ConnectionAborted | ConnectionReset | ConnectionRefused | Interrupted | WouldBlock
+        | NetworkDown | NetworkUnreachable | HostUnreachable => return AcceptFailure::Retry,
+        OutOfMemory => return AcceptFailure::Backoff,
+        _ => {}
+    }
+    match error.raw_os_error() {
+        Some(code) if os::RETRY.contains(&code) => AcceptFailure::Retry,
+        Some(code) if os::BACKOFF.contains(&code) => AcceptFailure::Backoff,
+        _ => AcceptFailure::Fatal,
+    }
+}
+
+/// Error codes which `io::ErrorKind` leaves uncategorized.
+#[cfg(unix)]
+mod os {
+    /// Linux reports pending network errors of the new connection from
+    /// `accept`, and documents that they should be retried, and reports a
+    /// firewall rejection of the pending peer as `EPERM`. `EACCES`, which
+    /// shares its `io::ErrorKind`, is left fatal: a security module denying
+    /// every accept would otherwise loop silently.
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    pub const RETRY: &[i32] = &[
+        libc::EPERM,
+        libc::EPROTO,
+        libc::ENOPROTOOPT,
+        libc::EHOSTDOWN,
+        libc::ENONET,
+    ];
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    pub const RETRY: &[i32] = &[libc::EPROTO];
+
+    pub const BACKOFF: &[i32] = &[libc::EMFILE, libc::ENFILE, libc::ENOBUFS];
+}
+
+/// Winsock codes which `io::ErrorKind` leaves uncategorized.
+#[cfg(windows)]
+mod os {
+    /// `WSAEINTR`.
+    pub const RETRY: &[i32] = &[10004];
+    /// `WSAEMFILE` and `WSAENOBUFS`.
+    pub const BACKOFF: &[i32] = &[10024, 10055];
+}
+
+#[cfg(not(any(unix, windows)))]
+mod os {
+    pub const RETRY: &[i32] = &[];
+    pub const BACKOFF: &[i32] = &[];
+}
+
+/// Accept one peer, surviving transient failures. Cancellation and scheduler
+/// closure arrive as errors from the accept or the backoff wait; a failed
+/// backoff wait also ends acceptance, since retrying without one could spin.
+async fn accept<S: SocketAccept + Clock>(
+    scheduler: &S,
+    listener: &S::Socket,
+    accept_errors: &mut u64,
+    cancellation: &Cancellation,
+) -> Result<S::Socket, OperationError> {
+    let mut retries = 0;
+    loop {
+        let error = match scheduler.socket_accept(listener, cancellation).await {
+            Ok((socket, _)) => return Ok(socket),
+            Err(OperationError::Io(error)) => error,
+            Err(error) => return Err(error),
+        };
+        let backoff = match accept_failure(&error) {
+            AcceptFailure::Retry => {
+                retries += 1;
+                retries > ACCEPT_RETRIES
+            }
+            AcceptFailure::Backoff => true,
+            AcceptFailure::Fatal => return Err(error.into()),
+        };
+        *accept_errors += 1;
+        if backoff {
+            retries = 0;
+            scheduler.sleep(ACCEPT_BACKOFF, cancellation).await?;
+        }
+    }
 }
 
 /// Serve an already-bound listener with bounded concurrent connection futures.
 /// No hidden tasks or detached jobs are created. Cancellation stops acceptance,
-/// cancels active exchanges, joins retirement, and closes the owned listener.
-/// Individual peer/handler failures are counted without stopping other peers.
+/// closes the owned listener, then cancels active exchanges and joins their
+/// retirement. Individual peer/handler failures are counted without stopping
+/// other peers.
+///
+/// Transient accept failures do not stop the listener: those belonging to one
+/// pending peer, such as `ECONNABORTED`, are retried immediately, and resource
+/// exhaustion, such as `EMFILE`, pauses acceptance briefly on the scheduler's
+/// clock while existing connections continue. Repeated per-peer failures also
+/// pause after a few immediate retries, so a persistent one cannot spin. Both
+/// are counted in [`Statistics::accept_errors`]. Any other accept failure,
+/// including scheduler closure or a failed backoff wait, is returned after the
+/// same shutdown sequence, in preference to a listener close failure.
 pub async fn serve<S, H>(
     scheduler: &S,
     listener: S::Socket,
@@ -316,6 +439,7 @@ pub async fn serve<S, H>(
 ) -> Result<Statistics, Error>
 where
     S: SocketAccept
+        + Clock
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
@@ -343,13 +467,15 @@ async fn serve_with<S, F, Fut>(
     connection: F,
 ) -> Result<Statistics, Error>
 where
-    S: SocketAccept + SocketSetOption<TcpNoDelay> + SocketClose,
+    S: SocketAccept + Clock + SocketSetOption<TcpNoDelay> + SocketClose,
     F: Fn(S::Socket, Cancellation) -> Fut,
     Fut: Future<Output = Outcome>,
 {
     let connections_cancel = cancellation.child();
     let mut connections = FuturesUnordered::new();
     let mut statistics = Statistics::default();
+    // Counted apart from `statistics`, which completions update while an accept is pending.
+    let mut accept_errors = 0;
     let result = async {
         options.http1.validate()?;
         if options.max_connections == 0 {
@@ -371,7 +497,12 @@ where
             // backend may already own an accepted socket between polls; dropping
             // and recreating acceptance can silently discard that new peer.
             let accepted = {
-                let mut accept = pin!(scheduler.socket_accept(&listener, cancellation));
+                let mut accept = pin!(accept(
+                    scheduler,
+                    &listener,
+                    &mut accept_errors,
+                    cancellation
+                ));
                 loop {
                     let completed = pin!(async {
                         if connections.is_empty() {
@@ -386,7 +517,7 @@ where
                     }
                 }
             };
-            let (socket, _) = accepted.map_err(base_http1::Error::from)?;
+            let socket = accepted.map_err(base_http1::Error::from)?;
             statistics.connections += 1;
             let cancellation = connections_cancel.clone();
             connections.push(async {
@@ -401,14 +532,20 @@ where
         }
     }
     .await;
+    statistics.accept_errors = accept_errors;
+    // Close the listener first, so new peers are refused rather than left
+    // queued in a backlog which nothing accepts while connections retire.
+    let closed = scheduler.socket_close(listener).await;
     connections_cancel.cancel();
     while let Some(result) = connections.next().await {
         record(&mut statistics, result);
     }
-    let closed = scheduler.socket_close(listener).await;
-    closed?;
+    // The failure which ended serving explains a consequent close failure.
     match result {
-        Ok(()) | Err(Error::Cancelled) => Ok(statistics),
+        Ok(()) | Err(Error::Cancelled) => {
+            closed?;
+            Ok(statistics)
+        }
         Err(error) => Err(error),
     }
 }
@@ -489,6 +626,7 @@ pub async fn serve_tls<S, H>(
 ) -> Result<Statistics, Error>
 where
     S: SocketAccept
+        + Clock
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
@@ -578,6 +716,61 @@ mod tests {
         )));
         assert_eq!(format!("{error:?}"), format!("{expected:?}"));
         assert_eq!(error.source().unwrap().to_string(), "connection reset");
+    }
+
+    #[test]
+    fn accept_failures_are_classified_by_their_effect_on_the_listener() {
+        for kind in [
+            io::ErrorKind::ConnectionAborted,
+            io::ErrorKind::ConnectionReset,
+            io::ErrorKind::ConnectionRefused,
+            io::ErrorKind::Interrupted,
+            io::ErrorKind::WouldBlock,
+            io::ErrorKind::NetworkDown,
+            io::ErrorKind::NetworkUnreachable,
+            io::ErrorKind::HostUnreachable,
+        ] {
+            assert_eq!(
+                accept_failure(&kind.into()),
+                AcceptFailure::Retry,
+                "{kind:?}"
+            );
+        }
+        assert_eq!(
+            accept_failure(&io::ErrorKind::OutOfMemory.into()),
+            AcceptFailure::Backoff
+        );
+        for kind in [
+            io::ErrorKind::InvalidInput,
+            io::ErrorKind::BrokenPipe,
+            io::ErrorKind::PermissionDenied,
+            io::ErrorKind::Other,
+        ] {
+            assert_eq!(
+                accept_failure(&kind.into()),
+                AcceptFailure::Fatal,
+                "{kind:?}"
+            );
+        }
+        for &code in os::RETRY {
+            let error = io::Error::from_raw_os_error(code);
+            assert_eq!(accept_failure(&error), AcceptFailure::Retry, "{error}");
+        }
+        for &code in os::BACKOFF {
+            let error = io::Error::from_raw_os_error(code);
+            assert_eq!(accept_failure(&error), AcceptFailure::Backoff, "{error}");
+        }
+        #[cfg(unix)]
+        for code in [
+            libc::EBADF,
+            libc::EINVAL,
+            libc::ENOTSOCK,
+            libc::EOPNOTSUPP,
+            libc::EACCES,
+        ] {
+            let error = io::Error::from_raw_os_error(code);
+            assert_eq!(accept_failure(&error), AcceptFailure::Fatal, "{error}");
+        }
     }
 
     #[test]
