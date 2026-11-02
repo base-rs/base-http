@@ -499,6 +499,7 @@ fn https_idle_connections_are_probed_through_tls_before_reuse() {
                     Idle::KeyUpdate => {
                         stream.conn.refresh_traffic_keys().unwrap();
                         stream.flush().unwrap();
+                        settle();
                         idled.send(()).unwrap();
                         tls_respond(&mut stream, "/next");
                         assert!(tls_head(&mut stream).is_none());
