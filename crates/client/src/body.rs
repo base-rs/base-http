@@ -60,6 +60,8 @@ impl Consumption {
 
 /// Incoming response frames. Completion or abandonment is reported to the
 /// client driver; response reads do not drive request upload or socket I/O.
+///
+/// A pending read can be dropped without losing a frame, so reads can race other futures such as a command channel or timer. See [polling reads alongside other I/O](base_http::body#polling-reads-alongside-other-io).
 pub struct ResponseBody {
     pub(crate) reader: BodyReader,
     pub(crate) consumption: Arc<Consumption>,
