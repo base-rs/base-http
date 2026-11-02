@@ -264,6 +264,7 @@ dependencies = [
  "base-http",
  "base-http-protocol",
  "base-http-server",
+ "base-http-test-socket",
  "base-http1",
  "base-pool",
  "base-scheduler",
@@ -300,6 +301,13 @@ dependencies = [
  "futures-util",
  "libc",
  "rustls",
+]
+
+[[package]]
+name = "base-http-test-socket"
+version = "0.0.0"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

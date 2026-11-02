@@ -10,6 +10,7 @@ use base_http::{
 };
 use base_http_client::{Client, Endpoint, Error, Options};
 use base_http_server::Handler;
+use base_http_test_socket::wait_acknowledged;
 use base_scheduler::{Cancellation, Clock, SocketLocalAddress};
 use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};
@@ -17,7 +18,7 @@ use rustls::{ClientConfig, RootCertStore, ServerConfig, pki_types::PrivatePkcs8K
 use std::{
     convert::Infallible,
     io::{Read, Write},
-    net::{TcpListener, TcpStream},
+    net::{Shutdown, TcpListener, TcpStream},
     sync::Arc,
     time::Duration,
 };
@@ -439,8 +440,6 @@ fn tls_accept(
     socket
         .set_read_timeout(Some(Duration::from_secs(10)))
         .unwrap();
-    // Send idle records at once, rather than after the client acknowledges the response.
-    socket.set_nodelay(true).unwrap();
     rustls::StreamOwned::new(
         rustls::ServerConnection::new(config.clone()).unwrap(),
         socket,
@@ -481,25 +480,25 @@ fn https_idle_connections_are_probed_through_tls_before_reuse() {
             let peer = std::thread::spawn(move || {
                 let mut stream = tls_accept(&listener, &server_config);
                 tls_respond(&mut stream, "/first");
-                // Loopback can deliver asynchronously (on macOS through the input thread), and a probe only observes what has arrived.
-                let settle = || std::thread::sleep(Duration::from_millis(20));
+                // Signal only once the client's kernel holds what the server sent, so its probe observes it.
                 match idle {
                     Idle::CloseNotify => {
                         stream.conn.send_close_notify();
                         stream.flush().unwrap();
-                        settle();
+                        wait_acknowledged(stream.get_ref());
                         idled.send(()).unwrap();
                         assert!(tls_head(&mut stream).is_none());
                     }
                     Idle::Abrupt => {
+                        stream.get_ref().shutdown(Shutdown::Write).unwrap();
+                        wait_acknowledged(stream.get_ref());
                         drop(stream);
-                        settle();
                         idled.send(()).unwrap();
                     }
                     Idle::KeyUpdate => {
                         stream.conn.refresh_traffic_keys().unwrap();
                         stream.flush().unwrap();
-                        settle();
+                        wait_acknowledged(stream.get_ref());
                         idled.send(()).unwrap();
                         tls_respond(&mut stream, "/next");
                         assert!(tls_head(&mut stream).is_none());
