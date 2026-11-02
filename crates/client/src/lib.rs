@@ -188,7 +188,9 @@ impl<'scope> Client<'scope> {
     }
 
     /// Return final response metadata promptly. The driver continues upload
-    /// independently of response consumption. No automatic retries occur.
+    /// independently of response consumption. A reused idle connection is
+    /// checked before any request bytes are sent, and one the server closed is
+    /// replaced. No automatic retries occur.
     pub async fn call<B>(
         &self,
         request: Request<B>,

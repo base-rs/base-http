@@ -3,7 +3,7 @@
 
 use crate::{
     observer,
-    support::{Input, failing_input, input, is_invalid, is_io},
+    support::{Input, Segments, failing_input, input, is_invalid, is_io},
 };
 use base_http::{
     Fields, InterimResponses, Method, Protocol, Request, RequestMetadata, ResponseMetadata,
@@ -787,5 +787,69 @@ fn input_failures_are_reported_for_heads_and_tunnels() {
             response.body.read(&never).await,
             io::ErrorKind::ConnectionReset
         ));
+    });
+}
+
+async fn complete<R: base_endpoint::stream::ReadableStream>(reader: &mut ResponseReader<R>) {
+    let get = RequestMetadata::new(Method::GET);
+    let mut response = reader
+        .read_response(&get, &mut observer(), &Cancellation::never())
+        .await
+        .unwrap();
+    while !response
+        .body
+        .read(&Cancellation::never())
+        .await
+        .unwrap()
+        .is_end()
+    {}
+}
+
+#[test]
+fn idle_probes_keep_waiting_input_and_reject_anything_else() {
+    block_on(async {
+        // A reader that has not completed an exchange is not read, even with input waiting.
+        let segments = Segments::default();
+        let mut reader = ResponseReader::new(segments.clone(), Options::default()).unwrap();
+        segments.push(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok");
+        assert!(reader.probe_viable());
+        complete(&mut reader).await;
+
+        // Nothing arrives while idle, so the connection stays usable for the next response.
+        assert!(reader.probe_viable());
+        assert!(reader.is_reusable());
+
+        // Input arriving while idle, or left over after a response, ends reuse.
+        segments.push(b"HTTP/1.1 408 Request Timeout\r\n\r\n");
+        assert!(!reader.probe_viable());
+        assert!(!reader.is_reusable());
+        let mut reader = response_reader(b"HTTP/1.1 204 No Content\r\n\r\nX");
+        complete(&mut reader).await;
+        assert!(!reader.probe_viable());
+
+        // A peer close or a failed read ends reuse.
+        let mut reader = response_reader(b"HTTP/1.1 204 No Content\r\n\r\n");
+        complete(&mut reader).await;
+        assert!(!reader.probe_viable());
+        let mut reader = ResponseReader::new(
+            failing_input(b"HTTP/1.1 204 No Content\r\n\r\n"),
+            Options::default(),
+        )
+        .unwrap();
+        complete(&mut reader).await;
+        assert!(!reader.probe_viable());
+
+        // Inputs that already prohibit reuse are not viable.
+        let mut reader = response_reader(b"HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
+        complete(&mut reader).await;
+        assert!(!reader.probe_viable());
+        let get = RequestMetadata::new(Method::GET);
+        let mut reader = response_reader(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\n");
+        let response = reader
+            .read_response(&get, &mut observer(), &Cancellation::never())
+            .await
+            .unwrap();
+        drop(response);
+        assert!(!reader.probe_viable());
     });
 }

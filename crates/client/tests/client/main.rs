@@ -6,6 +6,7 @@ mod support;
 
 mod call;
 mod connection;
+mod idle;
 mod options;
 
 use base_http::{

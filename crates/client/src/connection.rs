@@ -76,6 +76,15 @@ impl<'scope> Connection<'scope> {
             .expect("an admitted connection has direct state");
         direct.open(opening)
     }
+    /// Check an admitted idle connection before its exchange begins. A failed
+    /// probe retires the registration; the caller completes its use and
+    /// acquires again, since no request bytes have been sent.
+    pub(crate) fn probe(&self) -> bool {
+        let direct = lock(&self.inner.direct)
+            .clone()
+            .expect("an admitted connection has direct state");
+        direct.probe()
+    }
     async fn next(&self, lifetime: &Cancellation) -> Option<Assigned<'scope>> {
         loop {
             event_listener::listener!(self.inner.changed => listener);
@@ -293,6 +302,7 @@ where
 // an admitted exchange may take them; short locks protect transfer, never I/O.
 trait DirectConnection<'scope>: Send + Sync {
     fn open(self: Arc<Self>, opening: Open<'scope>) -> Opening<'scope>;
+    fn probe(&self) -> bool;
 }
 struct Codecs<R, W> {
     input: Option<ResponseReader<R>>,
@@ -375,6 +385,26 @@ impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope> DirectConne
             opening.interim,
             opening.lifetime,
         )
+    }
+    fn probe(&self) -> bool {
+        // Probe outside the lock: transfer is short, and the probe performs I/O.
+        let viable = match self.take() {
+            Ok((mut input, output)) => {
+                let viable = input.probe_viable();
+                {
+                    let mut codecs = lock(&self.codecs);
+                    codecs.input = Some(input);
+                    codecs.output = Some(output);
+                }
+                self.returned();
+                viable
+            }
+            Err(_) => false,
+        };
+        if !viable {
+            self.registration.retire();
+        }
+        viable
     }
 }
 impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope>
@@ -683,6 +713,7 @@ mod tests {
             while lock(&connection.inner.result).is_none() {
                 yield_now().await;
             }
+            assert!(!connection.probe());
             let opening = Open {
                 metadata: RequestMetadata::new(Method::GET),
                 interim: Box::new(ignore),

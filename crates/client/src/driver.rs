@@ -146,9 +146,18 @@ impl<'scope> Context<'scope> {
         cancellation: &Cancellation,
     ) -> Result<MultiplexUse<Connection<'scope>>, Error> {
         loop {
-            // Admission can change between reservation and activation. Either outcome without a use acquires again, which reports a closed pool.
+            // Admission can change between reservation and activation. Either outcome without a use acquires again, which reports a closed pool. A connection the peer closed while idle is retired before any request bytes are sent, so acquiring again is always safe.
             let active = match self.pool.acquire_or_reserve(cancellation).await? {
-                Acquisition::Existing(reservation) => reservation.activate().ok(),
+                Acquisition::Existing(reservation) => {
+                    reservation.activate().ok().and_then(|active| {
+                        if active.probe() {
+                            Some(active)
+                        } else {
+                            active.complete();
+                            None
+                        }
+                    })
+                }
                 Acquisition::Build(build) => {
                     (self.factory)(build, cancellation.clone()).await?;
                     None

@@ -417,3 +417,123 @@ fn https_client_does_not_send_http_after_server_identity_verification_fails() {
     });
     peer.join().unwrap();
 }
+
+// Read one request head through TLS, returning `None` at EOF.
+fn tls_head(stream: &mut impl Read) -> Option<Vec<u8>> {
+    let mut head = Vec::new();
+    let mut byte = [0];
+    while !head.ends_with(b"\r\n\r\n") {
+        if stream.read(&mut byte).ok()? == 0 {
+            return None;
+        }
+        head.push(byte[0]);
+    }
+    Some(head)
+}
+
+fn tls_accept(
+    listener: &TcpListener,
+    config: &Arc<ServerConfig>,
+) -> rustls::StreamOwned<rustls::ServerConnection, TcpStream> {
+    let (socket, _) = listener.accept().unwrap();
+    socket
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    // Send idle records at once, rather than after the client acknowledges the response.
+    socket.set_nodelay(true).unwrap();
+    rustls::StreamOwned::new(
+        rustls::ServerConnection::new(config.clone()).unwrap(),
+        socket,
+    )
+}
+
+fn tls_respond(stream: &mut rustls::StreamOwned<rustls::ServerConnection, TcpStream>, path: &str) {
+    let head = tls_head(stream).unwrap();
+    assert!(head.starts_with(format!("GET {path} HTTP/1.1\r\n").as_bytes()));
+    write!(
+        stream,
+        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{path}",
+        path.len()
+    )
+    .unwrap();
+    stream.flush().unwrap();
+}
+
+#[derive(Clone, Copy, Debug)]
+enum Idle {
+    CloseNotify,
+    Abrupt,
+    KeyUpdate,
+}
+
+// The server acts on the idle connection after `/first`. A closed connection is
+// retired before reuse, while a key update carries no plaintext and keeps it.
+#[test]
+fn https_idle_connections_are_probed_through_tls_before_reuse() {
+    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    block_on(async {
+        for idle in [Idle::CloseNotify, Idle::Abrupt, Idle::KeyUpdate] {
+            let (client_config, server_config) = configs(false);
+            let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+            let address = listener.local_addr().unwrap();
+            let (idled, wait) = std::sync::mpsc::channel();
+            let wait = std::sync::Mutex::new(wait);
+            let peer = std::thread::spawn(move || {
+                let mut stream = tls_accept(&listener, &server_config);
+                tls_respond(&mut stream, "/first");
+                match idle {
+                    Idle::CloseNotify => {
+                        stream.conn.send_close_notify();
+                        stream.flush().unwrap();
+                        idled.send(()).unwrap();
+                        assert!(tls_head(&mut stream).is_none());
+                    }
+                    Idle::Abrupt => {
+                        drop(stream);
+                        idled.send(()).unwrap();
+                    }
+                    Idle::KeyUpdate => {
+                        stream.conn.refresh_traffic_keys().unwrap();
+                        stream.flush().unwrap();
+                        idled.send(()).unwrap();
+                        tls_respond(&mut stream, "/next");
+                        assert!(tls_head(&mut stream).is_none());
+                        return;
+                    }
+                }
+                let mut stream = tls_accept(&listener, &server_config);
+                tls_respond(&mut stream, "/next");
+                assert!(tls_head(&mut stream).is_none());
+            });
+            scheduler
+                .timeout(Duration::from_secs(15), async {
+                    let endpoint = Endpoint::new(address).with_tls(client_config, "localhost");
+                    let (client, driver) =
+                        Client::new(&scheduler, endpoint, Options::default()).unwrap();
+                    let application = async {
+                        for path in ["/first", "/next"] {
+                            if path == "/next" {
+                                wait.lock().unwrap().recv().unwrap();
+                            }
+                            let mut response = client
+                                .call(
+                                    Request::new(Method::GET, path, EmptyBody),
+                                    &Cancellation::never(),
+                                )
+                                .await
+                                .unwrap_or_else(|error| panic!("{idle:?} {path}: {error}"));
+                            assert_eq!(payload(&mut response.body).await, path.as_bytes());
+                        }
+                        client.begin_close();
+                    };
+                    let (driven, ()) = zip(driver.run(&Cancellation::never()), application).await;
+                    driven.unwrap();
+                    assert_eq!(client.pool_stats().total(), 0);
+                })
+                .await
+                .unwrap();
+            peer.join().unwrap();
+        }
+        scheduler.shutdown().await;
+    });
+}

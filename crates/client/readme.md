@@ -16,7 +16,9 @@ Establishment uses `base-endpoint::AddressEndpoint` over a resolved TCP address.
 
 Run the complete local example with `cargo run --example client_server`, or `cargo run --features rustls --example client_server -- --https` for HTTPS. The TLS demo trusts its explicitly generated local identity. It sends three POSTs through one pooled HTTP/1 session to an actual `base-http-server` echo handler: a buffered `call`, a sequential writable upload and an independently driven split upload/response. It then joins both peers and cleanup. Rust 1.87 is the minimum supported compiler.
 
-TCP integration coverage exercises reuse, early final responses, independent upload under response backpressure, interims and trailers, partial response abandonment, cancelled/dropped calls, cancelled pool waiters, admission limits and supervised shutdown. The public semantic, HTTP/1 and server suites are also checked on Rust 1.87.
+Before reusing an idle connection, the client checks it without waiting. A connection the server closed, or sent unsolicited input on, is retired and the request uses another or a new connection. The server can still close a connection after the check, and requests are never replayed.
+
+TCP integration coverage exercises reuse, idle connections closed by the server, early final responses, independent upload under response backpressure, interims and trailers, partial response abandonment, cancelled/dropped calls, cancelled pool waiters, admission limits and supervised shutdown. The public semantic, HTTP/1 and server suites are also checked on Rust 1.87.
 
 The HTTPS integration tests cover TLS 1.2/1.3, a stalled handshake alongside an active client, independent HTTP peers, strict/compatible missing-ALPN behavior, failed identity verification and upload under response backpressure. TLS reads, writes and flushes poll retained I/O futures directly. The connection future supervises control output and joined retirement; no transport task is detached.
 
