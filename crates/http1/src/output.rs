@@ -68,6 +68,7 @@ impl<W: WritableStream> ResponseWriter<W> {
             continue_sent: false,
         }
     }
+    /// Whether another message can be written. A failed write which leaves output usable wrote none of its message, so the owner can still send a different response.
     pub fn is_usable(&self) -> bool {
         self.usable
     }
@@ -235,6 +236,8 @@ impl<W: WritableStream> ResponseWriter<W> {
     /// Write one final response. `true` means output permits persistence; the
     /// connection owner must also finish input and join concurrent work before
     /// admitting another request. Discarded input disables persistence.
+    ///
+    /// A response refused before any of it is written, such as one with an informational status, conflicting framing or a length its body contradicts, leaves output usable.
     pub async fn write_response<B: ReadableBody>(
         &mut self,
         exchange: &Exchange,

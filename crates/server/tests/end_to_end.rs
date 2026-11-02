@@ -457,6 +457,101 @@ fn handler_errors_respond_with_a_server_error_and_close_the_connection() {
     }
 }
 
+struct Invalid;
+impl Handler for Invalid {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = BufferedBody;
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        request: Request<B>,
+        interim: &mut InterimResponses<I>,
+        cancellation: &Cancellation,
+    ) -> Result<Response<BufferedBody>, io::Error> {
+        let response = match request.path.as_deref() {
+            Some("/hints") => {
+                interim
+                    .send_interim_response(ResponseMetadata::new(Status::EARLY_HINTS), cancellation)
+                    .await
+                    .map_err(io::Error::other)?;
+                Response::new(Status::EARLY_HINTS, BufferedBody::default())
+            }
+            Some("/framing") => {
+                let mut response = Response::new(Status::OK, BufferedBody::from(b"hello".to_vec()));
+                response.fields.add("Content-Length", "5").unwrap();
+                response.fields.add("Transfer-Encoding", "chunked").unwrap();
+                response
+            }
+            Some("/length") => {
+                let mut response = Response::new(Status::OK, BufferedBody::from(b"hello".to_vec()));
+                response.content_length = Some(10);
+                response
+            }
+            Some("/upgrade") => Response::new(Status::SWITCHING_PROTOCOLS, BufferedBody::default()),
+            _ => Response::new(Status::CONTINUE, BufferedBody::default()),
+        };
+        Ok(response)
+    }
+}
+
+#[test]
+fn invalid_responses_respond_with_a_server_error_and_close_the_connection() {
+    for (wire, interim, reason) in [
+        // The pipelined request is never admitted.
+        (
+            "GET / HTTP/1.1\r\nHost: x\r\n\r\nGET / HTTP/1.1\r\nHost: x\r\n\r\n",
+            None,
+            "invalid HTTP/1 message: final response required",
+        ),
+        (
+            "GET /hints HTTP/1.1\r\nHost: x\r\n\r\n",
+            Some(103),
+            "invalid HTTP/1 message: final response required",
+        ),
+        (
+            "GET /framing HTTP/1.1\r\nHost: x\r\n\r\n",
+            None,
+            "invalid HTTP/1 message: content-length with transfer-encoding",
+        ),
+        (
+            "GET /length HTTP/1.1\r\nHost: x\r\n\r\n",
+            None,
+            "body does not match its declared length",
+        ),
+        (
+            "GET /upgrade HTTP/1.1\r\nHost: x\r\n\r\n",
+            None,
+            "invalid HTTP/1 message: unsolicited upgrade",
+        ),
+        // Unread upload input does not delay the response.
+        (
+            "POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 10\r\n\r\nhello",
+            None,
+            "invalid HTTP/1 message: final response required",
+        ),
+    ] {
+        let (served, ()) = connection(Invalid, move |mut peer, _| {
+            peer.get_mut().write_all(wire.as_bytes()).unwrap();
+            if let Some(status) = interim {
+                assert_eq!(head(&mut peer).status, status, "{wire:?}");
+            }
+            let response = head(&mut peer);
+            assert_eq!(response.status, 500, "{wire:?}");
+            assert_eq!(response.get("content-length"), Some("0"));
+            assert_eq!(response.get("connection"), Some("close"));
+            assert_eq!(peer.read(&mut [0]).unwrap(), 0, "{wire:?}");
+        });
+        let Err(error) = served else {
+            panic!("{wire:?} succeeded");
+        };
+        assert!(matches!(error, Error::Response(_)), "{wire:?}: {error:?}");
+        assert_eq!(
+            std::error::Error::source(&error).unwrap().to_string(),
+            reason,
+            "{wire:?}"
+        );
+    }
+}
+
 #[test]
 fn limits_are_enforced_before_handler_admission() {
     let (served, ()) = connection_options(
