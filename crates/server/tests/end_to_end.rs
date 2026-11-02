@@ -371,25 +371,33 @@ fn truncated_and_invalid_chunked_bodies_fail_without_a_successful_response() {
         let (served, ()) = connection(Collect::default(), move |mut peer, _| {
             peer.get_mut().write_all(wire.as_bytes()).unwrap();
             peer.get_mut().shutdown(Shutdown::Write).unwrap();
-            // The handler propagates the body failure, which is reported as a server error.
-            assert_eq!(head(&mut peer).status, 500, "{wire:?}");
+            // The handler propagates the body failure, which is reported as a bad request.
+            assert_eq!(head(&mut peer).status, 400, "{wire:?}");
             assert_eq!(peer.read(&mut [0]).unwrap(), 0);
         });
         assert!(matches!(served, Err(Error::Handler(_))), "{wire:?}");
     }
 }
 
-/// Fails every request, after sending an early hint for `/hints`.
+/// Fails every request, after sending an early hint for `/hints` or reading the whole body for `/read`.
 struct Fail;
 impl Handler for Fail {
     type Error = io::Error;
     type Body<B: ReadableBody> = BufferedBody;
     async fn call<B: ReadableBody, I: InterimHandler>(
         &self,
-        request: Request<B>,
+        mut request: Request<B>,
         interim: &mut InterimResponses<I>,
         cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
+        if request.path.as_deref() == Some("/read") {
+            while !request
+                .read(cancellation)
+                .await
+                .map_err(io::Error::other)?
+                .is_end()
+            {}
+        }
         if request.path.as_deref() == Some("/hints") {
             interim
                 .send_interim_response(ResponseMetadata::new(Status::EARLY_HINTS), cancellation)
@@ -418,6 +426,11 @@ fn handler_errors_respond_with_a_server_error_and_close_the_connection() {
         // Nor does an upload still in progress, which the closure abandons.
         (
             "POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 10\r\n\r\nhello",
+            None,
+        ),
+        // A completely read, valid body is still a server error.
+        (
+            "POST /read HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\nhello",
             None,
         ),
         ("GET /hints HTTP/1.1\r\nHost: x\r\n\r\n", Some(103)),

@@ -205,6 +205,11 @@ impl<R: ReadableStream> RequestReader<R> {
         })
     }
 
+    /// Whether a read failed, or was abandoned before it completed, so the input position is unknown and the input cannot be reused. After a request body read fails, this distinguishes a malformed, truncated or interrupted request from other failures. A cancelled body read does not poison input.
+    pub fn is_poisoned(&self) -> bool {
+        self.poisoned
+    }
+
     pub fn is_reusable(&self) -> bool {
         !self.poisoned
             && self
