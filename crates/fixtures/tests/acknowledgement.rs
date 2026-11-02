@@ -4,7 +4,7 @@
 // Other platforms cannot observe acknowledgement, so `is_acknowledged` cannot report data in flight there.
 #![cfg(any(target_os = "linux", target_os = "macos"))]
 
-use base_http_test_socket::{is_acknowledged, wait_acknowledged};
+use base_http_fixtures::socket::{is_acknowledged, wait_acknowledged};
 use std::{
     io::{ErrorKind, Read, Write},
     net::{Shutdown, TcpListener, TcpStream},

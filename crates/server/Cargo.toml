@@ -21,8 +21,9 @@ rustls = { version = "0.23.46", default-features = false, features = ["std", "ri
 libc = "0.2.172"
 
 [dev-dependencies]
+base-http-fixtures = { path = "../fixtures" }
 base-scheduler-native = "0.4.0"
 futures-lite = "2.6.1"
 
 [features]
-rustls = ["dep:rustls", "base-endpoint/rustls"]
+rustls = ["dep:rustls", "base-endpoint/rustls", "base-http-fixtures/rustls"]

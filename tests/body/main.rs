@@ -1,6 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
+mod contract;
 mod error;
 mod readable;
 mod writable;

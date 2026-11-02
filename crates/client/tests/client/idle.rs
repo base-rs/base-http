@@ -2,62 +2,33 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Pooled connections the server closes or writes to while idle are retired before reuse, and the request runs on a fresh connection.
-use super::{accept, head, payload, peer, remainder, run_endpoint};
-use base_http::{Method, Request, RequestMetadata, body::EmptyBody};
-use base_http_client::{Client, Endpoint, Options};
-use base_http_test_socket::wait_acknowledged;
+use base_http::{Method, Request, RequestMetadata, Status, body::EmptyBody};
+use base_http_client::{Client, Options};
+use base_http_fixtures::{ClientContext, Latch, RawServer, body::payload};
 use base_scheduler::Cancellation;
-use std::{
-    io::{BufReader, Write},
-    net::{Shutdown, SocketAddr, TcpStream},
-    sync::mpsc,
-    thread,
-};
 
-/// Serve `/first` on one connection, apply `idle` to it, then serve `/next` on a second connection. A connection `idle` returns must then have been closed by the client without further input.
-fn serve(
-    idle: fn(BufReader<TcpStream>) -> Option<BufReader<TcpStream>>,
-) -> (SocketAddr, mpsc::Receiver<()>, thread::JoinHandle<()>) {
-    let (idled, wait) = mpsc::channel();
-    let (address, peer) = peer(move |listener| {
-        let mut stream = accept(&listener);
-        assert!(head(&mut stream).starts_with("GET /first HTTP/1.1\r\n"));
-        stream
-            .get_mut()
-            .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfirst")
-            .unwrap();
-        let retired = idle(stream);
-        // `idle` returns only once the client's kernel holds everything it sent, so the client's probe observes it.
-        idled.send(()).unwrap();
-        let mut stream = accept(&listener);
-        assert!(head(&mut stream).starts_with("GET /next HTTP/1.1\r\n"));
-        stream
-            .get_mut()
-            .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\nnext")
-            .unwrap();
-        assert!(remainder(&mut stream).is_empty());
-        if let Some(mut retired) = retired {
-            assert!(remainder(&mut retired).is_empty());
-        }
-    });
-    (address, wait, peer)
+const FIRST: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfirst";
+const NEXT: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\nnext";
+
+// One pooled connection, so the second request must either reuse the idle connection or retire it first.
+fn client(server: &RawServer) -> ClientContext {
+    ClientContext::new(server.endpoint()).options(Options {
+        pool: base_pool::Options {
+            max_resources: 1,
+            ..Default::default()
+        },
+        ..Default::default()
+    })
 }
 
-// Close the idle connection, as an idle keep-alive timeout does.
-fn close(stream: BufReader<TcpStream>) -> Option<BufReader<TcpStream>> {
-    stream.get_ref().shutdown(Shutdown::Write).unwrap();
-    wait_acknowledged(stream.get_ref());
-    None
+// A raw server which closes the first connection while it is idle, as an idle keep-alive timeout does.
+fn close(idled: Latch) -> RawServer {
+    RawServer::close_while_idle(FIRST, NEXT, idled)
 }
 
-// Send bytes outside any exchange, keeping the connection open for the client to retire.
-fn unsolicited(mut stream: BufReader<TcpStream>) -> Option<BufReader<TcpStream>> {
-    stream
-        .get_mut()
-        .write_all(b"HTTP/1.1 408 Request Timeout\r\n\r\n")
-        .unwrap();
-    wait_acknowledged(stream.get_ref());
-    Some(stream)
+// A raw server which writes outside any exchange, keeping the connection open for the client to retire.
+fn unsolicited(idled: Latch) -> RawServer {
+    RawServer::write_while_idle(FIRST, "HTTP/1.1 408 Request Timeout\r\n\r\n", NEXT, idled)
 }
 
 async fn first(client: &Client<'_>) {
@@ -71,11 +42,12 @@ async fn first(client: &Client<'_>) {
     assert_eq!(payload(&mut response.body).await, b"first");
 }
 
-fn calls_after(idle: fn(BufReader<TcpStream>) -> Option<BufReader<TcpStream>>) {
-    let (address, idled, peer) = serve(idle);
-    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
-        first(&client).await;
-        idled.recv().unwrap();
+fn calls_after(serve: fn(Latch) -> RawServer) {
+    let idled = Latch::new();
+    let server = serve(idled.clone());
+    client(&server).run(async |client| {
+        first(client).await;
+        idled.wait(&Cancellation::never()).await.unwrap();
         let mut response = client
             .call(
                 Request::new(Method::GET, "/next", EmptyBody),
@@ -84,16 +56,16 @@ fn calls_after(idle: fn(BufReader<TcpStream>) -> Option<BufReader<TcpStream>>) {
             .await
             .unwrap();
         assert_eq!(payload(&mut response.body).await, b"next");
-        client.begin_close();
     });
-    peer.join().unwrap();
+    server.join();
 }
 
-fn opens_after(idle: fn(BufReader<TcpStream>) -> Option<BufReader<TcpStream>>) {
-    let (address, idled, peer) = serve(idle);
-    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
-        first(&client).await;
-        idled.recv().unwrap();
+fn opens_after(serve: fn(Latch) -> RawServer) {
+    let idled = Latch::new();
+    let server = serve(idled.clone());
+    client(&server).run(async |client| {
+        first(client).await;
+        idled.wait(&Cancellation::never()).await.unwrap();
         let never = Cancellation::never();
         let mut metadata = RequestMetadata::new(Method::GET);
         metadata.path = Some("/next".into());
@@ -101,10 +73,8 @@ fn opens_after(idle: fn(BufReader<TcpStream>) -> Option<BufReader<TcpStream>>) {
         let request = client.open_request(metadata, &never).await.unwrap();
         let mut response = request.finish(&never).await.unwrap();
         assert_eq!(payload(&mut response.body).await, b"next");
-        drop(response);
-        client.begin_close();
     });
-    peer.join().unwrap();
+    server.join();
 }
 
 #[test]
@@ -131,25 +101,17 @@ fn an_open_after_unsolicited_idle_input_uses_a_fresh_connection() {
 // closes on accept costs one connection rather than a replacement per probe.
 #[test]
 fn a_new_connection_is_used_without_probing() {
-    let (address, peer) = peer(|listener| {
-        let mut stream = accept(&listener);
-        stream
-            .get_mut()
-            .write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
-            .unwrap();
-        stream
-            .get_mut()
-            .shutdown(std::net::Shutdown::Write)
-            .unwrap();
-        assert!(head(&mut stream).starts_with("GET /first HTTP/1.1\r\n"));
-        assert!(remainder(&mut stream).is_empty());
-        listener.set_nonblocking(true).unwrap();
-        assert_eq!(
-            listener.accept().unwrap_err().kind(),
-            std::io::ErrorKind::WouldBlock
+    let server = RawServer::spawn(|listener| {
+        let mut peer = listener.accept();
+        peer.write(
+            b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
         );
+        peer.shutdown_write();
+        assert_eq!(peer.read_head().line, "GET /first HTTP/1.1");
+        peer.expect_closed();
+        listener.expect_no_connection();
     });
-    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
+    client(&server).run(async |client| {
         let response = client
             .call(
                 Request::new(Method::GET, "/first", EmptyBody),
@@ -157,9 +119,7 @@ fn a_new_connection_is_used_without_probing() {
             )
             .await
             .unwrap();
-        assert_eq!(response.status, base_http::Status::SERVICE_UNAVAILABLE);
-        drop(response);
-        client.begin_close();
+        assert_eq!(response.status, Status::SERVICE_UNAVAILABLE);
     });
-    peer.join().unwrap();
+    server.join();
 }

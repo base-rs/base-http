@@ -1,9 +1,13 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-//! Test support which waits until a TCP peer's kernel has acknowledged everything sent to it, so the peer's next nonblocking read observes that data or, after a write shutdown, EOF. Writing to a socket only queues data for delivery, so without this a test which signals its peer through another channel races the delivery.
+//! Wait until a TCP peer's kernel has acknowledged everything sent to it, so the peer's next nonblocking read observes that data or, after a write shutdown, EOF. Writing to a socket only queues data for delivery, so without this a test which signals its peer through another channel races the delivery.
 //!
-//! The kernel queries need `unsafe` system calls, which this private crate keeps out of the published crates.
+//! Linux and macOS query the kernel. Other platforms cannot, so [`is_acknowledged`] sleeps for 50 ms instead, leaving the race unlikely rather than impossible.
+//!
+//! The kernel queries need `unsafe` system calls. They are confined to this module of an unpublished crate; the published crates forbid `unsafe` code.
+#![allow(unsafe_code)]
+
 use std::{
     net::TcpStream,
     thread,
