@@ -439,6 +439,8 @@ fn tls_accept(
     socket
         .set_read_timeout(Some(Duration::from_secs(10)))
         .unwrap();
+    // Send idle records at once, rather than after the client acknowledges the response.
+    socket.set_nodelay(true).unwrap();
     rustls::StreamOwned::new(
         rustls::ServerConnection::new(config.clone()).unwrap(),
         socket,

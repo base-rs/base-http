@@ -308,8 +308,10 @@ impl<R: ReadableStream> ResponseReader<R> {
 
     /// Check an idle connection before reusing it, by polling one read
     /// without waiting. Unread input, EOF or a read error (including a TLS
-    /// close notification) ends reuse. TLS records with no plaintext, such as
-    /// key updates or session tickets, are consumed. This narrows the window for reusing a
+    /// close notification) ends reuse permanently. A reader that has not yet
+    /// read a response is not probed and reports `true`. A TLS stream
+    /// consumes records with no plaintext, such as key updates or session
+    /// tickets, during the read. This narrows the window for reusing a
     /// connection the server closed, but cannot remove it: a close the
     /// transport has not yet observed, or one arriving later, still fails
     /// the next exchange.

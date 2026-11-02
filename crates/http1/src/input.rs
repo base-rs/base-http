@@ -241,10 +241,16 @@ impl<R: ReadableStream> RequestReader<R> {
     /// Whether idle input can still begin a message. Read-ahead, or a read
     /// polled once without waiting that yields data, EOF or an error, means
     /// the peer sent or closed outside an exchange, and prohibits admission.
-    /// A pending read loses no input, so input stays usable when idle.
+    /// A pending read loses no input, so input stays usable when idle. Input
+    /// that has not yet completed an exchange is not read: probing a fresh
+    /// connection could retire every replacement for a peer that writes or
+    /// closes on accept, without bound.
     pub(crate) fn probe_idle(&mut self) -> bool {
         if !self.is_reusable() {
             return false;
+        }
+        if self.previous.is_none() {
+            return true;
         }
         if self.available().is_empty() {
             let cancellation = Cancellation::never();

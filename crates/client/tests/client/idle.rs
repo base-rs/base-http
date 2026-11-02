@@ -20,6 +20,8 @@ fn serve(
     let (idled, wait) = mpsc::channel();
     let (address, peer) = peer(move |listener| {
         let mut stream = accept(&listener);
+        // Send each write at once: otherwise Nagle's algorithm can hold idle input until the client acknowledges the response, after it has probed.
+        stream.get_ref().set_nodelay(true).unwrap();
         assert!(head(&mut stream).starts_with("GET /first HTTP/1.1\r\n"));
         stream
             .get_mut()
@@ -121,4 +123,41 @@ fn a_call_after_unsolicited_idle_input_uses_a_fresh_connection() {
 #[test]
 fn an_open_after_unsolicited_idle_input_uses_a_fresh_connection() {
     opens_after(unsolicited);
+}
+
+// A new connection is used without probing, so a server that responds and
+// closes on accept costs one connection rather than a replacement per probe.
+#[test]
+fn a_new_connection_is_used_without_probing() {
+    let (address, peer) = peer(|listener| {
+        let mut stream = accept(&listener);
+        stream
+            .get_mut()
+            .write_all(b"HTTP/1.1 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+            .unwrap();
+        stream
+            .get_mut()
+            .shutdown(std::net::Shutdown::Write)
+            .unwrap();
+        assert!(head(&mut stream).starts_with("GET /first HTTP/1.1\r\n"));
+        assert!(remainder(&mut stream).is_empty());
+        listener.set_nonblocking(true).unwrap();
+        assert_eq!(
+            listener.accept().unwrap_err().kind(),
+            std::io::ErrorKind::WouldBlock
+        );
+    });
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
+        let response = client
+            .call(
+                Request::new(Method::GET, "/first", EmptyBody),
+                &Cancellation::never(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status, base_http::Status::SERVICE_UNAVAILABLE);
+        drop(response);
+        client.begin_close();
+    });
+    peer.join().unwrap();
 }

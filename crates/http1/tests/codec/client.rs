@@ -808,12 +808,14 @@ async fn complete<R: base_endpoint::stream::ReadableStream>(reader: &mut Respons
 #[test]
 fn idle_probes_keep_waiting_input_and_reject_anything_else() {
     block_on(async {
-        // Nothing arrives while idle, so the connection stays usable for the next response.
+        // A reader that has not completed an exchange is not read, even with input waiting.
         let segments = Segments::default();
         let mut reader = ResponseReader::new(segments.clone(), Options::default()).unwrap();
-        assert!(reader.probe_viable());
         segments.push(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok");
+        assert!(reader.probe_viable());
         complete(&mut reader).await;
+
+        // Nothing arrives while idle, so the connection stays usable for the next response.
         assert!(reader.probe_viable());
         assert!(reader.is_reusable());
 
@@ -837,7 +839,7 @@ fn idle_probes_keep_waiting_input_and_reject_anything_else() {
         complete(&mut reader).await;
         assert!(!reader.probe_viable());
 
-        // Inputs that already prohibit reuse are never read.
+        // Inputs that already prohibit reuse are not viable.
         let mut reader = response_reader(b"HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
         complete(&mut reader).await;
         assert!(!reader.probe_viable());
