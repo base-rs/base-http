@@ -32,6 +32,12 @@ impl ResponseMetadata {
             protocol: None,
         }
     }
+
+    /// The declared `content_length`, unless a body of the given known length contradicts it, as after replacing the body. A codec sending this response's data uses it; a response without data, to HEAD or with 204 or 304, is described by `content_length` itself, so every protocol resolves the same length.
+    pub fn declared_length(&self, body: Option<u64>) -> Option<u64> {
+        self.content_length
+            .filter(|&declared| body.is_none_or(|body| body == declared))
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -86,6 +92,12 @@ impl<B> DerefMut for Response<B> {
 }
 
 impl<B: crate::body::ReadableBody> Response<B> {
+    /// The length of the data this response sends: the body's own length when it knows one, because the body is what is sent, and otherwise the declaration [`ResponseMetadata::declared_length`] keeps. A response without data, to HEAD or with 204 or 304, is instead described by `content_length`, and a tunnel has no length.
+    pub fn length(&self) -> Option<u64> {
+        let body = self.body.length();
+        body.or(self.metadata.declared_length(body))
+    }
+
     /// Read an owned body frame. Received fields stay in the frame; the caller
     /// can forward them or explicitly append them with `HttpHeaders::append_trailers`.
     pub async fn read(

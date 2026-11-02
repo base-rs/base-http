@@ -237,7 +237,7 @@ impl<W: WritableStream> ResponseWriter<W> {
     /// connection owner must also finish input and join concurrent work before
     /// admitting another request. Discarded input disables persistence.
     ///
-    /// A response refused before any of it is written, such as one with an informational status, conflicting framing or a length its body contradicts, leaves output usable.
+    /// A response refused before any of it is written, such as one with an informational status, conflicting framing or a `Content-Length` field its body contradicts, leaves output usable.
     pub async fn write_response<B: ReadableBody>(
         &mut self,
         exchange: &Exchange,
@@ -536,23 +536,30 @@ fn plan<'a>(
     }
     // Derive framing and connection facts together from the initial section.
     let facts = wire::response_framing(fields)?;
-    let declared = wire::declared_length(response.content_length, facts.length)?;
-    if declared.is_some() && facts.chunked {
-        return Err(Error::Invalid("content-length with transfer-encoding"));
-    }
-    let chunked = facts.chunked;
     let connect = exchange.is_connect() && response.status.is_success();
     let upgrade = response.status == Status::SWITCHING_PROTOCOLS;
     let tunnel = connect || upgrade;
     let status_bodyless =
         response.status == Status::NO_CONTENT || response.status == Status::NOT_MODIFIED;
     let absent = !tunnel && (exchange.is_head() || status_bodyless);
+    // Raw controls are written deliberately, so they stay strict: no declared length may accompany a raw Transfer-Encoding, and the body must agree with a raw Content-Length.
+    if facts.chunked && (response.content_length.is_some() || facts.length.is_some()) {
+        return Err(Error::Invalid("content-length with transfer-encoding"));
+    }
+    // A body of known length describes the data a response sends, so a typed declaration it contradicts is ignored; a response without data or framing is described by its declaration.
+    let typed = if tunnel || absent {
+        response.content_length
+    } else {
+        response.declared_length(length)
+    };
+    let declared = wire::declared_length(typed, facts.length)?;
+    let chunked = facts.chunked;
     let mut persistent = exchange.is_persistent()
         && !exchange.is_abandoned()
         && response.persistent != Some(false)
         && !facts.close
         && !tunnel;
-    let mut content_length = response.content_length.filter(|_| facts.length.is_none());
+    let mut content_length = typed.filter(|_| facts.length.is_none());
     let mut generated_chunked = false;
     let mut selected_upgrade = None;
     let mut connection_upgrade = false;

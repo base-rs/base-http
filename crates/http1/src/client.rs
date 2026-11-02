@@ -212,10 +212,12 @@ fn request_plan(
     };
     wire::request_target(&head.method, target)?;
     let (raw_length, raw_chunked) = wire::framing(fields)?;
-    let declared = wire::declared_length(head.content_length, raw_length)?;
-    if declared.is_some() && raw_chunked {
+    // Raw controls are written deliberately, so they stay strict: no declared length may accompany a raw Transfer-Encoding, and the body must agree with a raw Content-Length.
+    if raw_chunked && (head.content_length.is_some() || raw_length.is_some()) {
         return Err(Error::Invalid("content-length with transfer-encoding"));
     }
+    // A body of known length describes the data a request sends, so a typed declaration it contradicts is ignored.
+    let declared = wire::declared_length(head.declared_length(length), raw_length)?;
     if raw_chunked && version != Version::Http11 {
         return Err(Error::Invalid("HTTP/1.0 transfer-encoding"));
     }

@@ -483,7 +483,7 @@ impl Handler for Invalid {
             }
             Some("/length") => {
                 let mut response = Response::new(Status::OK, BufferedBody::from(b"hello".to_vec()));
-                response.content_length = Some(10);
+                response.fields.add("Content-Length", "10").unwrap();
                 response
             }
             Some("/upgrade") => Response::new(Status::SWITCHING_PROTOCOLS, BufferedBody::default()),
@@ -550,6 +550,40 @@ fn invalid_responses_respond_with_a_server_error_and_close_the_connection() {
             "{wire:?}"
         );
     }
+}
+
+// A replaced body which keeps the received declaration.
+struct Stale;
+impl Handler for Stale {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = BufferedBody;
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        _request: Request<B>,
+        _interim: &mut InterimResponses<I>,
+        _cancellation: &Cancellation,
+    ) -> Result<Response<BufferedBody>, io::Error> {
+        let mut response = Response::new(Status::OK, BufferedBody::from(b"hello".to_vec()));
+        response.content_length = Some(10);
+        Ok(response)
+    }
+}
+
+#[test]
+fn a_known_body_length_overrides_a_stale_declaration_and_keeps_the_connection() {
+    let (served, ()) = connection(Stale, |mut peer, _| {
+        peer.get_mut()
+            .write_all(b"GET / HTTP/1.1\r\nHost: x\r\n\r\nGET / HTTP/1.1\r\nHost: x\r\nConnection: close\r\n\r\n")
+            .unwrap();
+        for _ in 0..2 {
+            let response = head(&mut peer);
+            assert_eq!(response.status, 200);
+            assert_eq!(response.get("content-length"), Some("5"));
+            assert_eq!(body(&mut peer, &response).0, b"hello");
+        }
+        assert_eq!(peer.read(&mut [0]).unwrap(), 0);
+    });
+    assert_eq!(served.unwrap(), 2);
 }
 
 #[test]

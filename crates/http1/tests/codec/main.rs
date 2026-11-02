@@ -2951,16 +2951,107 @@ fn outbound_validation_preserves_target_host_and_connection_rules() {
     });
 }
 
+// A body of known length describes the data a response sends, so a typed declaration it contradicts, such as one kept after replacing the body, is ignored; a response without data keeps its declaration, and a body of unknown length is held to it.
+#[test]
+fn the_body_length_overrides_a_typed_declaration_when_data_is_sent() {
+    block_on(async {
+        let send = |request: &'static [u8], mut response: Response<BufferedBody<&'static [u8]>>| async move {
+            let (mut writer, bytes) = output(64);
+            writer
+                .write_response(
+                    &exchange_from(request),
+                    &mut response,
+                    &Cancellation::never(),
+                )
+                .await
+                .unwrap();
+            let bytes = bytes.lock().unwrap().clone();
+            String::from_utf8(bytes).unwrap()
+        };
+        let stale = |status| {
+            let mut response = Response::new(status, BufferedBody::from(&b"hello"[..]));
+            response.content_length = Some(10);
+            response
+        };
+        let get: &'static [u8] = b"GET / HTTP/1.1\r\nHost: x\r\n\r\n";
+        let head: &'static [u8] = b"HEAD / HTTP/1.1\r\nHost: x\r\n\r\n";
+        assert_eq!(
+            send(get, stale(Status::OK)).await,
+            "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello"
+        );
+        assert_eq!(
+            send(head, stale(Status::OK)).await,
+            "HTTP/1.1 200 OK\r\nContent-Length: 10\r\n\r\n"
+        );
+        assert_eq!(
+            send(get, stale(Status::NOT_MODIFIED)).await,
+            "HTTP/1.1 304 Not Modified\r\nContent-Length: 10\r\n\r\n"
+        );
+        assert_eq!(
+            send(b"GET / HTTP/1.0\r\n\r\n", stale(Status::OK)).await,
+            "HTTP/1.0 200 OK\r\nContent-Length: 5\r\nConnection: close\r\n\r\nhello"
+        );
+        let mut reset = Response::new(Status::RESET_CONTENT, BufferedBody::from(&b""[..]));
+        reset.content_length = Some(10);
+        assert_eq!(
+            send(get, reset).await,
+            "HTTP/1.1 205 Reset Content\r\nContent-Length: 0\r\n\r\n"
+        );
+
+        // A raw field the body agrees with is sent as written.
+        let mut response = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
+        response.content_length = Some(10);
+        response.fields.add("Content-Length", "5").unwrap();
+        assert_eq!(
+            send(get, response).await,
+            "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello"
+        );
+
+        let (reader, mut writer) = BodyReader::bounded(1024, 16);
+        writer
+            .write_frame(
+                BodyFrame::Data {
+                    data: b"hello".to_vec(),
+                    end: true,
+                },
+                &Cancellation::never(),
+            )
+            .await
+            .unwrap();
+        let mut response = Response::new(Status::OK, reader);
+        response.content_length = Some(10);
+        let (mut output, _) = output(64);
+        assert!(matches!(
+            output
+                .write_response(&exchange(), &mut response, &Cancellation::never())
+                .await,
+            Err(Error::LengthMismatch)
+        ));
+    });
+}
+
 // A server can still reject a response the writer refused, because a refusal which leaves output usable wrote none of it.
 #[test]
 fn refused_responses_write_nothing_and_leave_output_usable() {
     block_on(async {
         let mut length = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
-        length.content_length = Some(10);
+        length.fields.add("Content-Length", "10").unwrap();
+        let mut no_content = Response::new(Status::NO_CONTENT, BufferedBody::default());
+        no_content.content_length = Some(0);
+        // A raw Transfer-Encoding refuses any declared length, whether or not the body agrees with it.
+        let chunked = |declared| {
+            let mut response = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
+            response.content_length = Some(declared);
+            response.fields.add("Transfer-Encoding", "chunked").unwrap();
+            response
+        };
         for mut response in [
             Response::new(Status::CONTINUE, BufferedBody::default()),
             Response::new(Status::SWITCHING_PROTOCOLS, BufferedBody::default()),
             length,
+            no_content,
+            chunked(5),
+            chunked(10),
         ] {
             let (mut writer, bytes) = output(2);
             assert!(
