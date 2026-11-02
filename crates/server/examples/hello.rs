@@ -42,8 +42,6 @@ impl Handler for Hello {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scheduler = NativeScheduler::with_options(NativeOptions {
         workers: 2,
-        threads: 2,
-        capacity: 256,
         ..Default::default()
     })?;
     let result = block_on(async {

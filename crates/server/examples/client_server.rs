@@ -182,8 +182,6 @@ async fn run(scheduler: &NativeScheduler) -> DemoResult<()> {
 fn main() -> DemoResult<()> {
     let scheduler = NativeScheduler::with_options(NativeOptions {
         workers: 2,
-        threads: 4,
-        capacity: 64,
         ..Default::default()
     })?;
     let result = block_on(run(&scheduler));

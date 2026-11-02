@@ -19,8 +19,6 @@ use std::{
 pub fn scheduler() -> NativeScheduler {
     NativeScheduler::with_options(NativeOptions {
         workers: 2,
-        threads: 2,
-        capacity: 64,
         ..Default::default()
     })
     .unwrap()
