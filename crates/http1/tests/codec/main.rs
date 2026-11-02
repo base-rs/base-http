@@ -2951,6 +2951,30 @@ fn outbound_validation_preserves_target_host_and_connection_rules() {
     });
 }
 
+// A server can still reject a response the writer refused, because a refusal which leaves output usable wrote none of it.
+#[test]
+fn refused_responses_write_nothing_and_leave_output_usable() {
+    block_on(async {
+        let mut length = Response::new(Status::OK, BufferedBody::from(&b"hello"[..]));
+        length.content_length = Some(10);
+        for mut response in [
+            Response::new(Status::CONTINUE, BufferedBody::default()),
+            Response::new(Status::SWITCHING_PROTOCOLS, BufferedBody::default()),
+            length,
+        ] {
+            let (mut writer, bytes) = output(2);
+            assert!(
+                writer
+                    .write_response(&exchange(), &mut response, &Cancellation::never())
+                    .await
+                    .is_err()
+            );
+            assert!(bytes.lock().unwrap().is_empty());
+            assert!(writer.is_usable());
+        }
+    });
+}
+
 #[test]
 fn values_that_would_change_http1_framing_are_never_sent() {
     block_on(async {

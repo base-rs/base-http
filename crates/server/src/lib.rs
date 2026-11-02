@@ -30,7 +30,7 @@ use std::{
 
 /// Generic bodies and hooks keep handlers independent of the HTTP wire version
 /// and scheduler. A returned body may retain the request body, including borrows.
-/// An error responds with a bodiless status and closes the connection, which then reports it as [`Error::Handler`]: 400 when a request read failed, such as a malformed or truncated body, even if the error has another cause, and otherwise 500. Return an ordinary response for other client errors.
+/// An error responds with a bodiless status and closes the connection, which then reports it as [`Error::Handler`]: 400 when a request read failed, such as a malformed or truncated body, even if the error has another cause, and otherwise 500. Return an ordinary response for other client errors. A final response which HTTP/1 cannot send, such as an informational status, conflicting framing, a length its body contradicts or an unsolicited upgrade, likewise receives a bodiless 500 and closes the connection, which reports it as [`Error::Response`].
 pub trait Handler: Sync {
     type Error: std::error::Error + Send + Sync + 'static;
     type Body<B: ReadableBody>: ReadableBody;
@@ -71,6 +71,8 @@ impl Default for Options {
 pub enum Error {
     Protocol(base_http1::Error),
     Handler(Box<dyn std::error::Error + Send + Sync>),
+    /// A handler returned a final response which the protocol writer refused before writing any of it, such as an informational status or conflicting framing.
+    Response(base_http1::Error),
     Io(std::io::Error),
     Cancelled,
     Negotiation(base_http_protocol::NegotiationError),
@@ -80,6 +82,7 @@ impl fmt::Display for Error {
         match self {
             Self::Protocol(e) => e.fmt(f),
             Self::Handler(_) => f.write_str("request handler failed"),
+            Self::Response(_) => f.write_str("request handler returned an invalid response"),
             Self::Io(_) => f.write_str("HTTP server I/O failed"),
             Self::Cancelled => f.write_str("HTTP server cancelled"),
             Self::Negotiation(error) => error.fmt(f),
@@ -91,6 +94,7 @@ impl std::error::Error for Error {
         match self {
             Self::Protocol(e) => e.source(),
             Self::Handler(e) => Some(e.as_ref()),
+            Self::Response(e) => Some(e),
             Self::Io(e) => Some(e),
             Self::Cancelled => None,
             Self::Negotiation(error) => error.source(),
@@ -298,10 +302,21 @@ where
             let _ = output.reject(status, cancellation).await;
             return Err(error);
         };
-        let persistent = output
+        let written = output
             .write_response(&exchange, &mut response, cancellation)
-            .await?;
+            .await;
         drop(response);
+        let persistent = match written {
+            Ok(persistent) => persistent,
+            // Usable output means the writer refused the response before writing any of it, so the peer can still learn of the failure; the request may be unfinished, so the connection closes afterwards.
+            Err(error) if output.is_usable() && !matches!(error, base_http1::Error::Cancelled) => {
+                let _ = output
+                    .reject(Status::INTERNAL_SERVER_ERROR, cancellation)
+                    .await;
+                return Err(Error::Response(error));
+            }
+            Err(error) => return Err(error.into()),
+        };
         *count += 1;
         if !persistent || !input.is_reusable() {
             return Ok(());
@@ -708,6 +723,19 @@ mod tests {
         let error = Error::Handler(Box::new(io::Error::other("database unavailable")));
         assert_eq!(error.to_string(), "request handler failed");
         assert_eq!(error.source().unwrap().to_string(), "database unavailable");
+    }
+
+    #[test]
+    fn invalid_responses_report_the_refusal_as_the_source() {
+        let error = Error::Response(base_http1::Error::Invalid("final response required"));
+        assert_eq!(
+            error.to_string(),
+            "request handler returned an invalid response"
+        );
+        assert_eq!(
+            error.source().unwrap().to_string(),
+            "invalid HTTP/1 message: final response required"
+        );
     }
 
     #[test]
