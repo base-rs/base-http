@@ -278,7 +278,7 @@ fn invalid_request_heads_are_rejected_before_any_output() {
         }
         let (mut writer, output) = request_writer();
         let mut request = request(Method::POST, b"abc");
-        request.content_length = Some(5);
+        request.fields = fields(&[("Content-Length", b"5")]);
         assert!(matches!(
             writer
                 .write_request(&mut request, &Cancellation::never())
@@ -297,6 +297,53 @@ fn invalid_request_heads_are_rejected_before_any_output() {
         ));
         assert!(output.bytes().is_empty());
         assert!(writer.is_reusable());
+    });
+}
+
+// A body of known length describes the data a request sends, so a typed declaration it contradicts, such as one kept after replacing the body, is ignored.
+#[test]
+fn the_body_length_overrides_a_contradicted_typed_declaration() {
+    block_on(async {
+        let (mut writer, output) = request_writer();
+        let mut post = request(Method::POST, b"abc");
+        post.content_length = Some(5);
+        writer
+            .write_request(&mut post, &Cancellation::never())
+            .await
+            .unwrap();
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.1\r\nHost: example\r\nContent-Length: 3\r\n\r\nabc"
+        );
+
+        // A raw field the body agrees with is sent as written.
+        let (mut writer, output) = request_writer();
+        let mut post = request(Method::POST, b"abc");
+        post.content_length = Some(5);
+        post.fields = fields(&[("Content-Length", b"3")]);
+        writer
+            .write_request(&mut post, &Cancellation::never())
+            .await
+            .unwrap();
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.1\r\nContent-Length: 3\r\nHost: example\r\n\r\nabc"
+        );
+
+        // A raw Transfer-Encoding refuses any declared length, whether or not the body agrees with it.
+        for declared in [3, 5] {
+            let (mut writer, output) = request_writer();
+            let mut post = request(Method::POST, b"abc");
+            post.content_length = Some(declared);
+            post.fields = fields(&[("Transfer-Encoding", b"chunked")]);
+            assert!(matches!(
+                writer
+                    .write_request(&mut post, &Cancellation::never())
+                    .await,
+                Err(Error::Invalid("content-length with transfer-encoding"))
+            ));
+            assert!(output.bytes().is_empty());
+        }
     });
 }
 

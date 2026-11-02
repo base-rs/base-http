@@ -40,6 +40,12 @@ impl RequestMetadata {
             protocol: None,
         }
     }
+
+    /// The declared `content_length`, unless a body of the given known length contradicts it, as after replacing the body. A codec sending this message's data uses it, so every protocol resolves the same length.
+    pub fn declared_length(&self, body: Option<u64>) -> Option<u64> {
+        self.content_length
+            .filter(|&declared| body.is_none_or(|body| body == declared))
+    }
 }
 
 /// A semantic request with an arbitrary body owner. The metadata is also accessible
@@ -102,6 +108,12 @@ impl<B> DerefMut for Request<B> {
 }
 
 impl<B: crate::body::ReadableBody> Request<B> {
+    /// The length of the data this request sends: the body's own length when it knows one, because the body is what is sent, and otherwise the declaration [`RequestMetadata::declared_length`] keeps.
+    pub fn length(&self) -> Option<u64> {
+        let body = self.body.length();
+        body.or(self.metadata.declared_length(body))
+    }
+
     /// Read an owned body frame. Received fields stay in the frame; the caller
     /// can forward them or explicitly append them with `HttpHeaders::append_trailers`.
     pub async fn read(

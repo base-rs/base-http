@@ -2,8 +2,8 @@
 // Copyright, 2026, by Samuel Williams.
 
 use base_http::{
-    Method, Protocol, Request, RequestMetadata, Response, Status, Version,
-    body::{BufferedBody, EmptyBody},
+    Method, Protocol, Request, RequestMetadata, Response, ResponseMetadata, Status, Version,
+    body::{BodyReader, BufferedBody, EmptyBody},
 };
 use std::{cell::Cell, rc::Rc};
 
@@ -128,4 +128,36 @@ fn messages_remain_send_when_their_body_is_send() {
     require_send::<Response<BufferedBody>>();
     assert_eq!(Version::Http3.to_string(), "HTTP/3");
     assert_eq!(Response::empty(Status::OK).status, Status::OK);
+}
+
+#[test]
+fn the_body_length_overrides_a_declaration_and_an_unknown_one_falls_back_to_it() {
+    // A replaced body keeps the original declaration, which no longer describes it.
+    let mut request = Request::new(Method::POST, "/", BufferedBody::from(b"hello".to_vec()));
+    request.content_length = Some(10);
+    assert_eq!(request.length(), Some(5));
+    let mut response = Response::new(Status::OK, EmptyBody);
+    response.content_length = Some(10);
+    assert_eq!(response.length(), Some(0));
+
+    let (reader, _writer) = BodyReader::<Vec<u8>>::bounded(1024, 16);
+    let mut response = Response::new(Status::OK, reader);
+    assert_eq!(response.length(), None);
+    response.content_length = Some(10);
+    assert_eq!(response.length(), Some(10));
+    let (reader, _writer) = BodyReader::<Vec<u8>>::bounded(1024, 16);
+    let mut request = Request::new(Method::POST, "/", reader);
+    request.content_length = Some(3);
+    assert_eq!(request.length(), Some(3));
+
+    // The declaration survives only where a body does not contradict it.
+    let mut metadata = RequestMetadata::new(Method::POST);
+    metadata.content_length = Some(3);
+    assert_eq!(metadata.declared_length(Some(3)), Some(3));
+    assert_eq!(metadata.declared_length(Some(5)), None);
+    assert_eq!(metadata.declared_length(None), Some(3));
+    let mut metadata = ResponseMetadata::new(Status::OK);
+    metadata.content_length = Some(3);
+    assert_eq!(metadata.declared_length(Some(5)), None);
+    assert_eq!(metadata.declared_length(None), Some(3));
 }
