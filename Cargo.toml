@@ -10,7 +10,7 @@ readme = "readme.md"
 include = ["src/**", "tests/**", "design/**", "/Cargo.toml", "/readme.md", "/license.md"]
 
 [workspace]
-members = ["crates/http1", "crates/protocol", "crates/server", "crates/client", "bake"]
+members = ["crates/http1", "crates/protocol", "crates/server", "crates/client", "crates/test-socket", "bake"]
 exclude = ["benchmarks"]
 resolver = "3"
 

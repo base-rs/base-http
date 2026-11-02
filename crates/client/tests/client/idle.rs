@@ -5,10 +5,11 @@
 use super::{accept, head, payload, peer, remainder, run_endpoint};
 use base_http::{Method, Request, RequestMetadata, body::EmptyBody};
 use base_http_client::{Client, Endpoint, Options};
+use base_http_test_socket::wait_acknowledged;
 use base_scheduler::Cancellation;
 use std::{
     io::{BufReader, Write},
-    net::{SocketAddr, TcpStream},
+    net::{Shutdown, SocketAddr, TcpStream},
     sync::mpsc,
     thread,
 };
@@ -20,16 +21,13 @@ fn serve(
     let (idled, wait) = mpsc::channel();
     let (address, peer) = peer(move |listener| {
         let mut stream = accept(&listener);
-        // Send each write at once: otherwise Nagle's algorithm can hold idle input until the client acknowledges the response, after it has probed.
-        stream.get_ref().set_nodelay(true).unwrap();
         assert!(head(&mut stream).starts_with("GET /first HTTP/1.1\r\n"));
         stream
             .get_mut()
             .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfirst")
             .unwrap();
         let retired = idle(stream);
-        // Loopback can deliver asynchronously (on macOS through the input thread), and a probe only observes what has arrived.
-        thread::sleep(std::time::Duration::from_millis(20));
+        // `idle` returns only once the client's kernel holds everything it sent, so the client's probe observes it.
         idled.send(()).unwrap();
         let mut stream = accept(&listener);
         assert!(head(&mut stream).starts_with("GET /next HTTP/1.1\r\n"));
@@ -47,7 +45,8 @@ fn serve(
 
 // Close the idle connection, as an idle keep-alive timeout does.
 fn close(stream: BufReader<TcpStream>) -> Option<BufReader<TcpStream>> {
-    drop(stream);
+    stream.get_ref().shutdown(Shutdown::Write).unwrap();
+    wait_acknowledged(stream.get_ref());
     None
 }
 
@@ -57,6 +56,7 @@ fn unsolicited(mut stream: BufReader<TcpStream>) -> Option<BufReader<TcpStream>>
         .get_mut()
         .write_all(b"HTTP/1.1 408 Request Timeout\r\n\r\n")
         .unwrap();
+    wait_acknowledged(stream.get_ref());
     Some(stream)
 }
 
