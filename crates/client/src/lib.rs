@@ -133,6 +133,10 @@ impl Options {
 /// Durable remote-server interface. Clones share connection admission and
 /// supervision. `call` submits pull bodies; `open` lends direct HTTP/1 directions.
 /// Neither operation chooses a process-global scheduler.
+///
+/// `'scope` is the scheduler borrow, and it also bounds the request bodies and interim observers that calls queue for the driver. The client and its driver share that queue, so neither can outlive the scheduler. The type is invariant over `'scope`: shortening it would let a call queue a body that borrows shorter-lived data for a driver that keeps running after the data is gone.
+///
+/// To keep a client for longer, give the scheduler a longer life. Create it at the application root and store the client in a struct generic over `'scope`, or use a scheduler that lives for `'static`, whose `Client<'static>` can be stored anywhere.
 pub struct Client<'scope> {
     endpoint: Endpoint,
     queue: Arc<Queue<'scope>>,
