@@ -30,6 +30,7 @@ use std::{
 
 /// Generic bodies and hooks keep handlers independent of the HTTP wire version
 /// and scheduler. A returned body may retain the request body, including borrows.
+/// An error responds with a bodiless status and closes the connection, which then reports it as [`Error::Handler`]: 400 when a request read failed, such as a malformed or truncated body, even if the error has another cause, and otherwise 500. Return an ordinary response for other client errors.
 pub trait Handler: Sync {
     type Error: std::error::Error + Send + Sync + 'static;
     type Body<B: ReadableBody>: ReadableBody;
@@ -278,15 +279,25 @@ where
             interim.finish();
             result
         };
-        let mut response = result.map_err(|error| {
-            // Cancellation can arrive between polling the outer signal and
-            // polling a handler which propagates a cancelled body operation.
+        // The response can borrow the input lane, which a failure inspects, so only a successful result leaves this block.
+        let mut response = 'handled: {
+            let error = match result.map_err(|error| Error::Handler(Box::new(error))) {
+                Ok(response) => break 'handled response,
+                Err(error) => error,
+            };
+            // Cancellation can arrive between polling the outer signal and polling a handler which propagates a cancelled body operation.
             if cancellation.is_cancelled() {
-                Error::Cancelled
-            } else {
-                Error::Handler(Box::new(error))
+                return Err(Error::Cancelled);
             }
-        })?;
+            // No final head has been written, so the peer can still learn of the failure: failed request input means the request was bad, and anything else is a server error. The input position may be unknown and unread input may remain, so the connection always closes afterwards; output already out of sync refuses the response and just closes.
+            let status = if input.is_poisoned() {
+                Status::BAD_REQUEST
+            } else {
+                Status::INTERNAL_SERVER_ERROR
+            };
+            let _ = output.reject(status, cancellation).await;
+            return Err(error);
+        };
         let persistent = output
             .write_response(&exchange, &mut response, cancellation)
             .await?;

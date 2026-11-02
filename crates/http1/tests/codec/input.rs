@@ -225,6 +225,7 @@ fn a_failed_body_read_cannot_be_retried() {
         ));
     });
     assert!(!input.is_reusable());
+    assert!(input.is_poisoned());
 }
 
 #[test]
@@ -253,6 +254,7 @@ fn a_cancelled_body_read_consumes_no_input() {
         assert_eq!((data.as_slice(), end), (&b"ab"[..], true));
     });
     assert!(input.is_reusable());
+    assert!(!input.is_poisoned());
 }
 
 const CHUNKED_HEAD: &[u8] = b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n";
@@ -441,5 +443,7 @@ fn dropping_a_body_after_a_dropped_read_prevents_reuse() {
         drop(request);
         assert!(exchange.is_abandoned());
     });
+    // Abandoned input cannot be reused, but no read failed.
     assert!(!input.is_reusable());
+    assert!(!input.is_poisoned());
 }
