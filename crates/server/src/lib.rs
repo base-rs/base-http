@@ -30,6 +30,7 @@ use std::{
 
 /// Generic bodies and hooks keep handlers independent of the HTTP wire version
 /// and scheduler. A returned body may retain the request body, including borrows.
+/// An error responds with a bodiless 500 and closes the connection, which then reports it as [`Error::Handler`]. Return an ordinary response for client errors.
 pub trait Handler: Sync {
     type Error: std::error::Error + Send + Sync + 'static;
     type Body<B: ReadableBody>: ReadableBody;
@@ -278,15 +279,19 @@ where
             interim.finish();
             result
         };
-        let mut response = result.map_err(|error| {
+        let mut response = match result.map_err(|error| Error::Handler(Box::new(error))) {
+            Ok(response) => response,
             // Cancellation can arrive between polling the outer signal and
             // polling a handler which propagates a cancelled body operation.
-            if cancellation.is_cancelled() {
-                Error::Cancelled
-            } else {
-                Error::Handler(Box::new(error))
+            Err(_) if cancellation.is_cancelled() => return Err(Error::Cancelled),
+            Err(error) => {
+                // No final head has been written, so the peer can still learn of the failure. Unread request input prevents reuse anyway.
+                let _ = output
+                    .reject(Status::INTERNAL_SERVER_ERROR, cancellation)
+                    .await;
+                return Err(error);
             }
-        })?;
+        };
         let persistent = output
             .write_response(&exchange, &mut response, cancellation)
             .await?;

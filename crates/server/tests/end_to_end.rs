@@ -371,9 +371,76 @@ fn truncated_and_invalid_chunked_bodies_fail_without_a_successful_response() {
         let (served, ()) = connection(Collect::default(), move |mut peer, _| {
             peer.get_mut().write_all(wire.as_bytes()).unwrap();
             peer.get_mut().shutdown(Shutdown::Write).unwrap();
+            // The handler propagates the body failure, which is reported as a server error.
+            assert_eq!(head(&mut peer).status, 500, "{wire:?}");
             assert_eq!(peer.read(&mut [0]).unwrap(), 0);
         });
-        assert!(served.is_err(), "{wire:?}");
+        assert!(matches!(served, Err(Error::Handler(_))), "{wire:?}");
+    }
+}
+
+/// Fails every request, after sending an early hint for `/hints`.
+struct Fail;
+impl Handler for Fail {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = BufferedBody;
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        request: Request<B>,
+        interim: &mut InterimResponses<I>,
+        cancellation: &Cancellation,
+    ) -> Result<Response<BufferedBody>, io::Error> {
+        if request.path.as_deref() == Some("/hints") {
+            interim
+                .send_interim_response(ResponseMetadata::new(Status::EARLY_HINTS), cancellation)
+                .await
+                .map_err(io::Error::other)?;
+        }
+        Err(io::Error::other("database unavailable"))
+    }
+}
+
+#[test]
+fn handler_errors_respond_with_a_server_error_and_close_the_connection() {
+    for (wire, interim) in [
+        // The pipelined request is never admitted.
+        (
+            "GET / HTTP/1.1\r\nHost: x\r\n\r\nGET / HTTP/1.1\r\nHost: x\r\n\r\n",
+            None,
+        ),
+        ("HEAD / HTTP/1.1\r\nHost: x\r\n\r\n", None),
+        ("GET / HTTP/1.0\r\n\r\n", None),
+        // Unread upload input does not delay the response.
+        (
+            "POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\nhello",
+            None,
+        ),
+        // Nor does an upload still in progress, which the closure abandons.
+        (
+            "POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 10\r\n\r\nhello",
+            None,
+        ),
+        ("GET /hints HTTP/1.1\r\nHost: x\r\n\r\n", Some(103)),
+    ] {
+        let (served, ()) = connection(Fail, move |mut peer, _| {
+            peer.get_mut().write_all(wire.as_bytes()).unwrap();
+            if let Some(status) = interim {
+                assert_eq!(head(&mut peer).status, status, "{wire:?}");
+            }
+            let response = head(&mut peer);
+            assert_eq!(response.status, 500, "{wire:?}");
+            assert_eq!(response.get("content-length"), Some("0"));
+            assert_eq!(response.get("connection"), Some("close"));
+            assert_eq!(peer.read(&mut [0]).unwrap(), 0, "{wire:?}");
+        });
+        let Err(error) = served else {
+            panic!("{wire:?} succeeded");
+        };
+        assert!(matches!(error, Error::Handler(_)), "{wire:?}");
+        assert_eq!(
+            std::error::Error::source(&error).unwrap().to_string(),
+            "database unavailable"
+        );
     }
 }
 
