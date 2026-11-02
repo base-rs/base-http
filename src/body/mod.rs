@@ -62,6 +62,63 @@
 //! # Ok::<(), BodyError>(())
 //! ```
 //!
+//! # Polling reads alongside other I/O
+//!
+//! A streaming consumer, such as a server-sent events reader, often waits for the next frame and for another source, such as a command channel or a timer, at the same time. The [`ReadableBody::read`] contract requires that dropping a pending read loses no frame, so create a new read for each wait and drop it when the other source wins. The next read continues at the same position. I/O-backed bodies meet this when their underlying reader is cancel-safe, as scheduler sockets and TLS streams are.
+//!
+//! The read future is not `Unpin`, and macros such as `futures_util::select!` require every arm to be `FusedFuture + Unpin`. Pin each read with [`std::pin::pin!`] and fuse it with `FutureExt::fuse`, and do the same for other futures which are not already fused, such as a channel's `recv()`; no custom wrapper type or allocation is needed. Combinators such as `futures_lite::future::or`, whose futures produce one output type, need neither. When the other source only needs to stop reading, a [`Cancellation`] passed to `read` is simpler still.
+//!
+//! ```rust
+//! use base_http::body::{BodyError, BodyFrame, BodyReader, ReadableBody};
+//! use base_scheduler::Cancellation;
+//! use futures_lite::future::block_on;
+//! use futures_util::{FutureExt, StreamExt, select_biased};
+//! use std::pin::pin;
+//!
+//! enum Command {
+//!     Stop,
+//! }
+//!
+//! let (mut body, mut writer) = BodyReader::bounded(1024, 16);
+//! let (sender, mut commands) = futures_channel::mpsc::unbounded();
+//! let never = Cancellation::never();
+//! block_on(async {
+//!     writer.write_frame(BodyFrame::Data { data: b"event".to_vec(), end: false }, &never).await?;
+//!     let mut received = Vec::new();
+//!     loop {
+//!         // Each iteration races a new read, which is dropped while still waiting when the command wins.
+//!         let mut read = pin!(body.read(&never).fuse());
+//!         select_biased! {
+//!             frame = read => {
+//!                 let frame = frame?;
+//!                 // Check completion before moving the frame's contents.
+//!                 let end = frame.is_end();
+//!                 if let BodyFrame::Data { data, .. } = frame {
+//!                     received.extend(data);
+//!                 }
+//!                 if end {
+//!                     break;
+//!                 }
+//!                 sender.unbounded_send(Command::Stop).unwrap();
+//!             }
+//!             command = commands.next() => match command {
+//!                 Some(Command::Stop) | None => break,
+//!             },
+//!         }
+//!     }
+//!     assert_eq!(received, b"event");
+//!
+//!     // The dropped read consumed nothing, so the body is still read in order.
+//!     writer.write_frame(BodyFrame::Data { data: b"more".to_vec(), end: true }, &never).await?;
+//!     let BodyFrame::Data { data, end } = body.read(&never).await? else {
+//!         unreachable!();
+//!     };
+//!     assert_eq!((data.as_slice(), end), (&b"more"[..], true));
+//!     Ok::<_, BodyError>(())
+//! })?;
+//! # Ok::<(), BodyError>(())
+//! ```
+//!
 //! There is one pull-body abstraction. A protocol driver reads bodies directly in its existing future, so bodies do not spawn tasks. Custom bodies can read incoming input while producing outgoing chunks. Imperative producers can use the bounded pair with explicitly supervised concurrent work.
 use base_scheduler::Cancellation;
 use std::future::Future;
@@ -136,6 +193,8 @@ pub trait ReadableBody: Send {
     /// stops after `frame.is_end()`; subsequent reads return `BodyFrame::End`.
     /// Headers occur at most once, after all data. Dropping a pending read is
     /// not transport retirement, and must not lose an unreturned queued frame.
+    ///
+    /// Callers can therefore race a read against other futures; see [polling reads alongside other I/O](self#polling-reads-alongside-other-io).
     fn read(
         &mut self,
         cancellation: &Cancellation,
