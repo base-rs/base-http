@@ -3,7 +3,7 @@
 
 use super::{chain, unconnected};
 use base_http_client::{Client, Endpoint, Error, Options};
-use base_scheduler_direct::DirectScheduler;
+use base_scheduler_native::NativeScheduler;
 
 #[test]
 fn invalid_limits_are_reported_by_the_layer_that_owns_them() {
@@ -60,7 +60,7 @@ fn invalid_limits_are_reported_by_the_layer_that_owns_them() {
 
 #[test]
 fn clients_reject_invalid_options_before_construction() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let endpoint = Endpoint::new("127.0.0.1:1".parse().unwrap());
     let options = Options {
         max_requests: 0,

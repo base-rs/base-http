@@ -682,7 +682,7 @@ mod tests {
     use super::*;
     use crate::{Client, driver::Pending, outgoing::tests::ignore};
     use base_http::{Method, RequestMetadata};
-    use base_scheduler_direct::DirectScheduler;
+    use base_scheduler_native::NativeScheduler;
     use futures_lite::future::{block_on, yield_now, zip};
     use std::{io::Read, net::TcpListener, thread};
 
@@ -696,7 +696,7 @@ mod tests {
             stream.read_to_end(&mut bytes).unwrap();
             assert!(bytes.is_empty());
         });
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let (client, driver) =
             Client::new(&scheduler, Endpoint::new(address), Options::default()).unwrap();
         let lifetime = Cancellation::new();

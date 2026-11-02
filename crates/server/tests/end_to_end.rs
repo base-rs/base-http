@@ -873,7 +873,7 @@ fn partial_chunk_delimiter_does_not_hold_back_an_echo_response() {
 // Races every body read against a short timer, as a duplex handler racing
 // input against outgoing frames does, dropping each read that loses.
 struct Racing {
-    clock: Arc<base_scheduler_direct::DirectScheduler>,
+    clock: Arc<base_scheduler_native::NativeScheduler>,
     timeouts: Arc<AtomicUsize>,
 }
 impl Handler for Racing {

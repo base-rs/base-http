@@ -13,7 +13,7 @@ use base_scheduler::{
     Cancellation, SocketAccept, SocketBind, SocketClose, SocketConnect, SocketListen,
     SocketLocalAddress, SocketOpen, SocketStreamReading, SocketStreamWriting, SocketType,
 };
-use base_scheduler_direct::{DirectOptions, DirectScheduler};
+use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::{block_on, zip};
 use std::{convert::Infallible, future::Future, net::SocketAddr};
 
@@ -50,7 +50,7 @@ async fn supervise<T, E>(
 }
 
 async fn client(
-    scheduler: &DirectScheduler,
+    scheduler: &NativeScheduler,
     address: SocketAddr,
     cancellation: &Cancellation,
 ) -> DemoResult<()> {
@@ -135,7 +135,7 @@ async fn client(
     Ok(())
 }
 
-async fn run(scheduler: &DirectScheduler) -> DemoResult<()> {
+async fn run(scheduler: &NativeScheduler) -> DemoResult<()> {
     let cancellation = Cancellation::new();
     let address: SocketAddr = "127.0.0.1:0".parse()?;
     let listener = scheduler
@@ -180,9 +180,11 @@ async fn run(scheduler: &DirectScheduler) -> DemoResult<()> {
 }
 
 fn main() -> DemoResult<()> {
-    let scheduler = DirectScheduler::new(DirectOptions {
+    let scheduler = NativeScheduler::with_options(NativeOptions {
+        workers: 2,
         threads: 4,
         capacity: 64,
+        ..Default::default()
     })?;
     let result = block_on(run(&scheduler));
     block_on(scheduler.shutdown());

@@ -7,7 +7,7 @@ use base_http::body::{BodyFrame, ReadableBody};
 use base_scheduler::{
     Cancellation, FileClose, FileOpen, FileOptions, FileReader, FileReading, OperationError,
 };
-use base_scheduler_direct::{DirectOptions, DirectScheduler};
+use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
 use std::io;
 
@@ -77,9 +77,11 @@ fn file_body_uses_a_bound_reader_with_separate_async_cleanup() {
     let directory = tempfile::tempdir().unwrap();
     let path = directory.path().join("body");
     std::fs::write(&path, b"abcdefgh").unwrap();
-    let scheduler = DirectScheduler::new(DirectOptions {
+    let scheduler = NativeScheduler::with_options(NativeOptions {
+        workers: 2,
         threads: 1,
         capacity: 2,
+        ..Default::default()
     })
     .unwrap();
     let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

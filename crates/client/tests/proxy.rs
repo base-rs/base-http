@@ -11,7 +11,7 @@ use base_scheduler::{
     Cancellation, Clock, SocketAccept, SocketClose, SocketLocalAddress, SocketStreamReading,
     SocketStreamWriting,
 };
-use base_scheduler_direct::DirectScheduler;
+use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};
 use std::{
     future::Future,
@@ -91,7 +91,7 @@ fn forwarding(response_bytes: usize) {
             .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
             .unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         scheduler.timeout(Duration::from_secs(15), async {
             let lifetime = Cancellation::new();

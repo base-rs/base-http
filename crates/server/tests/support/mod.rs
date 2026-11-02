@@ -8,7 +8,7 @@ use base_scheduler::{
     Cancellation, SocketAccept, SocketBind, SocketClose, SocketListen, SocketLocalAddress,
     SocketOpen, SocketType,
 };
-use base_scheduler_direct::{DirectOptions, DirectScheduler};
+use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
 use std::{
     io::{BufRead, BufReader},
@@ -16,17 +16,19 @@ use std::{
     time::Duration,
 };
 
-pub fn scheduler() -> DirectScheduler {
-    DirectScheduler::new(DirectOptions {
+pub fn scheduler() -> NativeScheduler {
+    NativeScheduler::with_options(NativeOptions {
+        workers: 2,
         threads: 2,
         capacity: 64,
+        ..Default::default()
     })
     .unwrap()
 }
 
 pub async fn listener(
-    scheduler: &DirectScheduler,
-) -> (base_scheduler_direct::DirectSocket, SocketAddr) {
+    scheduler: &NativeScheduler,
+) -> (base_scheduler_native::NativeSocket, SocketAddr) {
     let never = Cancellation::never();
     let address: SocketAddr = "127.0.0.1:0".parse().unwrap();
     let socket = scheduler

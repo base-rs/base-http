@@ -16,7 +16,7 @@ use base_scheduler::{
     Cancellation, SocketAccept, SocketClose, SocketConnect, SocketOpen, SocketStreamReading,
     SocketStreamWriting, SocketType,
 };
-use base_scheduler_direct::{DirectScheduler, DirectSocket};
+use base_scheduler_native::{NativeScheduler, NativeSocket};
 use futures_lite::future::{block_on, zip};
 use std::{
     future::Future,
@@ -64,8 +64,8 @@ struct ProxyResult {
 }
 
 async fn proxy_connection(
-    scheduler: &DirectScheduler,
-    downstream: DirectSocket,
+    scheduler: &NativeScheduler,
+    downstream: NativeSocket,
     upstream_address: SocketAddr,
     cancellation: &Cancellation,
 ) -> ProxyResult {
@@ -164,7 +164,7 @@ async fn proxy_connection(
     }
 }
 
-fn with_scheduler<T>(run: impl FnOnce(&DirectScheduler) -> T) -> T {
+fn with_scheduler<T>(run: impl FnOnce(&NativeScheduler) -> T) -> T {
     let scheduler = scheduler();
     let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run(&scheduler)));
     block_on(scheduler.shutdown());

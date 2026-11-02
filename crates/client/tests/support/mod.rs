@@ -5,7 +5,7 @@
 use base_http::body::{BodyFrame, ReadableBody};
 use base_http_client::{Client, Endpoint, Options};
 use base_scheduler::Cancellation;
-use base_scheduler_direct::DirectScheduler;
+use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};
 use std::{
     io::{BufRead, Read},
@@ -75,7 +75,7 @@ pub fn run_endpoint(
     options: Options,
     application: impl for<'scope> AsyncFnOnce(Client<'scope>),
 ) {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         let lifetime = Cancellation::new();
         let watchdog = lifetime.clone();
@@ -105,7 +105,7 @@ pub fn run_endpoint(
 
 /// Run a client that never dials. Its driver is dropped without being polled.
 pub fn unconnected(application: impl for<'scope> AsyncFnOnce(Client<'scope>)) {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         let endpoint = Endpoint::new("127.0.0.1:1".parse().unwrap());
         let (client, driver) = Client::new(&scheduler, endpoint, Options::default()).unwrap();

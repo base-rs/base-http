@@ -15,7 +15,7 @@ use base_scheduler::{
     SocketRecvResult, SocketSendFlags, SocketSetOption, SocketStreamReader, SocketStreamReading,
     SocketStreamWriter, SocketStreamWriting, SocketType, TcpNoDelay,
 };
-use base_scheduler_direct::{DirectScheduler, DirectSocket};
+use base_scheduler_native::{NativeScheduler, NativeSocket};
 use futures_channel::oneshot;
 use futures_lite::future::{block_on, or, poll_once, yield_now, zip};
 use std::{
@@ -164,11 +164,11 @@ impl Plan {
     }
 }
 struct Faults<'a> {
-    inner: &'a DirectScheduler,
+    inner: &'a NativeScheduler,
     plan: Arc<Plan>,
 }
 impl<'a> Faults<'a> {
-    fn new(inner: &'a DirectScheduler) -> Self {
+    fn new(inner: &'a NativeScheduler) -> Self {
         Self {
             inner,
             plan: Arc::default(),
@@ -176,10 +176,10 @@ impl<'a> Faults<'a> {
     }
 }
 impl SocketOperation for Faults<'_> {
-    type Socket = DirectSocket;
+    type Socket = NativeSocket;
 }
 impl BufferPooling for Faults<'_> {
-    type Pool = <DirectScheduler as BufferPooling>::Pool;
+    type Pool = <NativeScheduler as BufferPooling>::Pool;
     fn buffer_pool(&self, options: BufferPoolOptions) -> io::Result<Self::Pool> {
         self.inner.buffer_pool(options)
     }
@@ -191,14 +191,14 @@ impl SocketOpen for Faults<'_> {
         kind: SocketType,
         protocol: Option<SocketProtocol>,
         cancellation: &Cancellation,
-    ) -> impl Future<Output = OperationResult<DirectSocket>> + Send {
+    ) -> impl Future<Output = OperationResult<NativeSocket>> + Send {
         self.inner.socket_open(domain, kind, protocol, cancellation)
     }
 }
 impl SocketConnect for Faults<'_> {
     async fn socket_connect(
         &self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         address: SocketAddress,
         cancellation: &Cancellation,
     ) -> OperationResult<()> {
@@ -231,7 +231,7 @@ impl SocketConnect for Faults<'_> {
 impl SocketSetOption<TcpNoDelay> for Faults<'_> {
     async fn socket_set_option(
         &self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         option: TcpNoDelay,
         value: bool,
         cancellation: &Cancellation,
@@ -248,7 +248,7 @@ impl SocketSetOption<TcpNoDelay> for Faults<'_> {
     }
 }
 impl SocketClose for Faults<'_> {
-    async fn socket_close(&self, socket: DirectSocket) -> io::Result<()> {
+    async fn socket_close(&self, socket: NativeSocket) -> io::Result<()> {
         let nodelay = self
             .inner
             .socket_get_option(&socket, TcpNoDelay, &Cancellation::never())
@@ -262,7 +262,7 @@ impl SocketClose for Faults<'_> {
     }
     fn socket_close_submit(
         &self,
-        socket: DirectSocket,
+        socket: NativeSocket,
     ) -> impl Future<Output = io::Result<()>> + Send {
         self.inner.socket_close_submit(socket)
     }
@@ -270,7 +270,7 @@ impl SocketClose for Faults<'_> {
 impl<'a> SocketStreamReading for Faults<'a> {
     fn socket_stream_reader<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<
         impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer>
         + 'scheduler
@@ -286,7 +286,7 @@ impl<'a> SocketStreamReading for Faults<'a> {
     }
     fn socket_stream_reader_with_pool<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         pool: Self::Pool,
     ) -> io::Result<
         impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer>
@@ -302,7 +302,7 @@ impl<'a> SocketStreamReading for Faults<'a> {
 impl<'a> SocketStreamWriting for Faults<'a> {
     fn socket_stream_writer<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<
         impl SocketStreamWriter<Buffer = <Self::Pool as BufferPool>::Buffer>
         + 'scheduler
@@ -318,7 +318,7 @@ impl<'a> SocketStreamWriting for Faults<'a> {
     }
     fn socket_stream_writer_with_buffer<'scheduler, B: IoBuf>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<impl SocketStreamWriter<Buffer = B> + 'scheduler + use<'scheduler, 'a, B>> {
         Ok(FaultWriter {
             inner: self.inner.socket_stream_writer_with_buffer::<B>(socket)?,
@@ -456,7 +456,7 @@ fn failed_stream_setup_closes_the_socket_and_releases_construction() {
             assert!(remainder(&mut accept(&listener)).is_empty());
             respond_no_content(&listener);
         });
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let faults = Faults::new(&scheduler);
         let plan = faults.plan.clone();
         let fault = if writer { &plan.writer } else { &plan.reader };
@@ -493,7 +493,7 @@ fn failed_stream_setup_closes_the_socket_and_releases_construction() {
 fn cleanup_failures_are_reported_by_the_driver_after_closing_everything() {
     for fault in ["socket close", "reader close", "writer close"] {
         let (address, peer) = peer(|listener| respond_no_content(&listener));
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let faults = Faults::new(&scheduler);
         let plan = faults.plan.clone();
         match fault {
@@ -529,7 +529,7 @@ fn cancellation_during_and_after_tcp_connect_releases_construction() {
             }
             respond_no_content(&listener);
         });
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let faults = Faults::new(&scheduler);
         let (reached, release) = faults.plan.gate(after);
         let options = Options {
@@ -565,7 +565,7 @@ fn cancellation_during_and_after_tcp_connect_releases_construction() {
 #[test]
 fn driver_cancellation_during_tcp_connect_waits_for_construction_to_stop() {
     let (address, peer) = peer(drop);
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let faults = Faults::new(&scheduler);
     let (reached, release) = faults.plan.gate(false);
     let lifetime = Cancellation::new();
@@ -595,7 +595,7 @@ fn driver_shutdown_during_establishment_retires_a_late_connection() {
         let (address, peer) = peer(|listener| {
             assert!(remainder(&mut accept(&listener)).is_empty());
         });
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let faults = Faults::new(&scheduler);
         let plan = faults.plan.clone();
         match fault {
@@ -647,7 +647,7 @@ fn driver_cancellation_waits_for_direct_handles_to_return_their_codecs() {
         assert!(head(&mut stream).starts_with("POST / HTTP/1.1\r\n"));
         assert_eq!(remainder(&mut stream), b"5\r\nhello\r\n");
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let lifetime = Cancellation::new();
     let result = drive(&scheduler, address, &lifetime, async |client| {
         let never = Cancellation::never();
@@ -676,7 +676,7 @@ fn dropping_the_driver_discards_deferred_finalization() {
         // The final chunk is never sent once the supervisor is gone.
         assert_eq!(remainder(&mut stream), b"5\r\nhello\r\n");
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         let (client, driver) =
             Client::new(&scheduler, Endpoint::new(address), Options::default()).unwrap();
@@ -860,7 +860,7 @@ fn call_dropped_as_its_response_arrives_retires_the_connection() {
         assert!(remainder(&mut stream).is_empty());
         respond_no_content(&listener);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let faults = Faults::new(&scheduler);
     let (reached, proceed) = faults.plan.pause_read();
     drive_threaded(&faults, address, |client| {
@@ -894,7 +894,7 @@ fn response_dropped_while_its_body_arrives_retires_the_connection() {
         assert!(remainder(&mut stream).is_empty());
         respond_no_content(&listener);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let faults = Faults::new(&scheduler);
     let plan = faults.plan.clone();
     drive_threaded(&faults, address, |client| {
@@ -951,7 +951,7 @@ mod tls {
                     Err(error) => assert_eq!(error.kind(), io::ErrorKind::ConnectionReset),
                 }
             });
-            let scheduler = DirectScheduler::new(Default::default()).unwrap();
+            let scheduler = NativeScheduler::new().unwrap();
             let lifetime = Cancellation::new();
             let endpoint = Endpoint::new(address).with_tls(client_config(), "localhost");
             let (client, driver) = Client::new(&scheduler, endpoint, Options::default()).unwrap();
@@ -988,7 +988,7 @@ fn nodelay_values(plan: &Plan) -> Vec<bool> {
 fn connections_disable_nagle_unless_configured_otherwise() {
     for tcp_nodelay in [true, false] {
         let (address, peer) = peer(|listener| respond_no_content(&listener));
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let faults = Faults::new(&scheduler);
         let plan = faults.plan.clone();
         let options = Options {
@@ -1015,7 +1015,7 @@ fn connections_disable_nagle_unless_configured_otherwise() {
 #[test]
 fn a_connection_that_rejects_nodelay_remains_usable() {
     let (address, peer) = peer(|listener| respond_no_content(&listener));
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let faults = Faults::new(&scheduler);
     let plan = faults.plan.clone();
     plan.nodelay.store(true, Ordering::SeqCst);
@@ -1034,7 +1034,7 @@ fn cancellation_while_disabling_nagle_closes_the_new_socket() {
     let (address, peer) = peer(|listener| {
         assert!(remainder(&mut accept(&listener)).is_empty());
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let faults = Faults::new(&scheduler);
     let plan = faults.plan.clone();
     plan.nodelay_cancelled.store(true, Ordering::SeqCst);
