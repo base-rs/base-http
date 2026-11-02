@@ -9,11 +9,14 @@ use base_http::{
 };
 use base_scheduler::Cancellation;
 use std::{
+    future::Future,
     io,
+    pin::pin,
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
+    task::{Context, Waker},
 };
 
 #[derive(Default)]
@@ -233,6 +236,28 @@ impl<R: ReadableStream> RequestReader<R> {
             .await?;
         self.end += n;
         Ok(n != 0)
+    }
+
+    /// Whether idle input can still begin a message. Read-ahead, or a read
+    /// polled once without waiting that yields data, EOF or an error, means
+    /// the peer sent or closed outside an exchange, and prohibits admission.
+    /// A pending read loses no input, so input stays usable when idle.
+    pub(crate) fn probe_idle(&mut self) -> bool {
+        if !self.is_reusable() {
+            return false;
+        }
+        if self.available().is_empty() {
+            let cancellation = Cancellation::never();
+            let mut context = Context::from_waker(Waker::noop());
+            if pin!(self.fill(&cancellation))
+                .poll(&mut context)
+                .is_pending()
+            {
+                return true;
+            }
+        }
+        self.poisoned = true;
+        false
     }
 
     fn take(&mut self, n: usize) -> Vec<u8> {
