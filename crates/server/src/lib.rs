@@ -281,11 +281,10 @@ where
         };
         let mut response = match result.map_err(|error| Error::Handler(Box::new(error))) {
             Ok(response) => response,
-            // Cancellation can arrive between polling the outer signal and
-            // polling a handler which propagates a cancelled body operation.
+            // Cancellation can arrive between polling the outer signal and polling a handler which propagates a cancelled body operation.
             Err(_) if cancellation.is_cancelled() => return Err(Error::Cancelled),
             Err(error) => {
-                // No final head has been written, so the peer can still learn of the failure. Unread request input prevents reuse anyway.
+                // No final head has been written, so the peer can still learn of the failure. The connection then closes, whether or not request input remains.
                 let _ = output
                     .reject(Status::INTERNAL_SERVER_ERROR, cancellation)
                     .await;
