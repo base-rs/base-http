@@ -33,7 +33,9 @@ fn staged(test: impl AsyncFnOnce(Sample<Reply<EmptyBody>>)) {
         ],
         Some(11),
     );
-    block_on(test(Sample::new(Reply::Staged(body), "Hello World")));
+    block_on(test(
+        Sample::new(Reply::Staged(body), "Hello World").with_trailers(&etag()),
+    ));
 }
 
 mod staged {
@@ -136,6 +138,8 @@ enum Fault {
     DataAfterTrailers,
     // Produce trailers twice.
     RepeatedTrailers,
+    // Omit the expected trailers.
+    DroppedTrailers,
 }
 
 #[derive(Debug)]
@@ -166,7 +170,7 @@ impl Faulty {
         };
         let mut frames = frames;
         frames.reverse();
-        Sample::new(
+        let sample = Sample::new(
             Self {
                 fault,
                 frames,
@@ -175,7 +179,11 @@ impl Faulty {
                 ended: false,
             },
             "data",
-        )
+        );
+        match fault {
+            Fault::DroppedTrailers => sample.with_trailers(&etag()),
+            _ => sample,
+        }
     }
 
     fn is(&self, fault: Fault) -> bool {
@@ -268,6 +276,7 @@ faults! {
     forgetful_rewind_fails: ForgetfulRewind => rewind, "rewound body data";
     data_after_trailers_fails: DataAfterTrailers => read_to_end, "body data follows its trailers";
     repeated_trailers_fail: RepeatedTrailers => read_to_end, "body has repeated trailers";
+    dropped_trailers_fail: DroppedTrailers => read_to_end, "body trailers";
 }
 
 #[test]

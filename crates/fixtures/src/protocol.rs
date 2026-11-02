@@ -59,6 +59,11 @@ impl App {
         &self.request_received
     }
 
+    /// Released by [`App::release_response`]; `/response-trailer` waits for it before its trailer.
+    pub fn response_released(&self) -> &Latch {
+        &self.response_released
+    }
+
     /// Let `/response-trailer` send its trailer.
     pub fn release_response(&self) {
         self.response_released.release();
@@ -340,7 +345,8 @@ pub async fn get<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     assert_eq!(response.status, Status::OK);
     assert_eq!(
         response.fields.values("my-header").collect::<Vec<_>>(),
-        [b"my-value".as_slice()]
+        [b"my-value".as_slice()],
+        "the application's field"
     );
     assert_eq!(response.body.length(), Some(expected.len() as u64));
     assert_eq!(body::payload(&mut response.body).await, expected.as_bytes());
@@ -362,7 +368,11 @@ pub async fn head<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
         "a HEAD response body must be empty"
     );
     let expected = format!("HEAD {}", context.version());
-    assert_eq!(response.body.length(), Some(expected.len() as u64));
+    assert_eq!(
+        response.body.length(),
+        Some(expected.len() as u64),
+        "the representation length of a HEAD response"
+    );
     assert!(body::payload(&mut response.body).await.is_empty());
 }
 
@@ -375,7 +385,11 @@ pub async fn post<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
         .await
         .expect("POST /");
     assert_eq!(response.status, Status::OK);
-    assert_eq!(body::payload(&mut response.body).await, b"Hello World");
+    assert_eq!(
+        body::payload(&mut response.body).await,
+        b"Hello World",
+        "the echoed body"
+    );
 }
 
 /// The server observes a request body's length.
@@ -389,7 +403,8 @@ pub async fn request_length<S: Scheduler, H: Borrow<App>>(context: &Context<'_, 
     assert_eq!(response.body.length(), Some(18));
     assert_eq!(
         body::payload(&mut response.body).await,
-        b"Content Length: 12"
+        b"Content Length: 12",
+        "the request length the server observed"
     );
 }
 
@@ -416,7 +431,11 @@ pub async fn interim_response<S: Scheduler, H: Borrow<App>>(context: &Context<'_
         Version::Http10 => vec![],
         _ => vec![(Status::EARLY_HINTS, Some(LINK.as_bytes().to_vec()))],
     };
-    assert_eq!(*observed.lock().unwrap(), expected);
+    assert_eq!(
+        *observed.lock().unwrap(),
+        expected,
+        "the interim responses observed"
+    );
 }
 
 /// A large body downloads completely.
@@ -446,14 +465,18 @@ pub async fn broken_server<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S
         )
         .await
         .expect("GET /broken");
-    assert_eq!(response.status, Status::INTERNAL_SERVER_ERROR);
+    assert_eq!(
+        response.status,
+        Status::INTERNAL_SERVER_ERROR,
+        "the status of a failing handler"
+    );
     assert!(body::payload(&mut response.body).await.is_empty());
     get(context).await;
 }
 
 /// A response body shorter than its declared length fails the client's read.
 ///
-/// The server abandons the connection, so the cause depends on the transport: plaintext reports a truncated message, and TLS reports the missing `close_notify`.
+/// The server abandons the connection, so the cause depends on the transport: plaintext reports a truncated message, and TLS reports the missing `close_notify` instead.
 pub async fn incorrect_length<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     let mut response = context
         .client()
@@ -473,8 +496,19 @@ pub async fn incorrect_length<S: Scheduler, H: Borrow<App>>(context: &Context<'_
         .await
         .expect_err("a truncated body must fail");
     let chain = crate::error_chain(&error);
+    // The innermost cause each transport reports.
+    const CAUSES: [(&str, &str); 2] = [
+        ("http", "truncated HTTP/1 message"),
+        ("https", "close_notify"),
+    ];
+    let scheme = context.endpoint().scheme();
+    let (_, expected) = CAUSES
+        .iter()
+        .find(|(known, _)| *known == scheme)
+        .expect("a known scheme");
+    let cause = chain.last().expect("an error message").contains(expected);
     assert!(
-        chain.len() > 1 && chain[0] == "body failed",
+        chain[0] == "body failed" && cause,
         "unexpected failure: {chain:?}"
     );
 }
@@ -512,7 +546,8 @@ pub async fn request_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_,
     assert_eq!(response.status, Status::OK);
     assert_eq!(
         body::payload(&mut response.body).await,
-        b"Hello with etag: abcd"
+        b"Hello with etag: abcd",
+        "the request data and trailer the handler received"
     );
 }
 
@@ -547,7 +582,8 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
     let trailers = collected.trailers.expect("a response trailer");
     assert_eq!(
         trailers.values("etag").collect::<Vec<_>>(),
-        [b"abcd".as_slice()]
+        [b"abcd".as_slice()],
+        "the response trailer"
     );
 }
 

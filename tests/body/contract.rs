@@ -44,11 +44,12 @@ fn reader(test: impl AsyncFnOnce(Sample<BodyReader<Vec<u8>>>)) {
         writer.write(b" World".to_vec(), &never).await.unwrap();
         let mut fields = Fields::new();
         fields.add("etag", "abcd").unwrap();
+        let sample = Sample::new(body, "Hello World").with_trailers(&fields);
         writer
             .write_frame(BodyFrame::Headers { fields, end: true }, &never)
             .await
             .unwrap();
-        test(Sample::new(body, "Hello World")).await;
+        test(sample).await;
     });
 }
 

@@ -11,8 +11,8 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// How long a blocking peer waits for a [`Latch`] before failing.
-pub const LATCH_TIMEOUT: Duration = Duration::from_secs(10);
+/// How long a blocking peer waits for a [`Latch`] before failing, shorter than [`TEST_TIMEOUT`](crate::TEST_TIMEOUT).
+pub const LATCH_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// A one-shot synchronisation point between a test, its handler and its raw peers.
 ///

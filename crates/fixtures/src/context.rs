@@ -259,10 +259,17 @@ impl<H: Handler> ServerContext<H> {
                 test(&context),
             )
             .await;
-            if let Err(error) = &supervised.served {
+            // A test failure is reported first: it is usually the cause of a server failure.
+            let Supervised {
+                tested,
+                served,
+                forced,
+            } = supervised;
+            let output = finish(tested, forced, &context.client, limits);
+            if let Err(error) = served {
                 panic!("server failed: {error}");
             }
-            supervised.finish(&context.client, limits)
+            output
         })
     }
 }
@@ -436,7 +443,7 @@ impl ClientContext {
                 test(&client),
             )
             .await;
-            supervised.finish(&client, self.limits)
+            finish(supervised.tested, supervised.forced, &client, self.limits)
         })
     }
 }
@@ -448,25 +455,29 @@ struct Supervised<T, R> {
     forced: bool,
 }
 
-impl<T, R> Supervised<T, R> {
-    fn finish(self, client: &Client<'_>, limits: Limits) -> T {
-        let output = match self.tested {
-            Some(Ok(output)) => output,
-            Some(Err(panic)) => resume_unwind(panic),
-            None => panic!("test exceeded {:?}", limits.test),
-        };
-        assert!(
-            !self.forced,
-            "teardown exceeded {:?}; the client and server were cancelled",
-            limits.teardown
-        );
-        assert_eq!(
-            client.pool_stats().total(),
-            0,
-            "client connections remain after teardown"
-        );
-        output
-    }
+// Return the test's output, or fail for a test panic or timeout, a forced teardown or a remaining connection.
+fn finish<T>(
+    tested: Option<Result<T, Box<dyn Any + Send>>>,
+    forced: bool,
+    client: &Client<'_>,
+    limits: Limits,
+) -> T {
+    let output = match tested {
+        Some(Ok(output)) => output,
+        Some(Err(panic)) => resume_unwind(panic),
+        None => panic!("test exceeded {:?}", limits.test),
+    };
+    assert!(
+        !forced,
+        "teardown exceeded {:?}; the client and server were cancelled",
+        limits.teardown
+    );
+    assert_eq!(
+        client.pool_stats().total(),
+        0,
+        "client connections remain after teardown"
+    );
+    output
 }
 
 // Run the test beside the server and the client's driver, then close the client and stop the server, forcing both down if teardown exceeds its limit.

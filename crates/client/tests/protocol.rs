@@ -6,12 +6,12 @@ use base_http::Version;
 use base_http_fixtures::{Context, ServerContext, protocol::App};
 use base_scheduler_native::NativeScheduler;
 
-fn serve(version: Version) -> ServerContext<App> {
-    ServerContext::new().handler(App::new()).version(version)
+fn serve(app: App, version: Version) -> ServerContext<App> {
+    ServerContext::new().handler(app).version(version)
 }
 
 fn http11(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
-    serve(Version::Http11).handler(app).run(test);
+    serve(app, Version::Http11).run(test);
 }
 
 mod http11 {
@@ -21,7 +21,7 @@ mod http11 {
 
 // HTTP/1.0 cannot send trailers or interim responses; its interim case expects only the final response.
 fn http10(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
-    serve(Version::Http10).handler(app).run(test);
+    serve(app, Version::Http10).run(test);
 }
 
 mod http10 {
@@ -30,7 +30,7 @@ mod http10 {
 
 #[cfg(feature = "rustls")]
 fn https(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
-    serve(Version::Http11).handler(app).tls().run(test);
+    serve(app, Version::Http11).tls().run(test);
 }
 
 #[cfg(feature = "rustls")]

@@ -123,3 +123,15 @@ fn a_raw_peer_panic_propagates() {
         context.raw(|_| panic!("the raw peer failed")).await;
     });
 }
+
+// The test's own failure is reported ahead of the server failure it may have caused.
+#[test]
+#[should_panic(expected = "the test failed first")]
+fn a_test_panic_is_reported_before_a_server_failure() {
+    ServerContext::new()
+        .server_options(base_http_server::Options {
+            max_connections: 0,
+            ..Default::default()
+        })
+        .run(async |_| panic!("the test failed first"));
+}

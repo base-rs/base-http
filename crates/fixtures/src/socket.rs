@@ -14,14 +14,27 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// Wait until the peer has acknowledged every byte written to `stream` and, if writes were shut down, the FIN which followed them.
+/// How long [`wait_acknowledged`] waits before failing.
+pub const ACKNOWLEDGEMENT_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Wait until the peer has acknowledged every byte written to `stream` and, if writes were shut down, the FIN which followed them, panicking after [`ACKNOWLEDGEMENT_TIMEOUT`].
 pub fn wait_acknowledged(stream: &TcpStream) {
-    let deadline = Instant::now() + Duration::from_secs(10);
-    while !is_acknowledged(stream) {
-        assert!(
-            Instant::now() < deadline,
-            "timed out waiting for the peer to acknowledge"
-        );
+    assert!(
+        wait_acknowledged_within(stream, ACKNOWLEDGEMENT_TIMEOUT),
+        "timed out waiting for the peer to acknowledge"
+    );
+}
+
+/// Wait up to `timeout` for the peer to acknowledge everything sent on `stream`, returning whether it did.
+pub fn wait_acknowledged_within(stream: &TcpStream, timeout: Duration) -> bool {
+    let deadline = Instant::now() + timeout;
+    loop {
+        if is_acknowledged(stream) {
+            return true;
+        }
+        if Instant::now() >= deadline {
+            return false;
+        }
         thread::sleep(Duration::from_millis(1));
     }
 }

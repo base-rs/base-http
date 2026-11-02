@@ -24,7 +24,7 @@ Inspect each manifest: the fixtures crate is unpublished and every dependency on
 
 ### Requirement
 
-`ServerContext::run` binds its listener before serving and before the test starts, so the client never races the server's start. It runs the test beside the server and the client's driver, then tears down in order: the client stops accepting calls and retires its connections, then the server stops, closing its listener and joining its connections. The test and teardown are each bounded by a configurable time; exceeding either fails the test, and a forced teardown cancels the client and server and still joins them. A panic in the test propagates after teardown. A test also fails when the server fails or a client connection remains after teardown. `ClientContext` gives a client of another endpoint the same bounds and teardown.
+`ServerContext::run` binds its listener before serving and before the test starts, so the client never races the server's start. It runs the test beside the server and the client's driver, then tears down in order: the client stops accepting calls and retires its connections, then the server stops, closing its listener and joining its connections. The test and teardown are each bounded by a configurable time; exceeding either fails the test, and a forced teardown cancels the client and server and still joins them. Joining after a forced teardown relies on the client, server and handlers observing cancellation, and on raw peers' I/O timeouts; it has no second deadline. A panic in the test propagates after teardown, ahead of any server failure. A test also fails when the server fails or a client connection remains after teardown. `ClientContext` gives a client of another endpoint the same bounds and teardown.
 
 ### Rationale
 
@@ -42,7 +42,7 @@ Rust has no asynchronous destructor, so a fixture which leaves teardown to the t
 
 ### Requirement
 
-Raw peers use blocking `std::net` sockets and no Base encoder, decoder or scheduler. Every read, write and accept is bounded by a timeout, and an accepted socket is explicitly made blocking, since it inherits the listener's nonblocking mode on some platforms. Tests sequence peers with latches or acknowledgement, not sleeps. A canned peer which closes a connection or writes outside an exchange waits until the other side's kernel has acknowledged it, using `socket::wait_acknowledged`, before continuing or signalling the test. Linux and macOS query the kernel; on other platforms the wait is a 50 ms sleep, which is documented on the peer helpers. Raw peers never block a scheduler thread: `Context::raw` runs one on its own thread.
+Raw peers use blocking `std::net` sockets and no Base encoder, decoder or scheduler. Every read, write, accept, latch wait and acknowledgement wait is bounded by a timeout shorter than the default test timeout, so a stalled peer reports its own failure, and an accepted socket is explicitly made blocking, since it inherits the listener's nonblocking mode on some platforms. Tests sequence peers with latches or acknowledgement, not sleeps. A canned peer which closes a connection or writes outside an exchange waits until the other side's kernel has acknowledged it, using `socket::wait_acknowledged`, before continuing or signalling the test. Linux and macOS query the kernel; on other platforms the wait is a 50 ms sleep, which is documented on the peer helpers. Raw peers never block a scheduler thread: `Context::raw` runs one on its own thread.
 
 ### Rationale
 
@@ -54,7 +54,7 @@ Peers that share the implementation's codec can hide a shared bug. Unbounded blo
 
 ### Validation
 
-Inspect peer construction for timeouts and the explicit blocking reset. Search tests built on the fixtures for `thread::sleep`. `crates/fixtures/tests/acknowledgement.rs` shows that `wait_acknowledged` waits for unread data and the FIN on Linux and macOS.
+Inspect peer construction for timeouts and the explicit blocking reset. Search tests built on the fixtures for `thread::sleep`. `crates/fixtures/tests/acknowledgement.rs` shows that a bounded wait expires while a peer leaves data unread, and that `wait_acknowledged` returns once it reads the data and the FIN, on Linux and macOS.
 
 ## Behaviour suites
 
@@ -72,4 +72,4 @@ Each new engine or body type should be checked against one shared definition of 
 
 ### Validation
 
-Check that the suites are applied as stated. `crates/fixtures/tests/protocol.rs` runs every protocol case against a misrouting application and requires it to fail; `crates/fixtures/tests/body.rs` runs every body assertion against a body with the corresponding fault and requires the expected failure.
+Check that the suites are applied as stated. `crates/fixtures/tests/protocol.rs` runs every protocol case against an application sabotaged on that case's route and requires the failure message of the assertion the case exists for; `crates/fixtures/tests/body.rs` runs every body assertion against a body with the corresponding fault and requires the expected failure.

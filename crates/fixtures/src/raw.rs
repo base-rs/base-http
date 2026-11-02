@@ -15,8 +15,8 @@ use std::{
     time::{Duration, Instant},
 };
 
-/// The read, write and accept timeout of every raw peer.
-pub const PEER_TIMEOUT: Duration = Duration::from_secs(10);
+/// The read, write and accept timeout of every raw peer, shorter than [`TEST_TIMEOUT`](crate::TEST_TIMEOUT) so a stalled peer reports its own failure first.
+pub const PEER_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// One blocking connection, as a client of a server under test or as a server's accepted peer.
 ///
@@ -330,7 +330,7 @@ impl RawListener {
         }
     }
 
-    /// Require that no connection is waiting to be accepted.
+    /// Require that no connection is waiting to be accepted at this instant. It polls once and does not wait, so it cannot rule out a connection still being established.
     pub fn expect_no_connection(&self) {
         let pending = self.listener.accept().map(|(_, address)| address);
         assert!(

@@ -67,16 +67,33 @@ pub struct Sample<B> {
     pub body: B,
     /// The concatenated data the body produces.
     pub data: Vec<u8>,
+    /// The trailer fields the body ends with, as `(name, value)` pairs, or `None` for no trailer frame.
+    pub trailers: Option<Vec<(String, Vec<u8>)>>,
 }
 
 impl<B> Sample<B> {
-    /// Pair a fresh body with its expected data.
+    /// Pair a fresh body with its expected data and no trailers.
     pub fn new(body: B, data: impl Into<Vec<u8>>) -> Self {
         Self {
             body,
             data: data.into(),
+            trailers: None,
         }
     }
+
+    /// Expect the body to end with a trailer frame holding `fields`.
+    pub fn with_trailers(mut self, fields: &Fields) -> Self {
+        self.trailers = Some(pairs(fields));
+        self
+    }
+}
+
+fn pairs(fields: &Fields) -> Vec<(String, Vec<u8>)> {
+    fields
+        .pairs()
+        .iter()
+        .map(|field| (field.name().to_owned(), field.value().to_vec()))
+        .collect()
 }
 
 /// After `close(None)`, a read returns `End`.
@@ -95,7 +112,7 @@ pub async fn empty_after_close<B: ReadableBody>(mut sample: Sample<B>) {
     assert!(sample.body.is_empty(), "a closed body must be empty");
 }
 
-/// Reading produces the expected data, with trailers only when the body says it may have them, and its length does not change.
+/// Reading produces the expected data and trailers, with trailers only when the body says it may have them, and its length does not change.
 pub async fn read_to_end<B: ReadableBody>(mut sample: Sample<B>) {
     let length = sample.body.length();
     let empty = sample.body.is_empty();
@@ -111,6 +128,11 @@ pub async fn read_to_end<B: ReadableBody>(mut sample: Sample<B>) {
     assert!(
         trailers || collected.trailers.is_none(),
         "a body without trailers produced them"
+    );
+    assert_eq!(
+        collected.trailers.as_ref().map(pairs),
+        sample.trailers,
+        "body trailers"
     );
     assert_eq!(
         sample.body.length(),
