@@ -30,7 +30,7 @@ use std::{
 
 /// Generic bodies and hooks keep handlers independent of the HTTP wire version
 /// and scheduler. A returned body may retain the request body, including borrows.
-/// An error responds with a bodiless status and closes the connection, which then reports it as [`Error::Handler`]: 400 when a request read failed, such as a malformed or truncated body, and otherwise 500. Return an ordinary response for other client errors.
+/// An error responds with a bodiless status and closes the connection, which then reports it as [`Error::Handler`]: 400 when a request read failed, such as a malformed or truncated body, even if the error has another cause, and otherwise 500. Return an ordinary response for other client errors.
 pub trait Handler: Sync {
     type Error: std::error::Error + Send + Sync + 'static;
     type Body<B: ReadableBody>: ReadableBody;
