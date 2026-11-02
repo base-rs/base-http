@@ -12,7 +12,7 @@ use base_scheduler::{
     SocketAccept, SocketAddress, SocketClose, SocketGetOption, SocketOperation, SocketSetOption,
     SocketStreamReader, SocketStreamReading, SocketStreamWriter, SocketStreamWriting, TcpNoDelay,
 };
-use base_scheduler_direct::{DirectScheduler, DirectSocket};
+use base_scheduler_native::{NativeScheduler, NativeSocket};
 use futures_lite::future::block_on;
 use std::{
     future::Future,
@@ -25,14 +25,14 @@ mod support;
 use support::*;
 
 struct Recording<'a> {
-    inner: &'a DirectScheduler,
+    inner: &'a NativeScheduler,
     nodelay: Mutex<Vec<bool>>,
 }
 impl SocketOperation for Recording<'_> {
-    type Socket = DirectSocket;
+    type Socket = NativeSocket;
 }
 impl BufferPooling for Recording<'_> {
-    type Pool = <DirectScheduler as BufferPooling>::Pool;
+    type Pool = <NativeScheduler as BufferPooling>::Pool;
     fn buffer_pool(&self, options: BufferPoolOptions) -> io::Result<Self::Pool> {
         self.inner.buffer_pool(options)
     }
@@ -40,9 +40,9 @@ impl BufferPooling for Recording<'_> {
 impl SocketAccept for Recording<'_> {
     fn socket_accept(
         &self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         cancellation: &Cancellation,
-    ) -> impl Future<Output = OperationResult<(DirectSocket, SocketAddress)>> + Send {
+    ) -> impl Future<Output = OperationResult<(NativeSocket, SocketAddress)>> + Send {
         self.inner.socket_accept(socket, cancellation)
     }
 }
@@ -61,7 +61,7 @@ impl Clock for Recording<'_> {
 impl SocketSetOption<TcpNoDelay> for Recording<'_> {
     fn socket_set_option(
         &self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         option: TcpNoDelay,
         value: bool,
         cancellation: &Cancellation,
@@ -71,7 +71,7 @@ impl SocketSetOption<TcpNoDelay> for Recording<'_> {
     }
 }
 impl SocketClose for Recording<'_> {
-    async fn socket_close(&self, socket: DirectSocket) -> io::Result<()> {
+    async fn socket_close(&self, socket: NativeSocket) -> io::Result<()> {
         let nodelay = self
             .inner
             .socket_get_option(&socket, TcpNoDelay, &Cancellation::never())
@@ -82,7 +82,7 @@ impl SocketClose for Recording<'_> {
     }
     fn socket_close_submit(
         &self,
-        socket: DirectSocket,
+        socket: NativeSocket,
     ) -> impl Future<Output = io::Result<()>> + Send {
         self.inner.socket_close_submit(socket)
     }
@@ -90,7 +90,7 @@ impl SocketClose for Recording<'_> {
 impl<'a> SocketStreamReading for Recording<'a> {
     fn socket_stream_reader<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<
         impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer>
         + 'scheduler
@@ -100,7 +100,7 @@ impl<'a> SocketStreamReading for Recording<'a> {
     }
     fn socket_stream_reader_with_pool<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         pool: Self::Pool,
     ) -> io::Result<
         impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer>
@@ -113,7 +113,7 @@ impl<'a> SocketStreamReading for Recording<'a> {
 impl<'a> SocketStreamWriting for Recording<'a> {
     fn socket_stream_writer<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<
         impl SocketStreamWriter<Buffer = <Self::Pool as BufferPool>::Buffer>
         + 'scheduler
@@ -123,7 +123,7 @@ impl<'a> SocketStreamWriting for Recording<'a> {
     }
     fn socket_stream_writer_with_buffer<'scheduler, B: IoBuf>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<impl SocketStreamWriter<Buffer = B> + 'scheduler + use<'scheduler, 'a, B>> {
         self.inner.socket_stream_writer_with_buffer::<B>(socket)
     }

@@ -466,7 +466,7 @@ mod tests {
     use super::*;
     use crate::{Endpoint, Options};
     use base_http::{Method, body::EmptyBody};
-    use base_scheduler_direct::DirectScheduler;
+    use base_scheduler_native::NativeScheduler;
     use std::{
         sync::atomic::Ordering,
         task::{Context, Wake, Waker},
@@ -580,14 +580,14 @@ mod tests {
         assert_eq!(lock(&queue.state).pending, 0);
     }
 
-    fn parts(scheduler: &DirectScheduler) -> ClientParts<'_> {
+    fn parts(scheduler: &NativeScheduler) -> ClientParts<'_> {
         let endpoint = Endpoint::new("127.0.0.1:1".parse().unwrap());
         make(scheduler, endpoint, Options::default())
     }
 
     #[test]
     fn requests_pushed_after_close_are_rejected() {
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let parts = parts(&scheduler);
         parts.queue.begin_close();
         let operation = Operation {
@@ -609,7 +609,7 @@ mod tests {
 
     #[test]
     fn construction_after_the_queue_is_abandoned_releases_its_build() {
-        let scheduler = DirectScheduler::new(Default::default()).unwrap();
+        let scheduler = NativeScheduler::new().unwrap();
         let parts = parts(&scheduler);
         // Abandonment closes the queue before the pool; a build reserved between the two cannot start.
         parts.queue.abandon();

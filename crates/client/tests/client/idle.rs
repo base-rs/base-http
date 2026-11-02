@@ -28,6 +28,8 @@ fn serve(
             .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfirst")
             .unwrap();
         let retired = idle(stream);
+        // Loopback can deliver asynchronously (on macOS through the input thread), and a probe only observes what has arrived.
+        thread::sleep(std::time::Duration::from_millis(20));
         idled.send(()).unwrap();
         let mut stream = accept(&listener);
         assert!(head(&mut stream).starts_with("GET /next HTTP/1.1\r\n"));

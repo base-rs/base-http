@@ -105,6 +105,10 @@ impl SocketStreamReader for Reader<'_> {
         Ok(count)
     }
 
+    fn try_read_into(&mut self, _: &mut [u8]) -> io::Result<usize> {
+        unreachable!("servers do not probe idle input")
+    }
+
     async fn read_vectored(
         &mut self,
         _: &mut [IoSliceMut<'_>],

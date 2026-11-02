@@ -11,7 +11,7 @@ use base_http::{
 use base_http_client::{Client, Endpoint, Error, Options};
 use base_http_server::Handler;
 use base_scheduler::{Cancellation, Clock, SocketLocalAddress};
-use base_scheduler_direct::DirectScheduler;
+use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};
 use rustls::{ClientConfig, RootCertStore, ServerConfig, pki_types::PrivatePkcs8KeyDer};
 use std::{
@@ -73,7 +73,7 @@ impl Handler for Echo {
 
 #[test]
 fn https_echo_reuses_connections_and_accepts_during_another_handshake() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         for tls12 in [false, true] {
             scheduler
@@ -142,7 +142,7 @@ fn https_echo_reuses_connections_and_accepts_during_another_handshake() {
 
 #[test]
 fn https_client_applies_missing_alpn_policy_before_pool_publication() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         for required in [false, true] {
             let (client_config, server_config) = configs(false);
@@ -235,7 +235,7 @@ fn https_client_applies_missing_alpn_policy_before_pool_publication() {
 
 #[test]
 fn https_upload_progresses_while_response_consumption_is_paused() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let (client_config, mut server_config) = configs(false);
     Arc::make_mut(&mut server_config).alpn_protocols = vec![b"http/1.1".to_vec()];
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -312,7 +312,7 @@ fn https_upload_progresses_while_response_consumption_is_paused() {
 
 #[test]
 fn https_server_interoperates_with_an_independent_http_client() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         let (mut client_config, server_config) = configs(false);
         Arc::make_mut(&mut client_config).alpn_protocols = vec![b"http/1.1".to_vec()];
@@ -373,7 +373,7 @@ fn https_server_interoperates_with_an_independent_http_client() {
 
 #[test]
 fn https_client_does_not_send_http_after_server_identity_verification_fails() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let (client_config, mut server_config) = configs(false);
     Arc::make_mut(&mut server_config).alpn_protocols = vec![b"http/1.1".to_vec()];
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -470,7 +470,7 @@ enum Idle {
 // retired before reuse, while a key update carries no plaintext and keeps it.
 #[test]
 fn https_idle_connections_are_probed_through_tls_before_reuse() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         for idle in [Idle::CloseNotify, Idle::Abrupt, Idle::KeyUpdate] {
             let (client_config, server_config) = configs(false);
@@ -481,20 +481,25 @@ fn https_idle_connections_are_probed_through_tls_before_reuse() {
             let peer = std::thread::spawn(move || {
                 let mut stream = tls_accept(&listener, &server_config);
                 tls_respond(&mut stream, "/first");
+                // Loopback can deliver asynchronously (on macOS through the input thread), and a probe only observes what has arrived.
+                let settle = || std::thread::sleep(Duration::from_millis(20));
                 match idle {
                     Idle::CloseNotify => {
                         stream.conn.send_close_notify();
                         stream.flush().unwrap();
+                        settle();
                         idled.send(()).unwrap();
                         assert!(tls_head(&mut stream).is_none());
                     }
                     Idle::Abrupt => {
                         drop(stream);
+                        settle();
                         idled.send(()).unwrap();
                     }
                     Idle::KeyUpdate => {
                         stream.conn.refresh_traffic_keys().unwrap();
                         stream.flush().unwrap();
+                        settle();
                         idled.send(()).unwrap();
                         tls_respond(&mut stream, "/next");
                         assert!(tls_head(&mut stream).is_none());

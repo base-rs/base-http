@@ -15,7 +15,7 @@ use base_scheduler::{
     SocketSetOption, SocketStreamReader, SocketStreamReading, SocketStreamWriter,
     SocketStreamWriting, TcpNoDelay,
 };
-use base_scheduler_direct::{DirectScheduler, DirectSocket};
+use base_scheduler_native::{NativeScheduler, NativeSocket};
 use futures_lite::future::block_on;
 use std::{
     collections::VecDeque,
@@ -39,7 +39,7 @@ enum Closed {
 }
 
 struct Scripted<'a> {
-    inner: &'a DirectScheduler,
+    inner: &'a NativeScheduler,
     // Each accept takes the next entry: an error to report, or `None` to accept a real peer. An empty script accepts real peers.
     script: Mutex<VecDeque<Option<io::Error>>>,
     closed: Mutex<Vec<Closed>>,
@@ -51,10 +51,10 @@ struct Scripted<'a> {
     fail_listener_close: bool,
 }
 impl SocketOperation for Scripted<'_> {
-    type Socket = DirectSocket;
+    type Socket = NativeSocket;
 }
 impl BufferPooling for Scripted<'_> {
-    type Pool = <DirectScheduler as BufferPooling>::Pool;
+    type Pool = <NativeScheduler as BufferPooling>::Pool;
     fn buffer_pool(&self, options: BufferPoolOptions) -> io::Result<Self::Pool> {
         self.inner.buffer_pool(options)
     }
@@ -62,9 +62,9 @@ impl BufferPooling for Scripted<'_> {
 impl SocketAccept for Scripted<'_> {
     async fn socket_accept(
         &self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         cancellation: &Cancellation,
-    ) -> OperationResult<(DirectSocket, SocketAddress)> {
+    ) -> OperationResult<(NativeSocket, SocketAddress)> {
         cancellation.check()?;
         let next = self.script.lock().unwrap().pop_front();
         match next {
@@ -92,7 +92,7 @@ impl Clock for Scripted<'_> {
 impl SocketSetOption<TcpNoDelay> for Scripted<'_> {
     fn socket_set_option(
         &self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         option: TcpNoDelay,
         value: bool,
         cancellation: &Cancellation,
@@ -102,7 +102,7 @@ impl SocketSetOption<TcpNoDelay> for Scripted<'_> {
     }
 }
 impl SocketClose for Scripted<'_> {
-    async fn socket_close(&self, socket: DirectSocket) -> io::Result<()> {
+    async fn socket_close(&self, socket: NativeSocket) -> io::Result<()> {
         // Only an accepted connection has a peer.
         let closed = match self.inner.socket_peer_address(&socket) {
             Ok(_) => Closed::Connection,
@@ -118,7 +118,7 @@ impl SocketClose for Scripted<'_> {
     }
     fn socket_close_submit(
         &self,
-        socket: DirectSocket,
+        socket: NativeSocket,
     ) -> impl Future<Output = io::Result<()>> + Send {
         self.inner.socket_close_submit(socket)
     }
@@ -126,7 +126,7 @@ impl SocketClose for Scripted<'_> {
 impl<'a> SocketStreamReading for Scripted<'a> {
     fn socket_stream_reader<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<
         impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer>
         + 'scheduler
@@ -136,7 +136,7 @@ impl<'a> SocketStreamReading for Scripted<'a> {
     }
     fn socket_stream_reader_with_pool<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
         pool: Self::Pool,
     ) -> io::Result<
         impl SocketStreamReader<Buffer = <Self::Pool as BufferPool>::Buffer>
@@ -149,7 +149,7 @@ impl<'a> SocketStreamReading for Scripted<'a> {
 impl<'a> SocketStreamWriting for Scripted<'a> {
     fn socket_stream_writer<'scheduler>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<
         impl SocketStreamWriter<Buffer = <Self::Pool as BufferPool>::Buffer>
         + 'scheduler
@@ -159,7 +159,7 @@ impl<'a> SocketStreamWriting for Scripted<'a> {
     }
     fn socket_stream_writer_with_buffer<'scheduler, B: IoBuf>(
         &'scheduler self,
-        socket: &DirectSocket,
+        socket: &NativeSocket,
     ) -> io::Result<impl SocketStreamWriter<Buffer = B> + 'scheduler + use<'scheduler, 'a, B>> {
         self.inner.socket_stream_writer_with_buffer::<B>(socket)
     }

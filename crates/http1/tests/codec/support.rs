@@ -27,8 +27,11 @@ impl ReadableStream for Input {
         cancellation: &Cancellation,
     ) -> OperationResult<usize> {
         cancellation.check()?;
+        Ok(self.try_read_into(buffer)?)
+    }
+    fn try_read_into(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
         if self.bytes.is_empty() && self.fail {
-            return Err(io::Error::from(io::ErrorKind::ConnectionReset).into());
+            return Err(io::ErrorKind::ConnectionReset.into());
         }
         let n = self.bytes.len().min(buffer.len()).min(self.step);
         buffer[..n].copy_from_slice(&self.bytes[..n]);
@@ -62,19 +65,25 @@ impl ReadableStream for Segments {
             if let Err(cancelled) = cancellation.check() {
                 return Poll::Ready(Err(cancelled.into()));
             }
-            let mut queue = self.0.lock().unwrap();
-            let Some(segment) = queue.front_mut() else {
-                return Poll::Pending;
-            };
-            let n = segment.len().min(buffer.len());
-            buffer[..n].copy_from_slice(&segment[..n]);
-            *segment = &segment[n..];
-            if segment.is_empty() {
-                queue.pop_front();
+            match self.try_read_into(buffer) {
+                Err(error) if error.kind() == io::ErrorKind::WouldBlock => Poll::Pending,
+                result => Poll::Ready(result.map_err(Into::into)),
             }
-            Poll::Ready(Ok(n))
         })
         .await
+    }
+    fn try_read_into(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        let mut queue = self.0.lock().unwrap();
+        let Some(segment) = queue.front_mut() else {
+            return Err(io::ErrorKind::WouldBlock.into());
+        };
+        let n = segment.len().min(buffer.len());
+        buffer[..n].copy_from_slice(&segment[..n]);
+        *segment = &segment[n..];
+        if segment.is_empty() {
+            queue.pop_front();
+        }
+        Ok(n)
     }
     async fn close(&mut self) -> io::Result<()> {
         Ok(())

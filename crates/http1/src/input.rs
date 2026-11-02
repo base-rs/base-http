@@ -9,14 +9,11 @@ use base_http::{
 };
 use base_scheduler::Cancellation;
 use std::{
-    future::Future,
     io,
-    pin::pin,
     sync::{
         Arc,
         atomic::{AtomicBool, Ordering},
     },
-    task::{Context, Waker},
 };
 
 #[derive(Default)]
@@ -223,6 +220,18 @@ impl<R: ReadableStream> RequestReader<R> {
     }
 
     async fn fill(&mut self, cancellation: &Cancellation) -> Result<bool, Error> {
+        let spare = self.spare();
+        let n = self
+            .reader
+            .read_into(&mut self.buffer[spare], cancellation)
+            .await?;
+        self.end += n;
+        Ok(n != 0)
+    }
+
+    // Compact unread input to the front and return the initialized spare
+    // storage for one read. Only a successful read count advances `end`.
+    fn spare(&mut self) -> std::ops::Range<usize> {
         if self.start != 0 {
             self.buffer.copy_within(self.start..self.end, 0);
             self.end -= self.start;
@@ -235,18 +244,14 @@ impl<R: ReadableStream> RequestReader<R> {
             // read never publishes it: only a successful count advances end.
             self.buffer.resize(limit, 0);
         }
-        let n = self
-            .reader
-            .read_into(&mut self.buffer[self.end..limit], cancellation)
-            .await?;
-        self.end += n;
-        Ok(n != 0)
+        self.end..limit
     }
 
-    /// Whether idle input can still begin a message. Read-ahead, or a read
-    /// polled once without waiting that yields data, EOF or an error, means
-    /// the peer sent or closed outside an exchange, and prohibits admission.
-    /// A pending read loses no input, so input stays usable when idle. Input
+    /// Whether idle input can still begin a message. Read-ahead, or an
+    /// immediate read that yields data, EOF or an error, means the peer sent
+    /// or closed outside an exchange, and prohibits admission. The immediate
+    /// read reaches the transport, so it observes a close already queued
+    /// there; `WouldBlock` loses no input, so input stays usable. Input
     /// that has not yet completed an exchange is not read: probing a fresh
     /// connection could retire every replacement for a peer that writes or
     /// closes on accept, without bound.
@@ -258,13 +263,11 @@ impl<R: ReadableStream> RequestReader<R> {
             return true;
         }
         if self.available().is_empty() {
-            let cancellation = Cancellation::never();
-            let mut context = Context::from_waker(Waker::noop());
-            if pin!(self.fill(&cancellation))
-                .poll(&mut context)
-                .is_pending()
-            {
-                return true;
+            let spare = self.spare();
+            match self.reader.try_read_into(&mut self.buffer[spare]) {
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => return true,
+                Ok(n) => self.end += n,
+                Err(_) => {}
             }
         }
         self.poisoned = true;

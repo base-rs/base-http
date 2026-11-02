@@ -15,7 +15,7 @@ use base_http::{
 };
 use base_http_client::{Client, Endpoint, Options};
 use base_scheduler::Cancellation;
-use base_scheduler_direct::DirectScheduler;
+use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};
 use std::{
     io::{BufRead, BufReader, Read, Write},
@@ -51,7 +51,7 @@ fn accept(listener: &TcpListener) -> BufReader<TcpStream> {
     BufReader::new(stream)
 }
 fn run<'scope>(
-    scheduler: &'scope DirectScheduler,
+    scheduler: &'scope NativeScheduler,
     address: SocketAddr,
     options: Options,
     application: impl AsyncFnOnce(Client<'scope>),
@@ -102,7 +102,7 @@ fn post_then_get_reuses_one_connection_with_heterogeneous_bodies() {
     });
     // The borrowed bytes are local to this scope, rather than static storage.
     let message = String::from("Hello World");
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
         let request = Request::new(
             Method::POST,
@@ -163,7 +163,7 @@ fn response_finishes_before_upload_and_use_remains_charged() {
             .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
             .unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
         let (body, mut producer) = base_http::body::BodyReader::bounded(64, 2);
         let mut response = client
@@ -221,7 +221,7 @@ fn abandoned_partial_response_disconnects_and_replaces_connection() {
             .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK")
             .unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
         let response = client
             .call(
@@ -256,7 +256,7 @@ fn interim_responses_and_trailers_preserve_order() {
             .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
             .unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
         let observed = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         let observer = observed.clone();
@@ -318,7 +318,7 @@ fn cancelling_a_waiting_call_disconnects_and_allows_replacement() {
             .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
             .unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
         // Keep the call pending while the driver establishes its connection.
         let cancelled = Cancellation::new();
@@ -366,7 +366,7 @@ fn cancelled_pool_waiter_does_not_cancel_occupied_connection() {
             .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
             .unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let mut options = Options::default();
     options.pool.max_resources = 1;
     run(&scheduler, address, options, async |client| {
@@ -429,7 +429,7 @@ fn lifetime_cancellation_stops_an_uncooperative_upload_and_joins_cleanup() {
         let mut eof = [0];
         assert_eq!(stream.read(&mut eof).unwrap(), 0);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         let lifetime = Cancellation::new();
         let (client, driver) =
@@ -488,7 +488,7 @@ fn upload_keeps_progressing_while_response_queue_is_full() {
         uploaded.send(()).unwrap();
         sending.join().unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let options = Options {
         response_buffer_frames: 1,
         ..Options::default()
@@ -542,7 +542,7 @@ fn busy_and_closed_clients_close_rejected_bodies() {
         let mut eof = [0];
         assert_eq!(stream.read(&mut eof).unwrap(), 0);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let options = Options {
         max_requests: 1,
         ..Options::default()
@@ -584,7 +584,7 @@ fn busy_and_closed_clients_close_rejected_bodies() {
 
 #[test]
 fn dropping_driver_wakes_queued_calls_and_rejects_new_submissions() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     block_on(async {
         let (client, driver) = Client::new(
             &scheduler,
@@ -628,7 +628,7 @@ fn dropped_call_retires_an_exchange_waiting_for_final_metadata() {
             .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
             .unwrap();
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
         let never = Cancellation::never();
         let mut call =
@@ -664,7 +664,7 @@ fn known_empty_responses_are_ready_and_reusable_without_body_reads() {
         let mut eof = [0];
         assert_eq!(stream.read(&mut eof).unwrap(), 0);
     });
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let mut options = Options::default();
     options.pool.max_resources = 1;
     run(&scheduler, address, options, async |client| {
@@ -687,7 +687,7 @@ fn known_empty_responses_are_ready_and_reusable_without_body_reads() {
 
 #[test]
 fn failed_construction_releases_capacity_and_preserves_client_admission() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     let mut options = Options::default();
     options.pool.max_resources = 1;
     // TCP destination port zero cannot designate a listening endpoint.
@@ -722,7 +722,7 @@ fn failed_construction_releases_capacity_and_preserves_client_admission() {
 
 #[test]
 fn failed_connection_reports_connect_with_the_address() {
-    let scheduler = DirectScheduler::new(Default::default()).unwrap();
+    let scheduler = NativeScheduler::new().unwrap();
     // TCP destination port zero cannot designate a listening endpoint.
     let address: SocketAddr = "127.0.0.1:0".parse().unwrap();
     run(&scheduler, address, Options::default(), async |client| {

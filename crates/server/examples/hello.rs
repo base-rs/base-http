@@ -10,7 +10,7 @@ use base_scheduler::{
     Cancellation, SocketAccept, SocketBind, SocketClose, SocketListen, SocketLocalAddress,
     SocketOpen, SocketType,
 };
-use base_scheduler_direct::{DirectOptions, DirectScheduler};
+use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
 use std::{convert::Infallible, net::SocketAddr};
 
@@ -40,9 +40,9 @@ impl Handler for Hello {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let scheduler = DirectScheduler::new(DirectOptions {
-        threads: 2,
-        capacity: 256,
+    let scheduler = NativeScheduler::with_options(NativeOptions {
+        workers: 2,
+        ..Default::default()
     })?;
     let result = block_on(async {
         let address: SocketAddr = std::env::var("BASE_HTTP_ADDRESS")

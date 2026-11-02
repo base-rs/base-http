@@ -11,7 +11,7 @@ use base_http::{
 use base_http_client::{Client, Endpoint};
 use base_http_server::Handler;
 use base_scheduler::{Cancellation, SocketAccept, SocketClose, SocketLocalAddress};
-use base_scheduler_direct::DirectScheduler;
+use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};
 use std::{convert::Infallible, future::Future, net::SocketAddr};
 
@@ -39,7 +39,7 @@ async fn supervised<T>(
     }
     result
 }
-async fn run(scheduler: &DirectScheduler, encrypted: bool) -> Result<()> {
+async fn run(scheduler: &NativeScheduler, encrypted: bool) -> Result<()> {
     #[cfg(not(feature = "rustls"))]
     if encrypted {
         return Err("enable the rustls feature for --https".into());
@@ -178,7 +178,7 @@ async fn print_response<B: ReadableBody>(
     Ok(())
 }
 fn main() -> Result<()> {
-    let scheduler = DirectScheduler::new(Default::default())?;
+    let scheduler = NativeScheduler::new()?;
     let encrypted = std::env::args().any(|argument| argument == "--https");
     let result = block_on(run(&scheduler, encrypted));
     block_on(scheduler.shutdown());
