@@ -481,15 +481,19 @@ fn https_idle_connections_are_probed_through_tls_before_reuse() {
             let peer = std::thread::spawn(move || {
                 let mut stream = tls_accept(&listener, &server_config);
                 tls_respond(&mut stream, "/first");
+                // Loopback can deliver asynchronously (on macOS through the input thread), and a probe only observes what has arrived.
+                let settle = || std::thread::sleep(Duration::from_millis(20));
                 match idle {
                     Idle::CloseNotify => {
                         stream.conn.send_close_notify();
                         stream.flush().unwrap();
+                        settle();
                         idled.send(()).unwrap();
                         assert!(tls_head(&mut stream).is_none());
                     }
                     Idle::Abrupt => {
                         drop(stream);
+                        settle();
                         idled.send(()).unwrap();
                     }
                     Idle::KeyUpdate => {

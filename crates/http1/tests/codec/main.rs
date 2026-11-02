@@ -65,6 +65,9 @@ impl SocketStreamReader for Input {
         cancellation: &Cancellation,
     ) -> OperationResult<usize> {
         cancellation.check()?;
+        Ok(self.try_read_into(buffer)?)
+    }
+    fn try_read_into(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
         let n = self.bytes.len().min(buffer.len()).min(self.step);
         buffer[..n].copy_from_slice(&self.bytes[..n]);
         self.bytes = &self.bytes[n..];

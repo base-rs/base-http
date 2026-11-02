@@ -354,6 +354,9 @@ impl<R: SocketStreamReader> SocketStreamReader for FaultReader<R> {
         }
         Ok(length)
     }
+    fn try_read_into(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        self.inner.try_read_into(buffer)
+    }
     fn read_vectored(
         &mut self,
         buffers: &mut [IoSliceMut<'_>],

@@ -712,6 +712,9 @@ mod tests {
             buffer: &mut [u8],
             _: &Cancellation,
         ) -> OperationResult<usize> {
+            self.try_read_into(buffer).map_err(Into::into)
+        }
+        fn try_read_into(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
             let n = self.0.len().min(buffer.len());
             buffer[..n].copy_from_slice(&self.0[..n]);
             self.0 = &self.0[n..];
