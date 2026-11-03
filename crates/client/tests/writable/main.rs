@@ -53,6 +53,55 @@ fn run(address: SocketAddr, application: impl for<'scope> AsyncFnOnce(Client<'sc
     run_endpoint(Endpoint::new(address), Options::default(), application);
 }
 
+// A request of known length is sent with Content-Length, so trailers written to it are dropped and the connection stays reusable.
+#[test]
+fn fixed_length_uploads_drop_their_trailers_and_stay_reusable() {
+    let (address, peer) = peer(|listener| {
+        let mut stream = accept(&listener);
+        let first = head(&mut stream);
+        assert!(first.starts_with("POST /digest HTTP/1.1\r\n"));
+        assert!(first.contains("Content-Length: 2\r\n"));
+        assert!(!first.to_ascii_lowercase().contains("transfer-encoding"));
+        let mut body = [0; 2];
+        stream.read_exact(&mut body).unwrap();
+        assert_eq!(body, *b"hi");
+        stream
+            .get_mut()
+            .write_all(b"HTTP/1.1 204 No Content\r\n\r\n")
+            .unwrap();
+        // The dropped trailer leaves nothing between the body and the next request.
+        assert!(head(&mut stream).starts_with("GET /next HTTP/1.1\r\n"));
+        stream
+            .get_mut()
+            .write_all(b"HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n")
+            .unwrap();
+    });
+    run(address, async |client| {
+        let cancel = Cancellation::never();
+        let mut metadata = RequestMetadata::new(Method::POST);
+        metadata.path = Some("/digest".into());
+        metadata.content_length = Some(2);
+        metadata.fields.add("trailer", "x-digest").unwrap();
+        let mut request = client.open_request(metadata, &cancel).await.unwrap();
+        request.write(b"hi", &cancel).await.unwrap();
+        let mut fields = Fields::new();
+        fields.add("x-digest", "1").unwrap();
+        request
+            .write_frame(BodyFrame::Headers { fields, end: true }, &cancel)
+            .await
+            .unwrap();
+        assert!(request.finish(&cancel).await.unwrap().body.is_empty());
+        let response = client
+            .call(Request::new(Method::GET, "/next", EmptyBody), &cancel)
+            .await
+            .unwrap();
+        assert!(response.body.is_empty());
+        assert_eq!(client.pool_stats().uses, 0);
+        client.begin_close();
+    });
+    peer.join().unwrap();
+}
+
 #[test]
 fn sequential_writes_flush_without_reading_and_share_pool_with_call() {
     let (address, peer) = peer(|listener| {

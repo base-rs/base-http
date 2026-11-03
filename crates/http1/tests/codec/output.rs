@@ -456,3 +456,22 @@ fn invalid_interim_responses_are_rejected_before_any_output() {
     );
     assert!(is_invalid(result, "response output is not reusable"));
 }
+
+// HEAD, 204 and 304 responses never carry a body, so a body that may have trailers leaves them without framing.
+#[test]
+fn bodyless_responses_skip_the_trailer_rule() {
+    const HEAD: &[u8] = b"HEAD / HTTP/1.1\r\nHost: x\r\n\r\n";
+    for (request, status, expected) in [
+        (HEAD, Status::OK, "HTTP/1.1 200 OK\r\n\r\n"),
+        (GET, Status::NO_CONTENT, "HTTP/1.1 204 No Content\r\n\r\n"),
+        (
+            GET,
+            Status::NOT_MODIFIED,
+            "HTTP/1.1 304 Not Modified\r\n\r\n",
+        ),
+    ] {
+        let mut response = Response::new(status, Script::new([]));
+        assert!(response.body.may_have_trailers());
+        assert_eq!(write(request, &mut response).unwrap(), expected);
+    }
+}

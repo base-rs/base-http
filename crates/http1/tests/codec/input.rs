@@ -479,5 +479,7 @@ fn only_chunked_request_bodies_may_have_trailers() {
             }
         }
         assert_eq!(headers, trailers, "{bytes:?}");
+        // Received trailers stay out of the header section.
+        assert!(!request.fields.contains("x-digest"), "{bytes:?}");
     }
 }

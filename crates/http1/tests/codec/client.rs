@@ -344,6 +344,29 @@ fn the_body_length_overrides_a_contradicted_typed_declaration() {
             ));
             assert!(output.bytes().is_empty());
         }
+
+        // Without one, a raw Transfer-Encoding chunks a body of known length and keeps its trailers.
+        let (body, mut producer) = BodyReader::with_length(64, 4, 2);
+        producer
+            .write(b"hi".to_vec(), &Cancellation::never())
+            .await
+            .unwrap();
+        producer
+            .write_frame(trailer(), &Cancellation::never())
+            .await
+            .unwrap();
+        let mut post = Request::new(Method::POST, "/", body);
+        post.authority = Some("example".into());
+        post.fields = fields(&[("Transfer-Encoding", b"chunked")]);
+        let (mut writer, output) = request_writer();
+        writer
+            .write_request(&mut post, &Cancellation::never())
+            .await
+            .unwrap();
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\nHost: example\r\n\r\n2\r\nhi\r\n0\r\nx-digest: 1\r\n\r\n"
+        );
     });
 }
 
@@ -354,7 +377,7 @@ fn trailer() -> BodyFrame<Vec<u8>> {
     }
 }
 
-// HTTP/1.0 has no chunked framing, so a request body that may have trailers is sent with its length, and any trailers it produces are dropped.
+// HTTP/1.0 has no chunked framing, so a request body of known length is sent with it, and any trailers it produces are dropped.
 #[test]
 fn http_10_requests_send_known_length_bodies_and_drop_their_trailers() {
     block_on(async {
@@ -408,6 +431,71 @@ fn http_10_requests_send_known_length_bodies_and_drop_their_trailers() {
             "POST / HTTP/1.0\r\nContent-Length: 2\r\n\r\nhi"
         );
         assert!(!writer.is_reusable());
+    });
+}
+
+// Request trailers are rare and a client cannot assume the server accepts chunked uploads, so an HTTP/1.1 request of known length is sent with Content-Length and drops its trailers, while one of unknown length is chunked and keeps them.
+#[test]
+fn http_11_requests_of_known_length_drop_their_trailers() {
+    block_on(async {
+        let never = Cancellation::never();
+        let (body, mut producer) = BodyReader::with_length(64, 4, 2);
+        producer.write(b"hi".to_vec(), &never).await.unwrap();
+        producer.write_frame(trailer(), &never).await.unwrap();
+        let mut post = Request::new(Method::POST, "/", body);
+        post.authority = Some("example".into());
+        let (mut writer, output) = request_writer();
+        assert!(writer.write_request(&mut post, &never).await.unwrap());
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.1\r\nHost: example\r\nContent-Length: 2\r\n\r\nhi"
+        );
+
+        // Imperative output with a declared length, announcing the trailer it then writes.
+        let mut metadata = RequestMetadata::new(Method::POST);
+        metadata.path = Some("/".into());
+        metadata.authority = Some("example".into());
+        metadata.content_length = Some(2);
+        metadata.fields = fields(&[("Trailer", b"x-digest")]);
+        let (mut writer, output) = request_writer();
+        writer.begin_request(&metadata, &never).await.unwrap();
+        writer.write_frame(data(b"hi"), &never).await.unwrap();
+        writer.write_frame(trailer(), &never).await.unwrap();
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.1\r\nTrailer: x-digest\r\nHost: example\r\nContent-Length: 2\r\n\r\nhi"
+        );
+        // The lane completed normally and accepts the next request.
+        assert!(writer.is_reusable());
+        let mut get = request(Method::GET, b"");
+        writer.write_request(&mut get, &never).await.unwrap();
+        assert!(
+            output
+                .bytes()
+                .ends_with("hiGET / HTTP/1.1\r\nHost: example\r\n\r\n")
+        );
+
+        // Dropped trailers are still validated.
+        writer.begin_request(&metadata, &never).await.unwrap();
+        writer.write_frame(data(b"hi"), &never).await.unwrap();
+        let forbidden = BodyFrame::<Vec<u8>>::Headers {
+            fields: fields(&[("content-length", b"2")]),
+            end: true,
+        };
+        assert!(writer.write_frame(forbidden, &never).await.is_err());
+        assert!(!writer.is_reusable());
+
+        // Without a length the request is chunked and keeps its trailers.
+        metadata.content_length = None;
+        let (mut writer, output) = request_writer();
+        writer.begin_request(&metadata, &never).await.unwrap();
+        writer.write_frame(data(b"hi"), &never).await.unwrap();
+        writer.write_frame(trailer(), &never).await.unwrap();
+        assert!(
+            output
+                .bytes()
+                .ends_with("Transfer-Encoding: chunked\r\n\r\n2\r\nhi\r\n0\r\nx-digest: 1\r\n\r\n")
+        );
     });
 }
 
@@ -1023,6 +1111,8 @@ fn only_chunked_response_bodies_may_have_trailers() {
                 }
             }
             assert_eq!(headers, trailers, "{bytes:?}");
+            // Received trailers stay out of the header section.
+            assert!(!response.fields.contains("x-digest"), "{bytes:?}");
         }
     });
 }
