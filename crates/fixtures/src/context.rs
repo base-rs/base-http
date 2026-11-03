@@ -518,7 +518,7 @@ impl<S: Scheduler + Spawn, H> SpawnedServer<S, H> {
     }
 }
 
-// Expire after `timeout`, measured on a thread of its own rather than by the scheduler's clock, so a server occupying every worker, such as a handler which blocks, still fails its shutdown instead of hanging it. Dropping the future stops the thread.
+// Expire after `timeout`, measured on a thread of its own rather than by the scheduler's clock, so a server occupying every worker, such as a handler which blocks, still fails its shutdown. Shutting the scheduler down afterwards still waits for that poll to return. Dropping the future stops the thread.
 async fn expiry(timeout: Duration) {
     let expired = Latch::new();
     let (_cancel, cancelled) = mpsc::channel::<()>();

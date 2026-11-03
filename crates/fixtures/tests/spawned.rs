@@ -11,6 +11,7 @@ use base_http_fixtures::{
 };
 use base_http_server::Handler;
 use base_scheduler::Cancellation;
+use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
 use std::{
     convert::Infallible,
@@ -159,7 +160,16 @@ impl Handler for Blocking {
 #[test]
 fn a_server_which_does_not_stop_fails_its_shutdown() {
     let (started, release) = (Latch::new(), Latch::new());
-    shared_native(|scheduler| {
+    // With one worker, which the handler blocks, nothing on the scheduler can run, including its clock's timers.
+    let scheduler = Arc::new(
+        NativeScheduler::with_options(NativeOptions {
+            workers: 1,
+            ..Default::default()
+        })
+        .unwrap(),
+    );
+    {
+        let scheduler = &scheduler;
         let server = ServerContext::new()
             .handler(Blocking {
                 started: started.clone(),
@@ -177,7 +187,8 @@ fn a_server_which_does_not_stop_fails_its_shutdown() {
             message.contains("did not stop within 50ms"),
             "unexpected failure: {message}"
         );
-    });
+    }
+    block_on(scheduler.shutdown());
 }
 
 #[test]

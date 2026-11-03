@@ -25,7 +25,7 @@ use std::{
 /// The size of the large download, as in `AProtocol`'s "huge body".
 pub const LARGE_BODY: u64 = 8 * 1024 * 1024;
 const LARGE_CHUNK: u64 = 64 * 1024;
-/// The size of each direction of the two-way stream in [`duplex_stream`], larger than the loopback socket buffers in both directions together, so neither side can finish without the other reading.
+/// The size of each direction of the two-way stream in [`duplex_stream`], far more than the loopback path between client and server buffers in practice, so the upload cannot finish unless the echo is read at the same time.
 pub const DUPLEX_BODY: u64 = 16 * 1024 * 1024;
 /// The size of each chunk [`duplex_stream`] uploads.
 pub const DUPLEX_CHUNK: usize = 16 * 1024;
@@ -436,7 +436,7 @@ impl ReadableBody for Untrailed {
     }
 }
 
-/// The data of the two-way stream from `offset`: a pattern which does not repeat at chunk boundaries, so a lost, repeated or reordered chunk changes it.
+/// The data of the two-way stream from `offset`: a pattern with a period of 251 bytes, which does not divide the chunk size, so a lost, repeated or reordered chunk changes the data or its length.
 pub fn duplex_data(offset: u64, length: usize) -> Vec<u8> {
     (offset..offset + length as u64)
         .map(|index| (index % 251) as u8)
@@ -445,7 +445,7 @@ pub fn duplex_data(offset: u64, length: usize) -> Vec<u8> {
 
 /// A request body streams up while its echo streams down at the same time, each [`DUPLEX_BODY`] long and under backpressure.
 ///
-/// The upload is produced through a small bounded queue while the response is read concurrently. The stream is larger than what the sockets between client and server can buffer, so a client which finished its upload before reading, or a server which did not echo as it read, would stall the exchange until the test's deadline. The request declares its length and no trailers, so HTTP/1.0 can carry it too.
+/// The upload is produced through a small bounded queue while the response is read concurrently. The stream is far larger than the sockets between client and server buffer in practice, so a client which finished its upload before reading the echo would stall the exchange until the test's deadline. The request declares its length and no trailers, so HTTP/1.0 can carry it too.
 pub async fn duplex_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     let (upload, mut writer) = BodyReader::with_length(4 * DUPLEX_CHUNK, 4, DUPLEX_BODY);
     let request = context.request(Method::POST, "/duplex", Untrailed(upload));
