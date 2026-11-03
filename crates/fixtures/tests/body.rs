@@ -9,7 +9,7 @@ use base_http::{
 use base_http_fixtures::{
     Latch,
     body::{self, Sample},
-    protocol::{LARGE_BODY, Reply, Staged, Step},
+    protocol::{LARGE_BODY, Reply, Staged, Step, Zeroes},
 };
 use base_scheduler::Cancellation;
 use futures_lite::future::{block_on, poll_once};
@@ -61,9 +61,7 @@ mod echo {
 }
 
 fn zeroes(test: impl AsyncFnOnce(Sample<Reply<EmptyBody>>)) {
-    let body = Reply::Zeroes {
-        remaining: LARGE_BODY,
-    };
+    let body = Reply::Zeroes(Zeroes::new(LARGE_BODY));
     block_on(test(Sample::new(body, vec![0; LARGE_BODY as usize])));
 }
 
@@ -99,8 +97,9 @@ fn a_staged_wait_holds_until_released_and_observes_cancellation() {
 
 #[test]
 fn a_reply_reports_readiness_and_trailers_by_variant() {
-    let zeroes = Reply::<EmptyBody>::Zeroes { remaining: 1 };
+    let zeroes = Reply::<EmptyBody>::Zeroes(Zeroes::new(1));
     assert!(zeroes.is_ready() && !zeroes.is_empty() && !zeroes.may_have_trailers());
+    assert_eq!(zeroes.length(), Some(1));
     let staged = Reply::<EmptyBody>::Staged(Staged::new([Step::Trailers(etag())], None));
     assert!(!staged.is_ready() && staged.may_have_trailers());
     let echo = Reply::Echo(EmptyBody);

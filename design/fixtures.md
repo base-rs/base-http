@@ -54,7 +54,7 @@ Peers that share the implementation's codec can hide a shared bug. Unbounded blo
 
 ### Validation
 
-Inspect peer construction for timeouts and the explicit blocking reset. Search tests built on the fixtures for `thread::sleep`. `crates/fixtures/tests/acknowledgement.rs` shows that a bounded wait expires while a peer leaves data unread, and that `wait_acknowledged` returns once it reads the data and the FIN, on Linux and macOS.
+Inspect peer construction for timeouts and the explicit blocking reset. Search tests built on the fixtures for `thread::sleep`. `crates/fixtures/tests/acknowledgement.rs` shows, on Linux and macOS, that a bounded wait expires while a peer leaves data unread, and that `wait_acknowledged` returns once the peer reads the data and the FIN. A loopback peer acknowledges a FIN as soon as it arrives, so no test can hold the window in which only the FIN is unacknowledged. Linux counts the FIN in the same queue as the data, but the separate connection-state check macOS needs is justified by inspection, not by a test.
 
 ## Behaviour suites
 

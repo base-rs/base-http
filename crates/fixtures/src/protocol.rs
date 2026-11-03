@@ -152,9 +152,7 @@ impl Handler for App {
             (_, "/large") => {
                 return Ok(Response::new(
                     Status::OK,
-                    Reply::Zeroes {
-                        remaining: LARGE_BODY,
-                    },
+                    Reply::Zeroes(Zeroes::new(LARGE_BODY)),
                 ));
             }
             (_, "/broken") => return Err(io::Error::other("simulated failure")),
@@ -247,10 +245,24 @@ pub enum Reply<B> {
     /// A scripted body.
     Staged(Staged),
     /// Zero bytes, produced on demand.
-    Zeroes {
-        /// The bytes still to produce.
-        remaining: u64,
-    },
+    Zeroes(Zeroes),
+}
+
+/// A body of zero bytes produced on demand, which reports its total length however much remains.
+#[derive(Debug)]
+pub struct Zeroes {
+    length: u64,
+    remaining: u64,
+}
+
+impl Zeroes {
+    /// A body of `length` zero bytes.
+    pub fn new(length: u64) -> Self {
+        Self {
+            length,
+            remaining: length,
+        }
+    }
 }
 
 impl<B: ReadableBody> ReadableBody for Reply<B> {
@@ -262,7 +274,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
             Self::Buffered(body) => body.is_ready(),
             Self::Echo(body) => body.is_ready(),
             Self::Staged(_) => false,
-            Self::Zeroes { .. } => true,
+            Self::Zeroes(_) => true,
         }
     }
 
@@ -271,7 +283,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
             Self::Buffered(body) => body.is_empty(),
             Self::Echo(body) => body.is_empty(),
             Self::Staged(body) => body.is_empty(),
-            Self::Zeroes { remaining } => *remaining == 0,
+            Self::Zeroes(body) => body.remaining == 0,
         }
     }
 
@@ -280,7 +292,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
             Self::Buffered(body) => body.length(),
             Self::Echo(body) => body.length(),
             Self::Staged(body) => body.length(),
-            Self::Zeroes { .. } => Some(LARGE_BODY),
+            Self::Zeroes(body) => Some(body.length),
         }
     }
 
@@ -289,7 +301,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
             Self::Buffered(body) => body.may_have_trailers(),
             Self::Echo(body) => body.may_have_trailers(),
             Self::Staged(body) => body.may_have_trailers(),
-            Self::Zeroes { .. } => false,
+            Self::Zeroes(_) => false,
         }
     }
 
@@ -298,7 +310,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
             Self::Buffered(body) => body.close(None),
             Self::Echo(body) => body.close(None),
             Self::Staged(body) => body.close(error),
-            Self::Zeroes { remaining } => *remaining = 0,
+            Self::Zeroes(body) => body.remaining = 0,
         }
     }
 
@@ -311,16 +323,16 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
                 .map_err(BodyError::new)?
                 .map_data(|data| data.as_ref().to_vec())),
             Self::Staged(body) => body.read(cancellation).await,
-            Self::Zeroes { remaining } => {
+            Self::Zeroes(body) => {
                 cancellation.check()?;
-                if *remaining == 0 {
+                if body.remaining == 0 {
                     return Ok(BodyFrame::End);
                 }
-                let length = (*remaining).min(LARGE_CHUNK);
-                *remaining -= length;
+                let length = body.remaining.min(LARGE_CHUNK);
+                body.remaining -= length;
                 Ok(BodyFrame::Data {
                     data: vec![0; length as usize],
-                    end: *remaining == 0,
+                    end: body.remaining == 0,
                 })
             }
         }
