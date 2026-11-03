@@ -12,8 +12,9 @@ use base_http_fixtures::{
 };
 use base_http_server::Handler;
 use base_scheduler::Cancellation;
-use futures_lite::future::zip;
-use std::{borrow::Borrow, io, time::Duration};
+use base_scheduler::Clock;
+use futures_lite::future::{or, zip};
+use std::{borrow::Borrow, cell::Cell, io, time::Duration};
 
 /// The shared application, sabotaged on every route the protocol cases use.
 struct Sabotaged(App);
@@ -205,35 +206,94 @@ fn a_truncated_trailer_upload_fails_the_handler() {
         });
 }
 
-// The two-way stream is larger than the sockets can buffer: a client which uploads it all before reading the echo stalls until the deadline, so the case can only pass by streaming both ways at once.
+// Far more than any socket buffers, so a sequential upload of it stalls whatever the host's buffer sizes.
+const SEQUENTIAL_BODY: u64 = 1 << 30;
+
+// A client which uploads the whole request before reading the echo stalls once the unread echo fills the buffers between it and the server, which is why the two-way case must read and write at once.
 #[test]
-#[should_panic(expected = "test exceeded")]
 fn a_sequential_duplex_stream_stalls() {
     ServerContext::new()
         .handler(App::new())
-        .timeout(Duration::from_secs(1))
         .run(async |context| {
-            let (upload, mut writer) = BodyReader::bounded(4 * protocol::DUPLEX_CHUNK, 4);
+            let (upload, mut writer) =
+                BodyReader::with_length(4 * protocol::DUPLEX_CHUNK, 4, SEQUENTIAL_BODY);
             let request = context.request(Method::POST, "/duplex", upload);
+            let written = Cell::new(0);
             let upload_all = async {
-                let mut offset = 0;
-                while offset < protocol::DUPLEX_BODY {
+                while written.get() < SEQUENTIAL_BODY {
                     writer
                         .write(
-                            protocol::duplex_data(offset, protocol::DUPLEX_CHUNK),
+                            protocol::duplex_data(written.get(), protocol::DUPLEX_CHUNK),
                             &Cancellation::never(),
                         )
                         .await
                         .unwrap();
-                    offset += protocol::DUPLEX_CHUNK as u64;
+                    written.set(written.get() + protocol::DUPLEX_CHUNK as u64);
                 }
                 writer.close_write(None);
             };
-            let (response, ()) = zip(
-                context.client().call(request, &Cancellation::never()),
-                upload_all,
+            let sequential = async {
+                let (response, ()) = zip(
+                    context.client().call(request, &Cancellation::never()),
+                    upload_all,
+                )
+                .await;
+                body::payload(&mut response.unwrap().body).await;
+            };
+            let stalled = or(
+                async {
+                    sequential.await;
+                    false
+                },
+                async {
+                    let _ = context
+                        .scheduler()
+                        .sleep(Duration::from_millis(500), &Cancellation::never())
+                        .await;
+                    true
+                },
             )
             .await;
-            body::payload(&mut response.unwrap().body).await;
+            assert!(
+                stalled && written.get() < SEQUENTIAL_BODY,
+                "the upload did not stall: {} bytes written",
+                written.get()
+            );
         });
+}
+
+/// Reads the whole two-way stream's request before echoing it, as a server which buffers instead of streaming does.
+struct Buffering(App);
+
+impl Borrow<App> for Buffering {
+    fn borrow(&self) -> &App {
+        &self.0
+    }
+}
+
+impl Handler for Buffering {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = Reply<B>;
+
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        mut request: Request<B>,
+        _: &mut InterimResponses<I>,
+        cancellation: &Cancellation,
+    ) -> Result<Response<Reply<B>>, io::Error> {
+        let collected = body::collect(&mut request.body, cancellation)
+            .await
+            .map_err(io::Error::other)?;
+        Ok(reply(collected.data))
+    }
+}
+
+// The upload stays within a few chunks of the echo, so a server which buffers the request never receives enough to reply, and the case cannot pass.
+#[test]
+#[should_panic(expected = "test exceeded")]
+fn the_duplex_stream_stalls_against_a_buffering_server() {
+    ServerContext::new()
+        .handler(Buffering(App::new()))
+        .timeout(Duration::from_secs(1))
+        .run(async |context| protocol::duplex_stream(context).await);
 }

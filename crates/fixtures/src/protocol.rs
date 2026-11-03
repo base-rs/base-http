@@ -13,9 +13,11 @@ use base_http::{
 };
 use base_http_server::Handler;
 use base_scheduler::Cancellation;
+use event_listener::{Event, listener};
 use futures_lite::future::zip;
 use std::{
     borrow::Borrow,
+    cell::Cell,
     collections::VecDeque,
     convert::Infallible,
     io,
@@ -25,7 +27,7 @@ use std::{
 /// The size of the large download, as in `AProtocol`'s "huge body".
 pub const LARGE_BODY: u64 = 8 * 1024 * 1024;
 const LARGE_CHUNK: u64 = 64 * 1024;
-/// The size of each direction of the two-way stream in [`duplex_stream`], far more than the loopback path between client and server buffers in practice, so the upload cannot finish unless the echo is read at the same time.
+/// The size of each direction of the two-way stream in [`duplex_stream`], many times [`DUPLEX_WINDOW`].
 pub const DUPLEX_BODY: u64 = 16 * 1024 * 1024;
 /// The size of each chunk [`duplex_stream`] uploads.
 pub const DUPLEX_CHUNK: usize = 16 * 1024;
@@ -443,15 +445,26 @@ pub fn duplex_data(offset: u64, length: usize) -> Vec<u8> {
         .collect()
 }
 
-/// A request body streams up while its echo streams down at the same time, each [`DUPLEX_BODY`] long and under backpressure.
+/// How far, in bytes, [`duplex_stream`]'s upload may run ahead of the echo it has received: a few chunks, far less than the stream.
+pub const DUPLEX_WINDOW: u64 = 4 * DUPLEX_CHUNK as u64;
+
+/// A request body streams up while its echo streams down at the same time, each [`DUPLEX_BODY`] long.
 ///
-/// The upload is produced through a small bounded queue while the response is read concurrently. The stream is far larger than the sockets between client and server buffer in practice, so a client which finished its upload before reading the echo would stall the exchange until the test's deadline. The request declares its length and no trailers, so HTTP/1.0 can carry it too.
+/// The upload never runs more than [`DUPLEX_WINDOW`] ahead of the echo the test has received, so the exchange can only finish if the client delivers the response while it is still sending the request, and the server echoes the request while it is still receiving it. A client which finished its upload before reading the echo, or a server which read the whole request before replying, stalls the exchange until the test's deadline, whatever the sockets buffer. The request declares its length and no trailers, so HTTP/1.0 can carry it too.
 pub async fn duplex_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     let (upload, mut writer) = BodyReader::with_length(4 * DUPLEX_CHUNK, 4, DUPLEX_BODY);
     let request = context.request(Method::POST, "/duplex", Untrailed(upload));
+    let received = Cell::new(0);
+    let progress = Event::new();
     let produce = async {
         let mut offset = 0;
         while offset < DUPLEX_BODY {
+            // Wait for the echo to catch up to within the window.
+            // The consumer runs in this task, so the echo cannot advance between the check and the listener's registration.
+            while offset > received.get() + DUPLEX_WINDOW {
+                listener!(progress => echoed);
+                echoed.await;
+            }
             writer
                 .write(duplex_data(offset, DUPLEX_CHUNK), &never())
                 .await
@@ -467,17 +480,28 @@ pub async fn duplex_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S
             .await
             .expect("POST /duplex");
         assert_eq!(response.status, Status::OK);
-        let echoed = body::collect(&mut response.body, &never())
-            .await
-            .map(|collected| collected.data);
-        let intact = echoed.as_ref().is_ok_and(|data| {
-            data.len() as u64 == DUPLEX_BODY && *data == duplex_data(0, data.len())
-        });
+        let mut echoed = Vec::new();
+        let read = loop {
+            match response.body.read(&never()).await {
+                Ok(frame) => {
+                    let frame = frame.map_data(|data| echoed.extend_from_slice(&data));
+                    received.set(echoed.len() as u64);
+                    progress.notify(usize::MAX);
+                    if frame.is_end() {
+                        break Ok(());
+                    }
+                }
+                Err(error) => break Err(error),
+            }
+        };
+        let intact = read.is_ok()
+            && echoed.len() as u64 == DUPLEX_BODY
+            && echoed == duplex_data(0, echoed.len());
         // Report the length or error rather than the data.
         assert!(
             intact,
-            "the echoed stream: {:?} of {DUPLEX_BODY} bytes",
-            echoed.as_ref().map(Vec::len)
+            "the echoed stream: {} of {DUPLEX_BODY} bytes, {read:?}",
+            echoed.len()
         );
     };
     zip(produce, consume).await;
@@ -686,7 +710,6 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
 /// use base_http::Version;
 /// use base_http_fixtures::{Context, ServerContext, protocol::App};
 /// use base_scheduler_native::NativeScheduler;
-/// use std::sync::Arc;
 ///
 /// fn http10(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
 ///     ServerContext::new()
@@ -700,7 +723,7 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
 /// }
 ///
 /// // The same cases with the server spawned onto the scheduler's workers, in parallel with the client.
-/// fn http10_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, Arc<App>>)) {
+/// fn http10_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
 ///     ServerContext::new()
 ///         .handler(app)
 ///         .version(Version::Http10)
