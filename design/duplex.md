@@ -29,7 +29,7 @@ The [three-party TCP tests](../crates/server/tests/proxy.rs) verify:
 - Upstream truncation cancels a pending upload and joins all four lane retirements, retaining the causal error.
 - External cancellation while both directions wait joins all four lanes and closes both sockets.
 
-The [deterministic codec tests](../crates/http1/tests/codec.rs) cover request framing and short writes, response fragmentation, interim sequencing, trailer delivery, bodyless responses, close-delimited input, malformed/truncated input, cancellation, abandonment and switch classification. Existing server upgrade/CONNECT tests remain in place.
+The [deterministic codec tests](../crates/http1/tests/codec/main.rs) cover request framing and short writes, response fragmentation, interim sequencing, trailer delivery, bodyless responses, close-delimited input, malformed/truncated input, cancellation, abandonment and switch classification. Existing server upgrade/CONNECT tests remain in place.
 
 These are focused protocol and lifecycle tests. The test forwarding helper handles ordinary HTTP/1 messages; it is not a production proxy policy layer. Client switch responses expose raw input, but outgoing client tunnel coordination remains unimplemented.
 
@@ -80,6 +80,6 @@ Move the low-level proxy scenarios through the ordinary handler/client path, inc
 
 The direct path has no HTTP body-data queue in either direction. One boxed sink owns output state; one boxed generator retains the borrowed response decoder across reads. Lifecycle-only channels return both codecs to the owner. The connection's pool use stays charged until both directions return and cleanup completes. The existing pull-body `call` remains queued. There is no benchmark claim for the new path.
 
-[Tests](../crates/client/tests/writable.rs) cover 8 MiB split echo through a native server over HTTP and TLS 1.2/1.3, upload while response reads pause, early complete input with ongoing output, interims/trailers, fixed-length errors, partial drops and cancellation. The [example](../crates/client/examples/client_server.rs) includes sequential and split use. Continue polling the supervisor and return/drop outstanding handles when shutting down; cancellation alone cannot reclaim application-owned codecs.
+[Tests](../crates/client/tests/writable/main.rs) cover 8 MiB split echo through a native server over HTTP and TLS 1.2/1.3, upload while response reads pause, early complete input with ongoing output, interims/trailers, fixed-length errors, partial drops and cancellation. The [example](../crates/client/examples/client_server.rs) includes sequential and split use. Continue polling the supervisor and return/drop outstanding handles when shutting down; cancellation alone cannot reclaim application-owned codecs.
 
 HTTP/2 will still need a shared connection framer and per-stream input routing. Schedule different connection drivers independently so one client's connections can use multiple workers; keep client-wide supervision separate. The current scoped `FuturesUnordered` driver is a concurrency prototype and still polls its connections within one task. See [connection task placement](client-connection.md#writable-http1-experiment-and-task-placement).

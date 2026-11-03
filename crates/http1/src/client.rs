@@ -41,6 +41,8 @@ impl<W: WritableStream> RequestWriter<W> {
     /// Send one request. `true` permits another output message; the owner must
     /// also finish the matching response before reusing the HTTP/1 connection.
     /// The body is closed on return, including error and cancellation.
+    ///
+    /// A body of known length is sent with `Content-Length`, and any trailers it produces are validated and dropped. On HTTP/1.1 a body of unknown length is chunked and keeps its trailers; HTTP/1.0 has no chunked framing, so it refuses such a body.
     pub async fn write_request<B: ReadableBody>(
         &mut self,
         request: &mut Request<B>,
@@ -57,24 +59,22 @@ impl<W: WritableStream> RequestWriter<W> {
         cancellation: &Cancellation,
     ) -> Result<bool, Error> {
         cancellation.check()?;
-        let (framing, persistent) = request_plan(
-            &mut self.buffer,
-            &request.metadata,
-            request.body.length(),
-            request.body.may_have_trailers(),
-        )?;
+        let (framing, persistent) =
+            request_plan(&mut self.buffer, &request.metadata, request.body.length())?;
         self.output.begin()?;
         self.output.write_all(&self.buffer, cancellation).await?;
         self.output.flush(cancellation).await?;
+        let encoding = request_encoder(framing);
         self.output
-            .write_body(&mut request.body, framing, false, cancellation)
+            .write_body(&mut request.body, encoding, cancellation)
             .await?;
         self.output.completed(persistent);
         Ok(persistent)
     }
 
     /// Begin imperative output. A missing content length uses chunked HTTP/1.1
-    /// framing; declared fixed lengths are checked at every write and at EOF.
+    /// framing; declared fixed lengths are checked at every write and at EOF,
+    /// and trailers written under them are validated and dropped.
     /// After failure or cancellation this lane must be retired.
     pub async fn begin_request(
         &mut self,
@@ -83,13 +83,13 @@ impl<W: WritableStream> RequestWriter<W> {
     ) -> Result<(), Error> {
         cancellation.check()?;
         let (framing, persistent) =
-            request_plan(&mut self.buffer, metadata, metadata.content_length, false)?;
+            request_plan(&mut self.buffer, metadata, metadata.content_length)?;
         self.output.begin()?;
         self.output.write_all(&self.buffer, cancellation).await?;
         self.output.flush(cancellation).await?;
         // Activate the body only once the whole head is sent, so frames cannot follow a failed or dropped head.
         self.persistent = persistent;
-        self.body = Some(output::BodyEncoder::new(framing, false));
+        self.body = Some(request_encoder(framing));
         Ok(())
     }
 
@@ -136,11 +136,16 @@ impl<W: WritableStream> RequestWriter<W> {
     }
 }
 
+// A request of known length is sent with Content-Length, so trailers it produces are dropped rather than refused.
+fn request_encoder(framing: output::Framing) -> output::BodyEncoder {
+    let chunked = matches!(framing, output::Framing::Chunked(_));
+    output::BodyEncoder::new(framing, false).discard_trailers(!chunked)
+}
+
 fn request_plan(
     bytes: &mut Vec<u8>,
     head: &RequestMetadata,
     length: Option<u64>,
-    may_have_trailers: bool,
 ) -> Result<(output::Framing, bool), Error> {
     let version = head.version.unwrap_or(Version::Http11);
     let label = match version {
@@ -226,12 +231,9 @@ fn request_plan(
             return Err(Error::LengthMismatch);
         }
     }
-    let chunked = raw_chunked || may_have_trailers || fields.contains("trailer");
-    let framing = if chunked {
-        if version != Version::Http11 {
-            return Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"));
-        }
-        output::Framing::Chunked(declared.or(length))
+    // Request trailers are rare and a client cannot assume the server accepts chunked uploads (RFC 9112 §6.1), so a known length always selects Content-Length and any trailers are dropped. A Trailer field is only a hint and never affects framing.
+    let framing = if raw_chunked {
+        output::Framing::Chunked(length)
     } else if let Some(length) = declared.or(length) {
         output::Framing::Fixed(length)
     } else if version == Version::Http11 {
@@ -251,10 +253,8 @@ fn request_plan(
     use std::io::Write;
     // Writing into a `Vec` cannot fail.
     write!(bytes, "{} {target} {label}\r\n", head.method.as_str()).expect("writing to a Vec");
+    // Chunked framing comes only from a raw Transfer-Encoding, which refuses Content-Length, or from an unknown length, so every field is written as given.
     for field in fields.pairs() {
-        if chunked && field.name().eq_ignore_ascii_case("content-length") {
-            continue;
-        }
         bytes.extend_from_slice(field.name().as_bytes());
         bytes.extend_from_slice(b": ");
         bytes.extend_from_slice(field.value());

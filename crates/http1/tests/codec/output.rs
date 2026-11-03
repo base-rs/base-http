@@ -182,7 +182,6 @@ fn invalid_responses_are_rejected_before_any_output() {
         ),
         (GET, with(204, &[("Content-Length", "0")]), "content-length on 204"),
         (GET, with(205, &[("Content-Length", "1")]), "content on 205"),
-        (GET_10, with(200, &[("Trailer", "x-digest")]), "trailers require HTTP/1.1 chunked framing"),
     ];
     let mut versioned = response(200);
     versioned.version = Some(Version::Http10);
@@ -207,18 +206,25 @@ fn invalid_responses_are_rejected_before_any_output() {
 }
 
 #[test]
-fn reset_content_and_trailer_fields_select_their_framing() {
+fn reset_content_and_transfer_encoding_select_their_framing() {
     let mut empty = Response::new(Status::RESET_CONTENT, BufferedBody::<Vec<u8>>::default());
     assert_eq!(
         write(GET, &mut empty).unwrap(),
         "HTTP/1.1 205 Reset Content\r\nContent-Length: 0\r\n\r\n"
     );
 
+    // A Trailer field is only a hint, so a body without trailers keeps fixed-length framing.
     let mut announced = Response::new(Status::RESET_CONTENT, BufferedBody::<Vec<u8>>::default());
     announced.fields.add("Trailer", "x-digest").unwrap();
     assert_eq!(
         write(GET, &mut announced).unwrap(),
-        "HTTP/1.1 205 Reset Content\r\nTrailer: x-digest\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+        "HTTP/1.1 205 Reset Content\r\nTrailer: x-digest\r\nContent-Length: 0\r\n\r\n"
+    );
+    let mut announced = Response::new(Status::OK, BufferedBody::from(b"hi".to_vec()));
+    announced.fields.add("Trailer", "x-digest").unwrap();
+    assert_eq!(
+        write(GET, &mut announced).unwrap(),
+        "HTTP/1.1 200 OK\r\nTrailer: x-digest\r\nContent-Length: 2\r\n\r\nhi"
     );
 
     let mut chunked = Response::new(Status::OK, BufferedBody::from(b"hi".to_vec()));
@@ -243,8 +249,69 @@ fn an_upgrade_replaces_the_application_upgrade_field_with_the_selected_protocol(
     );
 }
 
+// HTTP/1.0 has no chunked framing, so trailers are validated and dropped, from fixed-length and close-delimited bodies alike.
 #[test]
-fn trailers_on_an_http_10_body_are_rejected_after_its_data() {
+fn trailers_on_an_http_10_body_are_dropped_after_its_data() {
+    let trailed = |length| {
+        let mut trailers = Fields::new();
+        trailers.add("x-digest", "1").unwrap();
+        let mut body = Script::new([
+            data(b"hi"),
+            Ok(BodyFrame::Headers {
+                fields: trailers,
+                end: true,
+            }),
+        ]);
+        body.length = length;
+        Response::new(Status::OK, body)
+    };
+    assert_eq!(
+        write(GET_10, &mut trailed(Some(2))).unwrap(),
+        "HTTP/1.0 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nhi"
+    );
+    assert_eq!(
+        write(GET_10, &mut trailed(None)).unwrap(),
+        "HTTP/1.0 200 OK\r\nConnection: close\r\n\r\nhi"
+    );
+
+    // A Trailer field is only a hint, so it neither selects framing nor is refused.
+    let mut announced = trailed(Some(2));
+    announced.fields.add("Trailer", "x-digest").unwrap();
+    assert_eq!(
+        write(GET_10, &mut announced).unwrap(),
+        "HTTP/1.0 200 OK\r\nTrailer: x-digest\r\nContent-Length: 2\r\nConnection: close\r\n\r\nhi"
+    );
+
+    // A 205 whose body may have trailers still declares that it is empty.
+    let mut reset = Response::new(Status::RESET_CONTENT, Script::new([]));
+    reset.fields.add("Trailer", "x-digest").unwrap();
+    assert_eq!(
+        write(GET_10, &mut reset).unwrap(),
+        "HTTP/1.0 205 Reset Content\r\nTrailer: x-digest\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+    );
+
+    // Dropped trailers are still validated, as chunked framing would.
+    let mut trailers = Fields::new();
+    trailers.add("content-length", "2").unwrap();
+    let mut body = Script::new([
+        data(b"hi"),
+        Ok(BodyFrame::Headers {
+            fields: trailers,
+            end: true,
+        }),
+    ]);
+    body.length = Some(2);
+    let mut response = Response::new(Status::OK, body);
+    let error = write(GET_10, &mut response).expect_err("an invalid trailer");
+    assert!(
+        matches!(&error, Error::Body(source) if source.to_string().contains("content-length")),
+        "{error:?}"
+    );
+}
+
+// A body that disclaims trailers gets fixed-length framing on HTTP/1.1, which cannot carry the trailers it then produces.
+#[test]
+fn unannounced_trailers_on_an_http_11_fixed_body_are_rejected() {
     let mut trailers = Fields::new();
     trailers.add("x-digest", "1").unwrap();
     let mut body = Script::new([
@@ -255,9 +322,10 @@ fn trailers_on_an_http_10_body_are_rejected_after_its_data() {
         }),
     ]);
     body.length = Some(2);
+    body.trailers = false;
     let mut response = Response::new(Status::OK, body);
     assert!(is_invalid(
-        write(GET_10, &mut response),
+        write(GET, &mut response),
         "trailers require chunked framing"
     ));
 }
@@ -387,4 +455,40 @@ fn invalid_interim_responses_are_rejected_before_any_output() {
             .on_interim_response(early_hints(), &never),
     );
     assert!(is_invalid(result, "response output is not reusable"));
+}
+
+// HEAD, 204 and 304 responses never carry a body, so a body that may have trailers leaves them without framing.
+#[test]
+fn bodyless_responses_skip_the_trailer_rule() {
+    const HEAD: &[u8] = b"HEAD / HTTP/1.1\r\nHost: x\r\n\r\n";
+    for (request, status, expected) in [
+        (HEAD, Status::OK, "HTTP/1.1 200 OK\r\n\r\n"),
+        (GET, Status::NO_CONTENT, "HTTP/1.1 204 No Content\r\n\r\n"),
+        (
+            GET,
+            Status::NOT_MODIFIED,
+            "HTTP/1.1 304 Not Modified\r\n\r\n",
+        ),
+    ] {
+        let mut response = Response::new(status, Script::new([]));
+        assert!(response.body.may_have_trailers());
+        assert_eq!(write(request, &mut response).unwrap(), expected);
+    }
+}
+
+// Tunnel output after a successful CONNECT is raw bytes, not an HTTP/1.0 body, so a trailer frame is refused rather than dropped.
+#[test]
+fn http_10_tunnels_refuse_trailers() {
+    let mut response = Response::new(
+        Status::OK,
+        Script::new([
+            data(b"raw"),
+            Ok(BodyFrame::Headers {
+                fields: Fields::try_from_pairs([("x-digest", "1")]).unwrap(),
+                end: true,
+            }),
+        ]),
+    );
+    let result = write(b"CONNECT example:443 HTTP/1.0\r\n\r\n", &mut response);
+    assert!(is_invalid(result, "trailers require chunked framing"));
 }

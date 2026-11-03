@@ -60,7 +60,7 @@ Inspect peer construction for timeouts and the explicit blocking reset. Search t
 
 ### Requirement
 
-`protocol_tests!` and `protocol_trailer_tests!` generate the shared protocol cases for a runner chosen by the caller, and `readable_body_tests!` generates the `ReadableBody` contract cases for a body type. Every case is also a standalone public function, so a partial implementation can call a subset. The protocol suite runs between the Base client and server over HTTP/1.1, over HTTP/1.0 without the trailer cases, and over TLS with the `rustls` feature. The body suite runs against each body type `base-http` provides. Each assertion is shown to fail against an implementation that breaks it.
+`protocol_tests!` and `protocol_trailer_tests!` generate the shared protocol cases for a runner chosen by the caller, and `readable_body_tests!` generates the `ReadableBody` contract cases for a body type. Every case is also a standalone public function, so a partial implementation can call a subset. The protocol suite runs between the Base client and server over HTTP/1.1, over HTTP/1.0, where the trailer cases check that trailers are dropped and the data arrives intact, and over TLS with the `rustls` feature. The body suite runs against each body type `base-http` provides. Each assertion is shown to fail against an implementation that breaks it.
 
 ### Rationale
 
@@ -72,4 +72,4 @@ Each new engine or body type should be checked against one shared definition of 
 
 ### Validation
 
-Check that the suites are applied as stated. `crates/fixtures/tests/protocol.rs` runs every protocol case against an application sabotaged on that case's route and requires the failure message of the assertion the case exists for; `crates/fixtures/tests/body.rs` runs every body assertion against a body with the corresponding fault and requires the expected failure.
+Check that the suites are applied as stated. `crates/fixtures/tests/protocol.rs` runs every protocol case against an application sabotaged on that case's route and requires the failure message of the assertion the case exists for, and runs the trailer cases over HTTP/1.0 against an application which reports a dropped request trailer or sends the response trailer as data; `crates/fixtures/tests/body.rs` runs every body assertion against a body with the corresponding fault and requires the expected failure.
