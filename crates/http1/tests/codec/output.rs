@@ -475,3 +475,20 @@ fn bodyless_responses_skip_the_trailer_rule() {
         assert_eq!(write(request, &mut response).unwrap(), expected);
     }
 }
+
+// Tunnel output after a successful CONNECT is raw bytes, not an HTTP/1.0 body, so a trailer frame is refused rather than dropped.
+#[test]
+fn http_10_tunnels_refuse_trailers() {
+    let mut response = Response::new(
+        Status::OK,
+        Script::new([
+            data(b"raw"),
+            Ok(BodyFrame::Headers {
+                fields: Fields::try_from_pairs([("x-digest", "1")]).unwrap(),
+                end: true,
+            }),
+        ]),
+    );
+    let result = write(b"CONNECT example:443 HTTP/1.0\r\n\r\n", &mut response);
+    assert!(is_invalid(result, "trailers require chunked framing"));
+}
