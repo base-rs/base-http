@@ -24,7 +24,7 @@ Inspect both framing plans: `may_have_trailers` selects chunked framing on HTTP/
 
 ### Requirement
 
-HTTP/1.0 has no chunked framing, so `base-http1` drops trailers on HTTP/1.0 output rather than refusing them. On HTTP/1.0, `may_have_trailers` never selects chunked framing or causes a refusal, and a `Trailer` field is sent as an ordinary field. Trailer frames the body produces are validated as they would be on HTTP/1.1, so a body is accepted or refused the same way over either version. They are then omitted, and the message's data is sent unchanged:
+HTTP/1.0 has no chunked framing, so `base-http1` drops trailers on HTTP/1.0 output rather than refusing them. On HTTP/1.0, `may_have_trailers` never selects chunked framing or causes a refusal, and a `Trailer` field is sent as an ordinary field. Trailer frames the body produces are validated as they would be on HTTP/1.1, so trailer fields are validated the same way over either version. They are then omitted, and the message's data is sent unchanged:
 
 - An HTTP/1.0 request body of known length is sent with `Content-Length`. A request body of unknown length is refused before any output with "HTTP/1.0 request requires a body length", because an HTTP/1.0 request cannot be close-delimited. This holds for `RequestWriter::write_request` and for imperative output through `begin_request` and `write_frame`.
 - A response to an HTTP/1.0 request is sent with its length when it is known and is close-delimited otherwise. A 205 response declares `Content-Length: 0`. Dropping the trailers completes the response normally, so a persistent connection stays reusable.
