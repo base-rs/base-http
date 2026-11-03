@@ -447,3 +447,37 @@ fn dropping_a_body_after_a_dropped_read_prevents_reuse() {
     assert!(!input.is_reusable());
     assert!(!input.is_poisoned());
 }
+
+// Only chunked framing can carry trailers, so only a chunked request body reports that it may have them; HTTP/1.0 never does. A body that ends with a `Trailer` field announced yields no trailer frame.
+#[test]
+fn only_chunked_request_bodies_may_have_trailers() {
+    for (bytes, trailers) in [
+        (
+            &b"POST / HTTP/1.0\r\nContent-Length: 2\r\nTrailer: x-digest\r\n\r\nhi"[..],
+            false,
+        ),
+        (
+            b"POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 2\r\nTrailer: x-digest\r\n\r\nhi",
+            false,
+        ),
+        (
+            b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n2\r\nhi\r\n0\r\nx-digest: 1\r\n\r\n",
+            true,
+        ),
+    ] {
+        let mut input = reader(bytes, usize::MAX);
+        let (mut request, _) = block_on(input.read_request(&Cancellation::never()))
+            .unwrap()
+            .unwrap();
+        assert_eq!(request.body.may_have_trailers(), trailers, "{bytes:?}");
+        let mut headers = false;
+        loop {
+            let frame = block_on(request.body.read(&Cancellation::never())).unwrap();
+            headers |= matches!(frame, BodyFrame::Headers { .. });
+            if frame.is_end() {
+                break;
+            }
+        }
+        assert_eq!(headers, trailers, "{bytes:?}");
+    }
+}

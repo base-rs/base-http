@@ -36,7 +36,7 @@ const LINK: &str = "</style.css>; rel=preload; as=style";
 /// | `POST /length` | `200` with `Content Length: {n}`, the request body's length |
 /// | `GET /interim` | `103 Early Hints` with a `link` field to HTTP/1.1 clients, then `200` with `Hello World` |
 /// | `POST /request-trailer` | `200` with the request's `etag` trailer, after releasing [`App::request_received`] |
-/// | `GET /response-trailer` | `200` with `response trailer`, then an `etag: abcd` trailer once [`App::release_response`] is called; a `trailer` field announces it to HTTP/1.1 clients |
+/// | `GET /response-trailer` | `200` with `response trailer`, then an `etag: abcd` trailer once [`App::release_response`] is called |
 /// | `GET /large` | `200` with [`LARGE_BODY`] zero bytes |
 /// | `GET /broken` | a handler error |
 /// | `GET /incorrect-length` | `200` declaring 10 bytes and sending `Borked` |
@@ -146,10 +146,7 @@ impl Handler for App {
                         None,
                     )),
                 );
-                // HTTP/1.0 drops the trailer, and refuses a field announcing one.
-                if version == Version::Http11 {
-                    response.fields.add("trailer", "etag").expect("valid field");
-                }
+                response.fields.add("trailer", "etag").expect("valid field");
                 return Ok(response);
             }
             (_, "/large") => {
@@ -538,9 +535,7 @@ pub async fn request_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_,
         BodyReader::bounded(1024, 4)
     };
     let mut request = context.request(Method::POST, "/request-trailer", upload);
-    if !http10 {
-        request.fields.add("trailer", "etag").expect("valid field");
-    }
+    request.fields.add("trailer", "etag").expect("valid field");
     let produce = async {
         writer
             .write(b"Hello".to_vec(), &never())
@@ -595,7 +590,7 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
         .expect("GET /response-trailer");
     let http10 = context.version() == Version::Http10;
     assert_eq!(response.status, Status::OK);
-    assert_eq!(response.fields.contains("trailer"), !http10);
+    assert!(response.fields.contains("trailer"));
     assert!(!response.fields.contains("etag"));
     let frame = response.body.read(&never()).await.expect("read data");
     assert!(

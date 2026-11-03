@@ -89,30 +89,17 @@ impl Handler for Sabotaged {
                     String::from_utf8_lossy(&collected.data)
                 ))
             }
-            // Over HTTP/1.0, send the trailer as data after the release.
-            (_, "/response-trailer") if request.version == Some(Version::Http10) => Response::new(
-                Status::OK,
-                Reply::Staged(Staged::new(
-                    [
-                        Step::Data(b"response trailer".to_vec()),
-                        Step::Wait(self.0.response_released().clone()),
-                        Step::Data(b"etag: abcd".to_vec()),
-                    ],
-                    None,
-                )),
-            ),
-            // Wait for the release, then end without the trailer.
+            // Wait for the release, then end without the trailer, or over HTTP/1.0, which drops it, send it as data.
             (_, "/response-trailer") => {
-                let mut response = Response::new(
-                    Status::OK,
-                    Reply::Staged(Staged::new(
-                        [
-                            Step::Data(b"response trailer".to_vec()),
-                            Step::Wait(self.0.response_released().clone()),
-                        ],
-                        None,
-                    )),
-                );
+                let mut steps = vec![
+                    Step::Data(b"response trailer".to_vec()),
+                    Step::Wait(self.0.response_released().clone()),
+                ];
+                if request.version == Some(Version::Http10) {
+                    steps.push(Step::Data(b"etag: abcd".to_vec()));
+                }
+                let mut response =
+                    Response::new(Status::OK, Reply::Staged(Staged::new(steps, None)));
                 response.fields.add("trailer", "etag").expect("valid field");
                 response
             }

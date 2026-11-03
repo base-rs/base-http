@@ -373,6 +373,17 @@ fn http_10_requests_send_known_length_bodies_and_drop_their_trailers() {
             "POST / HTTP/1.0\r\nHost: example\r\nContent-Length: 2\r\n\r\nhi"
         );
 
+        // A Trailer field is only a hint, so it neither selects framing nor is refused.
+        let mut announced = request(Method::POST, b"hi");
+        announced.version = Some(Version::Http10);
+        announced.fields = fields(&[("Trailer", b"x-digest")]);
+        let (mut writer, output) = request_writer();
+        writer.write_request(&mut announced, &never).await.unwrap();
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.0\r\nTrailer: x-digest\r\nHost: example\r\nContent-Length: 2\r\n\r\nhi"
+        );
+
         // Imperative output drops them too.
         let mut metadata = RequestMetadata::new(Method::POST);
         metadata.path = Some("/".into());
@@ -409,17 +420,6 @@ fn http_10_requests_refuse_bodies_of_unknown_length() {
         assert!(writer.is_reusable());
         // Writing the request closed its body.
         assert!(producer.write(b"!".to_vec(), &never).await.is_err());
-
-        // A raw Trailer field still announces a trailer section HTTP/1.0 cannot send.
-        let mut announced = request(Method::POST, b"hi");
-        announced.version = Some(Version::Http10);
-        announced.fields = fields(&[("Trailer", b"x-digest")]);
-        assert!(matches!(
-            writer.write_request(&mut announced, &never).await,
-            Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"))
-        ));
-        assert!(output.bytes().is_empty());
-        assert!(writer.is_reusable());
     });
 }
 
@@ -974,5 +974,45 @@ fn idle_probes_keep_waiting_input_and_reject_anything_else() {
             .unwrap();
         drop(response);
         assert!(!reader.probe_viable());
+    });
+}
+
+// Only chunked framing can carry trailers, so only a chunked response body reports that it may have them; HTTP/1.0 never does, whether fixed-length or close-delimited.
+#[test]
+fn only_chunked_response_bodies_may_have_trailers() {
+    block_on(async {
+        let never = Cancellation::never();
+        for (bytes, trailers) in [
+            (
+                &b"HTTP/1.0 200 OK\r\nContent-Length: 2\r\nTrailer: x-digest\r\n\r\nhi"[..],
+                false,
+            ),
+            (b"HTTP/1.0 200 OK\r\nTrailer: x-digest\r\n\r\nhi", false),
+            (
+                b"HTTP/1.1 200 OK\r\nContent-Length: 2\r\nTrailer: x-digest\r\n\r\nhi",
+                false,
+            ),
+            (b"HTTP/1.1 200 OK\r\nTrailer: x-digest\r\n\r\nhi", false),
+            (
+                b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n2\r\nhi\r\n0\r\nx-digest: 1\r\n\r\n",
+                true,
+            ),
+        ] {
+            let mut reader = response_reader(bytes);
+            let mut response = reader
+                .read_response(&get(), &mut observer(), &never)
+                .await
+                .unwrap();
+            assert_eq!(response.body.may_have_trailers(), trailers, "{bytes:?}");
+            let mut headers = false;
+            loop {
+                let frame = response.body.read(&never).await.unwrap();
+                headers |= matches!(frame, BodyFrame::Headers { .. });
+                if frame.is_end() {
+                    break;
+                }
+            }
+            assert_eq!(headers, trailers, "{bytes:?}");
+        }
     });
 }

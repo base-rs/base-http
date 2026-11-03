@@ -182,7 +182,6 @@ fn invalid_responses_are_rejected_before_any_output() {
         ),
         (GET, with(204, &[("Content-Length", "0")]), "content-length on 204"),
         (GET, with(205, &[("Content-Length", "1")]), "content on 205"),
-        (GET_10, with(200, &[("Trailer", "x-digest")]), "trailers require HTTP/1.1 chunked framing"),
     ];
     let mut versioned = response(200);
     versioned.version = Some(Version::Http10);
@@ -266,6 +265,22 @@ fn trailers_on_an_http_10_body_are_dropped_after_its_data() {
     assert_eq!(
         write(GET_10, &mut trailed(None)).unwrap(),
         "HTTP/1.0 200 OK\r\nConnection: close\r\n\r\nhi"
+    );
+
+    // A Trailer field is only a hint, so it neither selects framing nor is refused.
+    let mut announced = trailed(Some(2));
+    announced.fields.add("Trailer", "x-digest").unwrap();
+    assert_eq!(
+        write(GET_10, &mut announced).unwrap(),
+        "HTTP/1.0 200 OK\r\nTrailer: x-digest\r\nContent-Length: 2\r\nConnection: close\r\n\r\nhi"
+    );
+
+    // A 205 whose body may have trailers still declares that it is empty.
+    let mut reset = Response::new(Status::RESET_CONTENT, Script::new([]));
+    reset.fields.add("Trailer", "x-digest").unwrap();
+    assert_eq!(
+        write(GET_10, &mut reset).unwrap(),
+        "HTTP/1.0 205 Reset Content\r\nTrailer: x-digest\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
     );
 
     // Dropped trailers are still validated, as chunked framing would.

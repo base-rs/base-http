@@ -636,19 +636,16 @@ fn plan<'a>(
             {
                 return Err(Error::Invalid("content on 205"));
             }
+            // Only HTTP/1.1 can frame trailers. HTTP/1.0 never has them: they are dropped, and a raw Trailer field is only an ordinary field.
+            let trailers = version == Version::Http11 && (may_have_trailers || facts.trailer);
             if response.status == Status::RESET_CONTENT
                 && declared.is_none()
                 && !chunked
-                && !may_have_trailers
-                && !facts.trailer
+                && !trailers
             {
                 content_length = Some(0);
                 framing = Framing::Fixed(0);
-            } else if chunked || (may_have_trailers && version == Version::Http11) || facts.trailer
-            {
-                if version != Version::Http11 {
-                    return Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"));
-                }
+            } else if chunked || trailers {
                 content_length = None;
                 generated_chunked = !chunked;
                 framing = Framing::Chunked(declared.or(length));
