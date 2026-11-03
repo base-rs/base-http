@@ -243,8 +243,53 @@ fn an_upgrade_replaces_the_application_upgrade_field_with_the_selected_protocol(
     );
 }
 
+// HTTP/1.0 has no chunked framing, so trailers are validated and dropped, from fixed-length and close-delimited bodies alike.
 #[test]
-fn trailers_on_an_http_10_body_are_rejected_after_its_data() {
+fn trailers_on_an_http_10_body_are_dropped_after_its_data() {
+    let trailed = |length| {
+        let mut trailers = Fields::new();
+        trailers.add("x-digest", "1").unwrap();
+        let mut body = Script::new([
+            data(b"hi"),
+            Ok(BodyFrame::Headers {
+                fields: trailers,
+                end: true,
+            }),
+        ]);
+        body.length = length;
+        Response::new(Status::OK, body)
+    };
+    assert_eq!(
+        write(GET_10, &mut trailed(Some(2))).unwrap(),
+        "HTTP/1.0 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nhi"
+    );
+    assert_eq!(
+        write(GET_10, &mut trailed(None)).unwrap(),
+        "HTTP/1.0 200 OK\r\nConnection: close\r\n\r\nhi"
+    );
+
+    // Dropped trailers are still validated, as chunked framing would.
+    let mut trailers = Fields::new();
+    trailers.add("content-length", "2").unwrap();
+    let mut body = Script::new([
+        data(b"hi"),
+        Ok(BodyFrame::Headers {
+            fields: trailers,
+            end: true,
+        }),
+    ]);
+    body.length = Some(2);
+    let mut response = Response::new(Status::OK, body);
+    let error = write(GET_10, &mut response).expect_err("an invalid trailer");
+    assert!(
+        matches!(&error, Error::Body(source) if source.to_string().contains("content-length")),
+        "{error:?}"
+    );
+}
+
+// A body that disclaims trailers gets fixed-length framing on HTTP/1.1, which cannot carry the trailers it then produces.
+#[test]
+fn unannounced_trailers_on_an_http_11_fixed_body_are_rejected() {
     let mut trailers = Fields::new();
     trailers.add("x-digest", "1").unwrap();
     let mut body = Script::new([
@@ -255,9 +300,10 @@ fn trailers_on_an_http_10_body_are_rejected_after_its_data() {
         }),
     ]);
     body.length = Some(2);
+    body.trailers = false;
     let mut response = Response::new(Status::OK, body);
     assert!(is_invalid(
-        write(GET_10, &mut response),
+        write(GET, &mut response),
         "trailers require chunked framing"
     ));
 }

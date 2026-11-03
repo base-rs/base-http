@@ -8,7 +8,7 @@ use crate::{
 use base_http::{
     Fields, InterimResponses, Method, Protocol, Request, RequestMetadata, ResponseMetadata,
     Version,
-    body::{BodyFrame, BufferedBody, ReadableBody},
+    body::{BodyFrame, BodyReader, BufferedBody, ReadableBody},
 };
 use base_http1::{Error, Options, RequestWriter, ResponseReader};
 use base_scheduler::{
@@ -344,6 +344,82 @@ fn the_body_length_overrides_a_contradicted_typed_declaration() {
             ));
             assert!(output.bytes().is_empty());
         }
+    });
+}
+
+fn trailer() -> BodyFrame<Vec<u8>> {
+    BodyFrame::Headers {
+        fields: fields(&[("x-digest", b"1")]),
+        end: true,
+    }
+}
+
+// HTTP/1.0 has no chunked framing, so a request body that may have trailers is sent with its length, and any trailers it produces are dropped.
+#[test]
+fn http_10_requests_send_known_length_bodies_and_drop_their_trailers() {
+    block_on(async {
+        let never = Cancellation::never();
+        let (body, mut producer) = BodyReader::with_length(64, 4, 2);
+        producer.write(b"hi".to_vec(), &never).await.unwrap();
+        producer.write_frame(trailer(), &never).await.unwrap();
+        assert!(body.may_have_trailers());
+        let mut post = Request::new(Method::POST, "/", body);
+        post.authority = Some("example".into());
+        post.version = Some(Version::Http10);
+        let (mut writer, output) = request_writer();
+        assert!(!writer.write_request(&mut post, &never).await.unwrap());
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.0\r\nHost: example\r\nContent-Length: 2\r\n\r\nhi"
+        );
+
+        // Imperative output drops them too.
+        let mut metadata = RequestMetadata::new(Method::POST);
+        metadata.path = Some("/".into());
+        metadata.version = Some(Version::Http10);
+        metadata.content_length = Some(2);
+        let (mut writer, output) = request_writer();
+        writer.begin_request(&metadata, &never).await.unwrap();
+        writer.write_frame(data(b"hi"), &never).await.unwrap();
+        writer.write_frame(trailer(), &never).await.unwrap();
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.0\r\nContent-Length: 2\r\n\r\nhi"
+        );
+        assert!(!writer.is_reusable());
+    });
+}
+
+// An HTTP/1.0 request must declare its length, so a body of unknown length is refused before any output, whether or not it may have trailers.
+#[test]
+fn http_10_requests_refuse_bodies_of_unknown_length() {
+    block_on(async {
+        let never = Cancellation::never();
+        let (body, mut producer) = BodyReader::bounded(64, 4);
+        producer.write(b"hi".to_vec(), &never).await.unwrap();
+        let mut post = Request::new(Method::POST, "/", body);
+        post.authority = Some("example".into());
+        post.version = Some(Version::Http10);
+        let (mut writer, output) = request_writer();
+        assert!(matches!(
+            writer.write_request(&mut post, &never).await,
+            Err(Error::Invalid("HTTP/1.0 request requires a body length"))
+        ));
+        assert!(output.bytes().is_empty());
+        assert!(writer.is_reusable());
+        // Writing the request closed its body.
+        assert!(producer.write(b"!".to_vec(), &never).await.is_err());
+
+        // A raw Trailer field still announces a trailer section HTTP/1.0 cannot send.
+        let mut announced = request(Method::POST, b"hi");
+        announced.version = Some(Version::Http10);
+        announced.fields = fields(&[("Trailer", b"x-digest")]);
+        assert!(matches!(
+            writer.write_request(&mut announced, &never).await,
+            Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"))
+        ));
+        assert!(output.bytes().is_empty());
+        assert!(writer.is_reusable());
     });
 }
 

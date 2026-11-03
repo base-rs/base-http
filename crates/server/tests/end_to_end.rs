@@ -2,8 +2,8 @@
 // Copyright, 2026, by Samuel Williams.
 
 use base_http::{
-    HttpHeaders, InterimHandler, InterimResponses, Method, Request, RequestMetadata, Response,
-    ResponseMetadata, Status,
+    Fields, HttpHeaders, InterimHandler, InterimResponses, Method, Request, RequestMetadata,
+    Response, ResponseMetadata, Status,
     body::{BodyFrame, BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_server::{Error, Handler};
@@ -331,6 +331,66 @@ fn http10_unknown_body_is_close_delimited() {
         },
     );
     assert_eq!(served.unwrap(), 1);
+}
+
+/// Responds with `data` and then a trailer, with a known length on `/length`.
+struct Trailed;
+impl Handler for Trailed {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = BodyReader;
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        request: Request<B>,
+        _: &mut InterimResponses<I>,
+        cancellation: &Cancellation,
+    ) -> Result<Response<BodyReader>, io::Error> {
+        let (reader, mut writer) = match request.path.as_deref() {
+            Some("/length") => BodyReader::with_length(64, 2, 4),
+            _ => BodyReader::bounded(64, 2),
+        };
+        let mut trailers = Fields::new();
+        trailers.add("x-digest", "1").map_err(io::Error::other)?;
+        writer
+            .write(b"data".to_vec(), cancellation)
+            .await
+            .map_err(io::Error::other)?;
+        writer
+            .write_frame(
+                BodyFrame::Headers {
+                    fields: trailers,
+                    end: true,
+                },
+                cancellation,
+            )
+            .await
+            .map_err(io::Error::other)?;
+        Ok(Response::new(Status::OK, reader))
+    }
+}
+
+// HTTP/1.0 has no chunked framing, so a response's trailers are dropped and the response completes, keeping a persistent connection for the next request.
+#[test]
+fn http10_trailers_are_dropped() {
+    let (served, ()) = connection(Trailed, |mut peer, _| {
+        peer.get_mut()
+            .write_all(b"GET /length HTTP/1.0\r\nConnection: keep-alive\r\n\r\n")
+            .unwrap();
+        let response = head(&mut peer);
+        assert_eq!(response.get("content-length"), Some("4"));
+        assert_eq!(response.get("connection"), Some("keep-alive"));
+        assert_eq!(response.get("trailer"), None);
+        assert_eq!(body(&mut peer, &response).0, b"data");
+
+        // A close-delimited response drops them too.
+        peer.get_mut().write_all(b"GET / HTTP/1.0\r\n\r\n").unwrap();
+        let response = head(&mut peer);
+        assert_eq!(response.get("transfer-encoding"), None);
+        assert_eq!(response.get("content-length"), None);
+        let mut rest = Vec::new();
+        peer.read_to_end(&mut rest).unwrap();
+        assert_eq!(rest, b"data");
+    });
+    assert_eq!(served.unwrap(), 2);
 }
 
 #[test]

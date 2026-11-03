@@ -41,6 +41,8 @@ impl<W: WritableStream> RequestWriter<W> {
     /// Send one request. `true` permits another output message; the owner must
     /// also finish the matching response before reusing the HTTP/1 connection.
     /// The body is closed on return, including error and cancellation.
+    ///
+    /// An HTTP/1.0 request has no chunked framing, so its body needs a known length and any trailers it produces are dropped.
     pub async fn write_request<B: ReadableBody>(
         &mut self,
         request: &mut Request<B>,
@@ -66,8 +68,10 @@ impl<W: WritableStream> RequestWriter<W> {
         self.output.begin()?;
         self.output.write_all(&self.buffer, cancellation).await?;
         self.output.flush(cancellation).await?;
+        let encoding =
+            output::BodyEncoder::new(framing, false).discard_trailers(http10(&request.metadata));
         self.output
-            .write_body(&mut request.body, framing, false, cancellation)
+            .write_body(&mut request.body, encoding, cancellation)
             .await?;
         self.output.completed(persistent);
         Ok(persistent)
@@ -89,7 +93,8 @@ impl<W: WritableStream> RequestWriter<W> {
         self.output.flush(cancellation).await?;
         // Activate the body only once the whole head is sent, so frames cannot follow a failed or dropped head.
         self.persistent = persistent;
-        self.body = Some(output::BodyEncoder::new(framing, false));
+        self.body =
+            Some(output::BodyEncoder::new(framing, false).discard_trailers(http10(metadata)));
         Ok(())
     }
 
@@ -134,6 +139,11 @@ impl<W: WritableStream> RequestWriter<W> {
     pub async fn close(&mut self) -> io::Result<()> {
         self.output.close().await
     }
+}
+
+// HTTP/1.0 requests are fixed-length, so trailers a body produces are dropped rather than refused.
+fn http10(head: &RequestMetadata) -> bool {
+    head.version == Some(Version::Http10)
 }
 
 fn request_plan(
@@ -226,7 +236,10 @@ fn request_plan(
             return Err(Error::LengthMismatch);
         }
     }
-    let chunked = raw_chunked || may_have_trailers || fields.contains("trailer");
+    // Only HTTP/1.1 can frame trailers. HTTP/1.0 sends a body that may have them with its length and drops them, but still refuses a raw Trailer field, which announces a trailer section it cannot send.
+    let chunked = raw_chunked
+        || (may_have_trailers && version == Version::Http11)
+        || fields.contains("trailer");
     let framing = if chunked {
         if version != Version::Http11 {
             return Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"));
