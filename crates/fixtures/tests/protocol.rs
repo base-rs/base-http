@@ -78,6 +78,10 @@ impl Handler for Sabotaged {
                 let _ = request.body.read(cancellation).await;
                 return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
             }
+            // Echo with the request's length, so the response is not chunked.
+            (_, "/duplex-chunked") => {
+                return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
+            }
             // Send the whole declared length.
             (_, "/incorrect-length") => reply("Borked!!!!"),
             // Drop the request trailer, or over HTTP/1.0, which drops it, claim to have received it.
@@ -139,6 +143,7 @@ sabotaged! {
     broken_server => "the status of a failing handler",
     incorrect_length => "a truncated body must fail",
     duplex_stream => "the echoed stream",
+    duplex_chunked_stream => "the echo's framing",
     request_trailer => "the request data and trailer the handler received",
     response_trailer => "the response trailer",
 }
@@ -319,4 +324,15 @@ fn the_duplex_stream_stalls_against_a_buffering_server() {
         .handler(Buffering(App::new()))
         .timeout(Duration::from_secs(1))
         .run(async |context| protocol::duplex_stream(context).await);
+}
+
+// The two-way stream's data is its offset modulo 251, whichever offset and length a chunk starts at.
+#[test]
+fn the_duplex_data_continues_its_pattern() {
+    for (offset, length) in [(0, 0), (0, 600), (250, 1), (250, 252), (1 << 32, 1000)] {
+        let expected: Vec<u8> = (offset..offset + length as u64)
+            .map(|index| (index % 251) as u8)
+            .collect();
+        assert_eq!(protocol::duplex_data(offset, length), expected);
+    }
 }

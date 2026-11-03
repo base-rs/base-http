@@ -40,6 +40,7 @@ const LINK: &str = "</style.css>; rel=preload; as=style";
 /// | `GET /`, `HEAD /` | `200` with `my-header: my-value` and `{method} {version}` |
 /// | `POST /` | `200` streaming the request body back |
 /// | `POST /duplex` | `200` streaming the request body back, for the two-way streaming case |
+/// | `POST /duplex-chunked` | `200` streaming the request body back with no length and possible trailers, so HTTP/1.1 chunks it |
 /// | `POST /length` | `200` with `Content Length: {n}`, the request body's length |
 /// | `GET /interim` | `103 Early Hints` with a `link` field to HTTP/1.1 clients, then `200` with `Hello World` |
 /// | `POST /request-trailer` | `200` with the request's `etag` trailer, after releasing [`App::request_received`] |
@@ -107,6 +108,9 @@ impl Handler for App {
             }
             (_, "/duplex") => {
                 return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
+            }
+            (_, "/duplex-chunked") => {
+                return Ok(Response::new(Status::OK, Reply::Stream(request.body)));
             }
             (_, "/length") => {
                 let length = request
@@ -252,6 +256,8 @@ pub enum Reply<B> {
     Buffered(BufferedBody<Vec<u8>>),
     /// The request body, streamed back.
     Echo(B),
+    /// The request body, streamed back without its length and reporting that it may have trailers, so an HTTP/1.1 response is chunked.
+    Stream(B),
     /// A scripted body.
     Staged(Staged),
     /// Zero bytes, produced on demand.
@@ -282,7 +288,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
     fn is_ready(&self) -> bool {
         match self {
             Self::Buffered(body) => body.is_ready(),
-            Self::Echo(body) => body.is_ready(),
+            Self::Echo(body) | Self::Stream(body) => body.is_ready(),
             Self::Staged(_) => false,
             Self::Zeroes(_) => true,
         }
@@ -291,7 +297,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
     fn is_empty(&self) -> bool {
         match self {
             Self::Buffered(body) => body.is_empty(),
-            Self::Echo(body) => body.is_empty(),
+            Self::Echo(body) | Self::Stream(body) => body.is_empty(),
             Self::Staged(body) => body.is_empty(),
             Self::Zeroes(body) => body.remaining == 0,
         }
@@ -301,6 +307,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
         match self {
             Self::Buffered(body) => body.length(),
             Self::Echo(body) => body.length(),
+            Self::Stream(_) => None,
             Self::Staged(body) => body.length(),
             Self::Zeroes(body) => Some(body.length),
         }
@@ -310,6 +317,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
         match self {
             Self::Buffered(body) => body.may_have_trailers(),
             Self::Echo(body) => body.may_have_trailers(),
+            Self::Stream(_) => true,
             Self::Staged(body) => body.may_have_trailers(),
             Self::Zeroes(_) => false,
         }
@@ -318,7 +326,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
     fn close(&mut self, error: Option<BodyError>) {
         match self {
             Self::Buffered(body) => body.close(None),
-            Self::Echo(body) => body.close(None),
+            Self::Echo(body) | Self::Stream(body) => body.close(None),
             Self::Staged(body) => body.close(error),
             Self::Zeroes(body) => body.remaining = 0,
         }
@@ -327,7 +335,7 @@ impl<B: ReadableBody> ReadableBody for Reply<B> {
     async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, BodyError> {
         match self {
             Self::Buffered(body) => Ok(body.read(cancellation).await?),
-            Self::Echo(body) => Ok(body
+            Self::Echo(body) | Self::Stream(body) => Ok(body
                 .read(cancellation)
                 .await
                 .map_err(BodyError::new)?
@@ -414,46 +422,61 @@ pub async fn post<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     );
 }
 
-// A streamed upload which declares that it has no trailers. A `BodyReader` may always carry them, and HTTP/1.0, which cannot frame trailers, refuses to send such a body.
-struct Untrailed(BodyReader<Vec<u8>>);
-
-impl ReadableBody for Untrailed {
-    type Data = Vec<u8>;
-    type Error = BodyError;
-
-    fn length(&self) -> Option<u64> {
-        self.0.length()
-    }
-
-    fn may_have_trailers(&self) -> bool {
-        false
-    }
-
-    fn close(&mut self, error: Option<BodyError>) {
-        self.0.close(error);
-    }
-
-    async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, BodyError> {
-        self.0.read(cancellation).await
-    }
-}
-
 /// The data of the two-way stream from `offset`: a pattern with a period of 251 bytes, which does not divide the chunk size, so a lost, repeated or reordered chunk changes the data or its length.
 pub fn duplex_data(offset: u64, length: usize) -> Vec<u8> {
-    (offset..offset + length as u64)
-        .map(|index| (index % 251) as u8)
-        .collect()
+    // Copy whole periods rather than computing each byte: per-byte work dominates the parallel two-way cases under coverage instrumentation.
+    let mut data = Vec::with_capacity(length);
+    let mut start = (offset % DUPLEX_PERIOD.len() as u64) as usize;
+    while data.len() < length {
+        let end = DUPLEX_PERIOD.len().min(start + length - data.len());
+        data.extend_from_slice(&DUPLEX_PERIOD[start..end]);
+        start = 0;
+    }
+    data
 }
+
+// One period of the two-way stream's data.
+const DUPLEX_PERIOD: [u8; 251] = {
+    let mut period = [0; 251];
+    let mut index = 0;
+    while index < period.len() {
+        period[index] = index as u8;
+        index += 1;
+    }
+    period
+};
 
 /// How far, in bytes, [`duplex_stream`]'s upload may run ahead of the echo it has received: a few chunks, far less than the stream.
 pub const DUPLEX_WINDOW: u64 = 4 * DUPLEX_CHUNK as u64;
 
 /// A request body streams up while its echo streams down at the same time, each [`DUPLEX_BODY`] long.
 ///
-/// The upload never runs more than [`DUPLEX_WINDOW`] ahead of the echo the test has received, so the exchange can only finish if the client delivers the response while it is still sending the request, and the server echoes the request while it is still receiving it. A client which finished its upload before reading the echo, or a server which read the whole request before replying, stalls the exchange until the test's deadline, whatever the sockets buffer. The request declares its length and no trailers, so HTTP/1.0 can carry it too.
+/// The upload never runs more than [`DUPLEX_WINDOW`] ahead of the echo the test has received, so the exchange can only finish if the client delivers the response while it is still sending the request, and the server echoes the request while it is still receiving it. A client which finished its upload before reading the echo, or a server which read the whole request before replying, stalls the exchange until the test's deadline, whatever the sockets buffer. The request declares its length, so it is sent with `Content-Length` over either version, and so is the echo, an incoming body of known length without trailers.
 pub async fn duplex_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
+    duplex(context, "/duplex", |_, _| {}).await;
+}
+
+/// As [`duplex_stream`], but the server streams the echo back as a body of unknown length which may have trailers, so over HTTP/1.1 the response is chunked while the fixed-length request is still being received. HTTP/1.0 has no chunked framing, so there the echo is close-delimited.
+pub async fn duplex_chunked_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
+    let chunked = context.version() == Version::Http11;
+    duplex(context, "/duplex-chunked", |may_have_trailers, length| {
+        // Only a chunked incoming body may have trailers; neither a chunked nor a close-delimited one has a length.
+        assert!(
+            may_have_trailers == chunked && length.is_none(),
+            "the echo's framing: may have trailers {may_have_trailers}, length {length:?}"
+        );
+    })
+    .await;
+}
+
+// The two-way stream through `path`, passing the response body's `may_have_trailers` and length to `framing` before reading it.
+async fn duplex<S: Scheduler, H: Borrow<App>>(
+    context: &Context<'_, S, H>,
+    path: &str,
+    framing: impl FnOnce(bool, Option<u64>),
+) {
     let (upload, mut writer) = BodyReader::with_length(4 * DUPLEX_CHUNK, 4, DUPLEX_BODY);
-    let request = context.request(Method::POST, "/duplex", Untrailed(upload));
+    let request = context.request(Method::POST, path, upload);
     let received = Cell::new(0);
     let progress = Event::new();
     let produce = async {
@@ -478,8 +501,9 @@ pub async fn duplex_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S
             .client()
             .call(request, &never())
             .await
-            .expect("POST /duplex");
+            .expect("POST to the two-way stream");
         assert_eq!(response.status, Status::OK);
+        framing(response.body.may_have_trailers(), response.body.length());
         let mut echoed = Vec::new();
         let read = loop {
             match response.body.read(&never()).await {
@@ -760,6 +784,7 @@ macro_rules! protocol_tests {
             broken_server,
             incorrect_length,
             duplex_stream,
+            duplex_chunked_stream,
         }
     };
 }
