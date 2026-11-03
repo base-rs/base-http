@@ -27,7 +27,7 @@ impl Handler for Blocking {
     }
 }
 
-// With one worker, which the handler blocks, nothing on the scheduler can run, including its clock's timers, yet the join still fails on time.
+// With one worker, which the handler blocks, Native strands the scheduler clock's timers behind that worker, so only the join's own-thread deadline can fail it on time. This guards the temporary workaround until base-rs/base-scheduler#93 is fixed.
 #[test]
 fn a_server_occupying_the_only_worker_fails_its_join() {
     let (started, release) = (Latch::new(), Latch::new());

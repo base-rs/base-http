@@ -278,26 +278,73 @@ fn a_sequential_duplex_stream_stalls() {
                 .await;
                 body::payload(&mut response.unwrap().body).await;
             };
-            let stalled = or(
+            // Sample the upload twice once its buffers have had time to fill: a stalled upload makes no progress between the samples, whatever the host's buffer sizes.
+            let samples = or(
                 async {
                     sequential.await;
-                    false
+                    None
                 },
                 async {
-                    let _ = context
-                        .scheduler()
-                        .sleep(Duration::from_millis(500), &Cancellation::never())
-                        .await;
-                    true
+                    let never = Cancellation::never();
+                    let pause = || {
+                        context
+                            .scheduler()
+                            .sleep(Duration::from_millis(250), &never)
+                    };
+                    let _ = pause().await;
+                    let first = written.get();
+                    let _ = pause().await;
+                    Some((first, written.get()))
                 },
             )
             .await;
             assert!(
-                stalled && written.get() < SEQUENTIAL_BODY,
-                "the upload did not stall: {} bytes written",
-                written.get()
+                matches!(samples, Some((first, second)) if first == second),
+                "the upload did not stall: {samples:?} bytes written"
             );
         });
+}
+
+/// Answers the two-way stream with an echo of unknown length which may have trailers, so `duplex_stream`'s echo is not framed by the request's length.
+struct Reframed(App);
+
+impl Borrow<App> for Reframed {
+    fn borrow(&self) -> &App {
+        &self.0
+    }
+}
+
+impl Handler for Reframed {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = Reply<B>;
+
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        request: Request<B>,
+        _: &mut InterimResponses<I>,
+        _: &Cancellation,
+    ) -> Result<Response<Reply<B>>, io::Error> {
+        Ok(Response::new(Status::OK, Reply::Stream(request.body)))
+    }
+}
+
+// Over HTTP/1.1 the reframed echo is chunked, so it may have trailers.
+#[test]
+#[should_panic(expected = "the echo's framing")]
+fn duplex_stream_reframed() {
+    ServerContext::new()
+        .handler(Reframed(App::new()))
+        .run(async |context| protocol::duplex_stream(context).await);
+}
+
+// Over HTTP/1.0 the reframed echo is close-delimited, so it has no length.
+#[test]
+#[should_panic(expected = "the echo's framing")]
+fn duplex_stream_reframed_http10() {
+    ServerContext::new()
+        .handler(Reframed(App::new()))
+        .version(Version::Http10)
+        .run(async |context| protocol::duplex_stream(context).await);
 }
 
 /// Reads the whole two-way stream's request before echoing it, as a server which buffers instead of streaming does.

@@ -220,8 +220,6 @@ fn a_split_raw_peer_uploads_and_downloads_at_once() {
                         "the echoed stream"
                     );
                     // The server closes the connection after the exchange.
-                    assert!(reader.fill_buf().unwrap().is_empty());
-                    reader.consume(0);
                     assert_eq!(reader.read(&mut [0; 1]).unwrap(), 0);
                     uploading.join().unwrap();
                 })
