@@ -7,13 +7,18 @@ use base_http::{
     body::{EmptyBody, ReadableBody},
 };
 use base_http_fixtures::{
-    ClientContext, Latch, RawPeer, RawServer,
+    ClientContext, Latch, RawPeer, RawServer, ServerContext,
     body::{self, payload},
     error_chain,
+    protocol::{App, DUPLEX_BODY, DUPLEX_CHUNK, duplex_data},
     raw::{self, Head},
 };
 use base_scheduler::Cancellation;
-use std::io::{BufRead, Cursor, Read};
+use std::{
+    io::{self, BufRead, Cursor, Read, Write},
+    thread,
+    time::Duration,
+};
 
 fn get() -> Request<EmptyBody> {
     Request::new(Method::GET, "/", EmptyBody)
@@ -154,4 +159,106 @@ fn respond_then_close_serves_one_response() {
         assert_eq!(payload(&mut response.body).await, b"ok");
     });
     server.join();
+}
+
+// Input a peer buffered before the split is read through the reader, not lost.
+#[test]
+fn a_split_raw_peer_keeps_its_buffered_input() {
+    let sent = Latch::new();
+    let server = RawServer::spawn({
+        let sent = sent.clone();
+        move |listener| {
+            let mut peer = listener.accept();
+            peer.write("first\r\nsecond\r\n");
+            peer.close_write_acknowledged();
+            sent.release();
+            peer.expect_closed();
+        }
+    });
+    let mut peer = RawPeer::connect(server.address());
+    // Both lines have arrived in one write, so reading the first buffers the second, and a reader which lost the buffer would read EOF.
+    sent.wait_blocking();
+    assert_eq!(peer.read_line(), "first");
+    let (mut reader, mut writer) = peer.split();
+    assert_eq!(raw::read_line(&mut reader), "second");
+    assert_eq!(reader.read(&mut [0; 1]).unwrap(), 0);
+    writer.shutdown_write();
+    server.join();
+}
+
+fn upload_head(length: u64) -> String {
+    format!(
+        "POST /duplex HTTP/1.1\r\nHost: localhost\r\nContent-Length: {length}\r\nConnection: close\r\n\r\n"
+    )
+}
+
+// The halves of a split peer upload and download at the same time from two threads. Done sequentially on one thread, the upload stalls once the unread echo fills the buffers, as `a_sequential_raw_upload_stalls_under_backpressure` shows.
+#[test]
+fn a_split_raw_peer_uploads_and_downloads_at_once() {
+    ServerContext::new()
+        .handler(App::new())
+        .run(async |context| {
+            context
+                .raw(|peer| {
+                    let (mut reader, mut writer) = peer.split();
+                    writer.get_mut().set_nodelay(true).unwrap();
+                    let uploading = thread::spawn(move || {
+                        writer.write(upload_head(DUPLEX_BODY));
+                        let mut offset = 0;
+                        while offset < DUPLEX_BODY {
+                            writer.write(duplex_data(offset, DUPLEX_CHUNK));
+                            offset += DUPLEX_CHUNK as u64;
+                        }
+                        writer.shutdown_write();
+                    });
+                    let head = reader.read_head();
+                    assert_eq!(head.status(), 200);
+                    let body = reader.read_body(&head);
+                    assert!(
+                        body.data.len() as u64 == DUPLEX_BODY
+                            && body.data == duplex_data(0, body.data.len()),
+                        "the echoed stream"
+                    );
+                    // The server closes the connection after the exchange.
+                    assert_eq!(reader.read(&mut [0; 1]).unwrap(), 0);
+                    uploading.join().unwrap();
+                })
+                .await;
+        });
+}
+
+// Writing the whole upload before reading the echo stalls: the server stops reading once its echo is not read, so the writes cannot finish. The declared upload is far more than any socket buffers, so it stalls whatever the host's buffer sizes.
+#[test]
+fn a_sequential_raw_upload_stalls_under_backpressure() {
+    const DECLARED: u64 = 1 << 30;
+    ServerContext::new()
+        .handler(App::new())
+        .run(async |context| {
+            context
+                .raw(|mut peer| {
+                    peer.get_mut()
+                        .set_write_timeout(Some(Duration::from_millis(500)))
+                        .unwrap();
+                    peer.write(upload_head(DECLARED));
+                    let mut written = 0;
+                    let error = loop {
+                        assert!(written < DECLARED, "the upload did not stall");
+                        if let Err(error) = peer
+                            .get_mut()
+                            .write_all(&duplex_data(written, DUPLEX_CHUNK))
+                        {
+                            break error;
+                        }
+                        written += DUPLEX_CHUNK as u64;
+                    };
+                    assert!(
+                        matches!(
+                            error.kind(),
+                            io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+                        ),
+                        "unexpected failure: {error}"
+                    );
+                })
+                .await;
+        });
 }

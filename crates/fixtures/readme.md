@@ -21,6 +21,8 @@ ServerContext::new().run(async |context| {
 });
 ```
 
-[`ClientContext`] runs a client of any endpoint, such as a [`RawServer`]. Raw peers in [`raw`] speak HTTP/1 over blocking `std::net` sockets, so they can misbehave in ways the Base server cannot: responding then closing, stalling after a head, truncating a body, or closing or writing to an idle connection. [`socket`] waits until a peer's kernel has acknowledged what was sent, so a test observes a close or unsolicited input without sleeping.
+[`ServerContext::run`] polls the server, the client and the test together on the test's thread, which makes interleavings reproducible but cannot run them in parallel. [`ServerContext::run_spawned`] instead spawns the server onto the workers of its own Native scheduler and drives the client from the test's thread, with the same bounds and teardown, so cross-thread wake-ups and races can show up.
+
+[`ClientContext`] runs a client of any endpoint, such as a [`RawServer`]. Raw peers in [`raw`] speak HTTP/1 over blocking `std::net` sockets, so they can misbehave in ways the Base server cannot: responding then closing, stalling after a head, truncating a body, or closing or writing to an idle connection. [`RawPeer::split`] gives a peer separate reading and writing halves, for uploading and downloading at once from two threads. [`socket`] waits until a peer's kernel has acknowledged what was sent, so a test observes a close or unsolicited input without sleeping.
 
 [`protocol_tests!`] and [`protocol_trailer_tests!`] generate the shared HTTP protocol cases for a runner, and [`readable_body_tests!`] generates the `ReadableBody` contract cases for a body type.

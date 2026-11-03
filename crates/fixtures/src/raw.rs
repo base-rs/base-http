@@ -144,6 +144,85 @@ impl RawPeer {
     }
 }
 
+impl RawPeer {
+    /// Split this connection into a reader and a writer, each usable from its own thread, as a peer which uploads and downloads at the same time needs.
+    ///
+    /// The reader keeps this peer's buffered input; the writer is a clone of the socket, made with [`TcpStream::try_clone`], so the timeouts and options set on this peer apply to both halves.
+    pub fn split(self) -> (RawReader, RawWriter) {
+        let writer = self
+            .stream
+            .get_ref()
+            .try_clone()
+            .expect("clone the raw peer's socket");
+        (
+            RawReader {
+                stream: self.stream,
+            },
+            RawWriter { stream: writer },
+        )
+    }
+}
+
+/// The reading half of a [`RawPeer`], from [`RawPeer::split`]. It owns the peer's buffered input.
+#[derive(Debug)]
+pub struct RawReader {
+    stream: BufReader<TcpStream>,
+}
+
+impl RawReader {
+    /// Read a request or response head. See [`read_head`].
+    pub fn read_head(&mut self) -> Head {
+        read_head(&mut self.stream)
+    }
+
+    /// Read the body that follows `head`. See [`read_body`].
+    pub fn read_body(&mut self, head: &Head) -> Body {
+        read_body(&mut self.stream, head)
+    }
+}
+
+impl Read for RawReader {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        self.stream.read(buffer)
+    }
+}
+
+impl BufRead for RawReader {
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        self.stream.fill_buf()
+    }
+    fn consume(&mut self, amount: usize) {
+        self.stream.consume(amount)
+    }
+}
+
+/// The writing half of a [`RawPeer`], from [`RawPeer::split`].
+#[derive(Debug)]
+pub struct RawWriter {
+    stream: TcpStream,
+}
+
+impl RawWriter {
+    /// The underlying socket, for socket options. It is a clone of the reader's socket.
+    pub fn get_mut(&mut self) -> &mut TcpStream {
+        &mut self.stream
+    }
+
+    /// Write all of `bytes` at once.
+    pub fn write(&mut self, bytes: impl AsRef<[u8]>) {
+        self.stream
+            .write_all(bytes.as_ref())
+            .expect("write to the raw peer");
+    }
+
+    /// Close this side's direction of the connection; the reader stays readable.
+    pub fn shutdown_write(&mut self) {
+        self.stream
+            .shutdown(Shutdown::Write)
+            .expect("shut down raw peer output");
+    }
+}
+
 impl Read for RawPeer {
     fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
         self.stream.read(buffer)

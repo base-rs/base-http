@@ -17,7 +17,7 @@ pub mod socket;
 pub use context::SERVER_NAME;
 pub use context::{ClientContext, Context, Hello, ServerContext, TEARDOWN_TIMEOUT, TEST_TIMEOUT};
 pub use latch::{LATCH_TIMEOUT, Latch};
-pub use raw::{RawListener, RawPeer, RawServer};
+pub use raw::{RawListener, RawPeer, RawReader, RawServer, RawWriter};
 pub use scheduler::{Scheduler, native};
 
 /// The messages of `error` and each of its sources, outermost first.

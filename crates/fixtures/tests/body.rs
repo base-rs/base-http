@@ -60,6 +60,15 @@ mod echo {
     base_http_fixtures::readable_body_tests!(run: super::echo);
 }
 
+fn stream(test: impl AsyncFnOnce(Sample<Reply<BufferedBody<&'static [u8]>>>)) {
+    let body = BufferedBody::new([b"Hello".as_slice(), b" World"]);
+    block_on(test(Sample::new(Reply::Stream(body), "Hello World")));
+}
+
+mod stream {
+    base_http_fixtures::readable_body_tests!(run: super::stream);
+}
+
 fn zeroes(test: impl AsyncFnOnce(Sample<Reply<EmptyBody>>)) {
     let body = Reply::Zeroes(Zeroes::new(LARGE_BODY));
     block_on(test(Sample::new(body, vec![0; LARGE_BODY as usize])));
@@ -104,6 +113,9 @@ fn a_reply_reports_readiness_and_trailers_by_variant() {
     assert!(!staged.is_ready() && staged.may_have_trailers());
     let echo = Reply::Echo(EmptyBody);
     assert!(echo.is_ready() && echo.is_empty() && !echo.may_have_trailers());
+    let stream = Reply::Stream(EmptyBody);
+    assert!(stream.is_ready() && stream.is_empty() && stream.may_have_trailers());
+    assert_eq!(stream.length(), None);
     let buffered = Reply::<EmptyBody>::Buffered(BufferedBody::default());
     assert!(buffered.is_ready());
 }

@@ -4,7 +4,7 @@
 //! Each protocol case fails, at the assertion it exists for, against an application which breaks that case.
 use base_http::{
     InterimHandler, InterimResponses, Method, Request, Response, ResponseMetadata, Status, Version,
-    body::{BufferedBody, ReadableBody},
+    body::{BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_fixtures::{
     ServerContext, body,
@@ -12,7 +12,9 @@ use base_http_fixtures::{
 };
 use base_http_server::Handler;
 use base_scheduler::Cancellation;
-use std::{borrow::Borrow, io, time::Duration};
+use base_scheduler::Clock;
+use futures_lite::future::{or, zip};
+use std::{borrow::Borrow, cell::Cell, io, time::Duration};
 
 /// The shared application, sabotaged on every route the protocol cases use.
 struct Sabotaged(App);
@@ -70,6 +72,15 @@ impl Handler for Sabotaged {
                     .0
                     .call(route(request, "/"), interim, cancellation)
                     .await;
+            }
+            // Lose the first chunk of the stream.
+            (_, "/duplex") => {
+                let _ = request.body.read(cancellation).await;
+                return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
+            }
+            // Echo with the request's length, so the response is not chunked.
+            (_, "/duplex-chunked") => {
+                return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
             }
             // Send the whole declared length.
             (_, "/incorrect-length") => reply("Borked!!!!"),
@@ -131,6 +142,8 @@ sabotaged! {
     large_body => "unexpected data",
     broken_server => "the status of a failing handler",
     incorrect_length => "a truncated body must fail",
+    duplex_stream => "the echoed stream",
+    duplex_chunked_stream => "the echo's framing",
     request_trailer => "the request data and trailer the handler received",
     response_trailer => "the response trailer",
 }
@@ -152,6 +165,16 @@ fn response_trailer_http10() {
         .handler(Sabotaged(App::new()))
         .version(Version::Http10)
         .run(async |context| protocol::response_trailer(context).await);
+}
+
+// Over HTTP/1.0 the chunked two-way case expects a close-delimited echo, so an echo with the request's length fails it too.
+#[test]
+#[should_panic(expected = "the echo's framing")]
+fn duplex_chunked_stream_http10() {
+    ServerContext::new()
+        .handler(Sabotaged(App::new()))
+        .version(Version::Http10)
+        .run(async |context| protocol::duplex_chunked_stream(context).await);
 }
 
 /// The application behind a router that sends every request to a missing route.
@@ -219,4 +242,154 @@ fn a_truncated_trailer_upload_fails_the_handler() {
                 })
                 .await;
         });
+}
+
+// Far more than any socket buffers, so a sequential upload of it stalls whatever the host's buffer sizes.
+const SEQUENTIAL_BODY: u64 = 1 << 30;
+
+// A client which uploads the whole request before reading the echo stalls once the unread echo fills the buffers between it and the server, which is why the two-way case must read and write at once.
+#[test]
+fn a_sequential_duplex_stream_stalls() {
+    ServerContext::new()
+        .handler(App::new())
+        .run(async |context| {
+            let (upload, mut writer) =
+                BodyReader::with_length(4 * protocol::DUPLEX_CHUNK, 4, SEQUENTIAL_BODY);
+            let request = context.request(Method::POST, "/duplex", upload);
+            let written = Cell::new(0);
+            let upload_all = async {
+                while written.get() < SEQUENTIAL_BODY {
+                    writer
+                        .write(
+                            protocol::duplex_data(written.get(), protocol::DUPLEX_CHUNK),
+                            &Cancellation::never(),
+                        )
+                        .await
+                        .unwrap();
+                    written.set(written.get() + protocol::DUPLEX_CHUNK as u64);
+                }
+                writer.close_write(None);
+            };
+            let sequential = async {
+                let (response, ()) = zip(
+                    context.client().call(request, &Cancellation::never()),
+                    upload_all,
+                )
+                .await;
+                body::payload(&mut response.unwrap().body).await;
+            };
+            // Sample the upload twice once its buffers have had time to fill: a stalled upload makes no progress between the samples, whatever the host's buffer sizes.
+            let samples = or(
+                async {
+                    sequential.await;
+                    None
+                },
+                async {
+                    let never = Cancellation::never();
+                    let pause = || {
+                        context
+                            .scheduler()
+                            .sleep(Duration::from_millis(250), &never)
+                    };
+                    let _ = pause().await;
+                    let first = written.get();
+                    let _ = pause().await;
+                    Some((first, written.get()))
+                },
+            )
+            .await;
+            assert!(
+                matches!(samples, Some((first, second)) if first == second),
+                "the upload did not stall: {samples:?} bytes written"
+            );
+        });
+}
+
+/// Answers the two-way stream with an echo of unknown length which may have trailers, so `duplex_stream`'s echo is not framed by the request's length.
+struct Reframed(App);
+
+impl Borrow<App> for Reframed {
+    fn borrow(&self) -> &App {
+        &self.0
+    }
+}
+
+impl Handler for Reframed {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = Reply<B>;
+
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        request: Request<B>,
+        _: &mut InterimResponses<I>,
+        _: &Cancellation,
+    ) -> Result<Response<Reply<B>>, io::Error> {
+        Ok(Response::new(Status::OK, Reply::Stream(request.body)))
+    }
+}
+
+// Over HTTP/1.1 the reframed echo is chunked, so it may have trailers.
+#[test]
+#[should_panic(expected = "the echo's framing")]
+fn duplex_stream_reframed() {
+    ServerContext::new()
+        .handler(Reframed(App::new()))
+        .run(async |context| protocol::duplex_stream(context).await);
+}
+
+// Over HTTP/1.0 the reframed echo is close-delimited, so it has no length.
+#[test]
+#[should_panic(expected = "the echo's framing")]
+fn duplex_stream_reframed_http10() {
+    ServerContext::new()
+        .handler(Reframed(App::new()))
+        .version(Version::Http10)
+        .run(async |context| protocol::duplex_stream(context).await);
+}
+
+/// Reads the whole two-way stream's request before echoing it, as a server which buffers instead of streaming does.
+struct Buffering(App);
+
+impl Borrow<App> for Buffering {
+    fn borrow(&self) -> &App {
+        &self.0
+    }
+}
+
+impl Handler for Buffering {
+    type Error = io::Error;
+    type Body<B: ReadableBody> = Reply<B>;
+
+    async fn call<B: ReadableBody, I: InterimHandler>(
+        &self,
+        mut request: Request<B>,
+        _: &mut InterimResponses<I>,
+        cancellation: &Cancellation,
+    ) -> Result<Response<Reply<B>>, io::Error> {
+        let collected = body::collect(&mut request.body, cancellation)
+            .await
+            .map_err(io::Error::other)?;
+        Ok(reply(collected.data))
+    }
+}
+
+// The upload stays within a few chunks of the echo, so a server which buffers the request never receives enough to reply, and the case cannot pass.
+#[test]
+#[should_panic(expected = "test exceeded")]
+fn the_duplex_stream_stalls_against_a_buffering_server() {
+    ServerContext::new()
+        .handler(Buffering(App::new()))
+        .timeout(Duration::from_secs(1))
+        .run(async |context| protocol::duplex_stream(context).await);
+}
+
+// The two-way stream's data is its offset modulo 251, whichever offset and length a chunk starts at.
+#[test]
+fn the_duplex_data_continues_its_pattern() {
+    for (offset, length) in [(0, 0), (0, 600), (250, 1), (250, 252), (1 << 32, 1000)] {
+        let expected: Vec<u8> = (offset..offset + length as u64)
+            .map(|index| (index % 251) as u8)
+            .collect();
+        assert_eq!(protocol::duplex_data(offset, length), expected);
+    }
 }
