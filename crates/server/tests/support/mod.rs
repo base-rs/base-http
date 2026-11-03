@@ -3,6 +3,7 @@
 
 #![allow(dead_code)]
 
+use base_http_fixtures::raw;
 use base_http_server::{Error, Handler};
 use base_scheduler::{
     Cancellation, SocketAccept, SocketBind, SocketClose, SocketListen, SocketLocalAddress,
@@ -120,75 +121,30 @@ impl Head {
 
 // Deliberately independent raw peer: no Base HTTP/1 encoder or decoder is used.
 pub fn head(peer: &mut impl BufRead) -> Head {
-    let mut line = String::new();
-    peer.read_line(&mut line).unwrap();
-    assert!(line.ends_with("\r\n"), "missing response line: {line:?}");
-    let status = line.split(' ').nth(1).unwrap().parse().unwrap();
-    let mut fields = Vec::new();
-    loop {
-        line.clear();
-        peer.read_line(&mut line).unwrap();
-        if line == "\r\n" {
-            break;
-        }
-        assert!(line.ends_with("\r\n"));
-        let (name, value) = line[..line.len() - 2].split_once(':').unwrap();
-        fields.push((name.to_owned(), value.trim().to_owned()));
+    let head = raw::read_head(peer);
+    Head {
+        status: head.status(),
+        fields: head.fields,
     }
-    Head { status, fields }
 }
 
+/// The body framed by `head`, with each trailer as `name: value`.
 pub fn body(peer: &mut impl BufRead, head: &Head) -> (Vec<u8>, Vec<String>) {
-    let mut data = Vec::new();
-    let mut trailers = Vec::new();
-    if head.get("transfer-encoding") == Some("chunked") {
-        loop {
-            let mut line = String::new();
-            peer.read_line(&mut line).unwrap();
-            let length = usize::from_str_radix(line.trim_end(), 16).unwrap();
-            if length == 0 {
-                break;
-            }
-            let start = data.len();
-            data.resize(start + length, 0);
-            peer.read_exact(&mut data[start..]).unwrap();
-            let mut crlf = [0; 2];
-            peer.read_exact(&mut crlf).unwrap();
-            assert_eq!(&crlf, b"\r\n");
-        }
-        loop {
-            let mut line = String::new();
-            peer.read_line(&mut line).unwrap();
-            if line == "\r\n" {
-                break;
-            }
-            assert!(!line.is_empty());
-            trailers.push(line.trim_end().to_owned());
-        }
-    } else if let Some(length) = head.get("content-length") {
-        data.resize(length.parse().unwrap(), 0);
-        peer.read_exact(&mut data).unwrap();
-    } else {
-        peer.read_to_end(&mut data).unwrap();
-    }
-    (data, trailers)
+    let head = raw::Head {
+        line: format!("HTTP/1.1 {}", head.status),
+        fields: head.fields.clone(),
+    };
+    let body = raw::read_body(peer, &head);
+    let trailers = body
+        .trailers
+        .into_iter()
+        .map(|(name, value)| format!("{name}: {value}"))
+        .collect();
+    (body.data, trailers)
 }
 
 // Read a streaming prefix without requiring transport reads to preserve the
 // sender's chunk boundaries or waiting for the response's terminating chunk.
 pub fn chunked_prefix(peer: &mut impl BufRead, length: usize) -> Vec<u8> {
-    let mut data = Vec::new();
-    while data.len() < length {
-        let mut line = String::new();
-        peer.read_line(&mut line).unwrap();
-        let size = usize::from_str_radix(line.trim_end(), 16).unwrap();
-        assert!(size > 0 && size <= length - data.len());
-        let start = data.len();
-        data.resize(start + size, 0);
-        peer.read_exact(&mut data[start..]).unwrap();
-        let mut crlf = [0; 2];
-        peer.read_exact(&mut crlf).unwrap();
-        assert_eq!(&crlf, b"\r\n");
-    }
-    data
+    raw::read_chunked_prefix(peer, length)
 }

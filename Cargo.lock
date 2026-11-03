@@ -237,6 +237,7 @@ name = "base-http"
 version = "0.2.0"
 dependencies = [
  "arrayvec",
+ "base-http-fixtures",
  "base-scheduler",
  "base-scheduler-native",
  "event-listener",
@@ -262,9 +263,9 @@ dependencies = [
  "async-stream",
  "base-endpoint",
  "base-http",
+ "base-http-fixtures",
  "base-http-protocol",
  "base-http-server",
- "base-http-test-socket",
  "base-http1",
  "base-pool",
  "base-scheduler",
@@ -275,6 +276,22 @@ dependencies = [
  "futures-lite",
  "futures-util",
  "pin-project-lite",
+ "rcgen",
+ "rustls",
+]
+
+[[package]]
+name = "base-http-fixtures"
+version = "0.0.0"
+dependencies = [
+ "base-http",
+ "base-http-client",
+ "base-http-server",
+ "base-scheduler",
+ "base-scheduler-native",
+ "event-listener",
+ "futures-lite",
+ "libc",
  "rcgen",
  "rustls",
 ]
@@ -293,6 +310,7 @@ version = "0.2.0"
 dependencies = [
  "base-endpoint",
  "base-http",
+ "base-http-fixtures",
  "base-http-protocol",
  "base-http1",
  "base-scheduler",
@@ -301,13 +319,6 @@ dependencies = [
  "futures-util",
  "libc",
  "rustls",
-]
-
-[[package]]
-name = "base-http-test-socket"
-version = "0.0.0"
-dependencies = [
- "libc",
 ]
 
 [[package]]

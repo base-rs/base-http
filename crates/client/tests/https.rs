@@ -9,8 +9,8 @@ use base_http::{
     body::{BodyFrame, BufferedBody, EmptyBody, ReadableBody},
 };
 use base_http_client::{Client, Endpoint, Error, Options};
+use base_http_fixtures::socket::wait_acknowledged;
 use base_http_server::Handler;
-use base_http_test_socket::wait_acknowledged;
 use base_scheduler::{Cancellation, Clock, SocketLocalAddress};
 use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};

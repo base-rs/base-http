@@ -2,7 +2,6 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Helpers shared by the `client` and `writable` test suites.
-use base_http::body::{BodyFrame, ReadableBody};
 use base_http_client::{Client, Endpoint, Options};
 use base_scheduler::Cancellation;
 use base_scheduler_native::NativeScheduler;
@@ -45,29 +44,7 @@ pub fn remainder(stream: &mut impl Read) -> Vec<u8> {
     bytes
 }
 
-pub async fn payload(body: &mut impl ReadableBody) -> Vec<u8> {
-    let mut bytes = Vec::new();
-    loop {
-        let frame = body.read(&Cancellation::never()).await.unwrap();
-        let end = frame.is_end();
-        if let BodyFrame::Data { data, .. } = frame {
-            bytes.extend_from_slice(data.as_ref());
-        }
-        if end {
-            return bytes;
-        }
-    }
-}
-
-pub fn chain(error: &dyn std::error::Error) -> Vec<String> {
-    let mut messages = vec![error.to_string()];
-    let mut source = error.source();
-    while let Some(error) = source {
-        messages.push(error.to_string());
-        source = error.source();
-    }
-    messages
-}
+pub use base_http_fixtures::{body::payload, error_chain as chain};
 
 /// Run a client with a single pooled connection beside its driver, then require that every connection was retired.
 pub fn run_endpoint(

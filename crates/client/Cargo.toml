@@ -24,12 +24,12 @@ futures-util = { version = "0.3.31", default-features = false, features = ["allo
 rustls = { version = "0.23.46", default-features = false, features = ["std", "ring", "tls12"], optional = true }
 
 [dev-dependencies]
+base-http-fixtures = { path = "../fixtures" }
 base-http-server = { version = "0.2.0", path = "../server" }
-base-http-test-socket = { path = "../test-socket" }
 base-scheduler-native = "0.4.0"
 futures-lite = "2.6.1"
 rcgen = "0.14.7"
 
 [features]
-rustls = ["dep:rustls", "base-endpoint/rustls", "base-http-server/rustls"]
+rustls = ["dep:rustls", "base-endpoint/rustls", "base-http-server/rustls", "base-http-fixtures/rustls"]
 

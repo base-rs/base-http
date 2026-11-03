@@ -4,7 +4,7 @@
 // Other platforms cannot observe acknowledgement, so `is_acknowledged` cannot report data in flight there.
 #![cfg(any(target_os = "linux", target_os = "macos"))]
 
-use base_http_test_socket::{is_acknowledged, wait_acknowledged};
+use base_http_fixtures::socket::{is_acknowledged, wait_acknowledged, wait_acknowledged_within};
 use std::{
     io::{ErrorKind, Read, Write},
     net::{Shutdown, TcpListener, TcpStream},
@@ -22,19 +22,19 @@ fn waits_until_the_peer_acknowledges_data_and_the_fin() {
 
     stream.set_nonblocking(true).unwrap();
     let mut written = 0;
-    loop {
-        match (&stream).write(&[0; 65536]) {
-            Ok(count) => written += count,
-            Err(error) if error.kind() == ErrorKind::WouldBlock => break,
-            Err(error) => panic!("{error}"),
-        }
-    }
+    // A full send buffer does not mean a full receive window: the peer may grow its window and acknowledge the backlog without reading, so fill again until a bounded wait expires with data still in flight.
+    let expired = (0..100).find(|_| {
+        written += fill(&stream);
+        !wait_acknowledged_within(&stream, Duration::from_millis(20))
+    });
+    assert!(
+        expired.is_some(),
+        "the peer kept acknowledging without reading"
+    );
     stream.shutdown(Shutdown::Write).unwrap();
     assert!(!is_acknowledged(&stream));
 
     let reader = thread::spawn(move || {
-        // Start reading only after the wait has begun.
-        thread::sleep(Duration::from_millis(50));
         let mut bytes = Vec::new();
         peer.read_to_end(&mut bytes).unwrap();
         bytes.len()
@@ -42,4 +42,16 @@ fn waits_until_the_peer_acknowledges_data_and_the_fin() {
     wait_acknowledged(&stream);
     assert!(is_acknowledged(&stream));
     assert_eq!(reader.join().unwrap(), written);
+}
+
+// Writes until the send buffer is full, returning the number of bytes written.
+fn fill(mut stream: &TcpStream) -> usize {
+    let mut written = 0;
+    loop {
+        match stream.write(&[0; 65536]) {
+            Ok(count) => written += count,
+            Err(error) if error.kind() == ErrorKind::WouldBlock => return written,
+            Err(error) => panic!("{error}"),
+        }
+    }
 }
