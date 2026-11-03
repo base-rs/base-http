@@ -38,11 +38,40 @@ Rust has no asynchronous destructor, so a fixture which leaves teardown to the t
 
 `crates/fixtures/tests/context.rs` exercises a test panic, a test timeout, a forced teardown, a server failure and a raw peer panic, and checks each is reported.
 
+## Spawned server context
+
+### Requirement
+
+`ServerContext::spawn` binds its listener before returning, then spawns the server's public entry point, `base_http_server::serve` or `serve_tls`, as one task through `base_scheduler::Spawn`, so the server runs on the scheduler's workers in parallel with a client driven from the test's thread. The fixture relies only on the server running on the scheduler's workers. It adds nothing to `base-http-server`'s public API and does not choose how connections are spread across tasks or workers. Its bounds are those a server which spawned its own connection tasks would need: the handler is `Handler + Send + Sync + 'static` and shared as an `Arc<H>`, and the scheduler implements `Spawn`, is `Send + Sync + 'static` and is shared through an `Arc<S>`. Native offers no other `'static` handle that can spawn.
+
+The returned `SpawnedServer` exposes the endpoint, address and handler. Its asynchronous `shutdown` cancels the server and waits for it for at most the teardown timeout. It resumes a server panic with its original payload, and fails for a server error or for overrunning the timeout. The timeout is measured on its own thread rather than by the scheduler's clock, so a server that occupies every worker still fails its shutdown instead of hanging it. Dropping the handle without `shutdown` cancels the server, waits for it as `shutdown` does, then panics and names any server failure. If the thread is already unwinding, the drop prints the failure to stderr instead of panicking. `run_spawned` and `run_spawned_on` run a test against a spawned server with the guarantees of `run`: the test and teardown are bounded, the client retires its connections before the server stops, a server failure fails the test, and a test failure is reported before any server failure. The scoped `run` and `run_on` are unchanged.
+
+### Rationale
+
+`run` polls the server, the client's driver and the test in one `block_on` on the test's thread. That makes results reproducible, but nothing runs in parallel, so cross-thread wake-up bugs and races in two-way streaming cannot show up. The user decided that the server's connection and task layout is an implementation detail. Relying only on the public entry points, with the bounds an internally spawning server would need, means that a later move to per-connection tasks inside `serve` does not break the fixtures. Rust has no asynchronous destructor, so a forgotten shutdown panics rather than silently discarding the server's outcome.
+
+### Scope
+
+`ServerContext::spawn`, `ServerContext::run_spawned`, `ServerContext::run_spawned_on` and `SpawnedServer` in `crates/fixtures/src/context.rs`, and `shared_native` in `crates/fixtures/src/scheduler.rs`.
+
+### Validation
+
+Inspect `spawn`: its task calls only `serve` or `serve_tls`, and the change leaves `crates/server/src` untouched. `crates/fixtures/tests/spawned.rs` covers the following, and checks how each is reported:
+
+- one spawned server serving several clients and a raw peer;
+- an application shared with the server;
+- a test panic;
+- a server failure;
+- a test failure reported before a server failure or panic;
+- a server panic, resumed by `shutdown`;
+- a shutdown that overruns its timeout while a handler blocks a worker;
+- each drop path: clean or failed, and while unwinding or not.
+
 ## Independent, bounded raw peers
 
 ### Requirement
 
-Raw peers use blocking `std::net` sockets and no Base encoder, decoder or scheduler. Every read, write, accept, latch wait and acknowledgement wait is bounded by a timeout shorter than the default test timeout, so a stalled peer reports its own failure, and an accepted socket is explicitly made blocking, since it inherits the listener's nonblocking mode on some platforms. Tests sequence peers with latches or acknowledgement, not sleeps. A canned peer which closes a connection or writes outside an exchange waits until the other side's kernel has acknowledged it, using `socket::wait_acknowledged`, before continuing or signalling the test. Linux and macOS query the kernel; on other platforms the wait is a 50 ms sleep, which is documented on the peer helpers. Raw peers never block a scheduler thread: `Context::raw` runs one on its own thread.
+Raw peers use blocking `std::net` sockets and no Base encoder, decoder or scheduler. Every read, write, accept, latch wait and acknowledgement wait is bounded by a timeout shorter than the default test timeout, so a stalled peer reports its own failure, and an accepted socket is explicitly made blocking, since it inherits the listener's nonblocking mode on some platforms. Tests sequence peers with latches or acknowledgement, not sleeps. A canned peer which closes a connection or writes outside an exchange waits until the other side's kernel has acknowledged it, using `socket::wait_acknowledged`, before continuing or signalling the test. Linux and macOS query the kernel; on other platforms the wait is a 50 ms sleep, which is documented on the peer helpers. Raw peers never block a scheduler thread: `Context::raw` runs one on its own thread. `RawPeer::split` divides a peer into a reader, which keeps the peer's buffered input, and a writer cloned from its socket with `TcpStream::try_clone`. Each half can be used from its own thread, so one peer can upload and download at the same time.
 
 ### Rationale
 
@@ -54,13 +83,13 @@ Peers that share the implementation's codec can hide a shared bug. Unbounded blo
 
 ### Validation
 
-Inspect peer construction for timeouts and the explicit blocking reset. Search tests built on the fixtures for `thread::sleep`. `crates/fixtures/tests/acknowledgement.rs` shows, on Linux and macOS, that a bounded wait expires while a peer leaves data unread, and that `wait_acknowledged` returns once the peer reads the data and the FIN. A loopback peer acknowledges a FIN as soon as it arrives, so no test can hold the window in which only the FIN is unacknowledged. Linux counts the FIN in the same queue as the data, but the separate connection-state check macOS needs is justified by inspection, not by a test.
+Inspect peer construction for timeouts and the explicit blocking reset. Search tests built on the fixtures for `thread::sleep`. `crates/fixtures/tests/acknowledgement.rs` shows, on Linux and macOS, that a bounded wait expires while a peer leaves data unread, and that `wait_acknowledged` returns once the peer reads the data and the FIN. A loopback peer acknowledges a FIN as soon as it arrives, so no test can hold the window in which only the FIN is unacknowledged. Linux counts the FIN in the same queue as the data, but the separate connection-state check macOS needs is justified by inspection, not by a test. `crates/fixtures/tests/raw.rs` streams `DUPLEX_BODY` up and down at the same time through a split peer. It also shows that a sequential upload of the same size on one thread stalls until its write timeout.
 
 ## Behaviour suites
 
 ### Requirement
 
-`protocol_tests!` and `protocol_trailer_tests!` generate the shared protocol cases for a runner chosen by the caller, and `readable_body_tests!` generates the `ReadableBody` contract cases for a body type. Every case is also a standalone public function, so a partial implementation can call a subset. The protocol suite runs between the Base client and server over HTTP/1.1, over HTTP/1.0 without the trailer cases, and over TLS with the `rustls` feature. The body suite runs against each body type `base-http` provides. Each assertion is shown to fail against an implementation that breaks it.
+`protocol_tests!` and `protocol_trailer_tests!` generate the shared protocol cases for a runner chosen by the caller, and `readable_body_tests!` generates the `ReadableBody` contract cases for a body type. Every case is also a standalone public function, so a partial implementation can call a subset. The protocol suite includes a two-way streaming case, `duplex_stream`. The client streams a request body through a small bounded queue while it reads the streamed echo at the same time, and each direction is `DUPLEX_BODY` long, larger than the loopback sockets between client and server can buffer. The request declares its length and no trailers, so HTTP/1.0 carries it too. The protocol suite runs between the Base client and server over HTTP/1.1, over HTTP/1.0 without the trailer cases, and over TLS with the `rustls` feature. Each of these runs in two modes: scoped, with `run`, and spawned, with `run_spawned`, where the server runs on Native workers and the test drives the client from its own thread. The body suite runs against each body type `base-http` provides. Each assertion is shown to fail against an implementation that breaks it.
 
 ### Rationale
 
@@ -72,4 +101,4 @@ Each new engine or body type should be checked against one shared definition of 
 
 ### Validation
 
-Check that the suites are applied as stated. `crates/fixtures/tests/protocol.rs` runs every protocol case against an application sabotaged on that case's route and requires the failure message of the assertion the case exists for; `crates/fixtures/tests/body.rs` runs every body assertion against a body with the corresponding fault and requires the expected failure.
+Check that the suites are applied as stated. `crates/fixtures/tests/protocol.rs` runs every protocol case against an application sabotaged on that case's route and requires the failure message of the assertion the case exists for; `crates/fixtures/tests/body.rs` runs every body assertion against a body with the corresponding fault and requires the expected failure. `a_sequential_duplex_stream_stalls` in `crates/fixtures/tests/protocol.rs` shows that the two-way stream cannot complete when the client uploads it all before reading. The case can therefore pass only by streaming both ways at once. Whether it stalls depends on the platform's socket buffer sizes, so a platform with larger loopback buffers needs a larger `DUPLEX_BODY`.

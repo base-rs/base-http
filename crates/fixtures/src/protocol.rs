@@ -25,6 +25,10 @@ use std::{
 /// The size of the large download, as in `AProtocol`'s "huge body".
 pub const LARGE_BODY: u64 = 8 * 1024 * 1024;
 const LARGE_CHUNK: u64 = 64 * 1024;
+/// The size of each direction of the two-way stream in [`duplex_stream`], larger than the loopback socket buffers in both directions together, so neither side can finish without the other reading.
+pub const DUPLEX_BODY: u64 = 16 * 1024 * 1024;
+/// The size of each chunk [`duplex_stream`] uploads.
+pub const DUPLEX_CHUNK: usize = 16 * 1024;
 const LINK: &str = "</style.css>; rel=preload; as=style";
 
 /// The application serving every protocol case.
@@ -33,6 +37,7 @@ const LINK: &str = "</style.css>; rel=preload; as=style";
 /// | --- | --- |
 /// | `GET /`, `HEAD /` | `200` with `my-header: my-value` and `{method} {version}` |
 /// | `POST /` | `200` streaming the request body back |
+/// | `POST /duplex` | `200` streaming the request body back, for the two-way streaming case |
 /// | `POST /length` | `200` with `Content Length: {n}`, the request body's length |
 /// | `GET /interim` | `103 Early Hints` with a `link` field to HTTP/1.1 clients, then `200` with `Hello World` |
 /// | `POST /request-trailer` | `200` with the request's `etag` trailer, after releasing [`App::request_received`] |
@@ -96,6 +101,9 @@ impl Handler for App {
                 response
             }
             (method, "/") if *method == Method::POST => {
+                return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
+            }
+            (_, "/duplex") => {
                 return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
             }
             (_, "/length") => {
@@ -404,6 +412,77 @@ pub async fn post<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     );
 }
 
+// A streamed upload which declares that it has no trailers. A `BodyReader` may always carry them, and HTTP/1.0, which cannot frame trailers, refuses to send such a body.
+struct Untrailed(BodyReader<Vec<u8>>);
+
+impl ReadableBody for Untrailed {
+    type Data = Vec<u8>;
+    type Error = BodyError;
+
+    fn length(&self) -> Option<u64> {
+        self.0.length()
+    }
+
+    fn may_have_trailers(&self) -> bool {
+        false
+    }
+
+    fn close(&mut self, error: Option<BodyError>) {
+        self.0.close(error);
+    }
+
+    async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, BodyError> {
+        self.0.read(cancellation).await
+    }
+}
+
+/// The data of the two-way stream from `offset`: a pattern which does not repeat at chunk boundaries, so a lost, repeated or reordered chunk changes it.
+pub fn duplex_data(offset: u64, length: usize) -> Vec<u8> {
+    (offset..offset + length as u64)
+        .map(|index| (index % 251) as u8)
+        .collect()
+}
+
+/// A request body streams up while its echo streams down at the same time, each [`DUPLEX_BODY`] long and under backpressure.
+///
+/// The upload is produced through a small bounded queue while the response is read concurrently. The stream is larger than what the sockets between client and server can buffer, so a client which finished its upload before reading, or a server which did not echo as it read, would stall the exchange until the test's deadline. The request declares its length and no trailers, so HTTP/1.0 can carry it too.
+pub async fn duplex_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
+    let (upload, mut writer) = BodyReader::with_length(4 * DUPLEX_CHUNK, 4, DUPLEX_BODY);
+    let request = context.request(Method::POST, "/duplex", Untrailed(upload));
+    let produce = async {
+        let mut offset = 0;
+        while offset < DUPLEX_BODY {
+            writer
+                .write(duplex_data(offset, DUPLEX_CHUNK), &never())
+                .await
+                .expect("write the request body");
+            offset += DUPLEX_CHUNK as u64;
+        }
+        writer.close_write(None);
+    };
+    let consume = async {
+        let mut response = context
+            .client()
+            .call(request, &never())
+            .await
+            .expect("POST /duplex");
+        assert_eq!(response.status, Status::OK);
+        let echoed = body::collect(&mut response.body, &never())
+            .await
+            .map(|collected| collected.data);
+        let intact = echoed.as_ref().is_ok_and(|data| {
+            data.len() as u64 == DUPLEX_BODY && *data == duplex_data(0, data.len())
+        });
+        // Report the length or error rather than the data.
+        assert!(
+            intact,
+            "the echoed stream: {:?} of {DUPLEX_BODY} bytes",
+            echoed.as_ref().map(Vec::len)
+        );
+    };
+    zip(produce, consume).await;
+}
+
 /// The server observes a request body's length.
 pub async fn request_length<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     let upload = BufferedBody::from(b"Hello World!".to_vec());
@@ -601,12 +680,13 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
 
 /// Generate `#[test]` functions for the version-independent protocol cases, ported from `async-http`'s `AProtocol`.
 ///
-/// The runner receives a fresh [`App`] and an async closure taking the running [`Context`]. It chooses the version, options and transport, typically by serving the application with a [`ServerContext`](crate::ServerContext), and owns the deadline. Invoke it inside a dedicated module:
+/// The runner receives a fresh [`App`] and an async closure taking the running [`Context`]. It chooses the version, options and transport, typically by serving the application with a [`ServerContext`](crate::ServerContext), and owns the deadline. [`ServerContext::run`](crate::ServerContext::run) runs the server, the client and the case on the test's thread, which is reproducible; [`ServerContext::run_spawned`](crate::ServerContext::run_spawned) runs the server on the scheduler's workers in parallel with the client, which can expose cross-thread wake-up bugs and races. Invoke it inside a dedicated module:
 ///
 /// ```
 /// use base_http::Version;
 /// use base_http_fixtures::{Context, ServerContext, protocol::App};
 /// use base_scheduler_native::NativeScheduler;
+/// use std::sync::Arc;
 ///
 /// fn http10(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
 ///     ServerContext::new()
@@ -617,6 +697,18 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
 ///
 /// mod http10 {
 ///     base_http_fixtures::protocol_tests!(run: super::http10);
+/// }
+///
+/// // The same cases with the server spawned onto the scheduler's workers, in parallel with the client.
+/// fn http10_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, Arc<App>>)) {
+///     ServerContext::new()
+///         .handler(app)
+///         .version(Version::Http10)
+///         .run_spawned(test);
+/// }
+///
+/// mod http10_spawned {
+///     base_http_fixtures::protocol_tests!(run: super::http10_spawned);
 /// }
 /// # fn main() {}
 /// ```
@@ -632,6 +724,7 @@ macro_rules! protocol_tests {
             large_body,
             broken_server,
             incorrect_length,
+            duplex_stream,
         }
     };
 }

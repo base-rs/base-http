@@ -4,7 +4,7 @@
 //! Each protocol case fails, at the assertion it exists for, against an application which breaks that case.
 use base_http::{
     InterimHandler, InterimResponses, Method, Request, Response, ResponseMetadata, Status, Version,
-    body::{BufferedBody, ReadableBody},
+    body::{BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_fixtures::{
     ServerContext, body,
@@ -12,6 +12,7 @@ use base_http_fixtures::{
 };
 use base_http_server::Handler;
 use base_scheduler::Cancellation;
+use futures_lite::future::zip;
 use std::{borrow::Borrow, io, time::Duration};
 
 /// The shared application, sabotaged on every route the protocol cases use.
@@ -71,6 +72,11 @@ impl Handler for Sabotaged {
                     .call(route(request, "/"), interim, cancellation)
                     .await;
             }
+            // Lose the first chunk of the stream.
+            (_, "/duplex") => {
+                let _ = request.body.read(cancellation).await;
+                return Ok(Response::new(Status::OK, Reply::Echo(request.body)));
+            }
             // Send the whole declared length.
             (_, "/incorrect-length") => reply("Borked!!!!"),
             // Drop the request trailer.
@@ -127,6 +133,7 @@ sabotaged! {
     large_body => "unexpected data",
     broken_server => "the status of a failing handler",
     incorrect_length => "a truncated body must fail",
+    duplex_stream => "the echoed stream",
     request_trailer => "the request data and trailer the handler received",
     response_trailer => "the response trailer",
 }
@@ -195,5 +202,38 @@ fn a_truncated_trailer_upload_fails_the_handler() {
                     );
                 })
                 .await;
+        });
+}
+
+// The two-way stream is larger than the sockets can buffer: a client which uploads it all before reading the echo stalls until the deadline, so the case can only pass by streaming both ways at once.
+#[test]
+#[should_panic(expected = "test exceeded")]
+fn a_sequential_duplex_stream_stalls() {
+    ServerContext::new()
+        .handler(App::new())
+        .timeout(Duration::from_secs(1))
+        .run(async |context| {
+            let (upload, mut writer) = BodyReader::bounded(4 * protocol::DUPLEX_CHUNK, 4);
+            let request = context.request(Method::POST, "/duplex", upload);
+            let upload_all = async {
+                let mut offset = 0;
+                while offset < protocol::DUPLEX_BODY {
+                    writer
+                        .write(
+                            protocol::duplex_data(offset, protocol::DUPLEX_CHUNK),
+                            &Cancellation::never(),
+                        )
+                        .await
+                        .unwrap();
+                    offset += protocol::DUPLEX_CHUNK as u64;
+                }
+                writer.close_write(None);
+            };
+            let (response, ()) = zip(
+                context.client().call(request, &Cancellation::never()),
+                upload_all,
+            )
+            .await;
+            body::payload(&mut response.unwrap().body).await;
         });
 }

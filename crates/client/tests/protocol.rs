@@ -5,6 +5,7 @@
 use base_http::Version;
 use base_http_fixtures::{Context, ServerContext, protocol::App};
 use base_scheduler_native::NativeScheduler;
+use std::sync::Arc;
 
 fn serve(app: App, version: Version) -> ServerContext<App> {
     ServerContext::new().handler(app).version(version)
@@ -37,4 +38,33 @@ fn https(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
 mod https {
     base_http_fixtures::protocol_tests!(run: super::https);
     base_http_fixtures::protocol_trailer_tests!(run: super::https);
+}
+
+// The same cases with the server spawned onto the scheduler's workers while the test drives the client from its own thread, so the two run in parallel.
+fn http11_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, Arc<App>>)) {
+    serve(app, Version::Http11).run_spawned(test);
+}
+
+mod http11_spawned {
+    base_http_fixtures::protocol_tests!(run: super::http11_spawned);
+    base_http_fixtures::protocol_trailer_tests!(run: super::http11_spawned);
+}
+
+fn http10_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, Arc<App>>)) {
+    serve(app, Version::Http10).run_spawned(test);
+}
+
+mod http10_spawned {
+    base_http_fixtures::protocol_tests!(run: super::http10_spawned);
+}
+
+#[cfg(feature = "rustls")]
+fn https_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, Arc<App>>)) {
+    serve(app, Version::Http11).tls().run_spawned(test);
+}
+
+#[cfg(feature = "rustls")]
+mod https_spawned {
+    base_http_fixtures::protocol_tests!(run: super::https_spawned);
+    base_http_fixtures::protocol_trailer_tests!(run: super::https_spawned);
 }

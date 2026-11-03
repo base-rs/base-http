@@ -15,10 +15,12 @@ pub mod socket;
 
 #[cfg(feature = "rustls")]
 pub use context::SERVER_NAME;
-pub use context::{ClientContext, Context, Hello, ServerContext, TEARDOWN_TIMEOUT, TEST_TIMEOUT};
+pub use context::{
+    ClientContext, Context, Hello, ServerContext, SpawnedServer, TEARDOWN_TIMEOUT, TEST_TIMEOUT,
+};
 pub use latch::{LATCH_TIMEOUT, Latch};
-pub use raw::{RawListener, RawPeer, RawServer};
-pub use scheduler::{Scheduler, native};
+pub use raw::{RawListener, RawPeer, RawReader, RawServer, RawWriter};
+pub use scheduler::{Scheduler, native, shared_native};
 
 /// The messages of `error` and each of its sources, outermost first.
 pub fn error_chain(error: &dyn std::error::Error) -> Vec<String> {

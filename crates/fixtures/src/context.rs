@@ -8,16 +8,22 @@ use base_http::{
 };
 use base_http_client::{Client, Driver, Endpoint};
 use base_http_server::Handler;
-use base_scheduler::{Cancellation, Clock, SocketType};
+use base_http_server::Statistics;
+use base_scheduler::{Cancellation, Clock, SocketType, Spawn, TaskError};
 use base_scheduler_native::NativeScheduler;
-use futures_lite::future::{block_on, zip};
+use futures_lite::future::{block_on, or, zip};
 use std::{
     any::Any,
     convert::Infallible,
+    fmt,
     future::{Future, poll_fn},
     net::SocketAddr,
     panic::{AssertUnwindSafe, catch_unwind, resume_unwind},
     pin::pin,
+    sync::{
+        Arc,
+        mpsc::{self, RecvTimeoutError},
+    },
     task::Poll,
     thread,
     time::Duration,
@@ -278,6 +284,271 @@ impl<H: Handler> ServerContext<H> {
     }
 }
 
+impl<H: Handler + Send + Sync + 'static> ServerContext<H> {
+    /// Bind a listener and spawn the server onto `scheduler`'s workers as an owned task, returning its handle.
+    ///
+    /// Unlike [`ServerContext::run`], the server makes progress on the scheduler's workers rather than on the test's thread, so a client driven from the test's thread runs in parallel with it. That exposes cross-thread wake-ups and races which a single `block_on` hides, at the cost of reproducible interleavings. The fixture relies only on the server running on the scheduler's workers; how the server spreads its connections across them is the server's choice and may change.
+    ///
+    /// The listener is bound before this returns, so a client never races the server's start. Binding blocks the calling thread briefly, so call this from outside the scheduler's workers. Shut the server down with [`SpawnedServer::shutdown`]; see [`SpawnedServer`] for what dropping it does instead.
+    ///
+    /// The scheduler is shared through an [`Arc`] because the spawned task must own a `'static` handle to it, and the application is shared as an `Arc<H>` between the server and the handle.
+    pub fn spawn<S>(self, scheduler: &Arc<S>) -> SpawnedServer<S, H>
+    where
+        S: Scheduler + Spawn + Send + Sync + 'static,
+        S::Socket: Send,
+    {
+        let Self {
+            handler,
+            version,
+            server,
+            client,
+            limits,
+            #[cfg(feature = "rustls")]
+            tls,
+        } = self;
+        let listener = block_on(listen(&**scheduler));
+        let address = scheduler
+            .socket_local_address(&listener)
+            .expect("listener address");
+        let endpoint = Endpoint::new(address);
+        #[cfg(feature = "rustls")]
+        let endpoint = match &tls {
+            Some(tls) => endpoint.with_tls(tls.client.clone(), SERVER_NAME),
+            None => endpoint,
+        };
+        let handler = Arc::new(handler);
+        let stop = Cancellation::new();
+        let serving = {
+            let (scheduler, handler, stop) = (scheduler.clone(), handler.clone(), stop.clone());
+            #[cfg(feature = "rustls")]
+            let tls = tls.map(|tls| tls.server);
+            async move {
+                #[cfg(feature = "rustls")]
+                if let Some(config) = tls {
+                    return base_http_server::serve_tls(
+                        &*scheduler,
+                        listener,
+                        config,
+                        &*handler,
+                        &server,
+                        &stop,
+                    )
+                    .await;
+                }
+                base_http_server::serve(&*scheduler, listener, &*handler, &server, &stop).await
+            }
+        };
+        let task = scheduler.spawn(serving).expect("spawn the server");
+        SpawnedServer {
+            scheduler: scheduler.clone(),
+            task: Some(task),
+            stop,
+            handler,
+            endpoint,
+            address,
+            version,
+            client,
+            limits,
+        }
+    }
+
+    /// Run `test` against a server spawned onto a fresh Native scheduler's workers, which is shut down afterwards. See [`ServerContext::run_spawned_on`].
+    pub fn run_spawned<T>(
+        self,
+        test: impl AsyncFnOnce(&Context<'_, NativeScheduler, Arc<H>>) -> T,
+    ) -> T {
+        crate::shared_native(|scheduler| self.run_spawned_on(scheduler, test))
+    }
+
+    /// Run `test` against a server spawned onto `scheduler`'s workers, with a client driven from the calling thread, then shut the server down. The caller owns and shuts down `scheduler`.
+    ///
+    /// This has the teardown guarantees of [`ServerContext::run`]: the test and teardown are bounded, the client retires its connections before the server stops, the server's shutdown is bounded by the teardown timeout, a server failure or panic fails the test, and a test failure is reported first, with any server failure printed beforehand.
+    pub fn run_spawned_on<S, T>(
+        self,
+        scheduler: &Arc<S>,
+        test: impl AsyncFnOnce(&Context<'_, S, Arc<H>>) -> T,
+    ) -> T
+    where
+        S: Scheduler + Spawn + Send + Sync + 'static,
+        S::Socket: Send,
+    {
+        let mut server = self.spawn(scheduler);
+        let tested = catch_unwind(AssertUnwindSafe(|| server.run(test)));
+        let stopped = block_on(server.join());
+        let output = match tested {
+            Ok(output) => output,
+            Err(panic) => {
+                // The test's failure is usually the cause of a server failure, so report it first.
+                if let Err(failure) = &stopped {
+                    eprintln!("server failed: {failure}");
+                }
+                resume_unwind(panic)
+            }
+        };
+        stopped.unwrap_or_else(|failure| failure.raise());
+        output
+    }
+}
+
+/// A server spawned onto a scheduler's workers by [`ServerContext::spawn`].
+///
+/// Shut it down with [`SpawnedServer::shutdown`], which cancels the server, waits for it within the teardown timeout and re-raises its failure. Rust has no asynchronous destructor, so dropping the handle without shutting it down cancels the server, blocks the dropping thread until it stops or the teardown timeout expires, and then panics, naming any server failure, so that a forgotten shutdown cannot hide one. When the thread is already unwinding, it prints the server's failure to stderr instead of panicking again. Drop it outside the scheduler's workers, since a worker blocked in the drop cannot run tasks.
+#[must_use = "shut the server down to observe its failures"]
+pub struct SpawnedServer<S: Spawn, H> {
+    scheduler: Arc<S>,
+    // `None` once the server has been stopped.
+    task: Option<S::Handle<Served>>,
+    stop: Cancellation,
+    handler: Arc<H>,
+    endpoint: Endpoint,
+    address: SocketAddr,
+    version: Version,
+    client: base_http_client::Options,
+    limits: Limits,
+}
+
+type Served = Result<Statistics, base_http_server::Error>;
+
+// Why a spawned server did not stop cleanly.
+enum Failure {
+    Server(base_http_server::Error),
+    Task(TaskError),
+    Stalled(Duration),
+}
+
+impl Failure {
+    // Re-raise a server panic with its own payload, and fail for anything else.
+    fn raise(self) -> ! {
+        match self {
+            Self::Task(TaskError::Panicked(panic)) => resume_unwind(panic),
+            failure => panic!("server failed: {failure}"),
+        }
+    }
+}
+
+impl fmt::Display for Failure {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Server(error) => error.fmt(formatter),
+            Self::Task(error) => error.fmt(formatter),
+            Self::Stalled(timeout) => write!(formatter, "it did not stop within {timeout:?}"),
+        }
+    }
+}
+
+impl<S: Spawn, H> SpawnedServer<S, H> {
+    /// The client's endpoint, including any TLS configuration, for constructing clients.
+    pub fn endpoint(&self) -> &Endpoint {
+        &self.endpoint
+    }
+
+    /// The server's listening address.
+    pub fn address(&self) -> SocketAddr {
+        self.address
+    }
+
+    /// The application being served, shared with the server.
+    pub fn handler(&self) -> &Arc<H> {
+        &self.handler
+    }
+
+    /// Cancel the server and wait for it to stop, returning its statistics.
+    ///
+    /// Panics if the server does not stop within the teardown timeout or failed, and resumes its panic if it panicked.
+    pub async fn shutdown(mut self) -> Statistics {
+        self.join().await.unwrap_or_else(|failure| failure.raise())
+    }
+
+    // Cancel the server and join it within the teardown timeout. A server which overruns is destroyed once its task handle is dropped and any poll in progress returns.
+    async fn join(&mut self) -> Result<Statistics, Failure> {
+        self.stop.cancel();
+        let Some(task) = self.task.take() else {
+            unreachable!("a spawned server is stopped only once")
+        };
+        let timeout = self.limits.teardown;
+        let joined = or(async { Some(task.await) }, async {
+            expiry(timeout).await;
+            None
+        })
+        .await;
+        match joined {
+            Some(Ok(served)) => served.map_err(Failure::Server),
+            Some(Err(error)) => Err(Failure::Task(error)),
+            None => Err(Failure::Stalled(timeout)),
+        }
+    }
+}
+
+impl<S: Scheduler + Spawn, H> SpawnedServer<S, H> {
+    /// Run `test` with a fresh client of this server, driven on the calling thread while the server keeps running on the scheduler's workers.
+    ///
+    /// The test and the client's teardown are bounded as in [`ServerContext::run`], and a test panic propagates after the client has retired its connections. The server keeps running afterwards, so further tests can use it before it is shut down.
+    pub fn run<T>(&self, test: impl AsyncFnOnce(&Context<'_, S, Arc<H>>) -> T) -> T {
+        let scheduler = &*self.scheduler;
+        block_on(async {
+            let (client, driver) =
+                Client::new(scheduler, self.endpoint.clone(), self.client.clone())
+                    .expect("valid client options");
+            let context = Context {
+                scheduler,
+                handler: self.handler.clone(),
+                client,
+                endpoint: self.endpoint.clone(),
+                address: self.address,
+                version: self.version,
+            };
+            let stop = Cancellation::new();
+            let supervised = supervise(
+                scheduler,
+                self.limits,
+                &context.client,
+                driver,
+                async {},
+                &stop,
+                test(&context),
+            )
+            .await;
+            finish(
+                supervised.tested,
+                supervised.forced,
+                &context.client,
+                self.limits,
+            )
+        })
+    }
+}
+
+// Expire after `timeout`, measured on a thread of its own rather than by the scheduler's clock, so a server occupying every worker, such as a handler which blocks, still fails its shutdown instead of hanging it. Dropping the future stops the thread.
+async fn expiry(timeout: Duration) {
+    let expired = Latch::new();
+    let (_cancel, cancelled) = mpsc::channel::<()>();
+    let release = expired.clone();
+    thread::spawn(move || {
+        if let Err(RecvTimeoutError::Timeout) = cancelled.recv_timeout(timeout) {
+            release.release();
+        }
+    });
+    let _ = expired.wait(&Cancellation::never()).await;
+}
+
+impl<S: Spawn, H> Drop for SpawnedServer<S, H> {
+    fn drop(&mut self) {
+        if self.task.is_none() {
+            return;
+        }
+        let stopped = block_on(self.join());
+        match (stopped, thread::panicking()) {
+            (Ok(_), true) => {}
+            (Err(failure), true) => eprintln!("server failed: {failure}"),
+            (Ok(_), false) => panic!("a spawned server was dropped without shutdown"),
+            (Err(failure), false) => {
+                eprintln!("a spawned server was dropped without shutdown");
+                failure.raise()
+            }
+        }
+    }
+}
+
 async fn listen<S: Scheduler>(scheduler: &S) -> S::Socket {
     let never = Cancellation::never();
     let address: SocketAddr = ([127, 0, 0, 1], 0).into();
@@ -351,7 +622,7 @@ impl<'s, S, H> Context<'s, S, H> {
 
     /// Run `work` with a raw client connected to the server, for wire-level requests, on its own thread. It does not use TLS.
     ///
-    /// The server runs on the test's thread, so a blocking peer there would stall it; the test instead awaits the peer thread without blocking. A panic in `work` propagates.
+    /// The client's driver, and with [`ServerContext::run`] the server too, runs on the test's thread, so a blocking peer there would stall them; the test instead awaits the peer thread without blocking. A panic in `work` propagates.
     pub async fn raw<T: Send + 'static>(
         &self,
         work: impl FnOnce(RawPeer) -> T + Send + 'static,
