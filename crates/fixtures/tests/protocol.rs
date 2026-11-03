@@ -167,6 +167,16 @@ fn response_trailer_http10() {
         .run(async |context| protocol::response_trailer(context).await);
 }
 
+// Over HTTP/1.0 the chunked two-way case expects a close-delimited echo, so an echo with the request's length fails it too.
+#[test]
+#[should_panic(expected = "the echo's framing")]
+fn duplex_chunked_stream_http10() {
+    ServerContext::new()
+        .handler(Sabotaged(App::new()))
+        .version(Version::Http10)
+        .run(async |context| protocol::duplex_chunked_stream(context).await);
+}
+
 /// The application behind a router that sends every request to a missing route.
 struct Misrouted(App);
 

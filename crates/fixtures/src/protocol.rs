@@ -446,14 +446,21 @@ const DUPLEX_PERIOD: [u8; 251] = {
     period
 };
 
-/// How far, in bytes, [`duplex_stream`]'s upload may run ahead of the echo it has received: a few chunks, far less than the stream.
+/// How far, in bytes, the upload of [`duplex_stream`] and [`duplex_chunked_stream`] may run ahead of the echo it has received: a few chunks, far less than the stream.
 pub const DUPLEX_WINDOW: u64 = 4 * DUPLEX_CHUNK as u64;
 
 /// A request body streams up while its echo streams down at the same time, each [`DUPLEX_BODY`] long.
 ///
 /// The upload never runs more than [`DUPLEX_WINDOW`] ahead of the echo the test has received, so the exchange can only finish if the client delivers the response while it is still sending the request, and the server echoes the request while it is still receiving it. A client which finished its upload before reading the echo, or a server which read the whole request before replying, stalls the exchange until the test's deadline, whatever the sockets buffer. The request declares its length, so it is sent with `Content-Length` over either version, and so is the echo, an incoming body of known length without trailers.
 pub async fn duplex_stream<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
-    duplex(context, "/duplex", |_, _| {}).await;
+    duplex(context, "/duplex", |may_have_trailers, length| {
+        // The request's known length frames it, and the echo inherits it.
+        assert!(
+            !may_have_trailers && length == Some(DUPLEX_BODY),
+            "the echo's framing: may have trailers {may_have_trailers}, length {length:?}"
+        );
+    })
+    .await;
 }
 
 /// As [`duplex_stream`], but the server streams the echo back as a body of unknown length which may have trailers, so over HTTP/1.1 the response is chunked while the fixed-length request is still being received. HTTP/1.0 has no chunked framing, so there the echo is close-delimited.
