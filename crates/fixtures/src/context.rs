@@ -265,6 +265,10 @@ impl<H: Handler> ServerContext<H> {
                 served,
                 forced,
             } = supervised;
+            // A failing test unwinds before the server's result is reported, so print it rather than drop it.
+            if let (Some(Err(_)) | None, Err(error)) = (&tested, &served) {
+                eprintln!("server also failed: {error}");
+            }
             let output = finish(tested, forced, &context.client, limits);
             if let Err(error) = served {
                 panic!("server failed: {error}");
