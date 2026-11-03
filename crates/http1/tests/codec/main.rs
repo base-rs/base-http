@@ -900,15 +900,32 @@ fn client_requests_frame_streams_and_static_trailers() {
             ),
         );
         second.authority = Some("example".into());
+        assert!(
+            output
+                .write_request(&mut second, &Cancellation::never())
+                .await
+                .unwrap()
+        );
+        // Only a body of unknown length is chunked, so only it keeps its trailers.
+        let mut body = trailing_body(
+            [b"fg".to_vec()],
+            Fields::try_from_pairs([("x-tail", "kept")]).unwrap(),
+        );
+        body.length = None;
+        let mut third = Request::new(Method::POST, "/three", body);
+        third.authority = Some("example".into());
         output
-            .write_request(&mut second, &Cancellation::never())
+            .write_request(&mut third, &Cancellation::never())
             .await
             .unwrap();
         let bytes = String::from_utf8(bytes.lock().unwrap().clone()).unwrap();
         assert!(bytes.contains("Transfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n0\r\n\r\nPOST /two"));
+        assert!(bytes.contains("Content-Length: 2\r\n\r\ndePOST /three"));
+        assert!(!bytes.contains("x-tail: yes"));
         assert!(
-            bytes
-                .ends_with("Transfer-Encoding: chunked\r\n\r\n2\r\nde\r\n0\r\nx-tail: yes\r\n\r\n")
+            bytes.ends_with(
+                "Transfer-Encoding: chunked\r\n\r\n2\r\nfg\r\n0\r\nx-tail: kept\r\n\r\n"
+            )
         );
     });
 }

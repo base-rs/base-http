@@ -150,6 +150,10 @@ pub(crate) mod tests {
         let never = Cancellation::never();
         let mut body = OutgoingBody::new(BufferedBody::new([b"hello".to_vec()]), never.clone());
         assert_eq!(body.length(), Some(5));
+        // The wrapped body's trailer hint passes through unchanged.
+        assert!(!body.may_have_trailers());
+        let (reader, _writer) = base_http::body::BodyReader::<Vec<u8>>::bounded(1, 1);
+        assert!(OutgoingBody::new(reader, never.clone()).may_have_trailers());
         assert!(!body.is_empty());
         let frame = block_on(body.read(&never)).unwrap();
         let expected = BodyFrame::Data {

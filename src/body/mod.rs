@@ -165,9 +165,11 @@ pub trait ReadableBody: Send {
         None
     }
 
-    /// Whether this body can emit trailing headers. HTTP/1 needs this before
-    /// reading to choose chunked framing, even when the data length is known.
-    /// Returning false promises that no Headers frame will be produced.
+    /// Whether this body can emit trailing headers. An HTTP/1.1 response needs
+    /// this before reading to choose chunked framing, even when the data length
+    /// is known. An HTTP/1 request of known length uses `Content-Length` and
+    /// drops any trailers whatever this reports. Returning false promises that
+    /// no Headers frame will be produced.
     fn may_have_trailers(&self) -> bool {
         true
     }

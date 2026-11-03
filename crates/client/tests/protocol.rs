@@ -19,13 +19,14 @@ mod http11 {
     base_http_fixtures::protocol_trailer_tests!(run: super::http11);
 }
 
-// HTTP/1.0 cannot send trailers or interim responses; its interim case expects only the final response.
+// HTTP/1.0 cannot send trailers or interim responses; its interim case expects only the final response, and its trailer cases expect the trailers to be dropped.
 fn http10(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
     serve(app, Version::Http10).run(test);
 }
 
 mod http10 {
     base_http_fixtures::protocol_tests!(run: super::http10);
+    base_http_fixtures::protocol_trailer_tests!(run: super::http10);
 }
 
 #[cfg(feature = "rustls")]
@@ -55,6 +56,7 @@ fn http10_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler,
 
 mod http10_spawned {
     base_http_fixtures::protocol_tests!(run: super::http10_spawned);
+    base_http_fixtures::protocol_trailer_tests!(run: super::http10_spawned);
 }
 
 #[cfg(feature = "rustls")]

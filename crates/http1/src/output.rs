@@ -238,6 +238,8 @@ impl<W: WritableStream> ResponseWriter<W> {
     /// admitting another request. Discarded input disables persistence.
     ///
     /// A response refused before any of it is written, such as one with an informational status, conflicting framing or a `Content-Length` field its body contradicts, leaves output usable.
+    ///
+    /// A response to an HTTP/1.0 request has no chunked framing, so any trailers its body produces are dropped.
     pub async fn write_response<B: ReadableBody>(
         &mut self,
         exchange: &Exchange,
@@ -286,13 +288,13 @@ impl<W: WritableStream> ResponseWriter<W> {
             }
             (plan.framing, plan.persistent, plan.tunnel)
         };
-        self.write_body(
-            &mut response.body,
+        let encoding = BodyEncoder::new(
             framing,
             !tunnel && response.metadata.status == Status::RESET_CONTENT,
-            cancellation,
         )
-        .await?;
+        .discard_trailers(!tunnel && exchange.version() == Version::Http10);
+        self.write_body(&mut response.body, encoding, cancellation)
+            .await?;
         self.usable = persistent;
         self.continue_sent = false;
         Ok(persistent)
@@ -318,12 +320,10 @@ impl<W: WritableStream> ResponseWriter<W> {
     pub(crate) async fn write_body<B: ReadableBody>(
         &mut self,
         body: &mut B,
-        framing: Framing,
-        forbid_content: bool,
+        mut encoding: BodyEncoder,
         cancellation: &Cancellation,
     ) -> Result<(), Error> {
-        if !matches!(framing, Framing::Absent) {
-            let mut encoding = BodyEncoder::new(framing, forbid_content);
+        if !matches!(encoding.framing, Framing::Absent) {
             loop {
                 if !body.is_ready() {
                     self.flush(cancellation).await?;
@@ -425,6 +425,7 @@ pub(crate) struct BodyEncoder {
     total: u64,
     trailers: Option<base_http::Fields>,
     forbid_content: bool,
+    discard_trailers: bool,
 }
 impl BodyEncoder {
     pub(crate) fn end_requires_output(&self) -> bool {
@@ -436,7 +437,13 @@ impl BodyEncoder {
             total: 0,
             trailers: None,
             forbid_content,
+            discard_trailers: false,
         }
+    }
+    /// Accept trailers that the framing cannot carry and drop them. HTTP/1.0 has no chunked framing, and HTTP semantics permit a recipient to discard trailers, so its fixed-length and close-delimited bodies validate and then omit them.
+    pub(crate) fn discard_trailers(mut self, discard: bool) -> Self {
+        self.discard_trailers = discard;
+        self
     }
     pub(crate) async fn write_frame<W: WritableStream, D: AsRef<[u8]>>(
         &mut self,
@@ -477,7 +484,7 @@ impl BodyEncoder {
                 if self.trailers.is_some() {
                     return Err(Error::Invalid("repeated trailing headers"));
                 }
-                if !matches!(self.framing, Framing::Chunked(_)) {
+                if !matches!(self.framing, Framing::Chunked(_)) && !self.discard_trailers {
                     return Err(Error::Invalid("trailers require chunked framing"));
                 }
                 validate_trailer_fields(fields.pairs())?;
@@ -629,19 +636,16 @@ fn plan<'a>(
             {
                 return Err(Error::Invalid("content on 205"));
             }
+            // Only HTTP/1.1 can frame trailers; HTTP/1.0 drops them. A Trailer field is only a hint, so the body alone decides.
+            let trailers = may_have_trailers && version == Version::Http11;
             if response.status == Status::RESET_CONTENT
                 && declared.is_none()
                 && !chunked
-                && !may_have_trailers
-                && !facts.trailer
+                && !trailers
             {
                 content_length = Some(0);
                 framing = Framing::Fixed(0);
-            } else if chunked || (may_have_trailers && version == Version::Http11) || facts.trailer
-            {
-                if version != Version::Http11 {
-                    return Err(Error::Invalid("trailers require HTTP/1.1 chunked framing"));
-                }
+            } else if chunked || trailers {
                 content_length = None;
                 generated_chunked = !chunked;
                 framing = Framing::Chunked(declared.or(length));
@@ -797,12 +801,6 @@ mod tests {
         length.fields.add(name, value).unwrap();
         cases.push((GET, length));
 
-        let mut chunked = Response::new(Status::OK, BufferedBody::default());
-        chunked.fields.add("Trailer", "x-digest").unwrap();
-        let (name, value) = full(OK + "Trailer: x-digest\r\n".len());
-        chunked.fields.add(name, value).unwrap();
-        cases.push((GET, chunked));
-
         let mut close = Response::new(Status::OK, BufferedBody::default());
         close.persistent = Some(false);
         close.fields.add("Content-Length", "0").unwrap();
@@ -839,6 +837,17 @@ mod tests {
             assert!(is_broken_pipe(result), "case {index}");
             assert!(!output.is_usable());
         }
+
+        // A body that may have trailers generates chunked framing.
+        let (body, _writer) = base_http::body::BodyReader::<Vec<u8>>::bounded(1, 1);
+        let mut chunked = Response::new(Status::OK, body);
+        let (name, value) = full(OK);
+        chunked.fields.add(name, value).unwrap();
+        let mut output = ResponseWriter::new(Refusing);
+        let result =
+            block_on(output.write_response(&exchange(GET), &mut chunked, &Cancellation::never()));
+        assert!(is_broken_pipe(result));
+        assert!(!output.is_usable());
     }
 
     #[test]

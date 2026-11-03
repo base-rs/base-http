@@ -628,10 +628,15 @@ pub async fn incorrect_length<S: Scheduler, H: Borrow<App>>(context: &Context<'_
     );
 }
 
-/// A request trailer sent after the server has received the request head reaches the handler.
+/// A request trailer sent after the server has received the request head reaches the handler over HTTP/1.1. HTTP/1.0 cannot frame trailers, so the client sends the data with its length and the handler receives no trailer.
 pub async fn request_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     let app: &App = context.handler().borrow();
-    let (upload, mut writer) = BodyReader::bounded(1024, 4);
+    let http10 = context.version() == Version::Http10;
+    let (upload, mut writer) = if http10 {
+        BodyReader::with_length(1024, 4, 5)
+    } else {
+        BodyReader::bounded(1024, 4)
+    };
     let mut request = context.request(Method::POST, "/request-trailer", upload);
     request.fields.add("trailer", "etag").expect("valid field");
     let produce = async {
@@ -659,14 +664,19 @@ pub async fn request_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_,
     let (response, ()) = zip(context.client().call(request, &never()), produce).await;
     let mut response = response.expect("POST /request-trailer");
     assert_eq!(response.status, Status::OK);
+    let expected = if http10 {
+        "Hello with etag: "
+    } else {
+        "Hello with etag: abcd"
+    };
     assert_eq!(
         body::payload(&mut response.body).await,
-        b"Hello with etag: abcd",
+        expected.as_bytes(),
         "the request data and trailer the handler received"
     );
 }
 
-/// A response trailer, sent after the client has received the response head and data, reaches the client after the data.
+/// A response trailer, sent after the client has received the response head and data, reaches the client after the data over HTTP/1.1. HTTP/1.0 cannot frame trailers, so the server drops it and the client receives the data alone.
 pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     let app: &App = context.handler().borrow();
     let mut response = context
@@ -681,6 +691,7 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
         )
         .await
         .expect("GET /response-trailer");
+    let http10 = context.version() == Version::Http10;
     assert_eq!(response.status, Status::OK);
     assert!(response.fields.contains("trailer"));
     assert!(!response.fields.contains("etag"));
@@ -693,13 +704,14 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
     let collected = body::collect(&mut response.body, &never())
         .await
         .expect("read the trailer");
-    assert!(collected.data.is_empty());
-    let trailers = collected.trailers.expect("a response trailer");
-    assert_eq!(
-        trailers.values("etag").collect::<Vec<_>>(),
-        [b"abcd".as_slice()],
-        "the response trailer"
-    );
+    assert!(collected.data.is_empty(), "data after the response trailer");
+    let etags: Vec<&[u8]> = collected
+        .trailers
+        .iter()
+        .flat_map(|trailers| trailers.values("etag"))
+        .collect();
+    let expected: &[&[u8]] = if http10 { &[] } else { &[b"abcd"] };
+    assert_eq!(etags, expected, "the response trailer");
 }
 
 /// Generate `#[test]` functions for the version-independent protocol cases, ported from `async-http`'s `AProtocol`.
@@ -752,7 +764,7 @@ macro_rules! protocol_tests {
     };
 }
 
-/// Generate `#[test]` functions for the protocol cases that need trailers, which HTTP/1.0 cannot send. The runner is as for [`protocol_tests!`](crate::protocol_tests).
+/// Generate `#[test]` functions for the trailer cases. Over HTTP/1.0, which cannot frame trailers, they check that trailers are dropped and the data arrives intact. The runner is as for [`protocol_tests!`](crate::protocol_tests).
 #[macro_export]
 macro_rules! protocol_trailer_tests {
     (run: $run:path $(,)?) => {

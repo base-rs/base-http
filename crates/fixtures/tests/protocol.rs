@@ -80,29 +80,33 @@ impl Handler for Sabotaged {
             }
             // Send the whole declared length.
             (_, "/incorrect-length") => reply("Borked!!!!"),
-            // Drop the request trailer.
+            // Drop the request trailer, or over HTTP/1.0, which drops it, claim to have received it.
             (_, "/request-trailer") => {
                 self.0.request_received().release();
                 let collected = body::collect(&mut request.body, cancellation)
                     .await
                     .map_err(io::Error::other)?;
+                let etag = if request.version == Some(Version::Http10) {
+                    "abcd"
+                } else {
+                    ""
+                };
                 reply(format!(
-                    "{} with etag: ",
+                    "{} with etag: {etag}",
                     String::from_utf8_lossy(&collected.data)
                 ))
             }
-            // Wait for the release, then end without the trailer.
+            // Wait for the release, then end without the trailer, or over HTTP/1.0, which drops it, send it as data.
             (_, "/response-trailer") => {
-                let mut response = Response::new(
-                    Status::OK,
-                    Reply::Staged(Staged::new(
-                        [
-                            Step::Data(b"response trailer".to_vec()),
-                            Step::Wait(self.0.response_released().clone()),
-                        ],
-                        None,
-                    )),
-                );
+                let mut steps = vec![
+                    Step::Data(b"response trailer".to_vec()),
+                    Step::Wait(self.0.response_released().clone()),
+                ];
+                if request.version == Some(Version::Http10) {
+                    steps.push(Step::Data(b"etag: abcd".to_vec()));
+                }
+                let mut response =
+                    Response::new(Status::OK, Reply::Staged(Staged::new(steps, None)));
                 response.fields.add("trailer", "etag").expect("valid field");
                 response
             }
@@ -137,6 +141,25 @@ sabotaged! {
     duplex_stream => "the echoed stream",
     request_trailer => "the request data and trailer the handler received",
     response_trailer => "the response trailer",
+}
+
+// Over HTTP/1.0 the trailer cases expect the trailers to be dropped and the data intact.
+#[test]
+#[should_panic(expected = "the request data and trailer the handler received")]
+fn request_trailer_http10() {
+    ServerContext::new()
+        .handler(Sabotaged(App::new()))
+        .version(Version::Http10)
+        .run(async |context| protocol::request_trailer(context).await);
+}
+
+#[test]
+#[should_panic(expected = "data after the response trailer")]
+fn response_trailer_http10() {
+    ServerContext::new()
+        .handler(Sabotaged(App::new()))
+        .version(Version::Http10)
+        .run(async |context| protocol::response_trailer(context).await);
 }
 
 /// The application behind a router that sends every request to a missing route.
