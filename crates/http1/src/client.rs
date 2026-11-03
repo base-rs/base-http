@@ -236,9 +236,8 @@ fn request_plan(
             return Err(Error::LengthMismatch);
         }
     }
-    // Only HTTP/1.1 can frame trailers. HTTP/1.0 never has them: a body that may have them is sent with its length and they are dropped, and a raw Trailer field is only an ordinary field.
-    let chunked = raw_chunked
-        || (version == Version::Http11 && (may_have_trailers || fields.contains("trailer")));
+    // Only HTTP/1.1 can frame trailers; HTTP/1.0 sends a body that may have them with its length and drops them. A Trailer field is only a hint, so the body alone decides.
+    let chunked = raw_chunked || (may_have_trailers && version == Version::Http11);
     let framing = if chunked {
         output::Framing::Chunked(declared.or(length))
     } else if let Some(length) = declared.or(length) {

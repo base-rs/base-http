@@ -4,7 +4,7 @@
 
 ### Requirement
 
-Whether a message will have trailers is not known until its body ends. `ReadableBody::may_have_trailers` is the only input to that decision: it defaults to true, and a body returns false only when it can promise that it produces no trailer frame, as static bodies do. There is no separate API for declaring that a streamed body has no trailers. The `Trailer` field is never used to drop trailers, to refuse a message, or to decide that a body has no trailers.
+Whether a message will have trailers is not known until its body ends. `ReadableBody::may_have_trailers` is the only input to that decision: it defaults to true, and a body returns false only when it can promise that it produces no trailer frame, as static bodies do. There is no separate API for declaring that a streamed body has no trailers. The `Trailer` field is never used to choose framing, to drop trailers, to refuse a message, or to decide whether a body has trailers; it is sent and received as an ordinary field.
 
 On HTTP/1.1, an outgoing body that may have trailers uses chunked framing, even when its length is known, so its trailers are preserved. An outgoing body that promises no trailers but produces them anyway, with a fixed length, is refused with "trailers require chunked framing".
 
@@ -18,7 +18,7 @@ Outgoing framing in `RequestWriter` (`crates/http1/src/client.rs`) and `Response
 
 ### Validation
 
-Inspect both framing plans: `may_have_trailers` selects chunked framing on HTTP/1.1, and a `Trailer` field never causes trailers to be dropped or a message to be refused. `known_length_body_trailers_select_chunked_framing_and_stay_out_of_metadata` in `crates/http1/tests/codec/main.rs` covers HTTP/1.1 chunked framing for a known length. `unannounced_trailers_on_an_http_11_fixed_body_are_rejected` in `crates/http1/tests/codec/output.rs` covers the broken promise.
+Inspect both framing plans: `may_have_trailers` selects chunked framing on HTTP/1.1, and a `Trailer` field never causes trailers to be dropped or a message to be refused. `known_length_body_trailers_select_chunked_framing_and_stay_out_of_metadata` in `crates/http1/tests/codec/main.rs` covers HTTP/1.1 chunked framing for a known length. `unannounced_trailers_on_an_http_11_fixed_body_are_rejected` in `crates/http1/tests/codec/output.rs` covers the broken promise. `reset_content_and_transfer_encoding_select_their_framing` in the same file and `http_10_requests_send_known_length_bodies_and_drop_their_trailers` in `crates/http1/tests/codec/client.rs` check that a `Trailer` field leaves a body without trailers on fixed-length framing.
 
 ## HTTP/1.0 never has trailers
 
@@ -29,7 +29,7 @@ HTTP/1.0 has no chunked framing, so `base-http1` drops trailers on HTTP/1.0 outp
 - An HTTP/1.0 request body of known length is sent with `Content-Length`. A request body of unknown length is refused before any output with "HTTP/1.0 request requires a body length", because an HTTP/1.0 request cannot be close-delimited. This holds for `RequestWriter::write_request` and for imperative output through `begin_request` and `write_frame`.
 - A response to an HTTP/1.0 request is sent with its length when it is known and is close-delimited otherwise. A 205 response declares `Content-Length: 0`. Dropping the trailers completes the response normally, so a persistent connection stays reusable.
 
-A raw `Transfer-Encoding` is still refused on HTTP/1.0, with "HTTP/1.0 transfer-encoding". Tunnel output after `101` or CONNECT still refuses trailer frames.
+A raw `Transfer-Encoding` is still refused on HTTP/1.0, with "HTTP/1.0 transfer-encoding". Tunnel output after a successful CONNECT is raw bytes rather than an HTTP/1.0 body, so it still refuses trailer frames.
 
 ### Rationale
 
@@ -41,7 +41,7 @@ The user decided that HTTP/1.0 discards trailers. HTTP semantics let trailers be
 
 ### Validation
 
-`crates/http1/tests/codec/client.rs` covers a known-length request body whose trailers are dropped through both `write_request` and `write_frame`, a `Trailer` field sent as an ordinary field, and the refusal of an unknown-length request body before any output. `crates/http1/tests/codec/output.rs` covers fixed-length, close-delimited and 205 responses whose trailers are dropped, a `Trailer` field, the validation of dropped trailers, and the HTTP/1.1 refusal. `http10_trailers_are_dropped` in `crates/server/tests/end_to_end.rs` checks that a persistent HTTP/1.0 connection serves a further request after a response whose trailers were dropped. The fixtures' trailer cases run over HTTP/1.0 in `crates/client/tests/protocol.rs` and check, in both directions, that no trailer arrives and the data does; see [test fixtures](fixtures.md). A close-delimited response looks the same to a client whether the server dropped its trailers or failed after its data, so the end-to-end server test, not the response case, shows that the response completed.
+`crates/http1/tests/codec/client.rs` covers a known-length request body whose trailers are dropped through both `write_request` and `write_frame`, a `Trailer` field sent as an ordinary field, and the refusal of an unknown-length request body before any output. `crates/http1/tests/codec/output.rs` covers fixed-length and close-delimited responses whose trailers are dropped, a `Trailer` field, the framing of a 205 whose body may have trailers, and the validation of dropped trailers. Inspect `ResponseWriter::write_response` for the tunnel exception: it enables discarding only when the response is not a tunnel. `http10_trailers_are_dropped` in `crates/server/tests/end_to_end.rs` checks that a persistent HTTP/1.0 connection serves a further request after a response whose trailers were dropped. The fixtures' trailer cases run over HTTP/1.0 in `crates/client/tests/protocol.rs` and check, in both directions, that no trailer arrives and the data does; see [test fixtures](fixtures.md). A close-delimited response looks the same to a client whether the server dropped its trailers or failed after its data, so the end-to-end server test, not the response case, shows that the response completed.
 
 ## Incoming bodies report trailers only for chunked framing
 
@@ -59,4 +59,4 @@ Only the chunked coding can carry a trailer section ([RFC 9112 §7.1.2](https://
 
 ### Validation
 
-`only_chunked_request_bodies_may_have_trailers` in `crates/http1/tests/codec/input.rs` and `only_chunked_response_bodies_may_have_trailers` in `crates/http1/tests/codec/client.rs` read HTTP/1.0 and HTTP/1.1 bodies with each framing, each announcing a `Trailer` field. They check what `may_have_trailers` reports and whether a trailer frame arrives.
+`only_chunked_request_bodies_may_have_trailers` in `crates/http1/tests/codec/input.rs` and `only_chunked_response_bodies_may_have_trailers` in `crates/http1/tests/codec/client.rs` read HTTP/1.0 and HTTP/1.1 bodies with each framing, each announcing a `Trailer` field. They check what `may_have_trailers` reports and whether a trailer frame arrives. The remaining cases follow by inspection: `IncomingBody::may_have_trailers` also excludes tunnels, `base-http-server` passes the incoming body to handlers unchanged, and `base-http-client` copies the flag from it in `crates/client/src/connection.rs` and `crates/client/src/writable.rs`.

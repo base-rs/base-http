@@ -384,6 +384,16 @@ fn http_10_requests_send_known_length_bodies_and_drop_their_trailers() {
             "POST / HTTP/1.0\r\nTrailer: x-digest\r\nHost: example\r\nContent-Length: 2\r\n\r\nhi"
         );
 
+        // Nor on HTTP/1.1, where a body without trailers keeps fixed-length framing.
+        let mut announced = request(Method::POST, b"hi");
+        announced.fields = fields(&[("Trailer", b"x-digest")]);
+        let (mut writer, output) = request_writer();
+        writer.write_request(&mut announced, &never).await.unwrap();
+        assert_eq!(
+            output.bytes(),
+            "POST / HTTP/1.1\r\nTrailer: x-digest\r\nHost: example\r\nContent-Length: 2\r\n\r\nhi"
+        );
+
         // Imperative output drops them too.
         let mut metadata = RequestMetadata::new(Method::POST);
         metadata.path = Some("/".into());

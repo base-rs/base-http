@@ -636,8 +636,8 @@ fn plan<'a>(
             {
                 return Err(Error::Invalid("content on 205"));
             }
-            // Only HTTP/1.1 can frame trailers. HTTP/1.0 never has them: they are dropped, and a raw Trailer field is only an ordinary field.
-            let trailers = version == Version::Http11 && (may_have_trailers || facts.trailer);
+            // Only HTTP/1.1 can frame trailers; HTTP/1.0 drops them. A Trailer field is only a hint, so the body alone decides.
+            let trailers = may_have_trailers && version == Version::Http11;
             if response.status == Status::RESET_CONTENT
                 && declared.is_none()
                 && !chunked
@@ -801,12 +801,6 @@ mod tests {
         length.fields.add(name, value).unwrap();
         cases.push((GET, length));
 
-        let mut chunked = Response::new(Status::OK, BufferedBody::default());
-        chunked.fields.add("Trailer", "x-digest").unwrap();
-        let (name, value) = full(OK + "Trailer: x-digest\r\n".len());
-        chunked.fields.add(name, value).unwrap();
-        cases.push((GET, chunked));
-
         let mut close = Response::new(Status::OK, BufferedBody::default());
         close.persistent = Some(false);
         close.fields.add("Content-Length", "0").unwrap();
@@ -843,6 +837,17 @@ mod tests {
             assert!(is_broken_pipe(result), "case {index}");
             assert!(!output.is_usable());
         }
+
+        // A body that may have trailers generates chunked framing.
+        let (body, _writer) = base_http::body::BodyReader::<Vec<u8>>::bounded(1, 1);
+        let mut chunked = Response::new(Status::OK, body);
+        let (name, value) = full(OK);
+        chunked.fields.add(name, value).unwrap();
+        let mut output = ResponseWriter::new(Refusing);
+        let result =
+            block_on(output.write_response(&exchange(GET), &mut chunked, &Cancellation::never()));
+        assert!(is_broken_pipe(result));
+        assert!(!output.is_usable());
     }
 
     #[test]

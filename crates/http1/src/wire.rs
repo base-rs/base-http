@@ -269,7 +269,6 @@ pub(crate) struct ResponseFraming<'a> {
     pub close: bool,
     pub keep_alive: bool,
     pub connection_upgrade: bool,
-    pub trailer: bool,
     pub upgrade: Option<&'a [u8]>,
     pub duplicate_upgrade: bool,
 }
@@ -283,7 +282,6 @@ pub(crate) fn response_framing(fields: &Fields) -> Result<ResponseFraming<'_>, E
         close: false,
         keep_alive: false,
         connection_upgrade: false,
-        trailer: false,
         upgrade: None,
         duplicate_upgrade: false,
     };
@@ -299,8 +297,6 @@ pub(crate) fn response_framing(fields: &Fields) -> Result<ResponseFraming<'_>, E
                 facts.keep_alive |= option.eq_ignore_ascii_case(b"keep-alive");
                 facts.connection_upgrade |= option.eq_ignore_ascii_case(b"upgrade");
             }
-        } else if name.eq_ignore_ascii_case("trailer") {
-            facts.trailer = true;
         } else if name.eq_ignore_ascii_case("upgrade") {
             facts.duplicate_upgrade |= facts.upgrade.replace(trim(field.value())).is_some();
         }

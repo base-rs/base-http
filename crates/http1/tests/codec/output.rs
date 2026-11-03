@@ -206,18 +206,25 @@ fn invalid_responses_are_rejected_before_any_output() {
 }
 
 #[test]
-fn reset_content_and_trailer_fields_select_their_framing() {
+fn reset_content_and_transfer_encoding_select_their_framing() {
     let mut empty = Response::new(Status::RESET_CONTENT, BufferedBody::<Vec<u8>>::default());
     assert_eq!(
         write(GET, &mut empty).unwrap(),
         "HTTP/1.1 205 Reset Content\r\nContent-Length: 0\r\n\r\n"
     );
 
+    // A Trailer field is only a hint, so a body without trailers keeps fixed-length framing.
     let mut announced = Response::new(Status::RESET_CONTENT, BufferedBody::<Vec<u8>>::default());
     announced.fields.add("Trailer", "x-digest").unwrap();
     assert_eq!(
         write(GET, &mut announced).unwrap(),
-        "HTTP/1.1 205 Reset Content\r\nTrailer: x-digest\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"
+        "HTTP/1.1 205 Reset Content\r\nTrailer: x-digest\r\nContent-Length: 0\r\n\r\n"
+    );
+    let mut announced = Response::new(Status::OK, BufferedBody::from(b"hi".to_vec()));
+    announced.fields.add("Trailer", "x-digest").unwrap();
+    assert_eq!(
+        write(GET, &mut announced).unwrap(),
+        "HTTP/1.1 200 OK\r\nTrailer: x-digest\r\nContent-Length: 2\r\n\r\nhi"
     );
 
     let mut chunked = Response::new(Status::OK, BufferedBody::from(b"hi".to_vec()));
