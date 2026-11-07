@@ -52,7 +52,7 @@ The release uses explicitly constructed, scheduler-bound reader/writer handles, 
 
 The package/import rename and scheduler migration are implemented. `ReadableBody::read` now takes cancellation only, and the file-body integration test borrows a released bound reader with separate asynchronous cleanup. Existing body behavior remains intact.
 
-`Fields` implements raw ordered `pairs`. Explicit `HttpHeaders` interpretation owns the lazy policy index, combination/trailer defaults, custom overrides and provenance of appended trailers. Indexing and indexed mutations validate singleton rules; failed mutations preserve previous state. Rich date/range/authentication/negotiation parsers remain focused follow-up work, distinct from combination.
+`Fields` implements raw ordered `pairs`. Explicit `HttpHeaders` interpretation owns the lazy policy index, combination/trailer defaults, custom overrides and provenance of appended trailers. Moving interpretation onto `base-message` interprets trailers as a section of their own, as [trailer interpretation](trailer-interpretation.md) requires. Indexing and indexed mutations validate singleton rules; failed mutations preserve previous state. Rich date/range/authentication/negotiation parsers remain focused follow-up work, distinct from combination.
 
 Method/status/version, protocol intent and request-target components are implemented with `Request<B>`/`Response<B>`, public `RequestMetadata`/`ResponseMetadata` and `.metadata`, consuming `map_body`/`with_body`, and `into_parts`/`from_parts`. Informational and final responses share the response representation; exchange sequencing belongs to the protocol/responder API.
 
