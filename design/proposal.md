@@ -175,7 +175,7 @@ The initial implementation provides constructors, public `RequestMetadata`/`Resp
 
 `HttpHeaders::new(fields)` explicitly interprets an owned initial section. It caches lookup lazily and applies `headers::Policy`: comma lists, semicolon-joined cookies, separately emitted cookies/challenges, singleton checks and trailer eligibility. Custom overrides let application interpreters change these choices; a different protocol can also interpret raw `Fields` independently. Lookup takes `&mut self`, with no interior mutability or shared message ownership.
 
-`HttpHeaders::append_trailers(fields)` accepts a separate received trailing section and records its provenance, including an empty section. Interpreted values can reflect both sections while `headers()` and `trailers()` remain distinct. Recover both with `into_parts()`; arbitrary trailer fields must not silently become initial fields. There is no `Fields::mark_trailers()` operation. Bodies deliver `BodyFrame::Headers`; collection and forwarding are explicit caller choices.
+`HttpHeaders::append_trailers(fields)` accepts a separate received trailing section and records its provenance, including an empty section. Interpreted values can reflect both sections while `headers()` and `trailers()` remain distinct. Merging the two sections is superseded by [trailer interpretation](trailer-interpretation.md), which the move onto `base-message` implements. Recover both with `into_parts()`; arbitrary trailer fields must not silently become initial fields. There is no `Fields::mark_trailers()` operation. Bodies deliver `BodyFrame::Headers`; collection and forwarding are explicit caller choices.
 
 ```rust,ignore
 struct Fields {
