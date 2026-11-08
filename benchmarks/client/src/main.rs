@@ -493,6 +493,7 @@ fn main() -> Result<()> {
                 threads: 1,
                 capacity: 1024,
                 timer_capacity: 1024,
+                ..Default::default()
             })?);
             let worker = scheduler.clone();
             let task = scheduler.spawn(async move {

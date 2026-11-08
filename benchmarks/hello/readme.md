@@ -10,7 +10,7 @@ The [layered Linux investigation](layer-breakdown.md) separately compares task e
 
 The [remaining Linux gap follow-up](raw-gap-followup.md) matches task context, counts socket/event/task operations and isolates HTTP processing in memory. Seven field-construction inline hints improve in-memory processing time by 10.7% and full HTTP user CPU per response by 3–9% across two cohorts. The longer paired throughput comparison still puts Base about 1.5% behind spawned Hyper, with mixed rounds. Scheduler experiments were reverted.
 
-The [0.1.2 release comparison on Hana](scheduler-release-0.1.2.md) measures published scheduler 0.1.1 against 0.1.2 for Linux epoll and io_uring, with Hyper/Tokio as an interleaved control. The benchmark now resolves published 0.4.0 scheduler packages, so local scheduler edits do not affect it. The [previous release comparison](scheduler-release-0.1.1.md) covers 0.1.0 against 0.1.1 on macOS and a Linux VM.
+The [0.1.2 release comparison on Hana](scheduler-release-0.1.2.md) measures published scheduler 0.1.1 against 0.1.2 for Linux epoll and io_uring, with Hyper/Tokio as an interleaved control. The benchmark now resolves published 0.5.0 scheduler packages, so local scheduler edits do not affect it. The [previous release comparison](scheduler-release-0.1.1.md) covers 0.1.0 against 0.1.1 on macOS and a Linux VM.
 
 The [Hana Linux investigation](hana-linux.md) measures epoll and io_uring on physical x86_64 hardware. It identifies redundant fallback accept/rearm calls, validates a default io_uring improvement, and evaluates opt-in TCP queue hints with their throughput and latency tradeoff. The experimental scheduler changes are preserved separately from this benchmark's published dependencies.
 
@@ -55,7 +55,7 @@ Only plaintext HTTP is measured. OpenSSL is a build dependency of wrk, not part 
 - Both full HTTP services drop an unused request before returning a future, then construct a fresh response when that future is polled. Base uses a plain `Handler::call` returning an uncapturing async block, matching Hyper's closure.
 - `TCP_NODELAY` is enabled on every accepted socket. Both sides have a 1,024 connection admission bound, above the measured loads.
 - Each server has one application execution thread and one `FuturesUnordered` supervisor polling connection futures. No per-connection task is spawned. The accept loop preserves its outstanding accept when an existing connection finishes, as in `base_http_server::serve`. Base uses the actual `serve_connection` implementation and generic handler/body API.
-- The native server supervisor executes on one native worker. The Base/Tokio and Hyper/Tokio supervisors execute on current-thread Tokio runtimes. The Direct variant has one foreground polling thread and a configured synchronous-work limit of one; its extra helper threads can consume CPU too. One application worker does not mean one total OS thread.
+- The native server supervisor executes on one native worker. The Base/Tokio and Hyper/Tokio supervisors execute on current-thread Tokio runtimes. One application worker does not mean one total OS thread.
 - Separate wrk processes use one load thread at one connection, four at 16 and 64 connections. Client and server run on the same machine.
 - Three five-second measurements per backend/concurrency pair, each preceded by one second of warmup. A fresh server starts for every sample. Order is interleaved with fixed random seed 20261026. Reported aggregates are medians across repetitions; min/max throughput is retained.
 
@@ -65,21 +65,20 @@ Before every sample, an independent Python HTTP client checks body/status/fields
 
 | Mode | HTTP implementation | I/O and execution |
 | --- | --- | --- |
-| `base-native` | Base HTTP/1 and application handler | Published `base-scheduler-native` 0.4.0, worker-owned readiness selector (direct kqueue on macOS and epoll on Linux), one native task worker. |
-| `base-iouring` (Linux) | Same Base HTTP implementation | Published `base-scheduler-iouring` 0.4.0 with one Native task/ring worker and one readiness fallback worker. Default ring settings; borrowed payload buffers use nonblocking receive/send syscalls. |
+| `base-native` | Base HTTP/1 and application handler | Published `base-scheduler-native` 0.5.0, worker-owned readiness selector (direct kqueue on macOS and epoll on Linux), one native task worker. |
+| `base-iouring` (Linux) | Same Base HTTP implementation | Published `base-scheduler-iouring` 0.5.0 with one Native task/ring worker and one readiness fallback worker. Default ring settings; borrowed payload buffers use nonblocking receive/send syscalls. |
 | `base-iouring-raw` (Linux) | One read then one fixed response write | Same released io_uring configuration. |
 | `base-iouring-owned-raw` (Linux) | Same raw loop | Uses `read_owned` with one reusable 16 KiB buffer; response writes remain borrowed. The borrowed Base raw controls use identical buffer storage. |
 | `base-native-background` | Same Base HTTP implementation | Published Native executor with the standalone `async-io` readiness selector, preserving the previous reactor handoff for comparison. |
-| `base-tokio` | Same Base HTTP implementation | Published `base-scheduler-tokio` 0.4.0 on a current-thread Tokio runtime. |
+| `base-tokio` | Same Base HTTP implementation | Published `base-scheduler-tokio` 0.5.0 on a current-thread Tokio runtime. |
 | `hyper-tokio` | Hyper HTTP/1 and `Full<Bytes>` body | Tokio TCP stream through `hyper-util::rt::TokioIo`, current-thread runtime. |
 | `hyper-task-tokio` | Same Hyper HTTP implementation | Connection supervisor runs in one spawned task on the current-thread Tokio runtime, matching Base's spawned supervisor context. |
 | `base-native-raw` | One read then one fixed response write | Native bound reader/writer, one native worker. |
 | `base-tokio-raw` | Same raw loop | Base bound capabilities on current-thread Tokio. |
 | `tokio-raw` | Same raw loop | Direct Tokio TCP, supervisor in the `block_on` root. |
 | `tokio-task-raw` | Same raw loop | Direct Tokio TCP, supervisor spawned as one task. |
-| `base-direct` | Same Base HTTP implementation | Published Direct backend, with its synchronous work/cleanup/retry services. |
 
-The benchmark pins the interface and Direct, Native, Selector, Tokio and Linux io_uring packages to registry release 0.4.0, the release the HTTP libraries use; its lockfile fixes the transitive timer crate to the same release. Historical local-patch, 0.1.0, 0.1.2 and 0.3.0 results retain their original provenance. Libraries in the parent directories retain their own development patches, which do not override this benchmark package's dependency resolution. The lockfile pins Hyper 1.12.0 and Tokio 1.54.1. Base/Tokio is a useful control, but a comparison against Hyper still includes differences in HTTP handling, I/O bindings, allocation and write batching. It does not isolate the semantic message model's cost.
+The benchmark pins the interface and Native, Selector, Tokio and Linux io_uring packages to registry release 0.5.0, the release the HTTP libraries use; its lockfile fixes the transitive timer crate to the same release. Native runs with stall rescue, the 0.5 default. Scheduler 0.5 removed the Direct backend, so the `base-direct` mode is gone; recorded results that include it were measured with earlier releases. Historical local-patch, 0.1.0, 0.1.2 and 0.3.0 results retain their original provenance. Libraries in the parent directories retain their own development patches, which do not override this benchmark package's dependency resolution. The lockfile pins Hyper 1.12.0 and Tokio 1.54.1. Base/Tokio is a useful control, but a comparison against Hyper still includes differences in HTTP handling, I/O bindings, allocation and write batching. It does not isolate the semantic message model's cost.
 
 ## Interpretation
 

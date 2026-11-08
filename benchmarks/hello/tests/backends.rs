@@ -17,7 +17,6 @@ use std::{
 const HTTP: &[&str] = &[
     "base-native",
     "base-native-background",
-    "base-direct",
     "base-tokio",
     "hyper-tokio",
     "hyper-task-tokio",

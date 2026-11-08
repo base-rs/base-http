@@ -148,7 +148,7 @@ def main():
     parser.add_argument("--wrk", type=Path, required=True)
     parser.add_argument("--binary", type=Path, default=Path("target/release/base-http-hello-benchmark"))
     parser.add_argument("--output", type=Path, default=Path("results/macos"))
-    parser.add_argument("--backends", nargs="+", default=["base-native", "base-tokio", "hyper-tokio", "base-direct"])
+    parser.add_argument("--backends", nargs="+", default=["base-native", "base-tokio", "hyper-tokio"])
     parser.add_argument("--concurrency", nargs="+", type=int, default=[1, 16, 64])
     parser.add_argument("--repetitions", type=int, default=3)
     parser.add_argument("--duration", type=int, default=5)

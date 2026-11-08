@@ -183,7 +183,7 @@ def send_writev(source):
 
 def root_modes(source):
     return replace_once(
-        source, '        Some("base-direct") => {',
+        source, '        Some(backend @ ("base-tokio" ',
         '''        Some(mode @ ("base-root" | "base-reactor")) => {
             let scheduler = NativeScheduler::with_options(NativeOptions {
                 workers: 1, threads: 1, capacity: MAX_CONNECTIONS,
@@ -197,7 +197,7 @@ def root_modes(source):
             futures_lite::future::block_on(scheduler.shutdown());
             result
         }
-        Some("base-direct") => {''',
+        Some(backend @ ("base-tokio" ''',
     )
 
 

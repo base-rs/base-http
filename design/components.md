@@ -100,7 +100,7 @@ The QUIC prototype must drive UDP reception/transmission, expiry and pacing thro
 
 ## Current release and toolchain observations
 
-Registry metadata checked on 2026-10-26 gives the historical package constraints below. This is not a successful build of the selected dependency graph; crypto-provider and transitive dependencies still require verification. The HTTP packages now require Rust 1.87 and use the released scheduler and pool 0.4.0 and endpoint 0.2.0 packages; CI runs the workspace tests with them on Linux, with the current stable Rust and with Rust 1.87.
+Registry metadata checked on 2026-10-26 gives the historical package constraints below. This is not a successful build of the selected dependency graph; crypto-provider and transitive dependencies still require verification. The HTTP packages now require Rust 1.87 and use the released scheduler and pool 0.5.0 and endpoint 0.3.0 packages; CI runs the workspace tests with them on Linux, with the current stable Rust and with Rust 1.87.
 
 | Package | Evaluated release | Declared Rust minimum | Declared license |
 | --- | --- | --- | --- |

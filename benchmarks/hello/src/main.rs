@@ -10,7 +10,6 @@ use base_scheduler::{
     Cancellation, SocketAccept, SocketClose, SocketRegistration, SocketSetOption,
     SocketStreamReading, SocketStreamWriting, Spawn, TcpNoDelay,
 };
-use base_scheduler_direct::{DirectOptions, DirectScheduler};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use base_scheduler_tokio::TokioScheduler;
 use futures_util::{
@@ -231,15 +230,6 @@ fn main() -> Result<()> {
             scheduler.block_on(scheduler.shutdown());
             result
         }
-        Some("base-direct") => {
-            let scheduler = DirectScheduler::new(DirectOptions {
-                threads: 1,
-                capacity: MAX_CONNECTIONS,
-            })?;
-            let result = futures_lite::future::block_on(base_server(&scheduler));
-            futures_lite::future::block_on(scheduler.shutdown());
-            result
-        }
         Some(backend @ ("base-tokio" | "hyper-tokio" | "hyper-task-tokio" | "base-tokio-raw" | "tokio-raw" | "tokio-task-raw" | "tokio-connections-raw")) => {
             let runtime = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
@@ -268,7 +258,7 @@ fn main() -> Result<()> {
             })
         }
         _ => Err(
-            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-iouring-owned-connections-raw|base-iouring-connections-raw|base-direct|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw|tokio-connections-raw"
+            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-iouring-owned-connections-raw|base-iouring-connections-raw|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw|tokio-connections-raw"
                 .into(),
         ),
     }
