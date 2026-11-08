@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Isolate pool admission/return, without HTTP, sockets or exchange adapters.
 use super::*;
 use base_pool::{Acquisition, Admission, MultiplexPool, MultiplexUse};

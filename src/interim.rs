@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2019-2026, by Samuel Williams.
 
 //! Per-exchange interim-response hooks, independent of message heads and bodies.
 //!

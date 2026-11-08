@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Layer controls: fixed work, matched futures, separately timed setup and cleanup.
 use base_scheduler::{
     Cancellation, SocketRegistration, SocketStreamReader, SocketStreamReading, SocketStreamWriter,

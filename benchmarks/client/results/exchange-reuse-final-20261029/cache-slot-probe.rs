@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 use crossbeam_utils::atomic::AtomicCell;
 use std::pin::Pin;
 fn main() {

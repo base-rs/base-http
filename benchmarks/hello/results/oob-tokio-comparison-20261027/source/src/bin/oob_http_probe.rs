@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 use std::{convert::Infallible, os::fd::AsRawFd, time::{Duration,Instant}};
 use tokio::io::{AsyncReadExt,AsyncWriteExt};
 use hyper::{server::conn::http1,service::service_fn,body::Bytes};

@@ -1,3 +1,5 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
 
 // Diagnostic fixture appended temporarily to selector's private driver tests.
 // Real readiness publication overlaps remote registration/deregistration.

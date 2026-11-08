@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2018-2026, by Samuel Williams.
 
 //! Ordered pairs of token names and opaque byte values, without interpretation
 //! or section state. Protocol drivers decide which value bytes each protocol can

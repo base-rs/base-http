@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Disposable microbenchmark hooks; never part of production scheduler builds.
 use super::*;
 use std::{future::Future, hint::black_box, pin::pin, task::Context, time::Instant};

@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 use std::{io::Write, net::{TcpListener,TcpStream}, os::fd::AsRawFd, time::Duration};
 use tokio::io::AsyncReadExt;
 unsafe extern "C" {

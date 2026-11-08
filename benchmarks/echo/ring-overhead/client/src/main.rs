@@ -1,5 +1,6 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
+
 mod client;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 fn main() -> Result<()> {
