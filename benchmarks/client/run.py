@@ -112,11 +112,39 @@ def summarize(rows):
 
 
 
-def snapshot_sources(output, cargo_config=None):
+def toolchain(tool, version):
+    """Run `tool` from the rustup toolchain `version`, or from PATH when `version` is empty."""
+    if not version:
+        return [tool]
+    if shutil.which("rustup") is None:
+        raise SystemExit(f"run.py: rustup is required for --toolchain {version}; "
+                         "pass --toolchain '' to use cargo and rustc from PATH")
+    return ["rustup", "run", version, tool]
+
+
+def cpu_model():
+    """Describe the processor, using the platform's own source where one exists."""
+    system = platform.system()
+    if system == "Darwin":
+        return subprocess.check_output(["sysctl", "-n", "machdep.cpu.brand_string"], text=True).strip()
+    if system == "Linux":
+        fields = {}
+        with open("/proc/cpuinfo") as cpuinfo:
+            for line in cpuinfo:
+                key, _, value = line.partition(":")
+                fields.setdefault(key.strip(), value.strip())
+        # x86 reports "model name"; some ARM kernels report only "Hardware" or "CPU part".
+        for key in ["model name", "Hardware", "Processor", "CPU part"]:
+            if fields.get(key):
+                return fields[key]
+    return platform.processor() or "unknown"
+
+
+def snapshot_sources(output, rust_toolchain, cargo_config=None):
     """Retain the local packages and exact harness alongside the registry lockfile."""
     manifest = Path(__file__).resolve().with_name("Cargo.toml")
     metadata = json.loads(subprocess.check_output([
-        "rustup", "run", "1.87.0", "cargo", "metadata", "--manifest-path", str(manifest),
+        *toolchain("cargo", rust_toolchain), "metadata", "--manifest-path", str(manifest),
         "--locked", "--offline", "--format-version", "1",
         *(["--config", cargo_config] if cargo_config else []),
     ], text=True))
@@ -143,6 +171,8 @@ def main():
     parser.add_argument("--baseline-binary", type=Path)
     parser.add_argument("--baseline-sources", type=Path, help="Source archive belonging to the baseline executable")
     parser.add_argument("--cargo-config", help="Cargo --config used for the measured build and source snapshot")
+    parser.add_argument("--toolchain", default="1.87.0",
+                        help="rustup toolchain recorded and used for the source snapshot; '' uses cargo and rustc from PATH")
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--seconds", type=float, default=5)
     parser.add_argument("--warmup", type=float, default=1)
@@ -154,16 +184,17 @@ def main():
                         help="Pause before fresh-connection samples to limit macOS TIME_WAIT pressure")
     parser.add_argument("--implementations", default="base-open,base-call,hyper")
     options = parser.parse_args()
+    rustc = subprocess.check_output([*toolchain("rustc", options.toolchain), "-Vv"], text=True)
     options.output.mkdir(parents=True, exist_ok=False)
     binary = options.binary.resolve()
     metadata = dict(platform=platform.platform(), machine=platform.machine(), logical_cpus=os.cpu_count(),
                     started=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                     binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(), arguments=vars(options).copy())
     metadata["arguments"] = {key: str(value) if isinstance(value, Path) else value for key, value in metadata["arguments"].items()}
-    metadata["cpu"] = subprocess.check_output(["sysctl", "-n", "machdep.cpu.brand_string"], text=True).strip()
-    metadata["rustc"] = subprocess.check_output(["rustup", "run", "1.87.0", "rustc", "-Vv"], text=True)
+    metadata["cpu"] = cpu_model()
+    metadata["rustc"] = rustc
     (options.output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    snapshot_sources(options.output, options.cargo_config)
+    snapshot_sources(options.output, options.toolchain, options.cargo_config)
     if BASELINE_IMPLEMENTATIONS.keys() & set(options.implementations.split(",")):
         if options.baseline_binary is None or options.baseline_sources is None:
             parser.error("baseline implementations require --baseline-binary and --baseline-sources")
