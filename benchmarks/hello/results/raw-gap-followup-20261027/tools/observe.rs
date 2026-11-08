@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Diagnostic counters only; instrumented throughput is never benchmark evidence.
 use std::{future::Future, pin::Pin, sync::{Arc, OnceLock, atomic::{AtomicU64, Ordering}}, task::{Context, Poll, Wake, Waker}};
 

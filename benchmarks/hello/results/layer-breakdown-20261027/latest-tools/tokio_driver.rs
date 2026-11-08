@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 // Appended inside Tokio's private I/O driver only in the disposable probe copy.
 pub(super) fn layer_empty(iterations: u64) -> u64 {
     let (mut driver, handle) = Driver::new(1024, None).unwrap();

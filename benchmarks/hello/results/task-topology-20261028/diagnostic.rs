@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Temporary, single-worker probes. Never linked into capacity/latency binaries.
 use std::{
     cell::RefCell,

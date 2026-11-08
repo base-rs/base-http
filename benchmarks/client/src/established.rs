@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Connection-only measurements: persistent codecs/transports without a pool.
 use super::*;
 use base_endpoint::{

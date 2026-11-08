@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 // Inserted only in the diagnostic ResponseWriter, before the general plan.
 // This broad fixed-length 200 path retains input parsing, response construction,
 // body/error/length checks and persistence. It avoids cloning application fields

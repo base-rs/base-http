@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Disposable microbenchmark hooks over the pinned Tokio implementation.
 use super::*;
 use crate::io::{Interest, Ready};

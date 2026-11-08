@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 //! Optional whole-process allocation diagnostics; disabled in throughput builds.
 
 #[cfg(feature = "count-allocations")]

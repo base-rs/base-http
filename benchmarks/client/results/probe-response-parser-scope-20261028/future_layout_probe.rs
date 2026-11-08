@@ -1,3 +1,6 @@
+// Released under the MIT License.
+// Copyright, 2026, by Samuel Williams.
+
 use base_endpoint::stream::ReadableStream;
 use base_http::{Method, RequestMetadata, InterimResponses, ResponseMetadata};
 use base_http1::ResponseReader;
