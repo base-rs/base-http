@@ -27,7 +27,7 @@ impl Handler for Blocking {
     }
 }
 
-// With one worker, which the handler blocks, Native strands the scheduler clock's timers behind that worker, so only the join's own-thread deadline can fail it on time. This guards the temporary workaround until base-rs/base-scheduler#93 is fixed.
+// With stall rescue turned off and one worker, which the handler blocks, Native strands the scheduler clock's timers behind that worker, so only the join's own-thread deadline can fail it on time. With rescue on, the default, the clock would also bound the join; this test shows the deadline is still needed when rescue is off.
 #[test]
 fn a_server_occupying_the_only_worker_fails_its_join() {
     let (started, release) = (Latch::new(), Latch::new());
@@ -37,7 +37,12 @@ fn a_server_occupying_the_only_worker_fails_its_join() {
             release: release.clone(),
         })
         .teardown_timeout(Duration::from_millis(50));
-    shared_native(1, |scheduler| {
+    let options = NativeOptions {
+        workers: 1,
+        stall_rescue: false,
+        ..Default::default()
+    };
+    shared_native(options, |scheduler| {
         let failure = catch_unwind(AssertUnwindSafe(|| {
             context.run_spawned_on(scheduler, async |context| {
                 let mut stream = TcpStream::connect(context.address()).unwrap();

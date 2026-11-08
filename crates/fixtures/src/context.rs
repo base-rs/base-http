@@ -289,14 +289,18 @@ impl<H: Handler + Send + Sync + 'static> ServerContext<H> {
     ///
     /// Unlike [`ServerContext::run`], the server makes progress on the scheduler's workers rather than on the test's thread, so it runs in parallel with the client. That exposes cross-thread wake-ups and races which a single `block_on` hides, at the cost of reproducible interleavings. The fixture relies only on the server running on the scheduler's workers; how the server spreads its connections across them is the server's choice and may change. The context owns the scheduler and the application, so the application must be `Send + Sync + 'static`, as a server spawning its own tasks needs.
     ///
-    /// This has the guarantees of [`ServerContext::run`]: the listener is bound before the test starts, the test is bounded, the client retires its connections before the server stops, the server is cancelled and must stop within the teardown timeout, a server error fails the test, a server panic is resumed with its own payload, and a test failure is reported first, with any server failure printed beforehand. The server's teardown timeout is measured on a thread of its own, so a server occupying every worker still fails its join on time. This is a temporary workaround for the Native scheduler stranding timers and I/O behind a busy worker. Since scheduler 0.5 Native rescues stranded timers, within its bound only while another worker is idle, but not yet readiness ([base-rs/base-scheduler#93](https://github.com/base-rs/base-scheduler/pull/93)); the workaround is to be removed once Native rescues both. The test's timeout and the client's teardown are still measured by the scheduler's clock, so they are bounded only while the scheduler's timers can run.
+    /// This has the guarantees of [`ServerContext::run`]: the listener is bound before the test starts, the test is bounded, the client retires its connections before the server stops, the server is cancelled and must stop within the teardown timeout, a server error fails the test, a server panic is resumed with its own payload, and a test failure is reported first, with any server failure printed beforehand. The server's teardown timeout is measured on a thread of its own, so a server occupying every worker still fails its join on time. Native's stall rescue, on by default since scheduler 0.5, would let the scheduler's clock bound the join too, but it can be turned off with `stall_rescue: false`, and then a timer is stranded behind the busy worker, so the fixture does not depend on it. The own-thread deadline can be removed once Native fires timers behind a busy worker in every configuration. The test's timeout and the client's teardown are still measured by the scheduler's clock, so they are bounded only while the scheduler's timers can run.
     ///
     /// Shutting the scheduler down afterwards waits for every task's current poll to return. A poll which never returns, such as a handler blocked forever, cannot be preempted, so it hangs the test after the failure is reported.
     pub fn run_spawned<T>(
         self,
         test: impl AsyncFnOnce(&Context<'_, NativeScheduler, H>) -> T,
     ) -> T {
-        shared_native(2, |scheduler| self.run_spawned_on(scheduler, test))
+        let options = NativeOptions {
+            workers: 2,
+            ..Default::default()
+        };
+        shared_native(options, |scheduler| self.run_spawned_on(scheduler, test))
     }
 
     // Spawn the server onto `scheduler`, run the test with a client on this thread, then join the server, reporting failures in order.
@@ -489,7 +493,7 @@ impl<S: Scheduler + Spawn, H> Spawned<S, H> {
 
 // Expire after `timeout`, measured on a thread of its own rather than by the scheduler's clock, so a server occupying every worker, such as a handler which blocks, still fails its join. Shutting the scheduler down afterwards still waits for that poll to return. Dropping the future stops the thread.
 //
-// Temporary: Native strands timers and I/O registered from outside a worker behind a busy worker, so the scheduler's clock cannot bound the join. Scheduler 0.5 rescues stranded timers, within its bound only while another worker is idle, but not yet readiness; remove this once Native rescues both. See https://github.com/base-rs/base-scheduler/pull/93.
+// The join waits only for the task and this deadline, so with Native's stall rescue, on by default since scheduler 0.5, the scheduler's clock would bound it too. Rescue can be turned off with `stall_rescue: false`, and Native then strands the clock's timer behind a busy worker, so the fixture does not depend on it. Remove this once Native fires timers behind a busy worker in every configuration.
 async fn expiry(timeout: Duration) {
     let expired = Latch::new();
     let (_cancel, cancelled) = mpsc::channel::<()>();
@@ -502,15 +506,10 @@ async fn expiry(timeout: Duration) {
     let _ = expired.wait(&Cancellation::never()).await;
 }
 
-// Run `work` with a fresh Native scheduler of `workers` workers, shared through an `Arc` so spawned tasks can own it, then shut it down, also when `work` panics.
-fn shared_native<T>(workers: usize, work: impl FnOnce(&Arc<NativeScheduler>) -> T) -> T {
-    let scheduler = Arc::new(
-        NativeScheduler::with_options(NativeOptions {
-            workers,
-            ..Default::default()
-        })
-        .expect("construct a Native scheduler"),
-    );
+// Run `work` with a fresh Native scheduler built with `options`, shared through an `Arc` so spawned tasks can own it, then shut it down, also when `work` panics.
+fn shared_native<T>(options: NativeOptions, work: impl FnOnce(&Arc<NativeScheduler>) -> T) -> T {
+    let scheduler =
+        Arc::new(NativeScheduler::with_options(options).expect("construct a Native scheduler"));
     let result = catch_unwind(AssertUnwindSafe(|| work(&scheduler)));
     block_on(scheduler.shutdown());
     result.unwrap_or_else(|panic| resume_unwind(panic))
