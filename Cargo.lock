@@ -281,6 +281,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "base-http-content"
+version = "0.3.0"
+dependencies = [
+ "base-http",
+ "base-scheduler",
+ "base-scheduler-native",
+ "base-web-content",
+ "base-web-media-type",
+ "futures-lite",
+ "tempfile",
+]
+
+[[package]]
 name = "base-http-fixtures"
 version = "0.0.0"
 dependencies = [
@@ -340,6 +353,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c4d27a5124927affef899d70ff0ce9cd7fa17590747812bf4ad0ea3ec9fc8d1"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "base-message"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd487bbc4aaccc8b7ccc8f735c26413a0b2d1cbd63c5705170fba5dae5483d65"
+dependencies = [
+ "base-message-macros",
+]
+
+[[package]]
+name = "base-message-macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7c45c437dc2326fa1a719717ce6c67b6c133ffd74b84296e58d43d341715754"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -417,6 +450,55 @@ name = "base-scheduler-timers"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "abc8043bfa30dec8463438d46b3644ef16c148a6bd1583cb342b71075cf18750"
+
+[[package]]
+name = "base-web-content"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ecc718c8df2047be7a8fc78fe6f771f9c5e9e2ebc94ee878432f41794887e2c0"
+dependencies = [
+ "base-message",
+ "base-web-content-macros",
+ "base-web-media-type",
+ "base-web-multipart",
+ "base-web-url",
+]
+
+[[package]]
+name = "base-web-content-macros"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b59d7fd66c1d89b2546f3b2288c3a01832f0d9b9e10f896b005096a6f19ec2f"
+dependencies = [
+ "base-web-media-type",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "base-web-media-type"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8de5ee13308e03ad6a7e7e435f73071ac7e65b64f1aa045149827de067909683"
+
+[[package]]
+name = "base-web-multipart"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f37a83f03b002646ac0d87c9b4c4f5f93d0f92b9d6700c004293b331f87e8ae9"
+dependencies = [
+ "base-message",
+ "base-web-media-type",
+ "getrandom 0.4.3",
+ "memchr",
+]
+
+[[package]]
+name = "base-web-url"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b15fe6656b103cdafd721312667e0b115b0eb32f173a6bfe50b8fa8358ccd97"
 
 [[package]]
 name = "base64"
