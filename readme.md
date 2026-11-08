@@ -10,7 +10,7 @@ Add `base-http` for the semantic types:
 cargo add base-http
 ```
 
-Add `base-http-client` or `base-http-server` for the HTTP/1 client and server, and enable the `rustls` feature of either for TLS.
+Add `base-http-client` or `base-http-server` for the HTTP/1 client and server, and enable the `rustls` feature of either for TLS. Add `base-http-content` to read request bodies into forms declared with [`base-web-content`](https://github.com/base-rs/base-web-content), streaming uploads to storage.
 
 Messages carry public metadata and an arbitrary body owner, and body mapping preserves the metadata:
 
@@ -66,7 +66,7 @@ See [releases.md](releases.md) for the full release history.
 
 ## See Also
 
-- [`base-http1`](https://docs.rs/base-http1) implements native HTTP/1 framing, [`base-http-protocol`](https://docs.rs/base-http-protocol) selects the protocol for a connection, [`base-http-client`](https://docs.rs/base-http-client) provides pooled client calls and [`base-http-server`](https://docs.rs/base-http-server) serves applications.
+- [`base-http1`](https://docs.rs/base-http1) implements native HTTP/1 framing, [`base-http-protocol`](https://docs.rs/base-http-protocol) selects the protocol for a connection, [`base-http-client`](https://docs.rs/base-http-client) provides pooled client calls, [`base-http-server`](https://docs.rs/base-http-server) serves applications and [`base-http-content`](https://docs.rs/base-http-content) reads request content into declared forms.
 - The [design documents](design/) record package boundaries, the roadmap and implementation evidence, and the [performance notes](performance.md) collect benchmark results and reproduction commands.
 - [`base-scheduler`](https://docs.rs/base-scheduler) defines the runtime-independent scheduler and socket capabilities these crates use.
 - [`base-pool`](https://docs.rs/base-pool) provides the connection pool behind the client.
