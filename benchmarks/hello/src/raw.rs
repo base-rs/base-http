@@ -139,18 +139,18 @@ where
 }
 
 #[cfg(target_os = "linux")]
-fn task_finished(result: std::result::Result<Result<()>, base_scheduler::TaskError>) {
-    match result {
-        Ok(result) => connection_finished(result),
-        Err(error) => connection_finished(Err::<(), _>(error)),
-    }
+fn task_finished(result: std::result::Result<(), base_scheduler::TaskError>) {
+    connection_finished(result);
 }
 
+/// The task reports its own connection's failure and outputs `()`: Rust 1.87
+/// cannot prove the server future `Send` while it holds handles whose output
+/// contains `Result`'s boxed error.
 #[cfg(target_os = "linux")]
 fn spawn_base_connection<S, const OWNED_RECEIVE: bool>(
     scheduler: &Arc<S>,
     socket: S::Socket,
-) -> std::result::Result<S::Handle<Result<()>>, base_scheduler::SpawnError>
+) -> std::result::Result<S::Handle<()>, base_scheduler::SpawnError>
 where
     S: SocketStreamReading + SocketStreamWriting + SocketClose + Spawn + 'static,
     S::Socket: 'static,
@@ -158,7 +158,9 @@ where
     let shared = scheduler.clone();
     scheduler.spawn(async move {
         let cancellation = Cancellation::never();
-        base_connection::<_, OWNED_RECEIVE>(shared.as_ref(), socket, &cancellation).await
+        connection_finished(
+            base_connection::<_, OWNED_RECEIVE>(shared.as_ref(), socket, &cancellation).await,
+        );
     })
 }
 
