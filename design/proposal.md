@@ -61,6 +61,7 @@ No new executor, reactor, system resolver, or runtime-selection feature belongs 
 | `base-http-qpack` | HTTP/3 field compression and instruction state, staged from static/literal support. | Shared compression primitives as justified; no scheduler or semantic-message dependency. |
 | `base-http-client` | Endpoint clients, negotiated protocol dispatch, pool integration, retries. | `base-http`, selected protocol crates, `base-pool`, transport support. |
 | `base-http-server` | Connection serving, listener orchestration, handler context and shutdown. | `base-http`, selected protocol crates, transport support. |
+| `base-http-content` | Reading request bodies into `base-web-content` declarations, the early `Content-Length` check and upload storage; see [request content](content.md). | `base-http`, `base-web-content`, `base-web-media-type`, scheduler interface. No protocol or server dependency. |
 | `base-pool` | General resource admission, leases, reservations and lifecycle. | Runtime-independent synchronization; scheduler interface where cancellation/clocks are needed. No HTTP dependency. |
 | `base-http-protocol` | Shared HTTP engine selection, ALPN policy and client/server codec factories. | Enabled protocol codecs and transport-neutral stream capabilities; no encryption implementation. |
 | `base-endpoint` | Connection/binding establishment, plaintext stream capabilities and optional TLS providers with explicit progress ownership. | Scheduler interface; optional rustls. No HTTP dependency. |

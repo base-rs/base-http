@@ -43,6 +43,7 @@ impl Status {
     pub const CONFLICT: Self = Self(409);
     pub const CONTENT_TOO_LARGE: Self = Self(413);
     pub const EXPECTATION_FAILED: Self = Self(417);
+    pub const UNPROCESSABLE_CONTENT: Self = Self(422);
     pub const TOO_MANY_REQUESTS: Self = Self(429);
     pub const INTERNAL_SERVER_ERROR: Self = Self(500);
     pub const NOT_IMPLEMENTED: Self = Self(501);
