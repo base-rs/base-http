@@ -1,8 +1,134 @@
 # Contributions made outside this repository's Git history, which `cargo bake license:update` counts like commits: one naming a `path` adds to that file's copyright header, and every entry adds to `license.md`.
 
+# base-http's messages, fields and bodies, and their tests, are ported from protocol-http, at the revision `design/source-review.md` records (dcbc0fe7ad6b9a55986f003d25c0c0023228db0b), and each carried the copyright lines of the protocol-http file in `lib/protocol/http/` it derives from until the first release's `license:update` replaced them. Each entry below restores an author, or an earlier year, of those lines, at that author's first contribution to that file in that year; the year of Bruno Sutic's line is the one protocol-http's header claims, at the time protocol-http added that line.
+
+# Derived from protocol-http's `lib/protocol/http/headers.rb`.
+
+[[contribution]]
+path = "src/fields.rs"
+time = 2018-07-27T12:23:30+09:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "src/headers.rs"
+time = 2018-07-27T12:23:30+09:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "tests/fields/construction.rs"
+time = 2018-07-27T12:23:30+09:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "tests/fields/headers.rs"
+time = 2018-07-27T12:23:30+09:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "tests/fields/main.rs"
+time = 2018-07-27T12:23:30+09:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+# Derived from protocol-http's `lib/protocol/http/methods.rb`.
+
+[[contribution]]
+path = "src/method.rs"
+time = 2018-11-15T14:29:16+13:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "tests/method.rs"
+time = 2018-11-15T14:29:16+13:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+# Derived from protocol-http's `lib/protocol/http/request.rb` and `lib/protocol/http/response.rb`.
+
+[[contribution]]
+path = "src/interim.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "src/request.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "src/response.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "src/status.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "tests/messages.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "tests/request.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "tests/status.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+# Derived from protocol-http's `lib/protocol/http/body/buffered.rb`.
+
+[[contribution]]
+path = "src/body/buffered.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "src/body/buffered.rs"
+time = 2020-09-16T09:15:14-07:00
+author = { name = "Bryan Powell", email = "bryan@metabahn.com" }
+
+[[contribution]]
+path = "src/body/buffered.rs"
+time = 2025-04-19T23:44:00-05:00
+author = { name = "William T. Nelson", email = "35801+wtn@users.noreply.github.com" }
+
+# Derived from protocol-http's `lib/protocol/http/body/head.rb`.
+
+[[contribution]]
+path = "src/body/head.rs"
+time = 2020-03-21T12:41:41+13:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "src/body/head.rs"
+time = 2025-04-19T23:44:00-05:00
+author = { name = "William T. Nelson", email = "35801+wtn@users.noreply.github.com" }
+
+# Derived from protocol-http's `lib/protocol/http/body/readable.rb`.
+
+[[contribution]]
+path = "src/body/mod.rs"
+time = 2019-05-22T16:25:48+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
+[[contribution]]
+path = "src/body/mod.rs"
+time = 2023-06-18T17:43:29+09:00
+author = { name = "Bruno Sutic", email = "code@brunosutic.com" }
+
+# Derived from protocol-http's `lib/protocol/http/body/writable.rb`.
+
+[[contribution]]
+path = "src/body/writable.rs"
+time = 2024-09-05T19:58:46+12:00
+author = { name = "Samuel Williams", email = "samuel.williams@oriontransfer.co.nz" }
+
 # The benchmark results archive snapshots of sources copied from elsewhere, whose headers record their authors there. Each entry below keeps an author, or an earlier year, that a snapshot's header claimed and this repository's history cannot show, at that author's first contribution to the origin in that year.
 #
-# Snapshots of base-http's own sources carry the headers of the protocol-http files they derive from; the year of Bruno Sutic's line is the one protocol-http's header claims, at the time protocol-http added that line.
+# Snapshots of base-http's own sources carry the same lines as the files above, from the same protocol-http files.
 
 # Snapshots derived from protocol-http's `lib/protocol/http/headers.rb`.
 

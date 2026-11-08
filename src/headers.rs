@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2018-2026, by Samuel Williams.
 
 //! Explicit HTTP interpretation of raw fields. Other application protocols can interpret `Fields` independently or configure their own combination policy.
 //!
