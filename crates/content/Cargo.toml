@@ -17,6 +17,9 @@ base-web-content = "0.1.0"
 base-web-media-type = "0.1.0"
 
 [dev-dependencies]
+# Unpublished test fixtures; a path-only development dependency is omitted from the published manifest.
+base-http-fixtures = { path = "../fixtures" }
+base-http-server = { version = "0.3.0", path = "../server" }
 base-scheduler-native = "0.4.0"
 futures-lite = "2.6.1"
 tempfile = "3"

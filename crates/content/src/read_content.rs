@@ -12,8 +12,9 @@ use base_web_content::{
 };
 use base_web_media_type::MediaType;
 
-/// Options for [`read_content_with`].
+/// Options for [`read_content_with`], which may gain more: start from [`ReadOptions::default`] and set those you need.
 #[derive(Clone, Copy, Debug, Default)]
+#[non_exhaustive]
 pub struct ReadOptions {
     /// The rules for reading multipart part names and filenames, rather than those the media type gives, as [`ContentParser::with_parameter_rules`] describes.
     pub parameter_rules: Option<ParameterRules>,
@@ -114,9 +115,10 @@ where
     }
     let limit = parser.body_size_limit();
     match request.length() {
-        Some(length) if length > limit as u64 => {
-            Err(ReadErrorKind::ContentTooLarge { length, limit })
-        }
+        Some(length) if length > limit as u64 => Err(ReadErrorKind::ContentTooLarge {
+            length,
+            limit: limit as u64,
+        }),
         _ => Ok(parser),
     }
 }

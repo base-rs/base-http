@@ -27,7 +27,7 @@ pub trait UploadStore: Send {
         cancellation: &Cancellation,
     ) -> impl Future<Output = Result<Self::Upload, Self::Error>> + Send;
 
-    /// Store some of an upload's content, after what was stored before.
+    /// Store some of an upload's content, after what was stored before. When this fails, the caller must abort the upload, as [`read_content`](crate::read_content) does.
     fn write(
         &mut self,
         upload: &mut Self::Upload,
@@ -35,7 +35,7 @@ pub trait UploadStore: Send {
         cancellation: &Cancellation,
     ) -> impl Future<Output = Result<(), Self::Error>> + Send;
 
-    /// Complete an upload whose content has all been written, returning its handle. When this fails, the upload is aborted.
+    /// Complete an upload whose content has all been written, returning its handle. When this fails, the caller must abort the upload, as [`read_content`](crate::read_content) does.
     fn finish(
         &mut self,
         upload: &mut Self::Upload,

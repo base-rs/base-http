@@ -170,12 +170,30 @@ fn reads_url_encoded_content_one_byte_at_a_time() {
 }
 
 #[test]
-fn reads_a_body_followed_by_an_epilogue_in_the_same_frame() {
+fn reads_a_body_followed_by_an_epilogue_divided_at_every_position() {
     let mut body = post_body();
-    body.extend_from_slice(b"\r\n");
-    let mut store = MemoryStore::default();
-    let (result, _) = read::<Post>(MULTIPART, TestBody::split(&body, &[]), &mut store);
-    check_post(result, &store);
+    body.extend_from_slice(b"\r\nan epilogue");
+    for position in 0..=body.len() {
+        let mut store = MemoryStore::default();
+        let (result, _) = read::<Post>(MULTIPART, TestBody::split(&body, &[position]), &mut store);
+        check_post(result, &store);
+    }
+}
+
+#[test]
+fn refuses_an_epilogue_over_its_limit_divided_at_every_position() {
+    let mut body = post_body();
+    body.extend_from_slice(&[b'x'; 1100]);
+    for position in 0..=body.len() {
+        let mut store = MemoryStore::default();
+        let (result, _) = read::<Post>(MULTIPART, TestBody::split(&body, &[position]), &mut store);
+        let error = error(result);
+        assert!(matches!(
+            &error.kind,
+            ReadErrorKind::Rejected(Rejection::Error(error)) if error.kind() == ContentErrorKind::EpilogueSizeLimit
+        ));
+        assert!(store.live().is_empty());
+    }
 }
 
 #[test]
@@ -233,7 +251,7 @@ fn refuses_a_request_longer_than_its_declaration_accepts_before_reading_it() {
     let error = error(result);
     assert!(matches!(
         error.kind,
-        ReadErrorKind::ContentTooLarge { length, limit: maximum } if length == limit + 1 && maximum as u64 == limit
+        ReadErrorKind::ContentTooLarge { length, limit: maximum } if length == limit + 1 && maximum == limit
     ));
     assert_eq!(error.status(), Status::CONTENT_TOO_LARGE);
     assert_eq!(
@@ -284,6 +302,37 @@ fn refuses_a_body_of_unknown_length_as_it_exceeds_its_declaration() {
     ));
     // Reading stopped as soon as the field was over its limit, long before the body's end.
     assert!(body.reads < 10);
+    assert!(body.closed);
+}
+
+// The content is refused, so the struct is never built.
+#[allow(dead_code)]
+#[derive(Content, Debug)]
+struct Note {
+    #[content(size_limit = 8)]
+    text: String,
+}
+
+#[test]
+fn refuses_a_body_of_unknown_length_as_it_exceeds_the_largest_its_declaration_accepts() {
+    let limit = Note::body_size_limit(base_web_content::ContentFormat::UrlEncoded).unwrap();
+    // Each pair is within the field's limit, and only the last is kept, but together they exceed the body's maximum.
+    let body = b"text=abcd&".repeat(20);
+    let positions: Vec<usize> = (1..body.len()).collect();
+    let (result, body) = read::<Note>(
+        "application/x-www-form-urlencoded",
+        TestBody::split(&body, &positions),
+        &mut MemoryStore::default(),
+    );
+    let error = error(result);
+    assert!(matches!(
+        &error.kind,
+        ReadErrorKind::Rejected(Rejection::Error(error))
+            if error.kind() == ContentErrorKind::BodySizeLimit && error.offset() == limit as u64
+    ));
+    assert_eq!(error.status(), Status::CONTENT_TOO_LARGE);
+    // Reading stopped at the byte over the maximum.
+    assert_eq!(body.reads, limit + 1);
     assert!(body.closed);
 }
 
@@ -374,6 +423,21 @@ fn removes_stored_uploads_when_the_body_ends_early() {
     ));
     assert_eq!(error.status(), Status::BAD_REQUEST);
     assert!(store.uploads[0].removed);
+}
+
+#[test]
+fn removes_stored_uploads_when_fields_are_violations_divided_at_every_position() {
+    let body = multipart(&[
+        ("attachment", Some("a.txt"), b"first"),
+        ("files[]", Some("b.txt"), b"second"),
+    ]);
+    for position in 0..=body.len() {
+        let mut store = MemoryStore::default();
+        let (result, _) = read::<Post>(MULTIPART, TestBody::split(&body, &[position]), &mut store);
+        assert_eq!(error(result).status(), Status::UNPROCESSABLE_CONTENT);
+        assert_eq!(store.uploads.len(), 2);
+        assert!(store.live().is_empty());
+    }
 }
 
 #[test]
@@ -531,9 +595,41 @@ fn reports_failures_to_clean_up_with_the_cause() {
         assert_eq!(error.cleanup[0].to_string(), format!("{fail:?} failed"));
         assert_eq!(
             error.to_string(),
-            "failed to read the request body, and 1 failures to remove stored uploads"
+            "failed to read the request body, and 1 failure to remove a stored upload"
         );
     }
+}
+
+#[test]
+fn reports_each_failure_to_clean_up() {
+    let body = multipart(&[
+        ("attachment", Some("a.txt"), b"first"),
+        ("files[]", Some("b.txt"), b"second"),
+    ]);
+    let mut store = MemoryStore::failing(Fail::Remove);
+    let (result, _) = read::<Post>(MULTIPART, TestBody::split(&body, &[]), &mut store);
+    let error = error(result);
+    assert_eq!(error.cleanup.len(), 2);
+    assert_eq!(
+        error.to_string(),
+        "content has invalid fields: title: required, and 2 failures to remove stored uploads"
+    );
+}
+
+#[test]
+fn the_read_can_be_sent_between_threads() {
+    fn assert_send<F: std::future::Future + Send>(_: F) {}
+    let scheduler = base_scheduler_native::NativeScheduler::new().unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let mut request = request(MULTIPART, TestBody::split(b"", &[]));
+    let mut store = FileStore::new(&scheduler, |_: &FieldPath| directory.path().join("upload"));
+    let cancellation = Cancellation::never();
+    assert_send(read_content::<Document, _, _>(
+        &mut request,
+        &mut store,
+        &cancellation,
+    ));
+    block_on(scheduler.shutdown());
 }
 
 #[test]
@@ -551,9 +647,8 @@ fn reads_with_parameter_rules() {
     ));
 
     let mut request = request(MULTIPART, TestBody::split(body, &[]));
-    let options = ReadOptions {
-        parameter_rules: Some(ParameterRules::Mime),
-    };
+    let mut options = ReadOptions::default();
+    options.parameter_rules = Some(ParameterRules::Mime);
     let mut store = MemoryStore::default();
     let result = block_on(read_content_with::<Post, _, _>(
         &mut request,

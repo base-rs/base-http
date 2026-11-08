@@ -26,11 +26,11 @@ Uploads and cleanup:
 
 Errors:
 
-- Each failure must map to one status: 413 for a length over the maximum, the `ContentError`'s own status (400, 413, or 415) for a fatal content error, 422 Unprocessable Content for violations, 400 for a malformed `Content-Type` or a failure to read the body, and 500 for a storage failure. Errors and their `Display` and `Debug` output must not include submitted content, filenames, or media types, following `base-web-content`'s `design/errors.md`.
+- Each failure must map to one status: 413 for a length over the maximum, the `ContentError`'s own status (400, 413, or 415) for a fatal content error, 422 Unprocessable Content for violations, 400 for a malformed `Content-Type` or a failure to read the body, and 500 for a storage failure. A read the server cancelled is a body or storage failure too; its status matters little, since there is usually no one to respond to. Errors and their `Display` and `Debug` output must not include submitted content, filenames, or media types, following `base-web-content`'s `design/errors.md`.
 
 Saving uploads to files:
 
-- `FileStore` must create each file exclusively, failing if anything, including a symbolic link, exists at the path, with permissions 0600 on Unix unless the application chooses others.
+- `FileStore` must create each file exclusively, failing if anything, including a symbolic link, exists at the path, with permissions 0600 on Unix unless the application chooses other permission bits; the setuid, setgid, and sticky bits must never be set.
 - The destination must be chosen by the application, from the declared field's path. It must never be derived from the submitted filename or media type, which the store must not pass to the application's destination function.
 - When an upload is aborted, which the reader does whenever writing or finishing it fails, the store must remove the file it created for it. The store must only remove files at the paths it created them at.
 - File operations must run through the scheduler's `Blocking` capability, so that they do not block an async worker. The one exception is a file that is dropped where it is when the scheduler refuses to admit the blocking work that would have used it, such as after cancellation, which closes it on the current thread.
@@ -57,7 +57,8 @@ Inspect `cargo tree -e normal -p base-http-content` for the dependencies above, 
 
 Tests, on a real scheduler for the file store:
 
-- `Content-Length` at the maximum is read, and one byte over is refused with 413 before any frame is read; a body of unknown length over the maximum is refused while parsing, with 413.
+- `Content-Length` at the maximum is read, and one byte over is refused with 413 before any frame is read; a body of unknown length over the maximum, within every field's limits, is refused while parsing as over the body's maximum, with 413.
+- The read future is `Send`, and the reader works within a `base-http-server` handler over a real connection.
 - Every multipart and URL-encoded test body gives the same content and stored bytes when divided into two frames at every position, and when delivered one byte per frame.
 - A missing, repeated, or malformed `Content-Type` is refused without reading the body.
 - The upload in progress is aborted and every stored upload removed after a fatal content error, after violations, after a body read failure, after a storage failure in each `UploadStore` operation, and after cancellation; cleanup failures are returned with the cause; the body is closed when reading stops early; a body failure in a multipart epilogue still yields the content.

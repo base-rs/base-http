@@ -116,7 +116,7 @@ fn names(fixture: &Fixture) -> Vec<String> {
 #[cfg(unix)]
 fn mode(path: &Path) -> u32 {
     use std::os::unix::fs::PermissionsExt;
-    fs::metadata(path).unwrap().permissions().mode() & 0o777
+    fs::metadata(path).unwrap().permissions().mode() & 0o7777
 }
 
 fn large() -> Vec<u8> {
@@ -169,7 +169,8 @@ fn creates_files_with_the_permissions_the_application_chooses() {
     let (result, _) = fixture.read_with(
         TestBody::split(&body, &[]),
         Cancellation::never(),
-        Some(0o640),
+        // The setuid bit is never set.
+        Some(0o4640),
     );
     result.expect("the files are accepted");
     assert_eq!(mode(&fixture.path("first")), 0o640);

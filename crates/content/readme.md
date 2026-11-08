@@ -1,6 +1,6 @@
 # Base HTTP Content
 
-Reads a request's body into a structure declared with [`base-web-content`](https://github.com/base-rs/base-web-content)'s `#[derive(Content)]`, doing the I/O that `base-web-content` leaves to the server: the body is read as it arrives, a `Content-Length` larger than the declaration could accept is refused before any of the body is read, uploads are streamed to storage, and `FileStore` saves them to files safely. It depends only on `base-http` requests and bodies, so a handler can use it with any server.
+Reads a request's body into a structure declared with [`base-web-content`](https://github.com/base-rs/base-web-content)'s `#[derive(Content)]`, doing the I/O that `base-web-content` leaves to the server: the body is read as it arrives, a `Content-Length` larger than the declaration could accept is refused before any of the body is read, uploads are streamed to storage, and `FileStore` saves them to files safely. It needs only `base-http` requests and bodies, and the scheduler interface for blocking file work, so a handler can use it with any server.
 
 ## Usage
 
@@ -57,6 +57,6 @@ futures_lite::future::block_on(scheduler.shutdown());
 
 When the content is refused, or reading or storing fails, the upload still arriving is aborted and every upload stored so far is removed before the error is returned, and the body is closed when reading stopped before its end. Cleanup is asynchronous, so dropping the read before it completes skips it: stop a read by cancelling its `Cancellation` instead. Accepted content's uploads belong to the application, as do `Accepted::discarded`, uploads that later ones for the same field replaced.
 
-Uploads can go anywhere that implements `UploadStore`. `FileStore` creates each file exclusively, failing if anything, including a symbolic link, is at the path, with permissions 0600 on Unix unless `with_permissions` chooses others, and removes the file when writing it fails or the upload is aborted. Its destination function is given the declared field's path, never the submitted filename or media type. File operations run on the scheduler's blocking threads. A declaration without uploads can be read with `NoUploads`.
+Uploads can go anywhere that implements `UploadStore`. `FileStore` creates each file exclusively, failing if anything, including a symbolic link, is at the path, with permissions 0600 on Unix unless `with_permissions` chooses others, and removes the file when the upload is aborted, which `read_content` does whenever writing it fails. Its destination function is given the declared field's path, never the submitted filename or media type. File operations run on the scheduler's blocking threads. A declaration without uploads can be read with `NoUploads`.
 
 See the [design requirements](../../design/content.md) for the behaviour this crate guarantees.

@@ -28,11 +28,11 @@ pub enum ReadErrorKind<B, S> {
         /// The request's length, from its body or its `Content-Length`.
         length: u64,
         /// The largest body the declaration could need, [`Content::body_size_limit`](base_web_content::Content::body_size_limit).
-        limit: usize,
+        limit: u64,
     },
     /// The content was refused: a fatal error, whose own status is 400, 413, or 415, or violations, which are 422 Unprocessable Content.
     Rejected(Rejection),
-    /// Reading the request's body failed, including when its read was cancelled. 400 Bad Request.
+    /// Reading the request's body failed, including when its read was cancelled. 400 Bad Request, although after cancellation, such as when the server is shutting down, there is usually no one to respond to.
     Body(B),
     /// Storing an upload failed, including when a store operation was cancelled. 500 Internal Server Error.
     Store(S),
@@ -76,6 +76,7 @@ impl<B, S> fmt::Display for ReadError<B, S> {
         };
         described.and_then(|()| match self.cleanup.len() {
             0 => Ok(()),
+            1 => formatter.write_str(", and 1 failure to remove a stored upload"),
             count => write!(formatter, ", and {count} failures to remove stored uploads"),
         })
     }

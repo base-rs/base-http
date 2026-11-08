@@ -18,7 +18,7 @@ const WRITE_SIZE: usize = 64 * 1024;
 ///
 /// `destination` is given the declared field's path, such as `avatar` or `photos[2]`, and returns the file's path; it is never given the filename or media type the client declared, which must not choose where an upload is stored. Each file is created exclusively, so creating it fails if anything is at the path, including a symbolic link, and on Unix with permissions 0600 unless [`Self::with_permissions`] chooses others; the process's umask may remove more. A path that already exists fails the upload, and the read, with [`io::ErrorKind::AlreadyExists`], so `destination` should return a path that is new, such as one with a random or unique name in a directory only the server can write.
 ///
-/// When writing or finishing an upload fails, or the upload is aborted, its file is removed; a file that is already gone counts as removed. The store only removes files it created, by the paths it created them at, so the directory should not be one that others can write. Files are closed when they finish, but not synchronized to storage. File operations run through the scheduler's [`Blocking`] capability, so that they do not block an async worker, and content is gathered into writes of up to 64 KiB; only when the scheduler refuses to admit blocking work, such as after cancellation, is a file closed on the current thread.
+/// When an upload is aborted, which [`read_content`](crate::read_content) does whenever writing or finishing it fails, its file is removed; a file that is already gone counts as removed. A failed write or finish leaves the file in place until then, so a caller driving the store itself must abort the upload too. The store only removes files it created, by the paths it created them at, so the directory should not be one that others can write. Files are closed when they finish, but not synchronized to storage. File operations run through the scheduler's [`Blocking`] capability, so that they do not block an async worker, and content is gathered into writes of up to 64 KiB; only when the scheduler refuses to admit blocking work, such as after cancellation, is a file closed on the current thread.
 ///
 /// The handle of a stored upload is its path.
 pub struct FileStore<'s, S, D> {
@@ -43,10 +43,10 @@ where
         }
     }
 
-    /// Create files with these permissions, as for `open(2)`'s `mode`, rather than 0600.
+    /// Create files with these permission bits, as for `open(2)`'s `mode`, rather than 0600. Only the permission bits, `0o777`, are used: the setuid, setgid, and sticky bits are ignored. It is only available on Unix, where files have permission bits.
     #[cfg(unix)]
     pub fn with_permissions(mut self, permissions: u32) -> Self {
-        self.permissions = permissions;
+        self.permissions = permissions & 0o777;
         self
     }
 }
