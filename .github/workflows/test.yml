@@ -45,9 +45,31 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.87.0
       - run: cargo test --locked --workspace --all-features --exclude base-http-bake
 
+  # Benchmark packages have their own lockfiles, outside the workspace, so build,
+  # lint and test them separately; otherwise they drift from the libraries.
+  benchmarks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        benchmark: [hello, client]
+    defaults:
+      run:
+        working-directory: benchmarks/${{ matrix.benchmark }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          components: clippy, rustfmt
+          cache-workspaces: benchmarks/${{ matrix.benchmark }}
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-targets --all-features --locked -- -D warnings
+      - run: cargo test --all-features --locked
+
   test-result:
     if: always()
-    needs: [test, msrv]
+    needs: [test, msrv, benchmarks]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
