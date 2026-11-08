@@ -16,16 +16,16 @@ checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
 
 [[package]]
 name = "base-endpoint"
-version = "0.1.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5486363e111b27b2822657168f4cbd5875ce10528be61ad2f158e6715862732f"
+checksum = "bcf970d89e80a9c4da97bb2cbd76851ec512f24ea718a95aca4237f99e349bd7"
 dependencies = [
  "base-scheduler",
 ]
 
 [[package]]
 name = "base-http"
-version = "0.0.0"
+version = "0.3.0"
 dependencies = [
  "arrayvec",
  "base-scheduler",
@@ -35,7 +35,7 @@ dependencies = [
 
 [[package]]
 name = "base-http1"
-version = "0.0.0"
+version = "0.3.0"
 dependencies = [
  "base-endpoint",
  "base-http",
@@ -54,9 +54,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler"
-version = "0.3.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "705d8e4437d3c979a8ed14d8c0da110cb93ee2857a5bd4d3c6ec0fd17a2152d5"
+checksum = "3670aa8fb7a7cc74297e870a842cbf0d18abb486e8fec12b296d033f2c52a876"
 dependencies = [
  "event-listener",
 ]

@@ -10,7 +10,6 @@ use base_scheduler::{
     Cancellation, SocketAccept, SocketClose, SocketRegistration, SocketSetOption,
     SocketStreamReading, SocketStreamWriting, Spawn, TcpNoDelay,
 };
-use base_scheduler_direct::{DirectOptions, DirectScheduler};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use base_scheduler_tokio::TokioScheduler;
 use futures_util::{
@@ -27,6 +26,8 @@ mod raw;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 const BODY: &[u8] = b"Hello, world!";
 const MAX_CONNECTIONS: usize = 1024;
+// Keep Native's stall rescue on, the 0.5 default, so the benchmark measures what users get. base-scheduler suggests turning it off for benchmarks, but on this benchmark its monitor thread used no CPU ticks over about 1.1 million requests.
+const STALL_RESCUE: bool = true;
 
 struct Hello;
 impl Handler for Hello {
@@ -177,11 +178,11 @@ fn main() -> Result<()> {
                     base_scheduler_native::ReadinessSelector::with_options(
                         base_scheduler_selector::SelectorOptions { threads: 1, capacity: MAX_CONNECTIONS },
                     )?,
-                    base_scheduler_native::NativeExecutorOptions { workers: 1, ..Default::default() },
+                    base_scheduler_native::NativeExecutorOptions { workers: 1, stall_rescue: STALL_RESCUE, ..Default::default() },
                 )?
             } else {
                 NativeScheduler::with_options(NativeOptions {
-                    workers: 1, threads: 1, capacity: MAX_CONNECTIONS,
+                    workers: 1, threads: 1, capacity: MAX_CONNECTIONS, stall_rescue: STALL_RESCUE,
                     ..Default::default()
                 })?
             });
@@ -209,7 +210,7 @@ fn main() -> Result<()> {
                 ..Default::default()
             }, 1)?;
             let scheduler = Arc::new(NativeScheduler::with_drivers(selector, drivers,
-                base_scheduler_native::NativeExecutorOptions { workers: 1, ..Default::default() })?);
+                base_scheduler_native::NativeExecutorOptions { workers: 1, stall_rescue: STALL_RESCUE, ..Default::default() })?);
             let shared = scheduler.clone();
             let raw = backend.ends_with("-raw");
             let owned_receive = backend.starts_with("base-iouring-owned-");
@@ -229,15 +230,6 @@ fn main() -> Result<()> {
             let result = scheduler.block_on(server)
                 .map_err(|error| std::io::Error::other(error.to_string()))?;
             scheduler.block_on(scheduler.shutdown());
-            result
-        }
-        Some("base-direct") => {
-            let scheduler = DirectScheduler::new(DirectOptions {
-                threads: 1,
-                capacity: MAX_CONNECTIONS,
-            })?;
-            let result = futures_lite::future::block_on(base_server(&scheduler));
-            futures_lite::future::block_on(scheduler.shutdown());
             result
         }
         Some(backend @ ("base-tokio" | "hyper-tokio" | "hyper-task-tokio" | "base-tokio-raw" | "tokio-raw" | "tokio-task-raw" | "tokio-connections-raw")) => {
@@ -268,7 +260,7 @@ fn main() -> Result<()> {
             })
         }
         _ => Err(
-            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-iouring-owned-connections-raw|base-iouring-connections-raw|base-direct|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw|tokio-connections-raw"
+            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-iouring-owned-connections-raw|base-iouring-connections-raw|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw|tokio-connections-raw"
                 .into(),
         ),
     }

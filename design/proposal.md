@@ -68,7 +68,7 @@ No new executor, reactor, system resolver, or runtime-selection feature belongs 
 | `base-quic` (later) | Native QUIC transport state and scheduler-driven UDP packet/timer progress. | Scheduler interface; rustls QUIC handshake/key support and selected algorithm code. No HTTP dependency. |
 | `base-http3` (later) | Native HTTP/3 mapping, connection/control streams and client/server protocol drivers over QUIC. | `base-http`, `base-http-qpack`, `base-quic`. |
 
-The initial HTTP packages were standalone siblings with local path dependencies; they now share one workspace in this repository and are published. Avoid introducing a parent workspace over unrelated Base projects. `base-pool` is a standalone sibling, now released at `0.4.0` with an experimental API, generic conformance tests and a TCP reuse/retirement test. Exercise its contracts through actual HTTP connection consumers before stabilizing the API. It is not a prerequisite for the first server prototype.
+The initial HTTP packages were standalone siblings with local path dependencies; they now share one workspace in this repository and are published. Avoid introducing a parent workspace over unrelated Base projects. `base-pool` is a standalone sibling, now released at `0.5.0` with an experimental API, generic conformance tests and a TCP reuse/retirement test. Exercise its contracts through actual HTTP connection consumers before stabilizing the API. It is not a prerequisite for the first server prototype.
 
 Start bodies as `base_http::body` inside the semantic root, following `protocol-http`. A separate `base-http-body` package needs an independent consumer or dependency benefit. The initial implementation keeps body interfaces and adapters in a module while their scheduler contracts are exercised.
 
@@ -354,7 +354,7 @@ Port semantics and regression cases first. Implement the HTTP/1 and HTTP/2 frami
 
 HPACK encoder and decoder state belong to the HTTP/2 connection. Compression consumes or produces raw field pairs; the native message and field collection remain independent of the compression library. Build `base-http-hpack` with a Base-owned interface, using `protocol-hpack` behavior and fixtures as a reference. Its first implementation may wrap a private dependency, use a focused fork or be a native port. Own the public types, configuration, errors and storage/progress contracts rather than exposing upstream aliases; replacing the implementation should preserve that contract. Check table-size updates, sensitive fields, processing limits, allocation behavior and conformance. Keep the codec independent of semantic-message and scheduler types.
 
-Drive transport I/O directly through scheduler capabilities and retain ownership through submission, completion and retirement. The protocol driver decides how to buffer and batch output. Exercise this path on Linux io_uring early; Direct and Tokio scheduler backends remain useful for portable conformance tests and comparisons.
+Drive transport I/O directly through scheduler capabilities and retain ownership through submission, completion and retirement. The protocol driver decides how to buffer and batch output. Exercise this path on Linux io_uring early; the Native readiness and Tokio scheduler backends remain useful for portable conformance tests and comparisons.
 
 ### HTTP/3
 
@@ -486,13 +486,13 @@ Expose connection/exchange identifiers, negotiated version, pool counts, active 
 
 ## 11. Work sequence and acceptance evidence
 
-The [build roadmap](roadmap.md) owns the ordered milestones and their deliverables/exit evidence. Scheduler release, HTTP rename/migration, the initial semantic core and semantic streaming/interim contracts are implemented. The initial Direct-backed transport lifecycle, native HTTP/1 codec, application server and generic singleplex/multiplex pools are implemented. The scoped HTTP/1 client now owns upload supervision and multiplex-pool integration. Remaining work includes transient borrowed-body proxy integration and managed client tunnels; broader TLS validation and deadlines; HPACK/HTTP/2 extending that admission contract; native QUIC; QPACK/HTTP/3. Rich field-specific parsers can be added as focused semantic extensions.
+The [build roadmap](roadmap.md) owns the ordered milestones and their deliverables/exit evidence. Scheduler release, HTTP rename/migration, the initial semantic core and semantic streaming/interim contracts are implemented. The initial transport lifecycle, native HTTP/1 codec, application server and generic singleplex/multiplex pools are implemented. The scoped HTTP/1 client now owns upload supervision and multiplex-pool integration. Remaining work includes transient borrowed-body proxy integration and managed client tunnels; broader TLS validation and deadlines; HPACK/HTTP/2 extending that admission contract; native QUIC; QPACK/HTTP/3. Rich field-specific parsers can be added as focused semantic extensions.
 
 The first usable application milestone is streaming HTTP/1 over plain TCP with reuse and supervised shutdown. A small TLS experiment checks the shared stream/storage seam before it is stabilized; full HTTPS follows that application milestone. Informational responses, early responses and trailer behavior are part of the HTTP/1 connection work. Broader middleware/tunnel conveniences and ecosystem adapters can follow the connection lifecycle they depend on.
 
 This is dependency ordering, not a calendar estimate. Native HTTP/2 and QUIC are separately substantial implementations. TLS, cancellation and full-duplex ownership remain significant work even when focused parsing or compression libraries are reused.
 
-The HTTP packages use the published `base-scheduler 0.4.0` family, with declared Rust minimum 1.87 and precise socket-handle lifetime captures. They use registry dependencies, including `base-pool 0.4.0` and `base-endpoint 0.2.0`, and CI runs the bound-reader and pooled-client integration tests with them. Use the released family consistently across the graph; make any local overrides deliberate.
+The HTTP packages use the published `base-scheduler 0.5.0` family, with declared Rust minimum 1.87 and precise socket-handle lifetime captures. They use registry dependencies, including `base-pool 0.5.0` and `base-endpoint 0.3.0`, and CI runs the bound-reader and pooled-client integration tests with them. Use the released family consistently across the graph; make any local overrides deliberate.
 
 ### Validation strategy
 
@@ -504,7 +504,7 @@ Fuzz parsers and state transitions with configured bounds, not just valid round 
 
 Benchmark named workloads: HTTP/1 keep-alive small messages and streaming bodies; HTTP/2 concurrent streams, slow consumers and bidirectional uploads; pool saturation/cancelled waiters; plain/TLS transport. Record throughput, tail latency, CPU, allocations and peak retained/queued bytes under comparable backend/build settings. Establish baselines before choosing numerical regression thresholds. The scheduler's existing protocol-shaped benchmarks are guidance about buffers, not real HTTP performance claims.
 
-Compare Base on Linux io_uring against a separate Hyper/Tokio benchmark peer on the same hardware with matched protocol, TLS, payloads, concurrency, connection reuse and resource limits. Use Base's Direct/Tokio scheduler backends to help distinguish protocol implementation effects from backend effects. Keep Hyper in the external comparison harness. Report measured wins and regressions; the io_uring performance goal is not evidence of a speedup by itself.
+Compare Base on Linux io_uring against a separate Hyper/Tokio benchmark peer on the same hardware with matched protocol, TLS, payloads, concurrency, connection reuse and resource limits. Use Base's Native readiness and Tokio scheduler backends to help distinguish protocol implementation effects from backend effects. Keep Hyper in the external comparison harness. Report measured wins and regressions; the io_uring performance goal is not evidence of a speedup by itself.
 
 ## 12. Interfaces to prove before stabilizing APIs
 

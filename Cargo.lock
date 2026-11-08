@@ -222,9 +222,9 @@ checksum = "46f2f8db06d87ff80f4f96e56336afcb338b96b444ee8de7fe8919601e8de9b9"
 
 [[package]]
 name = "base-endpoint"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6f28dcabba66574e2a0bcfb2783b0c9a2e325d6151a92e77cfd9b9e99d88b4c"
+checksum = "bcf970d89e80a9c4da97bb2cbd76851ec512f24ea718a95aca4237f99e349bd7"
 dependencies = [
  "base-scheduler",
  "event-listener",
@@ -379,9 +379,9 @@ dependencies = [
 
 [[package]]
 name = "base-pool"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "311c338554adfe29b23bd02789854b376ffa0f14d16d14c54c09732190f35693"
+checksum = "da8d84d5158e27b17f8903aa124de1e83f1d8d8c552928d974957cf582c18a88"
 dependencies = [
  "base-scheduler",
  "event-listener",
@@ -406,34 +406,32 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "096749bb2ae9c686f6654eaaaba1338e698d5df67e88aac08b57e402b59b512f"
+checksum = "3670aa8fb7a7cc74297e870a842cbf0d18abb486e8fec12b296d033f2c52a876"
 dependencies = [
  "event-listener",
 ]
 
 [[package]]
 name = "base-scheduler-native"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9f64e3f3ec9ea09ece61df6e5a7b10a16323376ef729633e7dfd56107d840ea"
+checksum = "27b2de8d066a492891cd15247d96d67b793062c25b45f51722b0957f73c8d03a"
 dependencies = [
  "async-task",
  "base-scheduler",
  "base-scheduler-selector",
  "base-scheduler-timers",
  "crossbeam-deque",
- "crossbeam-queue",
  "event-listener",
- "futures-channel",
 ]
 
 [[package]]
 name = "base-scheduler-selector"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a726fef08f6a8228057d723c968dd7e62a4415aed4300f2382676854033d1615"
+checksum = "782434b9a2214aeb01c8bd140d8d75bbf7643443aa010d46690de12249a32923"
 dependencies = [
  "async-io",
  "base-scheduler",
@@ -449,9 +447,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-timers"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abc8043bfa30dec8463438d46b3644ef16c148a6bd1583cb342b71075cf18750"
+checksum = "a4d1b66e014386017cb8941255f7b48c2ce688eedc5007945cfa4c6d4673ff92"
 
 [[package]]
 name = "base-web-content"
@@ -563,15 +561,6 @@ name = "crossbeam-epoch"
 version = "0.9.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dc74980687109a3b14c72fd458107bf0baa1da1a1a805e178d15501ba9b86d9d"
-dependencies = [
- "crossbeam-utils",
-]
-
-[[package]]
-name = "crossbeam-queue"
-version = "0.3.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03e8bd762f7479489c70ed6c768ddca99d7296857de437a68dcb2a94365b3fae"
 dependencies = [
  "crossbeam-utils",
 ]
