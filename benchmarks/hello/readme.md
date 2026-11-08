@@ -27,7 +27,7 @@ cargo build --release --locked
 python3 run.py --wrk /absolute/path/to/wrk
 ```
 
-`cargo test --locked` starts the server with every backend and checks its replies without timing them. CI runs it, with formatting and lint checks, so the benchmark keeps building against the libraries in this repository.
+`cargo test --locked` starts the server with every backend and checks its replies without timing them. CI runs it, with formatting and lint checks, so the benchmark keeps building against the libraries in this repository. The package is outside the workspace, with its own lockfile and exact pins so that results stay comparable across library changes, so it is not under the workspace's 100% coverage requirement; [#54](https://github.com/base-rs/base-http/issues/54) tracks moving it into the workspace.
 
 On Linux, compare the released epoll and io_uring modes with Hyper:
 
