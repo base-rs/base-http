@@ -493,7 +493,8 @@ fn main() -> Result<()> {
                 threads: 1,
                 capacity: 1024,
                 timer_capacity: 1024,
-                ..Default::default()
+                // Keep stall rescue on, the 0.5 default, so the benchmark measures what users get. base-scheduler suggests turning it off for benchmarks, but on the hello benchmark its monitor thread used no CPU ticks over about 1.1 million requests.
+                stall_rescue: true,
             })?);
             let worker = scheduler.clone();
             let task = scheduler.spawn(async move {

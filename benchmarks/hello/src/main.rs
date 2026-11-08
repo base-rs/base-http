@@ -26,6 +26,8 @@ mod raw;
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 const BODY: &[u8] = b"Hello, world!";
 const MAX_CONNECTIONS: usize = 1024;
+// Keep Native's stall rescue on, the 0.5 default, so the benchmark measures what users get. base-scheduler suggests turning it off for benchmarks, but on this benchmark its monitor thread used no CPU ticks over about 1.1 million requests.
+const STALL_RESCUE: bool = true;
 
 struct Hello;
 impl Handler for Hello {
@@ -176,11 +178,11 @@ fn main() -> Result<()> {
                     base_scheduler_native::ReadinessSelector::with_options(
                         base_scheduler_selector::SelectorOptions { threads: 1, capacity: MAX_CONNECTIONS },
                     )?,
-                    base_scheduler_native::NativeExecutorOptions { workers: 1, ..Default::default() },
+                    base_scheduler_native::NativeExecutorOptions { workers: 1, stall_rescue: STALL_RESCUE, ..Default::default() },
                 )?
             } else {
                 NativeScheduler::with_options(NativeOptions {
-                    workers: 1, threads: 1, capacity: MAX_CONNECTIONS,
+                    workers: 1, threads: 1, capacity: MAX_CONNECTIONS, stall_rescue: STALL_RESCUE,
                     ..Default::default()
                 })?
             });
@@ -208,7 +210,7 @@ fn main() -> Result<()> {
                 ..Default::default()
             }, 1)?;
             let scheduler = Arc::new(NativeScheduler::with_drivers(selector, drivers,
-                base_scheduler_native::NativeExecutorOptions { workers: 1, ..Default::default() })?);
+                base_scheduler_native::NativeExecutorOptions { workers: 1, stall_rescue: STALL_RESCUE, ..Default::default() })?);
             let shared = scheduler.clone();
             let raw = backend.ends_with("-raw");
             let owned_receive = backend.starts_with("base-iouring-owned-");
