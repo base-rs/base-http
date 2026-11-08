@@ -1,6 +1,6 @@
 # Duplex progress and proxy experiment
 
-Updated 2026-10-28. The experiment uses native HTTP/1 lanes and the released Direct scheduler. It validates the current pull-body contract and connection lifecycle; it does not establish performance or complete a high-level client/proxy API.
+Updated 2026-10-28. The experiment uses native HTTP/1 lanes. It was first run on the released Direct scheduler, which scheduler 0.5 removed; its tests now run on the Native scheduler. It validates the current pull-body contract and connection lifecycle; it does not establish performance or complete a high-level client/proxy API.
 
 ## Progress and reuse contract
 
