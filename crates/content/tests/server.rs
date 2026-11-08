@@ -163,3 +163,24 @@ fn refuses_chunked_content_over_a_limit_and_removes_its_uploads() {
     assert_eq!(created, 1);
     assert!(names.is_empty());
 }
+
+#[test]
+fn removes_uploads_when_the_client_stops_sending() {
+    let (status, created, names) = serve(|mut peer| {
+        // The avatar arrives whole, so it is stored, then the client stops sending before the closing boundary ends the content.
+        let sent = BODY
+            .windows(5)
+            .position(|window| window == b"hello")
+            .unwrap()
+            + b"hello\r\n--b".len();
+        peer.write(head(&format!("Content-Length: {}", BODY.len())));
+        peer.write(&BODY[..sent]);
+        peer.shutdown_write();
+        // The handler has finished once it responds.
+        let (head, _) = peer.read_message();
+        head.status()
+    });
+    assert_eq!(status, 400);
+    assert_eq!(created, 1);
+    assert!(names.is_empty());
+}

@@ -22,7 +22,7 @@ Uploads and cleanup:
 - `ContentParser::finish` must be called however reading ends: after a fatal content error, a body read failure, a storage failure, or cancellation. When the content is refused, or reading or storage fails, the reader must abort the upload whose content was still arriving and remove every upload `Rejected` returns, before returning the error. Cleanup must not be cancellable, and its failures must be returned with the error without replacing its cause.
 - The content is accepted exactly when `finish` accepts it. A body that fails after the content is complete, in a multipart epilogue, therefore still yields the content. Accepted content is returned with its `discarded` handles, which belong to the application.
 - When reading stops before the body ends, the body must be closed with `ReadableBody::close`, so that the connection is not reused with unread input.
-- Dropping the read before it completes skips cleanup, which is asynchronous; cancellation is the way to stop a read with cleanup. This must be documented.
+- Dropping the read before it completes skips cleanup, which is asynchronous, and leaves everything it stored in place. `base-http-server` drops a handler's future when the server's cancellation fires, at shutdown, so a read in progress then leaves everything it stored, and a handler still running leaves the uploads it accepted. A client cannot make the server drop a handler, since its disconnection reaches the reader as a body failure, which is cleaned up, but a client that stalls keeps its read in progress until shutdown. This must be documented, with the advice to stage uploads in a directory the application clears when it starts and to move accepted uploads out of it, and that a handler stops a read itself by cancelling a child of its cancellation.
 
 Errors:
 
@@ -45,7 +45,7 @@ The Ruby equivalent is split between `utopia`'s `Controller::Base#parse_body` (`
 
 The scheduler's `FileOptions` (`base-scheduler` 0.4) can create a file exclusively but cannot set its permissions, and the scheduler has no capability to remove a file, so the file store uses `std::fs` through `Blocking::spawn_blocking`, which is how the scheduler's own file operations run on its native backends. Moving to scheduler file operations would need those capabilities first.
 
-Cleanup is explicit and asynchronous rather than done in `Drop`, as Base resources are elsewhere: `base-scheduler`'s close operations are explicit, and `base-web-html`'s `design/streaming.md` forbids implicit work when a writer is dropped. A drop guard would also have to block a worker to remove files. Accepting content once `finish` accepts it, even after a later body failure, follows `parse_body`, which returns once the parser has read the content and closes the input without reading the rest; it also means accepted content, whose uploads cannot be removed generically once inside the declared struct, is never refused after the fact.
+Cleanup is explicit and asynchronous rather than done in `Drop`, as Base resources are elsewhere: `base-scheduler`'s close operations are explicit, and `base-web-html`'s `design/streaming.md` forbids implicit work when a writer is dropped. A drop guard would also have to block a worker to remove files. `base-http-server` stops polling a handler once its cancellation fires (`cancellable` around `Handler::call` in `crates/server/src/lib.rs`), and timed draining is future policy there, so leftovers at shutdown are left to the application, as temporary upload directories commonly are; letting handlers finish their cleanup during shutdown would be a change to the server. Accepting content once `finish` accepts it, even after a later body failure, follows `parse_body`, which returns once the parser has read the content and closes the input without reading the rest; it also means accepted content, whose uploads cannot be removed generically once inside the declared struct, is never refused after the fact.
 
 ## Scope
 
@@ -58,7 +58,7 @@ Inspect `cargo tree -e normal -p base-http-content` for the dependencies above, 
 Tests, on a real scheduler for the file store:
 
 - `Content-Length` at the maximum is read, and one byte over is refused with 413 before any frame is read; a body of unknown length over the maximum, within every field's limits, is refused while parsing as over the body's maximum, with 413.
-- The read future is `Send`, and the reader works within a `base-http-server` handler over a real connection.
+- The read future is `Send`, and the reader works within a `base-http-server` handler over a real connection, where a client that stops sending in the middle of an upload leaves no file behind.
 - Every multipart and URL-encoded test body gives the same content and stored bytes when divided into two frames at every position, and when delivered one byte per frame.
 - A missing, repeated, or malformed `Content-Type` is refused without reading the body.
 - The upload in progress is aborted and every stored upload removed after a fatal content error, after violations, after a body read failure, after a storage failure in each `UploadStore` operation, and after cancellation; cleanup failures are returned with the cause; the body is closed when reading stops early; a body failure in a multipart epilogue still yields the content.
