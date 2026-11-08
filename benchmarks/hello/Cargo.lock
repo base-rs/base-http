@@ -52,16 +52,16 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "base-endpoint"
-version = "0.1.0"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5486363e111b27b2822657168f4cbd5875ce10528be61ad2f158e6715862732f"
+checksum = "a6f28dcabba66574e2a0bcfb2783b0c9a2e325d6151a92e77cfd9b9e99d88b4c"
 dependencies = [
  "base-scheduler",
 ]
 
 [[package]]
 name = "base-http"
-version = "0.0.0"
+version = "0.3.0"
 dependencies = [
  "arrayvec",
  "base-scheduler",
@@ -94,7 +94,7 @@ dependencies = [
 
 [[package]]
 name = "base-http-protocol"
-version = "0.0.0"
+version = "0.3.0"
 dependencies = [
  "base-endpoint",
  "base-http1",
@@ -102,7 +102,7 @@ dependencies = [
 
 [[package]]
 name = "base-http-server"
-version = "0.0.0"
+version = "0.3.0"
 dependencies = [
  "base-endpoint",
  "base-http",
@@ -110,11 +110,12 @@ dependencies = [
  "base-http1",
  "base-scheduler",
  "futures-util",
+ "libc",
 ]
 
 [[package]]
 name = "base-http1"
-version = "0.0.0"
+version = "0.3.0"
 dependencies = [
  "base-endpoint",
  "base-http",
@@ -125,18 +126,18 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "705d8e4437d3c979a8ed14d8c0da110cb93ee2857a5bd4d3c6ec0fd17a2152d5"
+checksum = "096749bb2ae9c686f6654eaaaba1338e698d5df67e88aac08b57e402b59b512f"
 dependencies = [
  "event-listener",
 ]
 
 [[package]]
 name = "base-scheduler-direct"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a97f3917a7a217ce0921ab2789b5b40206ee011a99652c00cf883be6649df21e"
+checksum = "34c818a5703993d6a5a261bae24a8e3c140c05a32ea69e9ebf9a91215832848f"
 dependencies = [
  "async-task",
  "base-scheduler",
@@ -150,9 +151,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-iouring"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72ca0c58d55ce9641cb39012b99546b798337c700823302934d97e6f33262773"
+checksum = "ef1beb385195ac6e038f933c22c071dc73064f51a0b9e4d72939b5eef72c1eeb"
 dependencies = [
  "atomic-waker",
  "base-scheduler",
@@ -166,9 +167,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-native"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec595072fc746f43eca228e0d0da476dd017e208c7c8a198a93438b4201c4094"
+checksum = "e9f64e3f3ec9ea09ece61df6e5a7b10a16323376ef729633e7dfd56107d840ea"
 dependencies = [
  "async-task",
  "base-scheduler",
@@ -182,9 +183,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-selector"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e84713bf409330a78d998649e8435824f4be9ff50c86c016a38b292690b73b16"
+checksum = "a726fef08f6a8228057d723c968dd7e62a4415aed4300f2382676854033d1615"
 dependencies = [
  "async-io",
  "base-scheduler",
@@ -200,15 +201,15 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-timers"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3630e48c714f7ce6a6c882ef86c7f490d92cf1c445c511160e53bdc74d9f5d91"
+checksum = "abc8043bfa30dec8463438d46b3644ef16c148a6bd1583cb342b71075cf18750"
 
 [[package]]
 name = "base-scheduler-tokio"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0862c13231cc819b810528b9059cc83d70c72161ece88f7c03bace1e813499bd"
+checksum = "b4f3a97c2e1ebbb4a256711783e220320c8fac33081a33d237892ad36c0fdeb3"
 dependencies = [
  "async-io",
  "base-scheduler",
