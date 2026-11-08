@@ -191,7 +191,7 @@ For every new timing claim:
 
 ## Reproduction and dependency status
 
-The workspace and benchmarks depend on the published base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, so ordinary locked builds reproduce the released-dependency candidate without Cargo patches or sibling checkouts. Rebuilding its baseline needs a base-endpoint checkout at d7625aa, as its environment notes record. The full client comparison above was measured earlier with a local base-pool patch; its frozen executables are listed below.
+The workspace and benchmarks now depend on the published base-scheduler 0.4.0, base-pool 0.4.0 and base-endpoint 0.2.0, without Cargo patches or sibling checkouts. The released-dependency candidate was built with base-scheduler 0.3.0, base-pool 0.3.0 and base-endpoint 0.1.0, so reproducing it needs those versions. Rebuilding its baseline needs a base-endpoint checkout at d7625aa, as its environment notes record. The full client comparison above was measured earlier with a local base-pool patch; its frozen executables are listed below.
 
 Frozen normal executables:
 

@@ -14,7 +14,7 @@ Two connection-only paths are also available: `base-connection` and `hyper-conne
 
 `before-open` runs a preserved pre-change Base executable against the current common server; `before-connection` runs that executable's connection-only path. Supply `--baseline-binary` and `--baseline-sources`; its original source archive and executable hash are stored separately. This allows before/after samples to be interleaved with the same server configuration and certificate.
 
-The benchmark pins Base scheduler/pool 0.4.0, base-endpoint 0.2.0, Hyper 1.12.0, hyper-util 0.1.21, Tokio 1.54.1, rustls 0.23.46, tokio-rustls 0.26.6 and hyper-rustls 0.27.10. HTTP crates use the local source tree. The lockfile fixes all other dependencies. Rust 1.87 builds an optimized release binary. CI builds, lints and tests the package. It is outside the workspace, with its own lockfile and exact pins so that results stay comparable across library changes, so it is not under the workspace's 100% coverage requirement; [#54](https://github.com/base-rs/base-http/issues/54) tracks moving it into the workspace.
+The benchmark pins Base scheduler/pool 0.4.0, base-endpoint 0.2.0, Hyper 1.12.0, hyper-util 0.1.21, Tokio 1.54.1, rustls 0.23.46, tokio-rustls 0.26.6 and hyper-rustls 0.27.10. HTTP crates use the local source tree. The lockfile fixes all other dependencies. Rust 1.87 builds an optimized release binary. CI builds and lints the package; it has no tests yet. It is outside the workspace, with its own lockfile and exact pins so that results stay comparable across library changes, so it is not under the workspace's 100% coverage requirement; [#54](https://github.com/base-rs/base-http/issues/54) tracks moving it into the workspace and testing it.
 
 ## Method
 

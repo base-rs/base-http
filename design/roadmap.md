@@ -42,7 +42,7 @@ This is dependency ordering, not a calendar estimate. HTTP/2 and QUIC are substa
 
 ### M0: scheduler rename and release — complete
 
-The original scheduler milestone published the `0.1.0` family. The pooled-client work adopted `base-scheduler 0.2`, and the HTTP packages now use `0.3`, with Rust 1.87 for precise socket-handle lifetime captures. Use one consistent scheduler version across the graph; a deliberate local override is available if later co-development requires it.
+The original scheduler milestone published the `0.1.0` family. The pooled-client work adopted `base-scheduler 0.2`, `0.3` raised the minimum to Rust 1.87 for precise socket-handle lifetime captures, and the HTTP packages now use the `0.4.0` family. Use one consistent scheduler version across the graph; a deliberate local override is available if later co-development requires it.
 
 The release uses explicitly constructed, scheduler-bound reader/writer handles, with cancellation per operation and uncancellable handle closure for retirement. Protocol objects may retain these capabilities; a handle does not switch schedulers between calls. The old prototype's per-read scheduler switching is historical evidence, not a requirement of the released API.
 

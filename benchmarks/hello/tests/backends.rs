@@ -6,7 +6,7 @@
 //! hung backend into a failure that names it, instead of a stalled job.
 
 use std::{
-    io::{BufRead, BufReader, Read, Write},
+    io::{self, BufRead, BufReader, Read, Write},
     net::{Shutdown, TcpStream},
     process::{Child, Command, Stdio},
     sync::mpsc,
@@ -44,6 +44,17 @@ const RAW: &[&str] = &[
 /// Bounds each wait on a server, so that one which hangs fails the test
 /// promptly. It is far longer than any healthy reply takes, even under load.
 const WATCHDOG: Duration = Duration::from_secs(60);
+
+/// Describe a failed read or write, naming the watchdog when its timeout expired,
+/// which the operating system reports as `WouldBlock` or `TimedOut`.
+fn failure(error: &io::Error) -> String {
+    match error.kind() {
+        io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut => {
+            format!("the watchdog expired: no progress within {WATCHDOG:?}")
+        }
+        _ => error.to_string(),
+    }
+}
 
 /// The complete response every backend sends.
 const RESPONSE: &[u8] =
@@ -103,9 +114,12 @@ impl Drop for Server {
 /// every read, sees it as one read.
 fn request(backend: &str, step: &str, stream: &mut TcpStream, fields: &str) {
     let request = format!("GET / HTTP/1.1\r\nHost: localhost\r\n{fields}\r\n");
-    let written = stream
-        .write(request.as_bytes())
-        .unwrap_or_else(|error| panic!("{backend}: {step}: writing the request failed: {error}"));
+    let written = stream.write(request.as_bytes()).unwrap_or_else(|error| {
+        panic!(
+            "{backend}: {step}: writing the request failed: {}",
+            failure(&error)
+        )
+    });
     assert_eq!(
         written,
         request.len(),
@@ -115,8 +129,11 @@ fn request(backend: &str, step: &str, stream: &mut TcpStream, fields: &str) {
 
 /// Read one complete response, returning its lowercase field lines and body.
 fn response(backend: &str, step: &str, stream: &mut TcpStream) -> (Vec<String>, Vec<u8>) {
-    let fail = |error: std::io::Error| -> ! {
-        panic!("{backend}: {step}: reading the response failed: {error}")
+    let fail = |error: io::Error| -> ! {
+        panic!(
+            "{backend}: {step}: reading the response failed: {}",
+            failure(&error)
+        )
     };
     let mut head = Vec::new();
     while !head.ends_with(b"\r\n\r\n") {
@@ -170,7 +187,10 @@ fn check(backend: &str, step: &str, fields: &[String], body: &[u8]) {
 fn expect_close(backend: &str, step: &str, stream: &mut TcpStream) {
     let mut rest = Vec::new();
     stream.read_to_end(&mut rest).unwrap_or_else(|error| {
-        panic!("{backend}: {step}: waiting for the server to close failed: {error}")
+        panic!(
+            "{backend}: {step}: waiting for the server to close failed: {}",
+            failure(&error)
+        )
     });
     assert!(
         rest.is_empty(),
@@ -213,7 +233,10 @@ fn raw_backends_reply_once_to_each_request() {
             request(backend, &step, &mut stream, "");
             let mut reply = vec![0; RESPONSE.len()];
             stream.read_exact(&mut reply).unwrap_or_else(|error| {
-                panic!("{backend}: {step}: reading the reply failed: {error}")
+                panic!(
+                    "{backend}: {step}: reading the reply failed: {}",
+                    failure(&error)
+                )
             });
             assert_eq!(
                 reply,

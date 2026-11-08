@@ -145,7 +145,9 @@ fn task_finished(result: std::result::Result<(), base_scheduler::TaskError>) {
 
 /// The task reports its own connection's failure and outputs `()`: Rust 1.87
 /// cannot prove the server future `Send` while it holds handles whose output
-/// contains `Result`'s boxed error.
+/// contains `Result`'s boxed error, failing with a higher-ranked lifetime
+/// error (<https://github.com/rust-lang/rust/issues/110338>). Once the minimum
+/// Rust builds it, the handles can output the connection's `Result` again.
 #[cfg(target_os = "linux")]
 fn spawn_base_connection<S, const OWNED_RECEIVE: bool>(
     scheduler: &Arc<S>,
