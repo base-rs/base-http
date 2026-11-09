@@ -42,6 +42,7 @@ base-scheduler-iouring = "=0.5.0"
 debug = 1
 
 # Scenarios for `base-benchmark` 0.4 and `cargo bake benchmark:* --manifest-path benchmarks/hello/Cargo.toml`. Each is a multi-process scenario: the server is the subject, a service whose ready line is the address it bound, and its backends are the variants; the client is base-benchmark-load, an external program installed at a pinned version and given with `--program load=PATH`, the same for every subject. CPU placement is given per run with `--role-cpus`, so no CPU numbers appear here; see readme.md.
+# Every client validates every response. A smoke run warns about invalid responses rather than failing on them, so the smoke arguments add `--fail-on invalid`, failing the sample instead: a correct server, raw controls included at one request outstanding per connection, never sends one. Measured runs mark the window's start 500 ms before it (`--window-lead`), rather than the client's default 100 ms, since an acknowledgement after the window's start fails the run: it tolerates five times the default's delay, though not the roughly 650 ms of one load spike, whose acknowledgement came 551 ms after the window began and which only an idle host avoids. The services' window then also covers up to 500 ms of the warmup's load, about 6% of the 8-second window, at the window's load for every subject. See readme.md.
 [package.metadata.base-benchmark]
 binary = "base-http-hello-benchmark"
 # The full HTTP modes of the backend table in readme.md.
@@ -70,8 +71,8 @@ kind = "driver"
 external = "load"
 invalid-responses = "responses_invalid"
 arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
-smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
-measure-arguments = ["--warmup", "2s", "--duration", "8s"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
 
 # Open loop at a fixed offered rate. In base-benchmark-load's evaluation on hana (results/2026-11-09-hana), one client worker was busy for about 65% of the window at this rate, and base-native and hyper-tokio served 185,000–205,000 requests per second in the closed loop.
 [[package.metadata.base-benchmark.scenario]]
@@ -89,8 +90,8 @@ kind = "driver"
 external = "load"
 invalid-responses = "responses_invalid"
 arguments = ["rate", "--address", "{server.address}", "--rate", "100k", "--connections", "64", "--workers", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
-smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
-measure-arguments = ["--warmup", "2s", "--duration", "8s"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
 
 # The raw controls read once and write one fixed response, ignoring request framing, so they serve an HTTP client correctly only with one request outstanding per connection, the client's default depth. Their response is byte-for-byte the HTTP modes', so it is checked the same way.
 [[package.metadata.base-benchmark.scenario]]
@@ -116,8 +117,8 @@ kind = "driver"
 external = "load"
 invalid-responses = "responses_invalid"
 arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "1", "--depth", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
-smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
-measure-arguments = ["--warmup", "2s", "--duration", "8s"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
 
 # The raw controls at the fixed rate of http-rate, as fixed_rate.py compares them.
 [[package.metadata.base-benchmark.scenario]]
@@ -143,5 +144,5 @@ kind = "driver"
 external = "load"
 invalid-responses = "responses_invalid"
 arguments = ["rate", "--address", "{server.address}", "--rate", "100k", "--connections", "64", "--workers", "1", "--depth", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
-smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
-measure-arguments = ["--warmup", "2s", "--duration", "8s"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
