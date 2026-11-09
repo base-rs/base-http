@@ -12,6 +12,9 @@ import argparse, json, os, random, signal, statistics, subprocess, sys, threadin
 LOCK = "/tmp/base-benchmark-host.lock"
 VALIDATION = ["--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
 CONTROLLER = "0"
+# How long the server may take to print its address: generous, so that only a server that never does fails, rather than
+# holding the host lock indefinitely.
+READY_TIMEOUT = 60
 
 # Layouts: (client process CPUs, worker arguments). Pinned layouts give each worker a CPU with --cpus and the controller CPU 0;
 # unpinned ones (-u) run `--workers 2` within the process's CPUs, as base-benchmark's --role-cpus would place them.
@@ -82,16 +85,39 @@ def stop(process):
             process.wait()
 
 
+def ready_line(process, timeout):
+    """The process's first line of output, or exit if it prints none within the timeout."""
+    lines = []
+    reader = threading.Thread(target=lambda: lines.append(process.stdout.readline()), daemon=True)
+    reader.start()
+    reader.join(timeout)
+    if reader.is_alive():
+        raise SystemExit(f"layout.py: the server printed no address within {timeout} seconds")
+    return lines[0]
+
+
+def interrupted(signum, frame):
+    # The server and client run in their own sessions, so a terminal's signals don't reach them: exit through sample's cleanup,
+    # ignoring further signals so that they cannot interrupt it.
+    for name in ["SIGHUP", "SIGINT", "SIGTERM"]:
+        signal.signal(getattr(signal, name), signal.SIG_IGN)
+    raise SystemExit(128 + signum)
+
+
 def sample(arguments):
+    # A signal inherited as ignored, as under `nohup` or in a background job, stays ignored.
+    for name in ["SIGHUP", "SIGINT", "SIGTERM"]:
+        if signal.getsignal(getattr(signal, name)) is not signal.SIG_IGN:
+            signal.signal(getattr(signal, name), interrupted)
     configuration = json.loads(arguments.configuration)
     scenario_extra = SCENARIOS[configuration["scenario"]][1]
     client_cpus, worker_arguments = LAYOUTS[configuration["layout"]]
     tick = os.sysconf("SC_CLK_TCK")
-    server = subprocess.Popen(["taskset", "-c", configuration["server_cpus"], arguments.server, configuration["backend"]],
-                              stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, start_new_session=True)
-    client = None
+    server = client = None
     try:
-        address = server.stdout.readline().strip()
+        server = subprocess.Popen(["taskset", "-c", configuration["server_cpus"], arguments.server, configuration["backend"]],
+                                  stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, start_new_session=True)
+        address = ready_line(server, READY_TIMEOUT).strip()
         command = ["taskset", "-c", client_cpus, arguments.load, "closed", "--address", address, "--connections", "64",
                    *worker_arguments, *scenario_extra, *VALIDATION,
                    "--warmup", arguments.warmup, "--duration", arguments.duration, "--window-lead", arguments.window_lead, "--quiet"]
@@ -131,7 +157,8 @@ def sample(arguments):
         if client is not None and client.poll() is None:
             client.kill()
             client.wait()
-        stop(server)
+        if server is not None:
+            stop(server)
     result = dict(configuration, client_cpus=client_cpus, command=command[3:], status=status, loadavg=loadavg,
                   stderr=stderr[-2000:] if status else "")
     if record is None or start is None or stop_snapshot is None:
@@ -190,7 +217,8 @@ def campaign(arguments):
                            "--server", arguments.server, "--load", arguments.load, "--warmup", arguments.warmup,
                            "--duration", arguments.duration, "--window-lead", arguments.window_lead,
                            "--configuration", json.dumps(configuration)] + (["--frequencies"] if arguments.frequencies else [])
-                line = subprocess.run(command, capture_output=True, text=True, check=True).stdout.strip()
+                # The sample's stderr passes through, so that a failure's reason shows.
+                line = subprocess.run(command, stdout=subprocess.PIPE, text=True, check=True).stdout.strip()
                 result = dict(json.loads(line), round=round_index, position=position)
                 output.write(json.dumps(result) + "\n")
                 output.flush()
