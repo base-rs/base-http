@@ -63,7 +63,7 @@ cargo bake benchmark:run http-closed --manifest-path benchmarks/hello/Cargo.toml
 
 ### On a measuring host
 
-Each measuring host has a document in [benchmarks/hosts](../hosts/readme.md) that gives its hardware and the `--role-cpus` to use on it for each scenario, such as [hana's](../hosts/hana.md). Measure there with `--host`. Install the client there once; a relative `--program` path is relative to the remote home directory:
+Each measuring host is described, for every Base repository that measures on it, in base-benchmark's [host documents](https://github.com/base-rs/base-benchmark/blob/main/hosts/readme.md), such as [hana's](https://github.com/base-rs/base-benchmark/blob/main/hosts/hana.md). This readme records the `--role-cpus` to use on each host for each scenario, as [on hana](#placement-on-hana). Measure there with `--host`. Install the client there once; a relative `--program` path is relative to the remote home directory:
 
 ```sh
 ssh HOST cargo install --locked --root .cache/base-benchmark-load base-benchmark-load --version 0.1.0
@@ -76,6 +76,24 @@ cargo bake benchmark:run http-closed --host HOST --manifest-path benchmarks/hell
 ```
 
 The trees, and the libraries they depend on outside `benchmarks/hello`, are mirrored on the host with rsync, the host runs the crates.io release of the same `base-benchmark`, and the campaign comes back to `benchmarks/hello/target/base-benchmark` locally. Run prepared artifacts on the host that built them. [Measuring on another host](https://github.com/base-rs/base-benchmark/blob/main/context/usage.md#measuring-on-another-host) lists what both machines need. A recorded campaign also needs at least 10 rounds (`--rounds 10`), `--mode recorded`, a `--decision-rule`, `--idle-host true`, and committed trees.
+
+### Placement on hana
+
+[hana](https://github.com/base-rs/base-benchmark/blob/main/hosts/hana.md) has 4 cores and 8 threads, whose SMT siblings are CPUs `N` and `N + 4`. From the [client layout screen](results/client-layout-20261109/readme.md):
+
+| CPUs | Use |
+| --- | --- |
+| 0 and 4 | The OS, the runner (`base-benchmark`) and the client's controller when it is pinned |
+| 1 and 2 | The closed-loop client's two workers, one core each |
+| 3 | The server; the hello backends are single-threaded |
+| 5, 6 and 7 | Idle: the client's and the server's SMT siblings |
+
+- `raw-closed` and `http-closed`: `--role-cpus client=1,2 --role-cpus server=3`. base-benchmark-load runs `--workers 2` within CPUs 1 and 2, its controller with them; it wakes only to mark the window. Run directly, without base-benchmark, pin them instead with `--cpus 1,2 --controller-cpu 0`, which measured the same.
+- Not two workers on one core's siblings (`client=1,5`): both saturated to drive what two cores drove at two-thirds busy, and that layout changed the server's CPU per request. Not one worker: it limited `raw-closed` by 5–6%.
+- The server's sibling (3,7) did not help a single-threaded backend.
+- `http-rate` and `raw-rate` run one worker, and the screen did not measure them. They have used `--role-cpus client=1,5 --role-cpus server=2,3`, the client's one core with its controller on the sibling and the server on two cores, until a screen of them says otherwise.
+
+Change this placement only with measurements behind it. Earlier investigations used other placements, recorded with their results, such as the server on CPU 0 and the client on CPUs 2, 3, 6 and 7 in the [Linux epoll and io_uring investigation](hana-linux.md) (Linux 7.2.11 then, [results](results/hana-linux-20261027/readme.md)), the [equal offered-rate follow-up](fixed-rate.md) and the [echo benchmark](../echo/readme.md).
 
 ### A late window start
 
