@@ -31,7 +31,7 @@ The Hyper service follows the [official HTTP/1 hello-world guide](https://hyper.
 | `raw-closed` | As `http-closed`. | The raw controls: `base-native-raw` (the baseline), `base-iouring-raw`, `base-iouring-owned-raw`, `base-tokio-raw`, `tokio-raw`, `tokio-task-raw`. |
 | `raw-rate` | As `http-rate`. | As `raw-closed`. |
 
-The client runs one worker, validates every response's status, body and fields, and measures a 2-second warmup and an 8-second window, or 100 ms and 200 ms in smoke runs. A smoke run only warns about invalid responses, so the smoke arguments add `--fail-on invalid`, which fails the sample on any: a correct server never sends one. Measured runs mark the window's start 500 ms before it (`--window-lead 500ms`), as [a late window start](#a-late-window-start) explains. The raw controls ignore request framing, so they are driven with one request outstanding per connection, the only load they serve correctly. In [base-benchmark-load's evaluation on hana](https://github.com/base-rs/base-benchmark-load/blob/main/results/2026-11-09-hana/readme.md), its one worker was busy for about 65% of the window at the fixed rate, and base-native and hyper-tokio served 185,000–205,000 requests per second in the closed loop, so the rate leaves headroom on both sides.
+The client runs two workers in the closed loop and one at the fixed rate, validates every response's status, body and fields, and measures a 2-second warmup and an 8-second window, or 100 ms and 200 ms in smoke runs. A smoke run only warns about invalid responses, so the smoke arguments add `--fail-on invalid`, which fails the sample on any: a correct server never sends one. Measured runs mark the window's start 500 ms before it (`--window-lead 500ms`), as [a late window start](#a-late-window-start) explains. The raw controls ignore request framing, so they are driven with one request outstanding per connection, the only load they serve correctly. In [base-benchmark-load's evaluation on hana](https://github.com/base-rs/base-benchmark-load/blob/main/results/2026-11-09-hana/readme.md), its one worker was busy for about 65% of the window at the fixed rate, and base-native and hyper-tokio served 185,000–205,000 requests per second in the closed loop, so the rate leaves headroom on both sides.
 
 The package stays outside the workspace, so every command names its manifest with `--manifest-path`. Install the client at its pinned version anywhere; its path is given to every run, rather than in package metadata:
 
@@ -56,26 +56,26 @@ cargo bake benchmark:prepare --manifest-path benchmarks/hello/Cargo.toml \
 cargo bake benchmark:run http-closed --manifest-path benchmarks/hello/Cargo.toml \
   --artifacts benchmarks/hello/target/base-benchmark/prepared-TIME/artifacts.json \
   --program load=$HOME/.cache/base-benchmark-load/bin/base-benchmark-load \
-  --role-cpus client=1,17 --role-cpus server=2,3
+  --role-cpus client=1,2 --role-cpus server=3
 ```
 
-`--role-cpus ROLE=CPUS` confines each role, and the client's worker and controller run within its set. Give the client one physical core and the server two or three others, with no role on another's SMT sibling: base-benchmark warns about shared cores in screening and refuses them in recorded campaigns. The CPUs above suit a host whose SMT siblings are CPUs `N` and `N + 16`; check `/sys/devices/system/cpu/cpuN/topology/thread_siblings_list`. The `base-benchmark` command (`cargo install --locked base-benchmark --version 0.4.0`) takes the same options, as `base-benchmark smoke`, `prepare` and `run`.
+`--role-cpus ROLE=CPUS` confines each role, and the client's workers and controller run within its set. Give each role physical cores of its own, with no role on another's SMT sibling: base-benchmark warns about shared cores in screening and refuses them in recorded campaigns. The closed-loop client's two workers need two cores, not the two threads of one: [on hana](results/client-layout-20261109/readme.md), two workers on one core's SMT siblings were both saturated just to match what two workers on two cores drove at two-thirds busy. The hello backends are single-threaded, so one server core suffices. The CPUs above suit a host where CPUs 1, 2 and 3 are on different cores; check `/sys/devices/system/cpu/cpuN/topology/thread_siblings_list`. The `base-benchmark` command (`cargo install --locked base-benchmark --version 0.4.0`) takes the same options, as `base-benchmark smoke`, `prepare` and `run`.
 
-### On hana
+### On a measuring host
 
-Measure on hana, a dedicated measuring host with 4 cores and 8 threads whose SMT siblings are CPUs `N` and `N + 4`, with `--host`. Install the client there once; a relative `--program` path is relative to the remote home directory:
+Each measuring host has a document in [benchmarks/hosts](../hosts/readme.md) that gives its hardware and the `--role-cpus` to use on it for each scenario, such as [hana's](../hosts/hana.md). Measure there with `--host`. Install the client there once; a relative `--program` path is relative to the remote home directory:
 
 ```sh
-ssh hana cargo install --locked --root .cache/base-benchmark-load base-benchmark-load --version 0.1.0
-cargo bake benchmark:prepare --host hana --manifest-path benchmarks/hello/Cargo.toml \
-  --tree main=$PWD/../base-http-main/benchmarks/hello --tree candidate=$PWD/benchmarks/hello --scenario http-rate
-cargo bake benchmark:run http-rate --host hana --manifest-path benchmarks/hello/Cargo.toml \
+ssh HOST cargo install --locked --root .cache/base-benchmark-load base-benchmark-load --version 0.1.0
+cargo bake benchmark:prepare --host HOST --manifest-path benchmarks/hello/Cargo.toml \
+  --tree main=$PWD/../base-http-main/benchmarks/hello --tree candidate=$PWD/benchmarks/hello --scenario http-closed
+cargo bake benchmark:run http-closed --host HOST --manifest-path benchmarks/hello/Cargo.toml \
   --artifacts benchmarks/hello/target/base-benchmark/prepared-TIME/artifacts.json \
   --program load=.cache/base-benchmark-load/bin/base-benchmark-load \
-  --role-cpus client=1,5 --role-cpus server=2,3
+  --role-cpus client=CPUS --role-cpus server=CPUS
 ```
 
-The client gets physical core 1, both its threads, and the server cores 2 and 3, whose siblings 6 and 7 stay idle. The trees, and the libraries they depend on outside `benchmarks/hello`, are mirrored on hana with rsync, the host runs the crates.io release of the same `base-benchmark`, and the campaign comes back to `benchmarks/hello/target/base-benchmark` locally. Run prepared artifacts on the host that built them. [Measuring on another host](https://github.com/base-rs/base-benchmark/blob/main/context/usage.md#measuring-on-another-host) lists what both machines need. A recorded campaign also needs at least 10 rounds (`--rounds 10`), `--mode recorded`, a `--decision-rule`, `--idle-host true`, and committed trees.
+The trees, and the libraries they depend on outside `benchmarks/hello`, are mirrored on the host with rsync, the host runs the crates.io release of the same `base-benchmark`, and the campaign comes back to `benchmarks/hello/target/base-benchmark` locally. Run prepared artifacts on the host that built them. [Measuring on another host](https://github.com/base-rs/base-benchmark/blob/main/context/usage.md#measuring-on-another-host) lists what both machines need. A recorded campaign also needs at least 10 rounds (`--rounds 10`), `--mode recorded`, a `--decision-rule`, `--idle-host true`, and committed trees.
 
 ### A late window start
 
@@ -83,13 +83,13 @@ The client's measured window and the server's CPU time are tied by a handshake: 
 
 The measured arguments therefore use a 500 ms lead, which tolerates five times the default's delay. The cost is that the server's CPU time also covers up to 500 ms of the warmup's load, besides the 8-second window, which inflates CPU per request by up to about 6%. The warmup's load is the window's, so the inflation is alike for every subject, and comparisons between them stand. A lead at least as long as the 2-second warmup would mark the start before the load and could never be late, but would count all of the warmup. Smoke runs keep the default lead, as long as their warmup, so theirs is never late.
 
-No lead covers every stall: the spike above delayed the acknowledgement by about 650 ms, the 100 ms lead and 551 ms more. Avoid it by measuring on an idle host. On hana, run nothing else there while measuring, prepare before a campaign rather than during one, and declare it with `--idle-host true`, as recorded campaigns must. On a shared development machine, screen when it is quiet, and run again after such a failure rather than lengthening the lead further.
+No lead covers every stall: the spike above delayed the acknowledgement by about 650 ms, the 100 ms lead and 551 ms more. Avoid it by measuring on an idle host. On a measuring host, run nothing else there while measuring, prepare before a campaign rather than during one, and declare it with `--idle-host true`, as recorded campaigns must. On a shared development machine, screen when it is quiet, and run again after such a failure rather than lengthening the lead further.
 
 ### Reading the results
 
 Read the warnings first. Operations are the client's valid responses, so `wall_time` per operation is the inverse of the throughput and every per-operation value is per valid response; a screening comparison whose subject received any invalid response is reported as invalid, and a recorded campaign fails on one. `server/cpu_time_per_operation`, with its user and system parts, is the server's CPU per request, marked approximate: its CPU time over the services' window, which includes up to the [lead](#a-late-window-start) of the warmup's load and, in the fixed-rate scenarios, the drain after the window, divided by the valid responses in the client's window. It also leaves out softirq time spent on the server's network traffic, 16–24% of its CPU in base-benchmark-load's closed-loop evaluation on hana, so compare it between subjects measured alike rather than read it as the whole cost.
 
-The closed loop can flag the client as saturated (`client_saturated`), since a faster server makes it busier. In `raw-closed`, the client is the limit: its one worker is busy for the whole window, and in an independent review two workers served about 4% more requests per second, so throughput there compares the raw controls only as far as one client worker can drive them. In `http-closed`, the servers are the limit: two workers served the same throughput. Prefer the fixed-rate scenarios for latency.
+The closed loop can flag the client as saturated (`client_saturated`), since a faster server makes it busier. With one worker, the client was the limit in `raw-closed`, busy for the whole window and about 6% below two workers on hana, and close to it in `http-closed`, busy for 96–98% of it. With two workers on two cores, each was busy for about two-thirds of the window in `raw-closed` and about half in `http-closed`, so the servers are the limit; the [client layout screen](results/client-layout-20261109/readme.md) records them. If busy time grows in proportion to throughput, a raw control about 20% faster than today's would reach the 80% busy limit there, so check `client_saturated` all the same. Prefer the fixed-rate scenarios for latency.
 
 `hyper-tokio` and `hyper-task-tokio` are variants built from each tree, with its lockfile, so they are controls within every build rather than competitors run against every build.
 
