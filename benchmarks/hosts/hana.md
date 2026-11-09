@@ -48,7 +48,7 @@ Earlier investigations used other placements, recorded with their results, such 
 
 - Take the host lock for every measurement, `flock /tmp/base-benchmark-host.lock`, as base-benchmark does, and check `pgrep -af 'base-benchmark|wrk|hello-benchmark'` for another session's run, waiting for it rather than interfering.
 - Build and prepare before a campaign, not during one, and run nothing else while measuring.
-- Single rounds in the screen still ran up to 8% below their cohort's median, so interleave rounds and read ranges as well as medians.
+- Single rounds in the screen still ran up to 9% below their cohort's median, so interleave rounds and read ranges as well as medians.
 
 ## Gathered with
 
