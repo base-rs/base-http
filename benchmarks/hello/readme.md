@@ -16,9 +16,84 @@ The [Hana Linux investigation](hana-linux.md) measures epoll and io_uring on phy
 
 The [request target report](request-target.md) removes the codec's remaining request allocations and measures Linux instructions per request against Hyper/Tokio. The [raw read/write control](raw-io.md) bypasses all HTTP processing to compare Native and Tokio scheduler/I/O paths, including a spawned-supervisor control. It identifies readiness waiter bookkeeping and records a notifier change reducing raw user CPU 9.5% and complete HTTP user CPU 5.7% in the longer confirmation. The [HTTP ownership investigation](remaining-gap.md) isolates future ownership, corrects benchmark handler ownership, records rejected trailer layouts and measures the remaining Hyper lead. The [previous hot-path report](http-hot-path.md) covers writer registration, fused field facts, allocation-free empty exchanges and response planning against preserved binaries and interleaved Hyper controls. The [earlier cost-reduction report](hyper-target.md) covers borrowed wire planning, compact exchange state and inline fields.
 
-The Hyper service follows the [official HTTP/1 hello-world guide](https://hyper.rs/guides/1/server/hello-world/), with connection supervision matched to Base. Load comes from the independent [wrk](https://github.com/wg/wrk) tool, not either HTTP client under test.
+The Hyper service follows the [official HTTP/1 hello-world guide](https://hyper.rs/guides/1/server/hello-world/), with connection supervision matched to Base. Load comes from an independent client, not either HTTP client under test: [base-benchmark-load](https://github.com/base-rs/base-benchmark-load) for the `base-benchmark` scenarios, and [wrk](https://github.com/wg/wrk) for `run.py` and the recorded results it produced.
 
-## Run
+`cargo test --locked` starts the server with every backend and checks its replies without timing them. CI runs it, with formatting and lint checks, so the benchmark keeps building against the libraries in this repository, and smokes every `base-benchmark` scenario below. The package is outside the workspace, with its own lockfile and exact pins so that results stay comparable across library changes, so it is not under the workspace's 100% coverage requirement; [#54](https://github.com/base-rs/base-http/issues/54) tracks moving it into the workspace.
+
+## Run with base-benchmark
+
+[base-benchmark](https://github.com/base-rs/base-benchmark) runs this benchmark as multi-process scenarios, declared in [Cargo.toml](Cargo.toml), and is the way forward for new measurements. The server is the subject: a service, started fresh for every sample, whose ready line is the address it bound, with its backends as the variants. The client is base-benchmark-load, an external program installed at a pinned version and identified by its SHA-256, the same for every subject. Rounds are seeded and interleaved, builds of each tree are frozen, a layout replica of the baseline shows how much build layout alone moves a result, and the server's CPU time is measured over the client's measured window.
+
+| Scenario | Client | Variants |
+| --- | --- | --- |
+| `http-closed` | Closed loop, 64 connections, one request outstanding on each. | The full HTTP modes: `base-native` (the baseline), `base-iouring`, `base-tokio`, `hyper-tokio`, `base-native-background`, `hyper-task-tokio`. |
+| `http-rate` | Fixed rate of 100,000 requests per second over 64 connections. | As `http-closed`. |
+| `raw-closed` | As `http-closed`. | The raw controls: `base-native-raw` (the baseline), `base-iouring-raw`, `base-iouring-owned-raw`, `base-tokio-raw`, `tokio-raw`, `tokio-task-raw`. |
+| `raw-rate` | As `http-rate`. | As `raw-closed`. |
+
+The client runs one worker, validates every response's status, body and fields, and measures a 2-second warmup and an 8-second window, or 100 ms and 200 ms in smoke runs. The raw controls ignore request framing, so they are driven with one request outstanding per connection, the only load they serve correctly. In [base-benchmark-load's evaluation on hana](https://github.com/base-rs/base-benchmark-load/blob/main/results/2026-11-09-hana/readme.md), its one worker was busy for about 65% of the window at the fixed rate, and base-native and hyper-tokio served 185,000–205,000 requests per second in the closed loop, so the rate leaves headroom on both sides.
+
+The package stays outside the workspace, so every command names its manifest with `--manifest-path`. Install the client at its pinned version anywhere; its path is given to every run, rather than in package metadata:
+
+```sh
+cargo install --locked --root ~/.cache/base-benchmark-load base-benchmark-load --version 0.1.0
+```
+
+From the repository root, check that every scenario and variant runs, once each, with smoke arguments. That is not performance evidence:
+
+```sh
+cargo bake benchmark:list --manifest-path benchmarks/hello/Cargo.toml
+cargo bake benchmark:smoke --manifest-path benchmarks/hello/Cargo.toml \
+  --program load=$HOME/.cache/base-benchmark-load/bin/base-benchmark-load
+```
+
+To compare revisions, give each tree as its `benchmarks/hello` directory, such as main checked out in another worktree. Each tree's server builds against that tree's libraries, through the `../..` path dependencies, with its own lockfile. Scenario arguments always come from this checkout. Prepare, then run one scenario, with each role pinned to its own CPUs:
+
+```sh
+git worktree add --detach ../base-http-main origin/main
+cargo bake benchmark:prepare --manifest-path benchmarks/hello/Cargo.toml \
+  --tree main=$PWD/../base-http-main/benchmarks/hello --tree candidate=$PWD/benchmarks/hello --scenario http-closed
+cargo bake benchmark:run http-closed --manifest-path benchmarks/hello/Cargo.toml \
+  --artifacts benchmarks/hello/target/base-benchmark/prepared-TIME/artifacts.json \
+  --program load=$HOME/.cache/base-benchmark-load/bin/base-benchmark-load \
+  --role-cpus client=1,17 --role-cpus server=2,3
+```
+
+`--role-cpus ROLE=CPUS` confines each role, and the client's worker and controller run within its set. Give the client one physical core and the server two or three others, with no role on another's SMT sibling: base-benchmark warns about shared cores in screening and refuses them in recorded campaigns. The CPUs above suit a host whose SMT siblings are CPUs `N` and `N + 16`; check `/sys/devices/system/cpu/cpuN/topology/thread_siblings_list`. The `base-benchmark` command (`cargo install --locked base-benchmark --version 0.4.0`) takes the same options, as `base-benchmark smoke`, `prepare` and `run`.
+
+### On hana
+
+Measure on hana, a dedicated measuring host with 4 cores and 8 threads whose SMT siblings are CPUs `N` and `N + 4`, with `--host`. Install the client there once; a relative `--program` path is relative to the remote home directory:
+
+```sh
+ssh hana cargo install --locked --root .cache/base-benchmark-load base-benchmark-load --version 0.1.0
+cargo bake benchmark:prepare --host hana --manifest-path benchmarks/hello/Cargo.toml \
+  --tree main=$PWD/../base-http-main/benchmarks/hello --tree candidate=$PWD/benchmarks/hello --scenario http-rate
+cargo bake benchmark:run http-rate --host hana --manifest-path benchmarks/hello/Cargo.toml \
+  --artifacts benchmarks/hello/target/base-benchmark/prepared-TIME/artifacts.json \
+  --program load=.cache/base-benchmark-load/bin/base-benchmark-load \
+  --role-cpus client=1,5 --role-cpus server=2,3
+```
+
+The client gets physical core 1, both its threads, and the server cores 2 and 3, whose siblings 6 and 7 stay idle. The trees, and the libraries they depend on outside `benchmarks/hello`, are mirrored on hana with rsync, the host runs the crates.io release of the same `base-benchmark`, and the campaign comes back to `benchmarks/hello/target/base-benchmark` locally. Run prepared artifacts on the host that built them. [Measuring on another host](https://github.com/base-rs/base-benchmark/blob/main/context/usage.md#measuring-on-another-host) lists what both machines need. A recorded campaign also needs at least 10 rounds (`--rounds 10`), `--mode recorded`, a `--decision-rule`, `--idle-host true`, and committed trees.
+
+### Reading the results
+
+Read the warnings first. Operations are the client's valid responses, so `wall_time` per operation is the inverse of the throughput and every per-operation value is per valid response; a screening comparison whose subject received any invalid response is reported as invalid, and a recorded campaign fails on one. `server/cpu_time_per_operation`, with its user and system parts, is the server's CPU per request over the window, marked approximate. It leaves out softirq time spent on the server's network traffic, 16–24% of its CPU in base-benchmark-load's closed-loop evaluation on hana, so compare it between subjects measured alike rather than read it as the whole cost. The closed loop often flags the client as saturated (`client_saturated`) on one core, since a faster server makes it busier: read it as a reason for caution rather than as a difference between servers, and prefer the fixed-rate scenarios for latency.
+
+`hyper-tokio` and `hyper-task-tokio` are variants built from each tree, with its lockfile, so they are controls within every build rather than competitors run against every build.
+
+### What remains
+
+The Python drivers still work, and remain how the results this readme links were produced and can be reproduced. They are not retired yet. That waits for their results and these scenarios' to be compared on the same host, and for:
+
+- competitors, such as Hyper or nginx run in place of the server in every round and paired with every build, which arrive in base-benchmark's milestone M2;
+- the [echo comparison](../echo/readme.md), whose scheduler echo workload also moves to roles in M2;
+- latency histograms merged across samples, and hardware counters over the window, in M3;
+- scenarios for the 1- and 16-connection loads of `run.py`, and for the 200k–240k rates of `fixed_rate.py`, which on hana need more than one client core; and
+- profiling (`profile.py`, `experiment*.py`, `compare_*.py`).
+
+## Run with the Python drivers
 
 From this directory:
 
@@ -26,8 +101,6 @@ From this directory:
 cargo build --release --locked
 python3 run.py --wrk /absolute/path/to/wrk
 ```
-
-`cargo test --locked` starts the server with every backend and checks its replies without timing them. CI runs it, with formatting and lint checks, so the benchmark keeps building against the libraries in this repository. The package is outside the workspace, with its own lockfile and exact pins so that results stay comparable across library changes, so it is not under the workspace's 100% coverage requirement; [#54](https://github.com/base-rs/base-http/issues/54) tracks moving it into the workspace.
 
 On Linux, compare the released epoll and io_uring modes with Hyper:
 
