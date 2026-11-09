@@ -41,7 +41,7 @@ base-scheduler-iouring = "=0.5.0"
 [profile.release]
 debug = 1
 
-# Scenarios for `base-benchmark` 0.4 and `cargo bake benchmark:* --manifest-path benchmarks/hello/Cargo.toml`. Each is a multi-process scenario: the server is the subject, a service whose ready line is the address it bound, and its backends are the variants; the client is base-benchmark-load, an external program installed at a pinned version and given with `--program load=PATH`, the same for every subject. CPU placement is given per run with `--role-cpus`, so no CPU numbers appear here; see readme.md.
+# Scenarios for `base-benchmark` 0.4 and `cargo bake benchmark:* --manifest-path benchmarks/hello/Cargo.toml`. Each is a multi-process scenario: the server is the subject, a service whose ready line is the address it bound, and its backends are the variants; the client is base-benchmark-load, an external program installed at a pinned version and given with `--program load=PATH`, the same for every subject. CPU placement is given per run with `--role-cpus`, so no CPU numbers appear here; each measuring host's document in ../hosts gives its placement.
 # Every client validates every response. A smoke run warns about invalid responses rather than failing on them, so the smoke arguments add `--fail-on invalid`, failing the sample instead: a correct server, raw controls included at one request outstanding per connection, never sends one. Measured runs mark the window's start 500 ms before it (`--window-lead`), rather than the client's default 100 ms, since an acknowledgement after the window's start fails the run: it tolerates five times the default's delay, though not the roughly 650 ms of one load spike, whose acknowledgement came 551 ms after the window began and which only an idle host avoids. The services' window then also covers up to 500 ms of the warmup's load, about 6% of the 8-second window, at the window's load for every subject. See readme.md.
 [package.metadata.base-benchmark]
 binary = "base-http-hello-benchmark"
@@ -55,7 +55,7 @@ variants = [
     { name = "hyper-task-tokio", arguments = ["hyper-task-tokio"] },
 ]
 
-# Closed loop: 64 persistent connections, one request outstanding on each, as the default wrk comparison in run.py.
+# Closed loop: 64 persistent connections, one request outstanding on each, as the default wrk comparison in run.py. The client runs two workers, which need two physical cores: on hana, one worker was busy for 96–100% of the window in both closed-loop scenarios, and limited raw-closed to about 94% of what two workers on two cores drove, with neither of them saturated (results/client-layout-20261109).
 [[package.metadata.base-benchmark.scenario]]
 name = "http-closed"
 
@@ -70,7 +70,7 @@ name = "client"
 kind = "driver"
 external = "load"
 invalid-responses = "responses_invalid"
-arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
+arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "2", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
 smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
 measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
 
@@ -93,7 +93,7 @@ arguments = ["rate", "--address", "{server.address}", "--rate", "100k", "--conne
 smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
 measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
 
-# The raw controls read once and write one fixed response, ignoring request framing, so they serve an HTTP client correctly only with one request outstanding per connection, the client's default depth. Their response is byte-for-byte the HTTP modes', so it is checked the same way.
+# The raw controls read once and write one fixed response, ignoring request framing, so they serve an HTTP client correctly only with one request outstanding per connection, the client's default depth. Their response is byte-for-byte the HTTP modes', so it is checked the same way. The client runs two workers, as in http-closed.
 [[package.metadata.base-benchmark.scenario]]
 name = "raw-closed"
 variants = [
@@ -116,7 +116,7 @@ name = "client"
 kind = "driver"
 external = "load"
 invalid-responses = "responses_invalid"
-arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "1", "--depth", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
+arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "2", "--depth", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
 smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
 measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
 
