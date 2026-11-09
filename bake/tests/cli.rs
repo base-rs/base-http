@@ -11,7 +11,13 @@ fn executable_lists_shared_tasks_and_reports_unknown_tasks() {
         .unwrap();
     assert!(output.status.success());
     let listing = String::from_utf8(output.stdout).unwrap();
-    for task in ["agent:context:install", "test:coverage", "cargo:release"] {
+    for task in [
+        "agent:context:install",
+        "test:coverage",
+        "cargo:release",
+        "benchmark:smoke",
+        "benchmark:run",
+    ] {
         assert!(listing.contains(task), "missing shared task {task}");
     }
     let output = Command::new(env!("CARGO_BIN_EXE_base-http-bake"))

@@ -69,6 +69,17 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets --all-features --locked -- -D warnings
       - run: cargo test --all-features --locked
+      # Run every base-benchmark scenario and variant of the hello server once, with the
+      # pinned load client and smoke arguments: this checks the scenarios' lifecycle, not
+      # performance, and no outcome depends on timing.
+      - name: Install base-benchmark and base-benchmark-load
+        if: matrix.benchmark == 'hello'
+        run: |
+          cargo install --locked base-benchmark --version 0.4.0
+          cargo install --locked base-benchmark-load --version 0.1.0
+      - name: Smoke the base-benchmark scenarios
+        if: matrix.benchmark == 'hello'
+        run: base-benchmark smoke --manifest-path Cargo.toml --program "load=$HOME/.cargo/bin/base-benchmark-load"
 
   license:
     runs-on: ubuntu-latest

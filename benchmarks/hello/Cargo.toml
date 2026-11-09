@@ -40,3 +40,108 @@ base-scheduler-iouring = "=0.5.0"
 
 [profile.release]
 debug = 1
+
+# Scenarios for `base-benchmark` 0.4 and `cargo bake benchmark:* --manifest-path benchmarks/hello/Cargo.toml`. Each is a multi-process scenario: the server is the subject, a service whose ready line is the address it bound, and its backends are the variants; the client is base-benchmark-load, an external program installed at a pinned version and given with `--program load=PATH`, the same for every subject. CPU placement is given per run with `--role-cpus`, so no CPU numbers appear here; see readme.md.
+[package.metadata.base-benchmark]
+binary = "base-http-hello-benchmark"
+# The full HTTP modes of the backend table in readme.md.
+variants = [
+    { name = "base-native", arguments = ["base-native"] },
+    { name = "base-iouring", arguments = ["base-iouring"] },
+    { name = "base-tokio", arguments = ["base-tokio"] },
+    { name = "hyper-tokio", arguments = ["hyper-tokio"] },
+    { name = "base-native-background", arguments = ["base-native-background"] },
+    { name = "hyper-task-tokio", arguments = ["hyper-task-tokio"] },
+]
+
+# Closed loop: 64 persistent connections, one request outstanding on each, as the default wrk comparison in run.py.
+[[package.metadata.base-benchmark.scenario]]
+name = "http-closed"
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "server"
+kind = "service"
+subject = true
+ready = "{address}"
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "client"
+kind = "driver"
+external = "load"
+invalid-responses = "responses_invalid"
+arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s"]
+
+# Open loop at a fixed offered rate. In base-benchmark-load's evaluation on hana (results/2026-11-09-hana), one client worker was busy for about 65% of the window at this rate, and base-native and hyper-tokio served 185,000–205,000 requests per second in the closed loop.
+[[package.metadata.base-benchmark.scenario]]
+name = "http-rate"
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "server"
+kind = "service"
+subject = true
+ready = "{address}"
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "client"
+kind = "driver"
+external = "load"
+invalid-responses = "responses_invalid"
+arguments = ["rate", "--address", "{server.address}", "--rate", "100k", "--connections", "64", "--workers", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s"]
+
+# The raw controls read once and write one fixed response, ignoring request framing, so they serve an HTTP client correctly only with one request outstanding per connection, the client's default depth. Their response is byte-for-byte the HTTP modes', so it is checked the same way.
+[[package.metadata.base-benchmark.scenario]]
+name = "raw-closed"
+variants = [
+    { name = "base-native-raw", arguments = ["base-native-raw"] },
+    { name = "base-iouring-raw", arguments = ["base-iouring-raw"] },
+    { name = "base-iouring-owned-raw", arguments = ["base-iouring-owned-raw"] },
+    { name = "base-tokio-raw", arguments = ["base-tokio-raw"] },
+    { name = "tokio-raw", arguments = ["tokio-raw"] },
+    { name = "tokio-task-raw", arguments = ["tokio-task-raw"] },
+]
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "server"
+kind = "service"
+subject = true
+ready = "{address}"
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "client"
+kind = "driver"
+external = "load"
+invalid-responses = "responses_invalid"
+arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "1", "--depth", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s"]
+
+# The raw controls at the fixed rate of http-rate, as fixed_rate.py compares them.
+[[package.metadata.base-benchmark.scenario]]
+name = "raw-rate"
+variants = [
+    { name = "base-native-raw", arguments = ["base-native-raw"] },
+    { name = "base-iouring-raw", arguments = ["base-iouring-raw"] },
+    { name = "base-iouring-owned-raw", arguments = ["base-iouring-owned-raw"] },
+    { name = "base-tokio-raw", arguments = ["base-tokio-raw"] },
+    { name = "tokio-raw", arguments = ["tokio-raw"] },
+    { name = "tokio-task-raw", arguments = ["tokio-task-raw"] },
+]
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "server"
+kind = "service"
+subject = true
+ready = "{address}"
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "client"
+kind = "driver"
+external = "load"
+invalid-responses = "responses_invalid"
+arguments = ["rate", "--address", "{server.address}", "--rate", "100k", "--connections", "64", "--workers", "1", "--depth", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s"]
