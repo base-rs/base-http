@@ -1,6 +1,6 @@
 # Client layout for the closed-loop scenarios on hana
 
-Screening evidence, gathered 9 November 2026 on [hana](../../../hosts/hana.md): which CPUs base-benchmark-load's workers should run on in `raw-closed` and `http-closed`, with the server on one CPU. It is one host, one day and six rounds, on a host shared with light services, run by the script here rather than by base-benchmark, so it chooses a placement rather than recording a performance result.
+Screening evidence, gathered 9 November 2026 on [hana](https://github.com/base-rs/base-benchmark/blob/main/hosts/hana.md): which CPUs base-benchmark-load's workers should run on in `raw-closed` and `http-closed`, with the server on one CPU. It is one host, one day and six rounds, on a host shared with light services, run by the script here rather than by base-benchmark, so it chooses a placement rather than recording a performance result.
 
 ## Decision
 
@@ -70,7 +70,7 @@ Run afterwards, to check whether turbo frequency explains B's lead in `http-clos
 
 ## Conditions
 
-- hana as its [host document](../../../hosts/hana.md) describes it on this date: Xeon E3-1240 v6, Linux 7.2.14-arch1-1, the `powersave` governor with `balance_performance` energy preference, turbo enabled. No host setting was changed. It was idle apart from its usual light services; no other benchmark ran, and every sample held the host lock, `/tmp/base-benchmark-host.lock`.
+- hana as its [host document](https://github.com/base-rs/base-benchmark/blob/main/hosts/hana.md) describes it on this date: Xeon E3-1240 v6, Linux 7.2.14-arch1-1, the `powersave` governor with `balance_performance` energy preference, turbo enabled. No host setting was changed. It was idle apart from its usual light services; no other benchmark ran, and every sample held the host lock, `/tmp/base-benchmark-host.lock`.
 - base-http `eaa13fd`, the hello server built on hana with `cargo build --release --locked` and Rust 1.99.1 (SHA-256 `27c64823d6ff9d64f5343e4ff708e7825393440ee4432ca706fa85e098467615`). base-benchmark-load 0.1.0, `cargo install --locked` on hana (SHA-256 `3e0129da3fa1776d7d8ec714a8aed399fc71706438767e32fb128c7afb9f6adb`).
 - The scenarios' measured arguments: closed loop, 64 connections, `--depth 1` for the raw controls, a 2-second warmup, an 8-second window and a 500 ms `--window-lead`, validating the body, `Content-Type` and `Content-Length` of every response. Only the worker and controller placement differed.
 - The server was started under `taskset -c SERVER_CPUS`, fresh for every sample, and stopped with `SIGTERM` after it. The client ran under `taskset -c` its CPUs, with `--cpus` and `--controller-cpu 0` in the pinned layouts. The script itself, acting as the runner, ran on CPU 0 with the OS. The controller went on CPU 0 rather than 5, so that it was in the same place in every pinned layout and on neither a worker's CPU nor its sibling; it wakes only to mark the window.
