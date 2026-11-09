@@ -105,8 +105,10 @@ def interrupted(signum, frame):
 
 
 def sample(arguments):
+    # A signal inherited as ignored, as under `nohup` or in a background job, stays ignored.
     for name in ["SIGHUP", "SIGINT", "SIGTERM"]:
-        signal.signal(getattr(signal, name), interrupted)
+        if signal.getsignal(getattr(signal, name)) is not signal.SIG_IGN:
+            signal.signal(getattr(signal, name), interrupted)
     configuration = json.loads(arguments.configuration)
     scenario_extra = SCENARIOS[configuration["scenario"]][1]
     client_cpus, worker_arguments = LAYOUTS[configuration["layout"]]
