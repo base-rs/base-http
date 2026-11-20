@@ -300,11 +300,12 @@ impl<R: ReadableStream> RequestReader<R> {
                 || scanned.is_none_or(|scanned: usize| {
                     window[scanned..].windows(4).any(|w| w == b"\r\n\r\n")
                 });
-            if terminated && !window.is_empty() {
-                if let Some((section, n)) = parse(window)? {
-                    self.start += n;
-                    return Ok(Some(section));
-                }
+            if terminated
+                && !window.is_empty()
+                && let Some((section, n)) = parse(window)?
+            {
+                self.start += n;
+                return Ok(Some(section));
             }
             if available.len() >= max_head_bytes {
                 return Err(Error::Limit(limit));
@@ -357,11 +358,12 @@ impl<R: ReadableStream> RequestReader<R> {
             let terminated = scanned.is_none_or(|scanned: usize| {
                 window[scanned..].windows(4).any(|w| w == b"\r\n\r\n")
             });
-            if terminated && !window.is_empty() {
-                if let Some((head, facts, n)) = wire::request(window, self.options.max_fields)? {
-                    self.start += n;
-                    break (head, facts);
-                }
+            if terminated
+                && !window.is_empty()
+                && let Some((head, facts, n)) = wire::request(window, self.options.max_fields)?
+            {
+                self.start += n;
+                break (head, facts);
             }
             if available.len() >= max_head_bytes {
                 return Err(Error::Limit("message head"));
