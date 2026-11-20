@@ -5,6 +5,7 @@
 mod support;
 
 mod open;
+use base_http_server::ServerContext;
 
 use base_http::{
     Fields, Method, Request, RequestMetadata, Scheme,
@@ -839,13 +840,13 @@ fn cancelled_and_dropped_open_waiters_do_not_abandon_active_exchange() {
 }
 
 struct Echo;
-impl<'h> base_http_server::Handler<'h> for Echo {
+impl<'h> base_http_server::Handler<'h, ServerContext> for Echo {
     type Error = std::convert::Infallible;
     type Body<B: ReadableBody + 'h> = B;
-    async fn call<B: ReadableBody + 'h, I: base_http::InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut base_http::InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<base_http::Response<B>, Self::Error> {
         Ok(base_http::Response::new(

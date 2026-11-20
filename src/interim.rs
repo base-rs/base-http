@@ -21,7 +21,10 @@
 //! # Ok::<(), base_http::InterimError<Infallible>>(())
 //! ```
 use crate::{ResponseMetadata, Status, future::cancellable};
+
+mod relay;
 use base_scheduler::Cancellation;
+pub use relay::{InterimRelay, InterimRelayError, InterimSender};
 use std::{error::Error, fmt, future::Future};
 
 /// A protocol writer or client observer for an interim response head.

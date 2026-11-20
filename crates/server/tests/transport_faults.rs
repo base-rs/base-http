@@ -3,16 +3,17 @@
 
 // A scripted in-memory scheduler serves one connection whose transport capabilities can fail deterministically. The input script is followed by EOF, so every exchange completes without timing assumptions.
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
 use base_http_server::{Error, Handler};
+use base_http_server::{HandlerContext, ServerContext};
 use base_scheduler::{
     BufferLease, BufferPoolOptions, BufferPooling, Cancellation, Cancelled, Clock, HeapBufferPool,
     IoBuf, IoBufSequence, IoBufSequenceMut, OperationError, OperationResult, SocketAccept,
-    SocketAddress, SocketClose, SocketOperation, SocketRecvFlags, SocketRecvResult,
-    SocketSendFlags, SocketSetOption, SocketStreamReader, SocketStreamReading, SocketStreamWriter,
-    SocketStreamWriting, TcpNoDelay,
+    SocketAddress, SocketClose, SocketLocalAddress, SocketOperation, SocketPeerAddress,
+    SocketRecvFlags, SocketRecvResult, SocketSendFlags, SocketSetOption, SocketStreamReader,
+    SocketStreamReading, SocketStreamWriter, SocketStreamWriting, TcpNoDelay,
 };
 use futures_lite::future::block_on;
 use std::{
@@ -37,6 +38,8 @@ struct Faults {
     writer_close_error: bool,
     socket_close_error: bool,
     cancel_on_read: Option<Cancellation>,
+    /// The next write waits until it is cancelled or dropped.
+    stall_next_write: bool,
 }
 
 #[derive(Default)]
@@ -159,6 +162,11 @@ impl<B: IoBuf> SocketStreamWriter for Writer<'_, B> {
         cancellation: &Cancellation,
     ) -> OperationResult<usize> {
         cancellation.check()?;
+        let stall = std::mem::take(&mut self.memory.faults().stall_next_write);
+        if stall {
+            cancellation.cancelled().await;
+            return Err(Cancelled.into());
+        }
         self.memory.output.lock().unwrap().extend_from_slice(buffer);
         Ok(buffer.len())
     }
@@ -303,6 +311,17 @@ impl SocketSetOption<TcpNoDelay> for Memory {
     }
 }
 
+// An in-memory transport has no addresses.
+impl SocketPeerAddress for Memory {
+    fn socket_peer_address(&self, _: &()) -> io::Result<SocketAddress> {
+        Err(io::ErrorKind::Unsupported.into())
+    }
+}
+impl SocketLocalAddress for Memory {
+    fn socket_local_address(&self, _: &()) -> io::Result<SocketAddress> {
+        Err(io::ErrorKind::Unsupported.into())
+    }
+}
 impl SocketClose for Memory {
     async fn socket_close(&self, _: ()) -> io::Result<()> {
         self.socket_closes.fetch_add(1, Ordering::SeqCst);
@@ -325,13 +344,13 @@ impl SocketClose for Memory {
 struct Hello {
     called: AtomicBool,
 }
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         self.called.store(true, Ordering::SeqCst);
@@ -342,9 +361,36 @@ impl<'h> Handler<'h> for Hello {
     }
 }
 
+/// Sends 103 Early Hints, but gives up on it after yielding once, so it returns
+/// while the server is still writing the hint.
+struct Impatient;
+impl<'h> Handler<'h, ServerContext> for Impatient {
+    type Error = io::Error;
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h>(
+        &self,
+        _: Request<B>,
+        context: &mut ServerContext,
+        cancellation: &Cancellation,
+    ) -> Result<Response<BufferedBody>, io::Error> {
+        let hint = base_http::ResponseMetadata::new(Status::EARLY_HINTS);
+        let sent = context.interim().send_interim_response(hint, cancellation);
+        let gave_up = futures_lite::future::yield_now();
+        let _ = futures_lite::future::or(async { sent.await.map(|_| ()).ok() }, async {
+            gave_up.await;
+            None
+        })
+        .await;
+        Ok(Response::new(
+            Status::OK,
+            BufferedBody::from(b"hello".to_vec()),
+        ))
+    }
+}
+
 fn serve(
     memory: &Memory,
-    handler: &impl for<'h> Handler<'h>,
+    handler: &impl for<'h> Handler<'h, ServerContext>,
     options: &base_http1::Options,
     cancellation: &Cancellation,
 ) -> Result<u64, Error> {
@@ -494,13 +540,13 @@ fn cancellation_while_a_head_is_read_prevents_handler_admission() {
 
 // A handler which stops the server and reports the resulting failure, as one observing a cancelled operation would.
 struct Shutdown(Cancellation);
-impl<'h> Handler<'h> for Shutdown {
+impl<'h> Handler<'h, ServerContext> for Shutdown {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         self.0.cancel();
@@ -515,6 +561,22 @@ fn handler_failure_after_cancellation_is_reported_as_cancellation() {
     let handler = Shutdown(cancellation.clone());
     let served = serve(&memory, &handler, &Default::default(), &cancellation);
     assert!(matches!(served, Err(Error::Cancelled)));
+    assert_eq!(memory.output(), "");
+    assert_eq!(memory.closes(), (1, 1, 1));
+}
+
+#[test]
+fn a_handler_returning_while_its_interim_response_is_written_closes_without_a_response() {
+    let memory = Memory::new(REQUEST);
+    memory.faults().stall_next_write = true;
+    let served = serve(
+        &memory,
+        &Impatient,
+        &Default::default(),
+        &Cancellation::never(),
+    );
+    // The abandoned write leaves output out of sync, so no final response follows.
+    assert!(served.is_err(), "{served:?}");
     assert_eq!(memory.output(), "");
     assert_eq!(memory.closes(), (1, 1, 1));
 }

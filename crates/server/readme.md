@@ -2,29 +2,31 @@
 
 An application server using native `base-http1`, `base-http` semantics and published Base scheduler capabilities. The server owns and joins its connection futures; it requires no hidden tasks, boxed bodies or concrete runtime.
 
-Handlers are generic over incoming body and interim-response hook types. The associated `Body<B>` selects the outgoing representation. For a streaming echo, it is simply `B`:
+Applications implement `base-http`'s shared request interface, `Handler`, for `ServerContext`, which the server passes with each request. The context carries the connection's `Peer`, its addresses and, over TLS, the negotiated application protocol, and the hook for sending interim responses, which the server writes while it continues to poll the handler. The same interface is implemented by clients, so middleware generic over the context wraps either. Handlers are generic over the incoming body; the associated `Body<B>` selects the outgoing representation. For a streaming echo, it is simply `B`:
 
 ```rust
-use base_http::{InterimHandler, InterimResponses, Request, Response, Status, body::ReadableBody};
-use base_http_server::Handler;
+use base_http::{Request, Response, Status, body::ReadableBody};
+use base_http_server::{Handler, ServerContext};
 use base_scheduler::Cancellation;
 use std::convert::Infallible;
 
 struct Echo;
-impl<'h> Handler<'h> for Echo {
+impl<'h> Handler<'h, ServerContext> for Echo {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = B;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<B>, Infallible> {
         Ok(Response::new(Status::OK, request.body))
     }
 }
 ```
+
+A request body is an independent value: a handler can pass it to work that outlives the call, such as a client forwarding it upstream. The connection reads the next request once that body has ended or been dropped, and takes its input back when it is cancelled or fails.
 
 Static handlers can use `BufferedBody`; imperative producers can return `BodyReader` and supervise their `BodyWriter` producer explicitly. There is one pull-body model. A handler may send interim heads while processing input. Returning a readable body that owns input also supports managed CONNECT and upgrade exchanges.
 

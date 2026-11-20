@@ -24,7 +24,7 @@ Inspect each manifest: the fixtures crate is unpublished and every dependency on
 
 ### Requirement
 
-`ServerContext::run` binds its listener before serving and before the test starts, so the client never races the server's start. It runs the test beside the server and the client's driver, then tears down in order: the client stops accepting calls and retires its connections, then the server stops, closing its listener and joining its connections. The test and teardown are each bounded by a configurable time; exceeding either fails the test, and a forced teardown cancels the client and server and still joins them. Joining after a forced teardown relies on the client, server and handlers observing cancellation, and on raw peers' I/O timeouts; it has no second deadline. A panic in the test propagates after teardown, ahead of any server failure. A test also fails when the server fails or a client connection remains after teardown. `ClientContext` gives a client of another endpoint the same bounds and teardown.
+`ServerFixture::run` binds its listener before serving and before the test starts, so the client never races the server's start. It runs the test beside the server and the client's driver, then tears down in order: the client stops accepting calls and retires its connections, then the server stops, closing its listener and joining its connections. The test and teardown are each bounded by a configurable time; exceeding either fails the test, and a forced teardown cancels the client and server and still joins them. Joining after a forced teardown relies on the client, server and handlers observing cancellation, and on raw peers' I/O timeouts; it has no second deadline. A panic in the test propagates after teardown, ahead of any server failure. A test also fails when the server fails or a client connection remains after teardown. `ClientFixture` gives a client of another endpoint the same bounds and teardown.
 
 ### Rationale
 
@@ -32,7 +32,7 @@ Rust has no asynchronous destructor, so a fixture which leaves teardown to the t
 
 ### Scope
 
-`ServerContext`, `ClientContext` and `Context` in `crates/fixtures/src/context.rs`.
+`ServerFixture`, `ClientFixture` and `Context` in `crates/fixtures/src/context.rs`.
 
 ### Validation
 
@@ -42,7 +42,7 @@ Rust has no asynchronous destructor, so a fixture which leaves teardown to the t
 
 ### Requirement
 
-`ServerContext::run_spawned` creates a two-worker Native scheduler, binds the listener, then spawns the server's public entry point, `base_http_server::serve` or `serve_tls`, as one task through `base_scheduler::Spawn`, so the server runs on the scheduler's workers in parallel with a client driven from the test's thread. It takes ownership of the application and owns the scheduler for the whole run; the test receives the same `Context<'_, NativeScheduler, H>` as `run`, with the application as `&H`. Any sharing between the test and the server's task, such as an `Arc`, stays inside the fixture and is not part of its public API. The fixture relies only on the server running on the scheduler's workers. It adds nothing to `base-http-server`'s public API and does not choose how connections are spread across tasks or workers. The application must be `Handler + Send + Sync + 'static`, as a server which spawned its own connection tasks would need.
+`ServerFixture::run_spawned` creates a two-worker Native scheduler, binds the listener, then spawns the server's public entry point, `base_http_server::serve` or `serve_tls`, as one task through `base_scheduler::Spawn`, so the server runs on the scheduler's workers in parallel with a client driven from the test's thread. It takes ownership of the application and owns the scheduler for the whole run; the test receives the same `Context<'_, NativeScheduler, H>` as `run`, with the application as `&H`. Any sharing between the test and the server's task, such as an `Arc`, stays inside the fixture and is not part of its public API. The fixture relies only on the server running on the scheduler's workers. It adds nothing to `base-http-server`'s public API and does not choose how connections are spread across tasks or workers. The application must be `Handler + Send + Sync + 'static`, as a server which spawned its own connection tasks would need.
 
 `run_spawned` has the guarantees of `run`: the listener is bound before the test starts, the test is bounded, the client retires its connections before the server stops, a server error fails the test, a server panic is resumed with its original payload, and a test failure is reported before any server failure, which is printed to stderr first. After the test, the server is cancelled and joined for at most the teardown timeout, and fails the test if it overruns. That timeout is measured on its own thread rather than by the scheduler's clock, so a server occupying every worker, such as a handler which blocks, still fails on time. Native's stall rescue, on by default since scheduler 0.5, also lets the scheduler's clock bound the join, but it can be turned off with `stall_rescue: false`, and Native then strands a timer behind the busy worker. The fixture keeps the own-thread deadline so it does not depend on rescue; it can be removed once Native fires timers behind a busy worker in every configuration. The test's timeout and the client's teardown, in `supervise` and `bounded`, are still measured by the scheduler's clock, so they are bounded only while the scheduler's timers can run. The scheduler is then shut down, and Native drains its tasks, so the call does not return until an overrunning server's current poll returns. A poll which never returns cannot be preempted and hangs the test after the failure is reported, so teardown is bounded only for servers whose polls return. The scoped `run` and `run_on` are unchanged.
 
@@ -52,7 +52,7 @@ Rust has no asynchronous destructor, so a fixture which leaves teardown to the t
 
 ### Scope
 
-`ServerContext::run_spawned` and its private spawning, joining and scheduler helpers in `crates/fixtures/src/context.rs`.
+`ServerFixture::run_spawned` and its private spawning, joining and scheduler helpers in `crates/fixtures/src/context.rs`.
 
 ### Validation
 

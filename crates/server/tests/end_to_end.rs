@@ -1,9 +1,9 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
+use base_http_server::{HandlerContext, ServerContext};
 
 use base_http::{
-    Fields, HttpHeaders, InterimHandler, InterimResponses, Method, Request, RequestMetadata,
-    Response, ResponseMetadata, Status,
+    Fields, HttpHeaders, Method, Request, RequestMetadata, Response, ResponseMetadata, Status,
     body::{BodyFrame, BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_server::{Error, Handler};
@@ -26,17 +26,18 @@ use support::*;
 struct Collect {
     seen: Arc<Mutex<Vec<(RequestMetadata, HttpHeaders)>>>,
 }
-impl<'h> Handler<'h> for Collect {
+impl<'h> Handler<'h, ServerContext> for Collect {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         if request.fields.contains("expect") {
-            interim
+            context
+                .interim()
                 .send_interim_response(ResponseMetadata::new(Status::CONTINUE), cancellation)
                 .await
                 .map_err(io::Error::other)?;
@@ -46,7 +47,8 @@ impl<'h> Handler<'h> for Collect {
             hint.fields
                 .add("Link", "</style.css>; rel=preload")
                 .unwrap();
-            interim
+            context
+                .interim()
                 .send_interim_response(hint, cancellation)
                 .await
                 .map_err(io::Error::other)?;
@@ -168,13 +170,13 @@ fn head_and_bodyless_statuses_do_not_emit_representation_bytes() {
 }
 
 struct Echo;
-impl<'h> Handler<'h> for Echo {
+impl<'h> Handler<'h, ServerContext> for Echo {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = B;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<B>, io::Error> {
         let status = if request.method == Method::CONNECT {
@@ -264,13 +266,13 @@ fn upgrade_keeps_managed_duplex_body_and_buffered_input() {
 struct Producer {
     body: Mutex<Option<BodyReader>>,
 }
-impl<'h> Handler<'h> for Producer {
+impl<'h> Handler<'h, ServerContext> for Producer {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BodyReader;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BodyReader>, io::Error> {
         Ok(Response::new(
@@ -335,13 +337,13 @@ fn http10_unknown_body_is_close_delimited() {
 
 /// Responds with `data` and then a trailer, with a known length on `/length`.
 struct Trailed;
-impl<'h> Handler<'h> for Trailed {
+impl<'h> Handler<'h, ServerContext> for Trailed {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BodyReader;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<BodyReader>, io::Error> {
         let (reader, mut writer) = match request.path.as_deref() {
@@ -441,13 +443,13 @@ fn truncated_and_invalid_chunked_bodies_fail_without_a_successful_response() {
 
 /// Fails every request, after sending an early hint for `/hints` or reading the whole body for `/read`.
 struct Fail;
-impl<'h> Handler<'h> for Fail {
+impl<'h> Handler<'h, ServerContext> for Fail {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         if request.path.as_deref() == Some("/read") {
@@ -459,7 +461,8 @@ impl<'h> Handler<'h> for Fail {
             {}
         }
         if request.path.as_deref() == Some("/hints") {
-            interim
+            context
+                .interim()
                 .send_interim_response(ResponseMetadata::new(Status::EARLY_HINTS), cancellation)
                 .await
                 .map_err(io::Error::other)?;
@@ -518,18 +521,19 @@ fn handler_errors_respond_with_a_server_error_and_close_the_connection() {
 }
 
 struct Invalid;
-impl<'h> Handler<'h> for Invalid {
+impl<'h> Handler<'h, ServerContext> for Invalid {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         let response = match request.path.as_deref() {
             Some("/hints") => {
-                interim
+                context
+                    .interim()
                     .send_interim_response(ResponseMetadata::new(Status::EARLY_HINTS), cancellation)
                     .await
                     .map_err(io::Error::other)?;
@@ -614,13 +618,13 @@ fn invalid_responses_respond_with_a_server_error_and_close_the_connection() {
 
 // A replaced body which keeps the received declaration.
 struct Stale;
-impl<'h> Handler<'h> for Stale {
+impl<'h> Handler<'h, ServerContext> for Stale {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _request: Request<B>,
-        _interim: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         let mut response = Response::new(Status::OK, BufferedBody::from(b"hello".to_vec()));
@@ -688,13 +692,13 @@ fn cancellation_of_pending_output_retires_lanes_and_wakes_producer() {
 }
 
 struct Never(Arc<AtomicBool>);
-impl<'h> Handler<'h> for Never {
+impl<'h> Handler<'h, ServerContext> for Never {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         self.0.store(true, Ordering::Release);
@@ -722,13 +726,13 @@ fn cancellation_interrupts_a_handler_that_ignores_its_signal() {
 }
 
 struct PendingRead(Arc<AtomicBool>);
-impl<'h> Handler<'h> for PendingRead {
+impl<'h> Handler<'h, ServerContext> for PendingRead {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         use std::{
@@ -777,13 +781,13 @@ struct Count {
     active: Arc<AtomicUsize>,
     maximum: Arc<AtomicUsize>,
 }
-impl<'h> Handler<'h> for Count {
+impl<'h> Handler<'h, ServerContext> for Count {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         self.started.fetch_add(1, Ordering::SeqCst);
@@ -953,13 +957,13 @@ fn listener_accepts_new_peers_while_previous_connections_retire() {
     });
     block_on(scheduler.shutdown());
 }
-impl<'h> Handler<'h> for OneThenPending {
+impl<'h> Handler<'h, ServerContext> for OneThenPending {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         if request.path.as_deref() == Some("/pending") {
@@ -975,13 +979,13 @@ impl<'h> Handler<'h> for OneThenPending {
 }
 
 struct Early;
-impl<'h> Handler<'h> for Early {
+impl<'h> Handler<'h, ServerContext> for Early {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         Ok(Response::new(
@@ -1065,13 +1069,13 @@ struct Racing {
     clock: Arc<base_scheduler_native::NativeScheduler>,
     timeouts: Arc<AtomicUsize>,
 }
-impl<'h> Handler<'h> for Racing {
+impl<'h> Handler<'h, ServerContext> for Racing {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         let mut data = Vec::new();

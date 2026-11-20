@@ -5,11 +5,12 @@
 //! through the pooled client, and joins the HTTP and transport cleanup.
 use base_endpoint::{AddressEndpoint, BindEndpoint, BindOptions};
 use base_http::{
-    InterimHandler, InterimResponses, Method, Request, RequestMetadata, Response, Status,
+    Method, Request, RequestMetadata, Response, Status,
     body::{BodyFrame, BufferedBody, ReadableBody},
 };
 use base_http_client::{Client, Endpoint};
 use base_http_server::Handler;
+use base_http_server::ServerContext;
 use base_scheduler::{Cancellation, SocketAccept, SocketClose, SocketLocalAddress};
 use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};
@@ -17,13 +18,13 @@ use std::{convert::Infallible, future::Future, net::SocketAddr};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 struct Echo;
-impl<'h> Handler<'h> for Echo {
+impl<'h> Handler<'h, ServerContext> for Echo {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = B;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> std::result::Result<Response<B>, Infallible> {
         Ok(Response::new(Status::OK, request.body))

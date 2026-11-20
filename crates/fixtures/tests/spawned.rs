@@ -2,18 +2,16 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! A spawned server runs on the scheduler's workers beside a client driven from the test's thread, and reports each way it can fail, in order.
-use base_http::{
-    InterimHandler, InterimResponses, Method, Request, Response, Status, body::EmptyBody,
-    body::ReadableBody,
-};
-use base_http_fixtures::{Context, Hello, ServerContext, body::payload, protocol::App};
+use base_http::{Method, Request, Response, Status, body::EmptyBody, body::ReadableBody};
+use base_http_fixtures::{Context, Hello, ServerFixture, body::payload, protocol::App};
 use base_http_server::Handler;
+use base_http_server::ServerContext;
 use base_scheduler::Cancellation;
 use base_scheduler_native::NativeScheduler;
 use std::{convert::Infallible, io::Read};
 
-fn failing() -> ServerContext {
-    ServerContext::new().server_options(base_http_server::Options {
+fn failing() -> ServerFixture {
+    ServerFixture::new().server_options(base_http_server::Options {
         max_connections: 0,
         ..Default::default()
     })
@@ -21,7 +19,7 @@ fn failing() -> ServerContext {
 
 #[test]
 fn a_spawned_server_serves_a_client_and_a_raw_peer() {
-    ServerContext::new().run_spawned(async |context: &Context<'_, NativeScheduler, Hello>| {
+    ServerFixture::new().run_spawned(async |context: &Context<'_, NativeScheduler, Hello>| {
         let _: &Hello = context.handler();
         let mut response = context
             .client()
@@ -46,7 +44,7 @@ fn a_spawned_server_serves_a_client_and_a_raw_peer() {
 
 #[test]
 fn a_spawned_run_shares_the_application_with_the_server() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(App::new())
         .run_spawned(async |context| {
             let app: &App = context.handler();
@@ -58,7 +56,7 @@ fn a_spawned_run_shares_the_application_with_the_server() {
 #[test]
 #[should_panic(expected = "the test failed")]
 fn a_test_panic_propagates_from_a_spawned_run() {
-    ServerContext::new().run_spawned(async |_| panic!("the test failed"));
+    ServerFixture::new().run_spawned(async |_| panic!("the test failed"));
 }
 
 #[test]
@@ -77,14 +75,14 @@ fn a_test_panic_is_reported_before_a_spawned_server_failure() {
 /// Panics in every call.
 struct Panicking;
 
-impl<'h> Handler<'h> for Panicking {
+impl<'h> Handler<'h, ServerContext> for Panicking {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = EmptyBody;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<EmptyBody>, Infallible> {
         panic!("the handler panicked")
@@ -105,7 +103,7 @@ async fn panic_the_server<H>(context: &Context<'_, NativeScheduler, H>) {
 #[test]
 #[should_panic(expected = "the handler panicked")]
 fn a_spawned_server_panic_is_resumed() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Panicking)
         .run_spawned(async |context| panic_the_server(context).await);
 }
@@ -114,7 +112,7 @@ fn a_spawned_server_panic_is_resumed() {
 #[test]
 #[should_panic(expected = "the test failed first")]
 fn a_test_panic_is_reported_before_a_spawned_server_panic() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Panicking)
         .run_spawned(async |context| {
             panic_the_server(context).await;

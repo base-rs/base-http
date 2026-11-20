@@ -3,11 +3,11 @@
 
 //! The shared protocol cases, run between this client and the Base server for each HTTP version and transport.
 use base_http::Version;
-use base_http_fixtures::{Context, ServerContext, protocol::App};
+use base_http_fixtures::{Context, ServerFixture, protocol::App};
 use base_scheduler_native::NativeScheduler;
 
-fn serve(app: App, version: Version) -> ServerContext<App> {
-    ServerContext::new().handler(app).version(version)
+fn serve(app: App, version: Version) -> ServerFixture<App> {
+    ServerFixture::new().handler(app).version(version)
 }
 
 fn http11(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {

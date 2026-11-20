@@ -4,11 +4,11 @@
 //! The [`protocol_tests!`](crate::protocol_tests) suite, ported from `async-http`'s `AProtocol` shared behaviour.
 //!
 //! One application, [`App`], serves every case on its own route, so a runner only chooses how to serve and connect: the HTTP version, options and transport. Each case is a standalone `pub async fn` taking the running [`Context`], so a partial implementation can call a subset. The cases address the application through `H: Borrow<App>`, so a test can wrap it to change its behaviour.
+use base_http_server::{HandlerContext, ServerContext};
 
 use crate::{Context, Latch, Scheduler, body};
 use base_http::{
-    Fields, InterimHandler, InterimResponses, Method, Request, Response, ResponseMetadata, Status,
-    Version,
+    Fields, Method, Request, Response, ResponseMetadata, Status, Version,
     body::{BodyError, BodyFrame, BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_server::Handler;
@@ -82,14 +82,14 @@ fn text(status: Status, text: impl Into<Vec<u8>>) -> Response<BufferedBody<Vec<u
     Response::new(status, BufferedBody::from(text.into()))
 }
 
-impl<'h> Handler<'h> for App {
+impl<'h> Handler<'h, ServerContext> for App {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<Reply<B>>, io::Error> {
         let version = request.version.unwrap_or(Version::Http11);
@@ -123,7 +123,10 @@ impl<'h> Handler<'h> for App {
                 let mut hint = ResponseMetadata::new(Status::EARLY_HINTS);
                 hint.fields.add("link", LINK).expect("valid field");
                 // HTTP/1.0 has no interim responses, so the server refuses this one; a hint is advisory and its failure does not prevent the final response.
-                let _ = interim.send_interim_response(hint, cancellation).await;
+                let _ = context
+                    .interim()
+                    .send_interim_response(hint, cancellation)
+                    .await;
                 text(Status::OK, "Hello World")
             }
             (_, "/request-trailer") => {
@@ -747,15 +750,15 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
 
 /// Generate `#[test]` functions for the version-independent protocol cases, ported from `async-http`'s `AProtocol`.
 ///
-/// The runner receives a fresh [`App`] and an async closure taking the running [`Context`]. It chooses the version, options and transport, typically by serving the application with a [`ServerContext`](crate::ServerContext), and owns the deadline. [`ServerContext::run`](crate::ServerContext::run) runs the server, the client and the case on the test's thread, which is reproducible; [`ServerContext::run_spawned`](crate::ServerContext::run_spawned) runs the server on the scheduler's workers in parallel with the client, which can expose cross-thread wake-up bugs and races. Invoke it inside a dedicated module:
+/// The runner receives a fresh [`App`] and an async closure taking the running [`Context`]. It chooses the version, options and transport, typically by serving the application with a [`ServerFixture`](crate::ServerFixture), and owns the deadline. [`ServerFixture::run`](crate::ServerFixture::run) runs the server, the client and the case on the test's thread, which is reproducible; [`ServerFixture::run_spawned`](crate::ServerFixture::run_spawned) runs the server on the scheduler's workers in parallel with the client, which can expose cross-thread wake-up bugs and races. Invoke it inside a dedicated module:
 ///
 /// ```
 /// use base_http::Version;
-/// use base_http_fixtures::{Context, ServerContext, protocol::App};
+/// use base_http_fixtures::{Context, ServerFixture, protocol::App};
 /// use base_scheduler_native::NativeScheduler;
 ///
 /// fn http10(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
-///     ServerContext::new()
+///     ServerFixture::new()
 ///         .handler(app)
 ///         .version(Version::Http10)
 ///         .run(test);
@@ -767,7 +770,7 @@ pub async fn response_trailer<S: Scheduler, H: Borrow<App>>(context: &Context<'_
 ///
 /// // The same cases with the server spawned onto the scheduler's workers, in parallel with the client.
 /// fn http10_spawned(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
-///     ServerContext::new()
+///     ServerFixture::new()
 ///         .handler(app)
 ///         .version(Version::Http10)
 ///         .run_spawned(test);

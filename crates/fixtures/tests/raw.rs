@@ -7,7 +7,7 @@ use base_http::{
     body::{EmptyBody, ReadableBody},
 };
 use base_http_fixtures::{
-    ClientContext, Latch, RawPeer, RawServer, ServerContext,
+    ClientFixture, Latch, RawPeer, RawServer, ServerFixture,
     body::{self, payload},
     error_chain,
     protocol::{App, DUPLEX_BODY, DUPLEX_CHUNK, duplex_data},
@@ -117,7 +117,7 @@ fn a_raw_server_panic_propagates_on_join() {
 #[test]
 fn a_truncated_body_fails_the_client_read() {
     let server = RawServer::truncate_body(10, b"short");
-    ClientContext::new(server.endpoint()).run(async |client| {
+    ClientFixture::new(server.endpoint()).run(async |client| {
         let mut response = client.call(get(), &Cancellation::never()).await.unwrap();
         let error = body::collect(&mut response.body, &Cancellation::never())
             .await
@@ -137,7 +137,7 @@ fn a_stalled_body_waits_for_its_release() {
         "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\n",
         release.clone(),
     );
-    ClientContext::new(server.endpoint()).run(async |client| {
+    ClientFixture::new(server.endpoint()).run(async |client| {
         let mut response = client.call(get(), &Cancellation::never()).await.unwrap();
         assert_eq!(response.status, Status::OK);
         assert!(!response.body.is_ready());
@@ -154,7 +154,7 @@ fn a_stalled_body_waits_for_its_release() {
 #[test]
 fn respond_then_close_serves_one_response() {
     let server = RawServer::respond_then_close("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok");
-    ClientContext::new(server.endpoint()).run(async |client| {
+    ClientFixture::new(server.endpoint()).run(async |client| {
         let mut response = client.call(get(), &Cancellation::never()).await.unwrap();
         assert_eq!(payload(&mut response.body).await, b"ok");
     });
@@ -195,7 +195,7 @@ fn upload_head(length: u64) -> String {
 // The halves of a split peer upload and download at the same time from two threads. Done sequentially on one thread, the upload stalls once the unread echo fills the buffers, as `a_sequential_raw_upload_stalls_under_backpressure` shows.
 #[test]
 fn a_split_raw_peer_uploads_and_downloads_at_once() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(App::new())
         .run(async |context| {
             context
@@ -231,7 +231,7 @@ fn a_split_raw_peer_uploads_and_downloads_at_once() {
 #[test]
 fn a_sequential_raw_upload_stalls_under_backpressure() {
     const DECLARED: u64 = 1 << 30;
-    ServerContext::new()
+    ServerFixture::new()
         .handler(App::new())
         .run(async |context| {
             context

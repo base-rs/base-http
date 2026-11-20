@@ -4,10 +4,11 @@
 //! Run with `cargo run --example client_server` from base-http-server.
 //! Starts one local HTTP/1 connection, echoes a POST body, then joins cleanup.
 use base_http::{
-    InterimHandler, InterimResponses, Method, Request, Response, ResponseMetadata, Status,
+    InterimResponses, Method, Request, Response, ResponseMetadata, Status,
     body::{BodyFrame, BufferedBody, ReadableBody},
 };
 use base_http_server::Handler;
+use base_http_server::ServerContext;
 use base_http1::{RequestWriter, ResponseReader};
 use base_scheduler::{
     Cancellation, SocketAccept, SocketBind, SocketClose, SocketConnect, SocketListen,
@@ -21,14 +22,14 @@ type DemoResult<T> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 struct Echo;
 
-impl<'h> Handler<'h> for Echo {
+impl<'h> Handler<'h, ServerContext> for Echo {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = B;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<B>, Infallible> {
         // The response streams directly from the incoming request body.

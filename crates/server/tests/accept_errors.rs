@@ -5,15 +5,16 @@
 
 // Real TCP connections served through a scheduler that injects scripted accept failures and records the order in which sockets close.
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
+use base_http_server::ServerContext;
 use base_http_server::{Error, Handler, Options, Statistics};
 use base_scheduler::{
     BufferPool, BufferPoolOptions, BufferPooling, Cancellation, Clock, IoBuf, OperationError,
-    OperationResult, SocketAccept, SocketAddress, SocketClose, SocketOperation, SocketPeerAddress,
-    SocketSetOption, SocketStreamReader, SocketStreamReading, SocketStreamWriter,
-    SocketStreamWriting, TcpNoDelay,
+    OperationResult, SocketAccept, SocketAddress, SocketClose, SocketLocalAddress, SocketOperation,
+    SocketPeerAddress, SocketSetOption, SocketStreamReader, SocketStreamReading,
+    SocketStreamWriter, SocketStreamWriting, TcpNoDelay,
 };
 use base_scheduler_native::{NativeScheduler, NativeSocket};
 use futures_lite::future::block_on;
@@ -101,6 +102,16 @@ impl SocketSetOption<TcpNoDelay> for Scripted<'_> {
             .socket_set_option(socket, option, value, cancellation)
     }
 }
+impl SocketPeerAddress for Scripted<'_> {
+    fn socket_peer_address(&self, socket: &NativeSocket) -> io::Result<SocketAddress> {
+        self.inner.socket_peer_address(socket)
+    }
+}
+impl SocketLocalAddress for Scripted<'_> {
+    fn socket_local_address(&self, socket: &NativeSocket) -> io::Result<SocketAddress> {
+        self.inner.socket_local_address(socket)
+    }
+}
 impl SocketClose for Scripted<'_> {
     async fn socket_close(&self, socket: NativeSocket) -> io::Result<()> {
         // Only an accepted connection has a peer.
@@ -166,13 +177,13 @@ impl<'a> SocketStreamWriting for Scripted<'a> {
 }
 
 struct Hello;
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         Ok(Response::new(

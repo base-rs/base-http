@@ -1,14 +1,16 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
+use base_http_server::ServerContext;
 
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
 use base_http_server::Handler;
 use base_scheduler::{
-    Cancellation, SocketAccept, SocketClose, SocketRegistration, SocketSetOption,
-    SocketStreamReading, SocketStreamWriting, Spawn, TcpNoDelay,
+    Cancellation, SocketAccept, SocketClose, SocketLocalAddress, SocketPeerAddress,
+    SocketRegistration, SocketSetOption, SocketStreamReading, SocketStreamWriting, Spawn,
+    TcpNoDelay,
 };
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use base_scheduler_tokio::TokioScheduler;
@@ -30,15 +32,15 @@ const MAX_CONNECTIONS: usize = 1024;
 const STALL_RESCUE: bool = true;
 
 struct Hello;
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = BufferedBody<&'static [u8]>;
 
     #[allow(clippy::manual_async_fn)] // Drop the unused request at the service-call boundary.
-    fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> impl std::future::Future<Output = std::result::Result<Response<Self::Body<B>>, Infallible>> + Send
     {
@@ -76,7 +78,9 @@ where
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
-        + SocketClose,
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
 {
     let listener = TcpListener::bind("127.0.0.1:0")?;

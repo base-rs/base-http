@@ -2,10 +2,11 @@
 // Copyright, 2026, by Samuel Williams.
 
 #![cfg(feature = "rustls")]
+use base_http_server::ServerContext;
 
 use base_endpoint::tls::{TlsAcceptor, rustls::RustlsAcceptor};
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
 use base_http_protocol::{HttpProtocols, NegotiationError};
@@ -121,13 +122,13 @@ fn rejected(mut peer: Peer) {
 }
 
 struct Hello;
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         let scheme = request
@@ -136,7 +137,18 @@ impl<'h> Handler<'h> for Hello {
             .unwrap_or_default()
             .as_bytes()
             .to_vec();
-        Ok(Response::new(Status::OK, BufferedBody::from(scheme)))
+        let mut response = Response::new(Status::OK, BufferedBody::from(scheme));
+        let peer = context.peer();
+        let address = peer.address().unwrap().to_string();
+        response.fields.add("x-peer", address.as_str()).unwrap();
+        let encrypted = peer.is_encrypted().to_string();
+        response
+            .fields
+            .add("x-encrypted", encrypted.as_str())
+            .unwrap();
+        let protocol = peer.application_protocol().unwrap_or(b"none");
+        response.fields.add("x-protocol", protocol).unwrap();
+        Ok(response)
     }
 }
 
@@ -153,11 +165,16 @@ fn negotiated_http1_serves_https_requests_on_an_accepted_connection() {
         protocols.alpn_protocols(),
         |mut peer| {
             let negotiated = peer.conn.alpn_protocol().map(<[u8]>::to_vec);
+            let local = peer.sock.local_addr().unwrap().to_string();
             peer.write_all(b"GET / HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
                 .unwrap();
             let mut peer = BufReader::new(peer);
             let response = head(&mut peer);
             assert_eq!(response.status, 200);
+            // The handler's context reports this connection.
+            assert_eq!(response.get("x-peer"), Some(local.as_str()));
+            assert_eq!(response.get("x-encrypted"), Some("true"));
+            assert_eq!(response.get("x-protocol"), Some("http/1.1"));
             let (data, _) = body(&mut peer, &response);
             assert_eq!(peer.read(&mut [0]).unwrap(), 0);
             (negotiated, data)

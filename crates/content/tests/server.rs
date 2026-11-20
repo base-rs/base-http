@@ -2,13 +2,14 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Reading content in a `base-http-server` handler, over real connections.
+use base_http_server::ServerContext;
 
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
 use base_http_content::{FileStore, read_content};
-use base_http_fixtures::{RawPeer, ServerContext};
+use base_http_fixtures::{RawPeer, ServerFixture};
 use base_http_server::Handler;
 use base_scheduler::Cancellation;
 use base_scheduler_native::NativeScheduler;
@@ -40,14 +41,14 @@ struct Profiles {
     next: Arc<AtomicUsize>,
 }
 
-impl<'h> Handler<'h> for Profiles {
+impl<'h> Handler<'h, ServerContext> for Profiles {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = BufferedBody<Vec<u8>>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<Self::Body<B>>, Infallible> {
         let mut store = FileStore::new(&*self.scheduler, |_: &FieldPath| {
@@ -83,7 +84,7 @@ fn serve<T: Send + 'static>(
         directory: directory.path().to_owned(),
         next: next.clone(),
     };
-    let output = ServerContext::new()
+    let output = ServerFixture::new()
         .handler(profiles)
         .run_spawned(async |context| context.raw(peer).await);
     futures_lite::future::block_on(scheduler.shutdown());
