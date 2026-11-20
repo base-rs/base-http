@@ -450,7 +450,7 @@ impl<R: ReadableStream> ResponseReader<R> {
         self.input.poisoned = false;
         let forbid_content = head.status == Status::RESET_CONTENT && !tunnel;
         let body = IncomingBody::new(
-            &mut self.input,
+            input::Input::Borrowed(&mut self.input),
             exchange,
             framing,
             body_length,

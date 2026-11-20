@@ -249,10 +249,10 @@ fn request_head(peer: &mut impl BufRead) -> (String, Head) {
 struct Echo {
     seen: Arc<Mutex<Vec<RequestMetadata>>>,
 }
-impl Handler for Echo {
+impl<'h> Handler<'h> for Echo {
     type Error = io::Error;
-    type Body<B: ReadableBody> = B;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = B;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         interim: &mut InterimResponses<I>,

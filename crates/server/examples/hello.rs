@@ -17,11 +17,11 @@ use std::{convert::Infallible, net::SocketAddr};
 struct Hello {
     close: bool,
 }
-impl Handler for Hello {
+impl<'h> Handler<'h> for Hello {
     type Error = Infallible;
-    type Body<B: ReadableBody> = BufferedBody<&'static [u8]>;
+    type Body<B: ReadableBody + 'h> = BufferedBody<&'static [u8]>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,

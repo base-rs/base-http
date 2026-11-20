@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::{Error, Options, wire};
+use crate::{Error, Options, lent::Lane, wire};
 use base_endpoint::stream::ReadableStream;
 use base_http::{
     Fields, Method, Request, RequestMetadata, Version,
@@ -215,7 +215,7 @@ impl<R: ReadableStream> RequestReader<R> {
                 .is_none_or(|x| x.is_complete() && !x.is_tunnel() && !x.is_abandoned())
     }
 
-    fn available(&self) -> &[u8] {
+    pub(crate) fn available(&self) -> &[u8] {
         &self.buffer[self.start..self.end]
     }
 
@@ -326,6 +326,27 @@ impl<R: ReadableStream> RequestReader<R> {
         &mut self,
         cancellation: &Cancellation,
     ) -> Result<Option<(Request<IncomingBody<'_, R>>, Exchange)>, Error> {
+        let Some((head, exchange, framing, length)) = self.read_request_head(cancellation).await?
+        else {
+            return Ok(None);
+        };
+        let body = IncomingBody::new(
+            Input::Borrowed(self),
+            exchange.clone(),
+            framing,
+            length,
+            false,
+            false,
+        );
+        Ok(Some((Request::from_parts(head, body), exchange)))
+    }
+
+    /// Read and validate one request head, recording its exchange. Returns
+    /// the head, its exchange, the body framing and the known body length.
+    pub(crate) async fn read_request_head(
+        &mut self,
+        cancellation: &Cancellation,
+    ) -> Result<Option<(RequestMetadata, Exchange, Framing, Option<u64>)>, Error> {
         cancellation.check()?;
         if !self.is_reusable() {
             return Err(Error::Invalid("request input is not reusable"));
@@ -376,19 +397,12 @@ impl<R: ReadableStream> RequestReader<R> {
         let exchange = Exchange::from_request(&head, facts);
         self.previous = Some(exchange.clone());
         self.poisoned = false;
-        let body = IncomingBody::new(
-            self,
-            exchange.clone(),
-            framing,
-            if chunked {
-                None
-            } else {
-                Some(length.unwrap_or(0))
-            },
-            false,
-            false,
-        );
-        Ok(Some((Request::from_parts(head, body), exchange)))
+        let length = if chunked {
+            None
+        } else {
+            Some(length.unwrap_or(0))
+        };
+        Ok(Some((head, exchange, framing, length)))
     }
 
     /// Establish backend retirement even after cancellation or parse failure.
@@ -447,16 +461,27 @@ impl Framing {
     };
 }
 
-/// A pull body borrowing the connection's input lane. Returning it as the
-/// response body provides streaming echo and managed duplex tunnels without
-/// boxing, queueing, spawning, or transferring socket ownership.
+/// A pull body over the connection's input lane, which it either borrows for
+/// the exchange or, from [`LentInput`](crate::LentInput), borrows for one read at a time.
+/// Returning it as the response body provides streaming echo and managed
+/// duplex tunnels without boxing, queueing, spawning, or transferring socket
+/// ownership.
 ///
 /// Reads are cancellation safe: dropping a pending read, or cancelling its
 /// wait, loses no input, and a later read resumes at the same position. This
 /// relies on `R` transferring bytes only within a `read_into` poll that returns
 /// them, as scheduler socket readers and the TLS stream do.
 pub struct IncomingBody<'a, R> {
-    input: &'a mut RequestReader<R>,
+    input: Input<'a, R>,
+    state: BodyState,
+}
+
+pub(crate) enum Input<'a, R> {
+    Borrowed(&'a mut RequestReader<R>),
+    Lent(Lane<R>),
+}
+
+pub(crate) struct BodyState {
     exchange: Exchange,
     framing: Framing,
     length: Option<u64>,
@@ -468,7 +493,7 @@ pub struct IncomingBody<'a, R> {
 
 impl<'a, R: ReadableStream> IncomingBody<'a, R> {
     pub(crate) fn new(
-        input: &'a mut RequestReader<R>,
+        input: Input<'a, R>,
         exchange: Exchange,
         framing: Framing,
         length: Option<u64>,
@@ -479,17 +504,60 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
         exchange.set_complete(complete);
         Self {
             input,
-            exchange,
-            framing,
-            length,
-            complete,
-            closed: false,
-            raw,
-            forbid_content,
+            state: BodyState {
+                exchange,
+                framing,
+                length,
+                complete,
+                closed: false,
+                raw,
+                forbid_content,
+            },
         }
     }
-    async fn read_inner(
+}
+
+impl BodyState {
+    /// Whether a read can return without input: the body ended or was closed,
+    /// and no protocol switch has since turned it into raw input.
+    pub(crate) fn is_finished(&self) -> bool {
+        self.closed || (self.complete && (self.raw || !self.exchange.is_tunnel()))
+    }
+
+    pub(crate) async fn read<R: ReadableStream>(
         &mut self,
+        input: &mut RequestReader<R>,
+        cancellation: &Cancellation,
+    ) -> Result<BodyFrame<Vec<u8>>, Error> {
+        if input.poisoned {
+            return Err(Error::Invalid("previous body read failed"));
+        }
+        // `read_inner` records each consumption before its next wait, so a
+        // dropped read or a cancelled wait loses nothing and a later read
+        // resumes. Any other failure leaves the input position unknown.
+        let result = self
+            .read_inner(input, cancellation)
+            .await
+            .and_then(|chunk| {
+                if self.forbid_content
+                    && matches!(&chunk, BodyFrame::Data { data, .. } if !data.is_empty())
+                {
+                    Err(Error::Invalid("content on 205"))
+                } else {
+                    Ok(chunk)
+                }
+            });
+        match &result {
+            Ok(_) => self.exchange.set_complete(self.complete),
+            Err(Error::Cancelled) => {}
+            Err(_) => input.poisoned = true,
+        }
+        result
+    }
+
+    async fn read_inner<R: ReadableStream>(
+        &mut self,
+        input: &mut RequestReader<R>,
         cancellation: &Cancellation,
     ) -> Result<BodyFrame<Vec<u8>>, Error> {
         if self.exchange.is_tunnel() && !self.raw {
@@ -501,23 +569,24 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
         }
         loop {
             if self.raw {
-                if self.input.available().is_empty() && !self.input.fill(cancellation).await? {
+                if input.available().is_empty() && !input.fill(cancellation).await? {
                     self.complete = true;
                     return Ok(BodyFrame::End);
                 }
+                let n = input.available().len();
                 return Ok(BodyFrame::Data {
-                    data: self.input.take(self.input.available().len()),
+                    data: input.take(n),
                     end: false,
                 });
             }
             match &mut self.framing {
                 Framing::Fixed(remaining) => {
-                    if self.input.available().is_empty() && !self.input.fill(cancellation).await? {
+                    if input.available().is_empty() && !input.fill(cancellation).await? {
                         return Err(Error::Truncated);
                     }
-                    let n = (*remaining).min(self.input.available().len() as u64) as usize;
+                    let n = (*remaining).min(input.available().len() as u64) as usize;
                     *remaining -= n as u64;
-                    let data = self.input.take(n);
+                    let data = input.take(n);
                     if *remaining == 0 {
                         self.complete = true;
                     }
@@ -532,15 +601,13 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
                     trailers,
                 } => {
                     if *remaining != 0 {
-                        if self.input.available().is_empty()
-                            && !self.input.fill(cancellation).await?
-                        {
+                        if input.available().is_empty() && !input.fill(cancellation).await? {
                             return Err(Error::Truncated);
                         }
-                        let n = (*remaining).min(self.input.available().len() as u64) as usize;
+                        let n = (*remaining).min(input.available().len() as u64) as usize;
                         *remaining -= n as u64;
                         return Ok(BodyFrame::Data {
-                            data: self.input.take(n),
+                            data: input.take(n),
                             end: false,
                         });
                     }
@@ -549,21 +616,19 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
                     // at the same position.
                     if !*trailers {
                         if *delimiter {
-                            while self.input.available().len() < 2 {
-                                if !self.input.fill(cancellation).await? {
+                            while input.available().len() < 2 {
+                                if !input.fill(cancellation).await? {
                                     return Err(Error::Truncated);
                                 }
                             }
-                            if !self.input.available().starts_with(b"\r\n") {
+                            if !input.available().starts_with(b"\r\n") {
                                 return Err(Error::Invalid("missing chunk delimiter"));
                             }
-                            self.input.start += 2;
+                            input.start += 2;
                             *delimiter = false;
                         }
-                        let line = self
-                            .input
-                            .line(self.input.options.max_chunk_line_bytes, cancellation)
-                            .await?;
+                        let limit = input.options.max_chunk_line_bytes;
+                        let line = input.line(limit, cancellation).await?;
                         let size = chunk_size(&line)?;
                         if size != 0 {
                             *remaining = size;
@@ -572,7 +637,7 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
                         }
                         *trailers = true;
                     }
-                    let mut fields = self.input.trailers(cancellation).await?;
+                    let mut fields = input.trailers(cancellation).await?;
                     self.exchange.filter_trailers(&mut fields);
                     self.complete = true;
                     return Ok(BodyFrame::Headers { fields, end: true });
@@ -582,61 +647,61 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
     }
 }
 
-impl<R: ReadableStream> ReadableBody for IncomingBody<'_, R> {
+impl<R: ReadableStream + Send> ReadableBody for IncomingBody<'_, R> {
     type Data = Vec<u8>;
     type Error = Error;
     fn may_have_trailers(&self) -> bool {
-        !self.raw && !self.exchange.is_tunnel() && matches!(self.framing, Framing::Chunked { .. })
+        let state = &self.state;
+        !state.raw
+            && !state.exchange.is_tunnel()
+            && matches!(state.framing, Framing::Chunked { .. })
     }
     fn is_ready(&self) -> bool {
-        !self.input.available().is_empty() || self.complete || self.closed
+        let state = &self.state;
+        state.complete
+            || state.closed
+            || match &self.input {
+                Input::Borrowed(input) => !input.available().is_empty(),
+                Input::Lent(lane) => lane.has_available(),
+            }
     }
     fn is_empty(&self) -> bool {
-        (self.complete && !self.exchange.is_tunnel()) || self.closed
+        let state = &self.state;
+        (state.complete && !state.exchange.is_tunnel()) || state.closed
     }
     fn length(&self) -> Option<u64> {
-        if self.exchange.is_tunnel() {
+        if self.state.exchange.is_tunnel() {
             None
         } else {
-            self.length
+            self.state.length
         }
     }
     fn close(&mut self, _: Option<Error>) {
-        if !self.complete {
-            self.exchange.abandon();
+        if !self.state.complete {
+            self.state.exchange.abandon();
         }
-        self.closed = true;
+        self.state.closed = true;
+        if let Input::Lent(lane) = &self.input {
+            lane.release();
+        }
     }
     async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Error> {
         cancellation.check()?;
-        if self.input.poisoned {
-            return Err(Error::Invalid("previous body read failed"));
+        let Self { input, state } = self;
+        match input {
+            Input::Borrowed(input) => state.read(input, cancellation).await,
+            // A finished body needs no input, which its connection may
+            // already have taken back for the next request.
+            Input::Lent(_) if state.is_finished() => Ok(BodyFrame::End),
+            Input::Lent(lane) => lane.read(state, cancellation).await,
         }
-        // `read_inner` records each consumption before its next wait, so a
-        // dropped read or a cancelled wait loses nothing and a later read
-        // resumes. Any other failure leaves the input position unknown.
-        let result = self.read_inner(cancellation).await.and_then(|chunk| {
-            if self.forbid_content
-                && matches!(&chunk, BodyFrame::Data { data, .. } if !data.is_empty())
-            {
-                Err(Error::Invalid("content on 205"))
-            } else {
-                Ok(chunk)
-            }
-        });
-        match &result {
-            Ok(_) => self.exchange.set_complete(self.complete),
-            Err(Error::Cancelled) => {}
-            Err(_) => self.input.poisoned = true,
-        }
-        result
     }
 }
 
 impl<R> Drop for IncomingBody<'_, R> {
     fn drop(&mut self) {
-        if !self.complete {
-            self.exchange.abandon();
+        if !self.state.complete {
+            self.state.exchange.abandon();
         }
     }
 }

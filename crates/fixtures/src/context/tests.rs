@@ -11,11 +11,11 @@ struct Blocking {
     release: Latch,
 }
 
-impl Handler for Blocking {
+impl<'h> Handler<'h> for Blocking {
     type Error = Infallible;
-    type Body<B: ReadableBody> = EmptyBody;
+    type Body<B: ReadableBody + 'h> = EmptyBody;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,

@@ -37,11 +37,11 @@ pub const TEARDOWN_TIMEOUT: Duration = Duration::from_secs(5);
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Hello;
 
-impl Handler for Hello {
+impl<'h> Handler<'h> for Hello {
     type Error = Infallible;
-    type Body<B: ReadableBody> = BufferedBody<&'static [u8]>;
+    type Body<B: ReadableBody + 'h> = BufferedBody<&'static [u8]>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,
@@ -196,7 +196,7 @@ impl<H> ServerContext<H> {
     }
 }
 
-impl<H: Handler> ServerContext<H> {
+impl<H: for<'h> Handler<'h>> ServerContext<H> {
     /// Run `test` with a fresh Native scheduler, which is shut down afterwards.
     pub fn run<T>(self, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, H>) -> T) -> T {
         native(|scheduler| self.run_on(scheduler, test))
@@ -284,7 +284,7 @@ impl<H: Handler> ServerContext<H> {
     }
 }
 
-impl<H: Handler + Send + Sync + 'static> ServerContext<H> {
+impl<H: for<'h> Handler<'h> + Send + Sync + 'static> ServerContext<H> {
     /// Run `test` against a server spawned onto the workers of a fresh two-worker Native scheduler, with the client driven from the test's thread, then stop the server and shut the scheduler down.
     ///
     /// Unlike [`ServerContext::run`], the server makes progress on the scheduler's workers rather than on the test's thread, so it runs in parallel with the client. That exposes cross-thread wake-ups and races which a single `block_on` hides, at the cost of reproducible interleavings. The fixture relies only on the server running on the scheduler's workers; how the server spreads its connections across them is the server's choice and may change. The context owns the scheduler and the application, so the application must be `Send + Sync + 'static`, as a server spawning its own tasks needs.

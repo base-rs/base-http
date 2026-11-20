@@ -82,11 +82,11 @@ fn text(status: Status, text: impl Into<Vec<u8>>) -> Response<BufferedBody<Vec<u
     Response::new(status, BufferedBody::from(text.into()))
 }
 
-impl Handler for App {
+impl<'h> Handler<'h> for App {
     type Error = io::Error;
-    type Body<B: ReadableBody> = Reply<B>;
+    type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         interim: &mut InterimResponses<I>,

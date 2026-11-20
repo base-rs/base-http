@@ -199,7 +199,7 @@ target/release/allocation-probe
 python3 experiment.py --wrk /absolute/path/to/wrk
 ```
 
-`profile.py` uses macOS `/usr/bin/sample`; its samples include blocked time and are not on-CPU percentages. `summarize_profile.py` selects the application thread and computes disjoint exclusive categories. The allocation probe uses in-memory input/output, after warming connection-local storage, and excludes networking and runtime allocation.
+`profile.py` uses macOS `/usr/bin/sample`; its samples include blocked time and are not on-CPU percentages. `summarize_profile.py` selects the application thread and computes disjoint exclusive categories. The allocation probe uses in-memory input/output, after warming connection-local storage, and excludes networking and runtime allocation. With `--lent` it measures the server's path, in which each request body borrows its connection's `LentInput` for one read at a time; both paths allocated nothing per request on 2026-11-21.
 
 The historical `experiment.py` builds four disposable codec copies under `target/profile-experiments` before timing anything. It saves the patches, allocation counts, source/binary hashes, preflight observations and raw wrk measurements under `results/experiments`. The coalescing treatment is deliberately restricted to this static workload; it does not implement generic streaming, interim or upgrade policy. `--output` selects a fresh results directory and `--skip-build` reuses existing diagnostic executables. Avoid running compilation or a profiler during these timing experiments.
 

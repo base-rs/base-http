@@ -30,12 +30,12 @@ const MAX_CONNECTIONS: usize = 1024;
 const STALL_RESCUE: bool = true;
 
 struct Hello;
-impl Handler for Hello {
+impl<'h> Handler<'h> for Hello {
     type Error = Infallible;
-    type Body<B: ReadableBody> = BufferedBody<&'static [u8]>;
+    type Body<B: ReadableBody + 'h> = BufferedBody<&'static [u8]>;
 
     #[allow(clippy::manual_async_fn)] // Drop the unused request at the service-call boundary.
-    fn call<B: ReadableBody, I: InterimHandler>(
+    fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,

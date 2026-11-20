@@ -77,11 +77,11 @@ fn a_test_panic_is_reported_before_a_spawned_server_failure() {
 /// Panics in every call.
 struct Panicking;
 
-impl Handler for Panicking {
+impl<'h> Handler<'h> for Panicking {
     type Error = Infallible;
-    type Body<B: ReadableBody> = EmptyBody;
+    type Body<B: ReadableBody + 'h> = EmptyBody;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,
