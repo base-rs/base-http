@@ -2,13 +2,16 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! A server context serves, connects, bounds and tears down a test, and reports each way it can fail.
-use base_http::{Method, Status, body::EmptyBody};
+use base_http::{
+    Method, Status,
+    body::{BodyFrame, EmptyBody, ReadableBody},
+};
 use base_http_fixtures::{
     ClientFixture, Hello, Latch, RawServer, ServerFixture, TEARDOWN_TIMEOUT, TEST_TIMEOUT,
     body::payload, native,
 };
 use base_scheduler::Cancellation;
-use std::time::Duration;
+use std::{convert::Infallible, time::Duration};
 
 #[test]
 fn the_default_context_serves_hello_to_its_client_and_a_raw_peer() {
@@ -62,21 +65,35 @@ fn a_test_exceeding_its_timeout_fails() {
         });
 }
 
-// A test which returns an unfinished response body keeps its connection busy, so teardown cannot complete.
+/// A request body that never produces a frame.
+struct Stalled;
+impl ReadableBody for Stalled {
+    type Data = Vec<u8>;
+    type Error = Infallible;
+    async fn read(&mut self, _: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Infallible> {
+        std::future::pending().await
+    }
+    fn close(&mut self, _: Option<Infallible>) {}
+}
+
+// The server answers in full without reading the request body, so after the
+// test reads the whole response the client's driver still waits to upload a
+// body that never yields, and only a forced teardown stops it.
 #[test]
 #[should_panic(expected = "teardown exceeded")]
 fn a_teardown_exceeding_its_timeout_is_forced_and_fails() {
     ServerFixture::new()
         .teardown_timeout(Duration::from_millis(50))
         .run(async |context| {
-            context
+            let mut response = context
                 .client()
                 .call(
-                    context.request(Method::GET, "/", EmptyBody),
+                    context.request(Method::POST, "/", Stalled),
                     &Cancellation::never(),
                 )
                 .await
-                .unwrap()
+                .unwrap();
+            assert_eq!(payload(&mut response.body).await, b"Hello World!");
         });
 }
 

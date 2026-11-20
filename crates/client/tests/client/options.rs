@@ -38,21 +38,10 @@ fn invalid_limits_are_reported_by_the_layer_that_owns_them() {
         ["invalid HTTP/1 message: invalid HTTP/1 limits"]
     );
     let defaults = Options::default();
-    let client = [
-        Options {
-            max_requests: 0,
-            ..defaults.clone()
-        },
-        Options {
-            response_buffer_frames: 0,
-            ..defaults.clone()
-        },
-        // The response buffer must hold a complete head.
-        Options {
-            response_buffer_bytes: defaults.http1.max_head_bytes - 1,
-            ..defaults.clone()
-        },
-    ];
+    let client = [Options {
+        max_requests: 0,
+        ..defaults.clone()
+    }];
     for options in client {
         assert!(matches!(options.validate(), Err(Error::InvalidOptions)));
     }

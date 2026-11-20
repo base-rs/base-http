@@ -23,7 +23,7 @@ use std::{
     thread,
     time::Duration,
 };
-use support::{chain, head, payload, peer, remainder, run_endpoint, unconnected};
+use support::{chain, drive_until, head, payload, peer, remainder, run_endpoint, unconnected};
 
 fn accept(listener: &TcpListener) -> BufReader<TcpStream> {
     listener.set_nonblocking(true).unwrap();
@@ -185,6 +185,10 @@ fn response_finishes_before_upload_and_use_remains_charged() {
             .await
             .unwrap();
         producer.close_write(None);
+        // The driver finishes the upload, which then releases the use.
+        while client.pool_stats().uses != 0 {
+            futures_lite::future::yield_now().await;
+        }
         let mut response = client
             .call(
                 Request::new(Method::GET, "/next", EmptyBody),
@@ -260,17 +264,19 @@ fn interim_responses_and_trailers_preserve_order() {
     run(&scheduler, address, Options::default(), async |client| {
         let observed = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
         let observer = observed.clone();
-        let mut response = client
-            .call_with_interim(
-                Request::new(Method::GET, "/", EmptyBody),
-                move |metadata: base_http::ResponseMetadata| {
-                    observer.lock().unwrap().push(metadata.status);
-                    async { Ok::<_, std::convert::Infallible>(()) }
-                },
-                &Cancellation::never(),
-            )
-            .await
-            .unwrap();
+        let mut context =
+            base_http::ClientContext::new(move |metadata: base_http::ResponseMetadata| {
+                observer.lock().unwrap().push(metadata.status);
+                async { Ok::<_, std::convert::Infallible>(()) }
+            });
+        let mut response = base_http::Handler::call(
+            &client,
+            Request::new(Method::GET, "/", EmptyBody),
+            &mut context,
+            &Cancellation::never(),
+        )
+        .await
+        .unwrap();
         assert_eq!(
             observed.lock().unwrap().as_slice(),
             &[base_http::Status::CONTINUE, base_http::Status::EARLY_HINTS]
@@ -307,9 +313,11 @@ fn interim_responses_and_trailers_preserve_order() {
 
 #[test]
 fn cancelling_a_waiting_call_disconnects_and_allows_replacement() {
+    let (sent, request) = futures_channel::oneshot::channel();
     let (address, peer) = peer(|listener| {
         let mut stream = accept(&listener);
         head(&mut stream);
+        sent.send(()).unwrap();
         let mut eof = [0];
         assert_eq!(stream.read(&mut eof).unwrap(), 0);
         let mut next = accept(&listener);
@@ -320,19 +328,11 @@ fn cancelling_a_waiting_call_disconnects_and_allows_replacement() {
     });
     let scheduler = NativeScheduler::new().unwrap();
     run(&scheduler, address, Options::default(), async |client| {
-        // Keep the call pending while the driver establishes its connection.
+        // The call sends its request, then waits for the response.
         let cancelled = Cancellation::new();
         let work = client.call(Request::new(Method::GET, "/waiting", EmptyBody), &cancelled);
         let mut work = std::pin::pin!(work);
-        assert!(
-            futures_lite::future::poll_once(work.as_mut())
-                .await
-                .is_none()
-        );
-        // Let the driver establish the connection before cancellation.
-        while client.pool_stats().uses == 0 {
-            futures_lite::future::yield_now().await;
-        }
+        drive_until(&mut work, request).await.unwrap();
         cancelled.cancel();
         assert!(matches!(
             work.await,
@@ -489,11 +489,7 @@ fn upload_keeps_progressing_while_response_queue_is_full() {
         sending.join().unwrap();
     });
     let scheduler = NativeScheduler::new().unwrap();
-    let options = Options {
-        response_buffer_frames: 1,
-        ..Options::default()
-    };
-    run(&scheduler, address, options, async |client| {
+    run(&scheduler, address, Options::default(), async |client| {
         let (body, mut producer) = base_http::body::BodyReader::bounded(16 * 1024, 1);
         let mut response = client
             .call(
@@ -633,12 +629,7 @@ fn dropped_call_retires_an_exchange_waiting_for_final_metadata() {
         let never = Cancellation::never();
         let mut call =
             Box::pin(client.call(Request::new(Method::GET, "/dropped", EmptyBody), &never));
-        assert!(
-            futures_lite::future::poll_once(call.as_mut())
-                .await
-                .is_none()
-        );
-        started.await.unwrap();
+        drive_until(&mut call, started).await.unwrap();
         drop(call);
         let mut response = client
             .call(Request::new(Method::GET, "/replacement", EmptyBody), &never)

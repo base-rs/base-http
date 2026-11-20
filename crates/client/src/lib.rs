@@ -5,30 +5,28 @@
 #![doc = include_str!("../readme.md")]
 #![forbid(unsafe_code)]
 
-mod body;
+mod call;
 mod connection;
 mod driver;
 mod error;
-mod outgoing;
+mod observer;
 mod reuse;
 mod sink;
 mod writable;
 pub use writable::{PendingResponse, RequestBodyWriter, StreamingResponseBody, WritableRequest};
 
-pub use body::ResponseBody;
 pub use connection::Connection;
 pub use driver::Driver;
 pub use error::Error;
 
-use base_http::{Authority, InterimHandler, Method, Request, Response, Scheme, body::ReadableBody};
+use base_http::{Authority, Scheme};
 use base_pool::MultiplexPool;
 use base_scheduler::{
-    Cancellation, SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
+    SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
     SocketStreamWriting, TcpNoDelay,
 };
-use driver::{CancelOnDrop, Operation, Pending, Queue, checked};
+use driver::Queue;
 use std::{
-    convert::Infallible,
     net::SocketAddr,
     sync::{Arc, atomic::Ordering},
 };
@@ -94,10 +92,9 @@ pub struct Options {
     pub http1: base_http1::Options,
     /// HTTP engine selection, shared by plain and encrypted establishment.
     pub protocols: base_http_protocol::HttpProtocols,
-    /// Bound accepted calls, including queued, uploading and unread responses.
+    /// Bound accepted requests, including those still uploading and unread
+    /// responses.
     pub max_requests: usize,
-    pub response_buffer_bytes: usize,
-    pub response_buffer_frames: usize,
     /// Disable Nagle's algorithm on each TCP connection, so small writes such
     /// as streamed frames are not held back waiting for acknowledgement. This
     /// is a best-effort latency hint: a socket that rejects it remains usable.
@@ -110,8 +107,6 @@ impl Default for Options {
             http1: base_http1::Options::default(),
             protocols: base_http_protocol::HttpProtocols::default(),
             max_requests: 1024,
-            response_buffer_bytes: 64 * 1024,
-            response_buffer_frames: 16,
             tcp_nodelay: true,
         }
     }
@@ -120,10 +115,7 @@ impl Options {
     pub fn validate(&self) -> Result<(), Error> {
         self.pool.validate()?;
         self.http1.validate()?;
-        if self.max_requests == 0
-            || self.response_buffer_frames == 0
-            || self.response_buffer_bytes < self.http1.read_size.max(self.http1.max_head_bytes)
-        {
+        if self.max_requests == 0 {
             return Err(Error::InvalidOptions);
         }
         Ok(())
@@ -131,7 +123,9 @@ impl Options {
 }
 
 /// Durable remote-server interface. Clones share connection admission and
-/// supervision. `call` submits pull bodies; `open` lends direct HTTP/1 directions.
+/// supervision. `call` sends a request with a body to pull from; `open` lends
+/// direct HTTP/1 directions for writing one imperatively. Both run in the
+/// calling task.
 /// Neither operation chooses a process-global scheduler.
 ///
 /// `'scope` is the scheduler borrow, and it also bounds the request bodies and interim observers that calls queue for the driver. The client and its driver share that queue, so neither can outlive the scheduler. The type is invariant over `'scope`: shortening it would let a call queue a body that borrows shorter-lived data for a driver that keeps running after the data is gone.
@@ -189,92 +183,6 @@ impl<'scope> Client<'scope> {
     /// Cancel the driver's lifetime signal to force active calls down.
     pub fn begin_close(&self) {
         self.queue.begin_close();
-    }
-
-    /// Return final response metadata promptly. The driver continues upload
-    /// independently of response consumption. A reused idle connection is
-    /// checked before any request bytes are sent, and one the server closed is
-    /// replaced. No automatic retries occur.
-    pub async fn call<B>(
-        &self,
-        request: Request<B>,
-        cancellation: &Cancellation,
-    ) -> Result<Response<ResponseBody>, Error>
-    where
-        B: ReadableBody + 'scope,
-    {
-        self.call_with_interim(
-            request,
-            |_: base_http::ResponseMetadata| async { Ok::<_, Infallible>(()) },
-            cancellation,
-        )
-        .await
-    }
-    /// Observe informational responses in order, without accumulating a log.
-    pub async fn call_with_interim<B, I>(
-        &self,
-        mut request: Request<B>,
-        interim: I,
-        cancellation: &Cancellation,
-    ) -> Result<Response<ResponseBody>, Error>
-    where
-        B: ReadableBody + 'scope,
-        I: InterimHandler + 'scope,
-    {
-        if cancellation.is_cancelled() {
-            request.body.close(None);
-            return Err(Error::Cancelled);
-        }
-        if request.method == Method::CONNECT
-            || request.protocol.is_some()
-            || request.fields.contains("upgrade")
-        {
-            request.body.close(None);
-            return Err(Error::Unsupported("managed client tunnels and upgrades"));
-        }
-        if request
-            .scheme
-            .as_deref()
-            .is_some_and(|scheme| scheme != self.endpoint.scheme())
-        {
-            request.body.close(None);
-            return Err(Error::Unsupported(
-                "request scheme does not match the endpoint",
-            ));
-        }
-        request
-            .scheme
-            .get_or_insert_with(|| self.endpoint.request_scheme());
-        request
-            .authority
-            .get_or_insert_with(|| self.endpoint.authority.clone());
-        let local = Cancellation::new();
-        let mut guard = CancelOnDrop(local.clone(), true);
-        let (reply, response) = futures_channel::oneshot::channel();
-        let pending = match Pending::new(self.queue.clone()) {
-            Ok(pending) => pending,
-            Err(error) => {
-                request.body.close(None);
-                return Err(error);
-            }
-        };
-        let operation = Operation {
-            request: request.map_body(|body| outgoing::OutgoingBody::new(body, local.clone())),
-            interim: Box::new(interim),
-            reply: Some(reply),
-            cancellation: local,
-            lifetime: cancellation.clone(),
-            _pending: Some(pending),
-        };
-        // A queue closed since admission drops the operation and its reply sender, so the response reports `Closed`, as for calls queued when the driver stops.
-        let _ = self.queue.push(operation);
-        let response = checked(
-            async { response.await.map_err(|_| Error::Closed)? },
-            cancellation,
-        )
-        .await?;
-        guard.1 = false;
-        Ok(response)
     }
 }
 impl Clone for Client<'_> {

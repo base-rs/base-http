@@ -1,11 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::{
-    Connection, Endpoint, Error, Options, ResponseBody, connection,
-    outgoing::{Observer, OutgoingBody},
-};
-use base_http::{Request, Response, body::ReadableBody};
+use crate::{Connection, Endpoint, Error, Options, connection};
 use base_pool::{Acquisition, MultiplexBuildPermit, MultiplexPool, MultiplexUse};
 use base_scheduler::{
     Cancellation, SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
@@ -36,22 +32,7 @@ type Factory<'scope> = Box<
         + Sync
         + 'scope,
 >;
-pub(crate) type Reply = oneshot::Sender<Result<Response<ResponseBody>, Error>>;
-
-pub(crate) struct Operation<'scope> {
-    pub request: Request<OutgoingBody<'scope>>,
-    pub interim: Box<dyn Observer + 'scope>,
-    pub reply: Option<Reply>,
-    pub cancellation: Cancellation,
-    pub lifetime: Cancellation,
-    pub _pending: Option<Pending<'scope>>,
-}
-pub(crate) struct Assigned<'scope> {
-    pub operation: Operation<'scope>,
-    pub active: MultiplexUse<Connection<'scope>>,
-}
 struct State<'scope> {
-    requests: VecDeque<Operation<'scope>>,
     work: VecDeque<Work<'scope, ()>>,
     pending: usize,
     closed: bool,
@@ -64,16 +45,6 @@ pub(crate) struct Queue<'scope> {
     limit: usize,
 }
 impl<'scope> Queue<'scope> {
-    pub fn push(&self, operation: Operation<'scope>) -> Result<(), Error> {
-        let mut state = lock(&self.state);
-        if state.closed {
-            return Err(Error::Closed);
-        }
-        state.requests.push_back(operation);
-        drop(state);
-        self.changed.notify(usize::MAX);
-        Ok(())
-    }
     pub(crate) fn push_work(&self, work: Work<'scope, ()>) -> Result<(), Error> {
         let mut state = lock(&self.state);
         if state.abandoned {
@@ -86,6 +57,10 @@ impl<'scope> Queue<'scope> {
         self.changed.notify(usize::MAX);
         Ok(())
     }
+    /// Whether the driver was dropped, abandoning its work.
+    pub(crate) fn is_abandoned(&self) -> bool {
+        lock(&self.state).abandoned
+    }
     pub fn begin_close(&self) {
         lock(&self.state).closed = true;
         self.changed.notify(usize::MAX);
@@ -95,10 +70,7 @@ impl<'scope> Queue<'scope> {
             let mut state = lock(&self.state);
             state.closed = true;
             state.abandoned = true;
-            (
-                std::mem::take(&mut state.requests),
-                std::mem::take(&mut state.work),
-            )
+            std::mem::take(&mut state.work)
         };
         self.changed.notify(usize::MAX);
         drop(discarded);
@@ -244,7 +216,6 @@ where
         MultiplexPool::new(options.pool.clone()).expect("Client::new validated the pool options");
     let queue = Arc::new(Queue {
         state: Mutex::new(State {
-            requests: VecDeque::new(),
             work: VecDeque::new(),
             pending: 0,
             closed: false,
@@ -261,7 +232,7 @@ where
         let options = options.clone();
         let endpoint = endpoint.clone();
         let lifetime = connection_lifetime.clone();
-        // Acquirers hold the queue: the driver's assignment jobs and client handles both retain it.
+        // Acquirers hold the queue: every request retains it through its client handle.
         let queue = weak_queue.upgrade().expect("an acquirer retains the queue");
         Box::pin(async move {
             let (ready, established) = oneshot::channel();
@@ -302,24 +273,6 @@ where
     }
 }
 
-async fn assign<'scope>(mut operation: Operation<'scope>, context: Arc<Context<'scope>>) {
-    let result = context.acquire(&operation.cancellation).await;
-    match result {
-        Ok(active) => {
-            let connection = active.clone_handle();
-            connection.submit(Assigned { operation, active });
-        }
-        Err(error) => {
-            operation.request.body.close(None);
-            let reply = operation
-                .reply
-                .take()
-                .expect("an unassigned operation retains its reply");
-            let _ = reply.send(Err(error));
-        }
-    }
-}
-
 async fn run<'scope>(
     queue: Arc<Queue<'scope>>,
     context: Arc<Context<'scope>>,
@@ -332,22 +285,7 @@ async fn run<'scope>(
     let mut cleaned = None;
     loop {
         event_listener::listener!(queue.changed => listener);
-        let (requests, work) = {
-            let mut state = lock(&queue.state);
-            (
-                std::mem::take(&mut state.requests),
-                std::mem::take(&mut state.work),
-            )
-        };
-        for operation in requests {
-            let context = context.clone();
-            jobs.push(Box::pin(async move {
-                let local = operation.cancellation.clone();
-                let lifetime = operation.lifetime.clone();
-                let driver = context.cancellation.clone();
-                linked(assign(operation, context), &local, &lifetime, &driver).await;
-            }));
-        }
+        let work = std::mem::take(&mut lock(&queue.state).work);
         jobs.extend(work);
         let close = {
             let state = lock(&queue.state);
@@ -432,26 +370,6 @@ pub(crate) fn checked<T>(
         cancellation,
     }
 }
-// Propagate lifetime cancellation without dropping owned construction/cleanup.
-pub(crate) async fn linked<T>(
-    work: impl Future<Output = T>,
-    cancellation: &Cancellation,
-    lifetime: &Cancellation,
-    driver: &Cancellation,
-) -> T {
-    let mut work = pin!(work);
-    let mut a = pin!(lifetime.cancelled());
-    let mut b = pin!(driver.cancelled());
-    poll_fn(|cx| {
-        if !cancellation.is_cancelled()
-            && (a.as_mut().poll(cx).is_ready() || b.as_mut().poll(cx).is_ready())
-        {
-            cancellation.cancel();
-        }
-        work.as_mut().poll(cx)
-    })
-    .await
-}
 pub(crate) struct CancelOnDrop(pub Cancellation, pub bool);
 impl Drop for CancelOnDrop {
     fn drop(&mut self) {
@@ -465,7 +383,7 @@ impl Drop for CancelOnDrop {
 mod tests {
     use super::*;
     use crate::{Endpoint, Options};
-    use base_http::{Method, body::EmptyBody};
+
     use base_scheduler_native::NativeScheduler;
     use std::{
         sync::atomic::Ordering,
@@ -539,7 +457,6 @@ mod tests {
     fn pending_completion_wakes_supervisor_only_when_closed_and_drained() {
         let queue = Arc::new(Queue {
             state: Mutex::new(State {
-                requests: VecDeque::new(),
                 work: VecDeque::new(),
                 pending: 0,
                 closed: false,
@@ -586,25 +503,14 @@ mod tests {
     }
 
     #[test]
-    fn requests_pushed_after_close_are_rejected() {
+    fn acquiring_from_a_closed_pool_fails() {
         let scheduler = NativeScheduler::new().unwrap();
         let parts = parts(&scheduler);
-        parts.queue.begin_close();
-        let operation = Operation {
-            request: Request::new(
-                Method::GET,
-                "/",
-                OutgoingBody::new(EmptyBody, Cancellation::never()),
-            ),
-            interim: Box::new(crate::outgoing::tests::ignore),
-            reply: None,
-            cancellation: Cancellation::new(),
-            lifetime: Cancellation::never(),
-            _pending: None,
-        };
-        let error = parts.queue.push(operation).unwrap_err();
+        parts.pool.begin_close();
+        let error = futures_lite::future::block_on(parts.context.acquire(&Cancellation::never()))
+            .err()
+            .unwrap();
         assert_eq!(error.to_string(), Error::Closed.to_string());
-        assert!(lock(&parts.queue.state).requests.is_empty());
     }
 
     #[test]

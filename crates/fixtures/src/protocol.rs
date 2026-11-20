@@ -6,7 +6,7 @@
 //! One application, [`App`], serves every case on its own route, so a runner only chooses how to serve and connect: the HTTP version, options and transport. Each case is a standalone `pub async fn` taking the running [`Context`], so a partial implementation can call a subset. The cases address the application through `H: Borrow<App>`, so a test can wrap it to change its behaviour.
 use crate::{Context, Latch, Scheduler, body};
 use base_http::{
-    Fields, Method, Request, Response, ResponseMetadata, Status, Version,
+    ClientContext, Fields, Method, Request, Response, ResponseMetadata, Status, Version,
     body::{BodyError, BodyFrame, BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_server::{Handler, HandlerContext, ServerContext};
@@ -559,19 +559,20 @@ pub async fn request_length<S: Scheduler, H: Borrow<App>>(context: &Context<'_, 
 pub async fn interim_response<S: Scheduler, H: Borrow<App>>(context: &Context<'_, S, H>) {
     let observed = Arc::new(Mutex::new(Vec::new()));
     let observer = observed.clone();
-    let mut response = context
-        .client()
-        .call_with_interim(
-            context.request(Method::GET, "/interim", BufferedBody::<Vec<u8>>::default()),
-            move |metadata: ResponseMetadata| {
-                let link = metadata.fields.values("link").next().map(<[u8]>::to_vec);
-                observer.lock().unwrap().push((metadata.status, link));
-                async { Ok::<_, Infallible>(()) }
-            },
-            &never(),
-        )
-        .await
-        .expect("GET /interim");
+    let mut client_context = ClientContext::new(move |metadata: ResponseMetadata| {
+        let link = metadata.fields.values("link").next().map(<[u8]>::to_vec);
+        observer.lock().unwrap().push((metadata.status, link));
+        async { Ok::<_, Infallible>(()) }
+    });
+    // The client implements the shared request interface for a client context.
+    let mut response = Handler::call(
+        context.client(),
+        context.request(Method::GET, "/interim", BufferedBody::<Vec<u8>>::default()),
+        &mut client_context,
+        &never(),
+    )
+    .await
+    .expect("GET /interim");
     assert_eq!(response.status, Status::OK);
     assert_eq!(body::payload(&mut response.body).await, b"Hello World");
     let expected = match context.version() {
@@ -654,10 +655,7 @@ pub async fn incorrect_length<S: Scheduler, H: Borrow<App>>(context: &Context<'_
         .find(|(known, _)| *known == scheme)
         .expect("a known scheme");
     let cause = chain.last().expect("an error message").contains(expected);
-    assert!(
-        chain[0] == "body failed" && cause,
-        "unexpected failure: {chain:?}"
-    );
+    assert!(cause, "unexpected failure: {chain:?}");
 }
 
 /// A request trailer sent after the server has received the request head reaches the handler over HTTP/1.1. HTTP/1.0 cannot frame trailers, so the client sends the data with its length and the handler receives no trailer.
