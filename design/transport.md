@@ -19,7 +19,7 @@ For the current byte-stream path, small `ReadableStream` and `WritableStream` ca
 
 ## HTTP protocol factories
 
-`base-http-protocol` is the shared selection layer used by application clients and servers. `HttpProtocols` supplies enabled application-protocol identifiers, selects an engine from explicit plaintext policy or negotiated evidence, and returns `HttpProtocol`. That selected factory constructs the corresponding client or server codec pair.
+`base-http-protocol` is the shared selection layer used by application clients and servers. `HttpProtocols` supplies enabled application-protocol identifiers, selects an engine from explicit plaintext policy or negotiated evidence, and returns `HttpProtocol`. That selected factory currently constructs the corresponding client or server HTTP/1 codec pair. The [HTTP/2 connection contract](http2.md#connection-contract-and-protocol-selection) replaces codec pairs with a closed enum of selected connections, and adds enabled engines in preference order and a plaintext policy to `HttpProtocols`, in M6 of the [roadmap](roadmap.md).
 
 The initial engine is HTTP/1. Its secure-stream offer is `http/1.1`. Unknown negotiated identifiers are rejected before parsing or client pool publication. Missing ALPN selects HTTP/1 only when compatibility is allowed; `require_alpn` rejects it. Plain TCP uses the explicit HTTP/1 policy. The semantic `base_http::Protocol` remains application upgrade/tunnel intent, independent of these factories.
 

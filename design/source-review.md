@@ -123,7 +123,7 @@ The HTTP prototype now imports `base-*` registry packages. Its updated file-body
 
 ## Historical scheduler constraints
 
-The initial [research readme](../../base-scheduler-research/readme.md) and [behavioral contracts](../../base-scheduler-research/context/design.md) described `SocketRead`, `SocketWrite`, `SocketClose`, `Clock`, `Spawn`, `Cancellation`, `IoBuf`, `IoBufMut`, and `BufferResult`. The following constraints record that review rather than the released interface:
+The initial [research readme](https://github.com/base-rs/base-scheduler/blob/7f9846882e0ca594daf2ca1137c5eee015df991d/readme.md) and [behavioral contracts](https://github.com/base-rs/base-scheduler/blob/7f9846882e0ca594daf2ca1137c5eee015df991d/context/design.md) described `SocketRead`, `SocketWrite`, `SocketClose`, `Clock`, `Spawn`, `Cancellation`, `IoBuf`, `IoBufMut`, and `BufferResult`. The following constraints record that review rather than the released interface:
 
 - Operation context is explicit; a reusable protocol object must not retain a scheduler selected by construction or a previous operation.
 - I/O futures are `Send`; resources are associated types with documented compatibility. Spawn has stronger owned `'static` requirements.
@@ -133,7 +133,7 @@ The initial [research readme](../../base-scheduler-research/readme.md) and [beha
 - Spawned task handles own lifetime and cancel/destroy on drop rather than detach.
 - Timed policy uses the supplied monotonic `Clock`, not an unrelated wall clock.
 
-The historical [protocol-buffer findings](../../base-scheduler-research/benchmarks/protocol-buffers/findings.md) favor bounded reusable ownership and optional sharing, while recording the then-missing generic mutable multishot lease. Their traffic is protocol-shaped synthetic framing, including an H3-shaped UDP case, not a real HTTP/TLS/QUIC implementation. They do not establish HTTP throughput or a universal zero-copy policy, nor a gap in the subsequently released `ReceiveBuffer` contract.
+The historical protocol-buffer findings, untracked local research that was never published, favor bounded reusable ownership and optional sharing, while recording the then-missing generic mutable multishot lease. Their traffic is protocol-shaped synthetic framing, including an H3-shaped UDP case, not a real HTTP/TLS/QUIC implementation. They do not establish HTTP throughput or a universal zero-copy policy, nor a gap in the subsequently released `ReceiveBuffer` contract.
 
 ## Public specifications and integration candidates
 
