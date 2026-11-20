@@ -19,7 +19,7 @@ mod wire;
 pub use client::{RequestWriter, ResponseReader};
 pub use error::Error;
 pub use input::{Exchange, IncomingBody, RequestReader};
-pub use lent::LentInput;
+pub use lent::{LentBody, LentInput};
 pub use output::{InterimWriter, ResponseWriter};
 
 /// Compare the request head parser with the previous httparse pipeline,

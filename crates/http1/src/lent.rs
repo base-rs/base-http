@@ -10,17 +10,16 @@
 //! rests with the connection's shared slot, so the connection can take it back
 //! whenever the body is not reading, and a read in progress when it does so
 //! stops at once.
-use crate::{
-    Error, Exchange, IncomingBody, RequestReader,
-    input::{BodyState, Input},
-};
+use crate::{Error, Exchange, RequestReader, input::BodyState};
 use base_endpoint::stream::ReadableStream;
-use base_http::{Request, body::BodyFrame};
+use base_http::{
+    Request,
+    body::{BodyFrame, ReadableBody},
+};
 use base_scheduler::Cancellation;
 use std::{
     future::{Future, poll_fn},
     io,
-    ops::{Deref, DerefMut},
     pin::pin,
     sync::{Arc, Mutex, MutexGuard, PoisonError},
     task::{Poll, Waker},
@@ -103,15 +102,10 @@ impl<R: ReadableStream> LentInput<R> {
     /// the next request head and lend the input to its body. Clean EOF between
     /// requests returns `None`; partial heads are errors. Cancellation takes
     /// the input back, as [`reclaim`](Self::reclaim) does.
-    ///
-    /// The body borrows nothing, so its lifetime is any that `R` outlives.
-    pub async fn read_request<'r>(
+    pub async fn read_request(
         &mut self,
         cancellation: &Cancellation,
-    ) -> Result<Option<(Request<IncomingBody<'r, R>>, Exchange)>, Error>
-    where
-        R: 'r,
-    {
+    ) -> Result<Option<(Request<LentBody<R>>, Exchange)>, Error> {
         self.returned(cancellation).await?;
         if self.reclaimed {
             return Err(Error::Invalid("request input was taken back"));
@@ -137,14 +131,10 @@ impl<R: ReadableStream> LentInput<R> {
             slot: self.slot.clone(),
             generation,
         };
-        let body = IncomingBody::new(
-            Input::Lent(lane),
-            exchange.clone(),
-            framing,
-            length,
-            false,
-            false,
-        );
+        let body = LentBody {
+            lane,
+            state: BodyState::new(exchange.clone(), framing, length, false, false),
+        };
         Ok(Some((Request::from_parts(head, body), exchange)))
     }
 
@@ -248,8 +238,54 @@ impl<R: ReadableStream> LentInput<R> {
     }
 }
 
+/// A request body that borrows its connection's [`LentInput`] for one read at
+/// a time, so it borrows nothing and can outlive its exchange. It frames input
+/// as [`IncomingBody`](crate::IncomingBody) does, and its reads are likewise
+/// cancellation safe. Once the connection takes the input back, reads fail
+/// with [`Error::Closed`]; a body that has ended keeps returning end.
+pub struct LentBody<R> {
+    lane: Lane<R>,
+    state: BodyState,
+}
+
+impl<R: ReadableStream + Send> ReadableBody for LentBody<R> {
+    type Data = Vec<u8>;
+    type Error = Error;
+    fn may_have_trailers(&self) -> bool {
+        self.state.may_have_trailers()
+    }
+    fn is_ready(&self) -> bool {
+        self.state.is_ready(self.lane.has_available())
+    }
+    fn is_empty(&self) -> bool {
+        self.state.is_empty()
+    }
+    fn length(&self) -> Option<u64> {
+        self.state.length()
+    }
+    fn close(&mut self, _: Option<Error>) {
+        self.state.close();
+        self.lane.release();
+    }
+    async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Error> {
+        cancellation.check()?;
+        // A finished body needs no input, which its connection may already
+        // have taken back for the next request.
+        if self.state.is_finished() {
+            return Ok(BodyFrame::End);
+        }
+        self.lane.read(&mut self.state, cancellation).await
+    }
+}
+
+impl<R> Drop for LentBody<R> {
+    fn drop(&mut self) {
+        self.state.abandon_unfinished();
+    }
+}
+
 /// A request body's lane to its connection's lent input.
-pub(crate) struct Lane<R> {
+struct Lane<R> {
     slot: Arc<Slot<R>>,
     generation: u64,
 }
@@ -260,17 +296,8 @@ struct Borrowed<'a, R> {
     reader: Option<Box<RequestReader<R>>>,
 }
 
-impl<R> Deref for Borrowed<'_, R> {
-    type Target = RequestReader<R>;
-    fn deref(&self) -> &RequestReader<R> {
-        self.reader
-            .as_ref()
-            .expect("a borrow holds the input until dropped")
-    }
-}
-
-impl<R> DerefMut for Borrowed<'_, R> {
-    fn deref_mut(&mut self) -> &mut RequestReader<R> {
+impl<R> Borrowed<'_, R> {
+    fn reader(&mut self) -> &mut RequestReader<R> {
         self.reader
             .as_mut()
             .expect("a borrow holds the input until dropped")
@@ -297,7 +324,12 @@ impl<R: ReadableStream> Lane<R> {
         if state.reclaimed || state.generation != self.generation {
             return Err(Error::Closed);
         }
-        let reader = state.reader.take().ok_or(Error::Closed)?;
+        // The connection takes the input only by advancing the generation or
+        // reclaiming it, and this lane's own reads hold it only while borrowed.
+        let reader = state
+            .reader
+            .take()
+            .expect("a current lane finds its input at rest");
         Ok(Borrowed {
             slot: &self.slot,
             reader: Some(reader),
@@ -306,14 +338,14 @@ impl<R: ReadableStream> Lane<R> {
 
     /// Read one frame with the borrowed input, stopping if the connection
     /// takes it back meanwhile. A stopped read loses no input.
-    pub(crate) async fn read(
+    async fn read(
         &self,
         state: &mut BodyState,
         cancellation: &Cancellation,
     ) -> Result<BodyFrame<Vec<u8>>, Error> {
         let mut input = self.borrow()?;
         let slot = input.slot;
-        let mut read = pin!(state.read(&mut *input, cancellation));
+        let mut read = pin!(state.read(input.reader(), cancellation));
         poll_fn(|cx| {
             if let Poll::Ready(result) = read.as_mut().poll(cx) {
                 return Poll::Ready(result);
@@ -330,7 +362,7 @@ impl<R: ReadableStream> Lane<R> {
 
     /// Whether the input has unread bytes, without waiting. A body whose
     /// input is borrowed elsewhere or taken back reports none.
-    pub(crate) fn has_available(&self) -> bool {
+    fn has_available(&self) -> bool {
         let state = self.slot.lock();
         state.generation == self.generation
             && state
@@ -338,18 +370,17 @@ impl<R: ReadableStream> Lane<R> {
                 .as_ref()
                 .is_some_and(|reader| !reader.available().is_empty())
     }
+}
 
+impl<R> Lane<R> {
     /// The body no longer reads: let the connection take the input back.
-    pub(crate) fn release(&self) {
+    fn release(&self) {
         let connection = {
             let mut state = self.slot.lock();
             if state.generation != self.generation || !state.held {
                 return;
             }
             state.held = false;
-            if state.reader.is_none() {
-                return;
-            }
             state.connection.take()
         };
         if let Some(connection) = connection {
@@ -360,16 +391,117 @@ impl<R: ReadableStream> Lane<R> {
 
 impl<R> Drop for Lane<R> {
     fn drop(&mut self) {
-        let connection = {
-            let mut state = self.slot.lock();
-            if state.generation != self.generation || !state.held {
-                return;
-            }
-            state.held = false;
-            state.connection.take()
-        };
-        if let Some(connection) = connection {
-            connection.wake();
+        self.release();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Options;
+    use base_scheduler::OperationResult;
+    use futures_lite::future::{block_on, poll_once};
+
+    struct Bytes(&'static [u8]);
+    impl ReadableStream for Bytes {
+        async fn read_into(
+            &mut self,
+            buffer: &mut [u8],
+            _: &Cancellation,
+        ) -> OperationResult<usize> {
+            self.try_read_into(buffer).map_err(Into::into)
         }
+        fn try_read_into(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+            let n = self.0.len().min(buffer.len());
+            buffer[..n].copy_from_slice(&self.0[..n]);
+            self.0 = &self.0[n..];
+            Ok(n)
+        }
+        async fn close(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    const POST: &[u8] = b"POST / HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\nhello";
+
+    fn lend(bytes: &'static [u8]) -> (LentInput<Bytes>, LentBody<Bytes>) {
+        let mut input =
+            LentInput::new(RequestReader::new(Bytes(bytes), Options::default()).unwrap());
+        let (request, _) = block_on(input.read_request(&Cancellation::never()))
+            .unwrap()
+            .unwrap();
+        (input, request.body)
+    }
+
+    #[test]
+    fn a_lent_body_reports_its_framing() {
+        let (_input, mut body) = lend(POST);
+        assert_eq!(body.length(), Some(5));
+        assert!(!body.may_have_trailers());
+        assert!(!body.is_empty());
+        assert!(body.is_ready());
+        let frame = block_on(body.read(&Cancellation::never())).unwrap();
+        assert!(matches!(frame, BodyFrame::Data { data, end: true } if data == b"hello"));
+        assert!(body.is_empty());
+    }
+
+    #[test]
+    fn dropping_a_held_body_wakes_its_waiting_connection() {
+        let (mut input, body) = lend(POST);
+        let never = Cancellation::never();
+        {
+            let mut returned = pin!(input.returned(&never));
+            assert!(block_on(poll_once(returned.as_mut())).is_none());
+            drop(body);
+            block_on(returned).unwrap();
+        }
+        // The unread body was abandoned, so the input cannot be reused.
+        assert!(!input.is_reusable());
+    }
+
+    #[test]
+    fn closing_a_held_body_wakes_its_waiting_connection_once() {
+        let (mut input, mut body) = lend(POST);
+        let never = Cancellation::never();
+        {
+            let mut returned = pin!(input.returned(&never));
+            assert!(block_on(poll_once(returned.as_mut())).is_none());
+            body.close(None);
+            block_on(returned).unwrap();
+        }
+        // The input has returned, so closing again changes nothing.
+        body.close(None);
+        assert!(block_on(body.read(&never)).unwrap().is_end());
+    }
+
+    #[test]
+    fn taken_back_input_lends_no_further_bodies() {
+        let (mut input, mut body) = lend(POST);
+        block_on(input.reclaim());
+        assert!(!body.is_ready());
+        let closed = block_on(body.read(&Cancellation::never())).err().unwrap();
+        assert_eq!(closed.to_string(), Error::Closed.to_string());
+        assert!(!input.is_reusable());
+        let refused = block_on(input.read_request(&Cancellation::never()))
+            .err()
+            .unwrap();
+        assert_eq!(
+            refused.to_string(),
+            "invalid HTTP/1 message: request input was taken back"
+        );
+        block_on(input.close()).unwrap();
+    }
+
+    #[test]
+    fn cancelled_reads_and_waits_report_cancellation() {
+        let (mut input, mut body) = lend(POST);
+        let cancelled = Cancellation::new();
+        cancelled.cancel();
+        let read = block_on(body.read(&cancelled)).err().unwrap();
+        assert_eq!(read.to_string(), Error::Cancelled.to_string());
+        // Waiting for the held body is cancelled, which takes the input back.
+        let next = block_on(input.read_request(&cancelled)).err().unwrap();
+        assert_eq!(next.to_string(), Error::Cancelled.to_string());
+        assert!(!input.is_reusable());
     }
 }

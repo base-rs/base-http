@@ -96,6 +96,10 @@ mod tests {
             ),
             (Error::Truncated, "truncated HTTP/1 message"),
             (
+                Error::Closed,
+                "HTTP/1 request input was closed by its connection",
+            ),
+            (
                 Error::LengthMismatch,
                 "body does not match its declared length",
             ),

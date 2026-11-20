@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-use crate::{Error, Options, lent::Lane, wire};
+use crate::{Error, Options, wire};
 use base_endpoint::stream::ReadableStream;
 use base_http::{
     Fields, Method, Request, RequestMetadata, Version,
@@ -330,14 +330,7 @@ impl<R: ReadableStream> RequestReader<R> {
         else {
             return Ok(None);
         };
-        let body = IncomingBody::new(
-            Input::Borrowed(self),
-            exchange.clone(),
-            framing,
-            length,
-            false,
-            false,
-        );
+        let body = IncomingBody::new(self, exchange.clone(), framing, length, false, false);
         Ok(Some((Request::from_parts(head, body), exchange)))
     }
 
@@ -461,24 +454,19 @@ impl Framing {
     };
 }
 
-/// A pull body over the connection's input lane, which it either borrows for
-/// the exchange or, from [`LentInput`](crate::LentInput), borrows for one read at a time.
-/// Returning it as the response body provides streaming echo and managed
-/// duplex tunnels without boxing, queueing, spawning, or transferring socket
-/// ownership.
+/// A pull body borrowing the connection's input lane. Returning it as the
+/// response body provides streaming echo and managed duplex tunnels without
+/// boxing, queueing, spawning, or transferring socket ownership.
+/// [`LentBody`](crate::LentBody) is the same body borrowing its input for one
+/// read at a time, so it can outlive the exchange.
 ///
 /// Reads are cancellation safe: dropping a pending read, or cancelling its
 /// wait, loses no input, and a later read resumes at the same position. This
 /// relies on `R` transferring bytes only within a `read_into` poll that returns
 /// them, as scheduler socket readers and the TLS stream do.
 pub struct IncomingBody<'a, R> {
-    input: Input<'a, R>,
+    input: &'a mut RequestReader<R>,
     state: BodyState,
-}
-
-pub(crate) enum Input<'a, R> {
-    Borrowed(&'a mut RequestReader<R>),
-    Lent(Lane<R>),
 }
 
 pub(crate) struct BodyState {
@@ -493,7 +481,22 @@ pub(crate) struct BodyState {
 
 impl<'a, R: ReadableStream> IncomingBody<'a, R> {
     pub(crate) fn new(
-        input: Input<'a, R>,
+        input: &'a mut RequestReader<R>,
+        exchange: Exchange,
+        framing: Framing,
+        length: Option<u64>,
+        raw: bool,
+        forbid_content: bool,
+    ) -> Self {
+        Self {
+            input,
+            state: BodyState::new(exchange, framing, length, raw, forbid_content),
+        }
+    }
+}
+
+impl BodyState {
+    pub(crate) fn new(
         exchange: Exchange,
         framing: Framing,
         length: Option<u64>,
@@ -503,21 +506,49 @@ impl<'a, R: ReadableStream> IncomingBody<'a, R> {
         let complete = !raw && matches!(framing, Framing::Fixed(0));
         exchange.set_complete(complete);
         Self {
-            input,
-            state: BodyState {
-                exchange,
-                framing,
-                length,
-                complete,
-                closed: false,
-                raw,
-                forbid_content,
-            },
+            exchange,
+            framing,
+            length,
+            complete,
+            closed: false,
+            raw,
+            forbid_content,
         }
     }
-}
 
-impl BodyState {
+    pub(crate) fn may_have_trailers(&self) -> bool {
+        !self.raw && !self.exchange.is_tunnel() && matches!(self.framing, Framing::Chunked { .. })
+    }
+
+    /// Whether a read can return without waiting, given whether input is available.
+    pub(crate) fn is_ready(&self, available: bool) -> bool {
+        self.complete || self.closed || available
+    }
+
+    pub(crate) fn is_empty(&self) -> bool {
+        (self.complete && !self.exchange.is_tunnel()) || self.closed
+    }
+
+    pub(crate) fn length(&self) -> Option<u64> {
+        if self.exchange.is_tunnel() {
+            None
+        } else {
+            self.length
+        }
+    }
+
+    /// Stop reading; unfinished input is abandoned, which prevents reuse.
+    pub(crate) fn close(&mut self) {
+        self.abandon_unfinished();
+        self.closed = true;
+    }
+
+    pub(crate) fn abandon_unfinished(&self) {
+        if !self.complete {
+            self.exchange.abandon();
+        }
+    }
+
     /// Whether a read can return without input: the body ended or was closed,
     /// and no protocol switch has since turned it into raw input.
     pub(crate) fn is_finished(&self) -> bool {
@@ -651,58 +682,29 @@ impl<R: ReadableStream + Send> ReadableBody for IncomingBody<'_, R> {
     type Data = Vec<u8>;
     type Error = Error;
     fn may_have_trailers(&self) -> bool {
-        let state = &self.state;
-        !state.raw
-            && !state.exchange.is_tunnel()
-            && matches!(state.framing, Framing::Chunked { .. })
+        self.state.may_have_trailers()
     }
     fn is_ready(&self) -> bool {
-        let state = &self.state;
-        state.complete
-            || state.closed
-            || match &self.input {
-                Input::Borrowed(input) => !input.available().is_empty(),
-                Input::Lent(lane) => lane.has_available(),
-            }
+        self.state.is_ready(!self.input.available().is_empty())
     }
     fn is_empty(&self) -> bool {
-        let state = &self.state;
-        (state.complete && !state.exchange.is_tunnel()) || state.closed
+        self.state.is_empty()
     }
     fn length(&self) -> Option<u64> {
-        if self.state.exchange.is_tunnel() {
-            None
-        } else {
-            self.state.length
-        }
+        self.state.length()
     }
     fn close(&mut self, _: Option<Error>) {
-        if !self.state.complete {
-            self.state.exchange.abandon();
-        }
-        self.state.closed = true;
-        if let Input::Lent(lane) = &self.input {
-            lane.release();
-        }
+        self.state.close();
     }
     async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Error> {
         cancellation.check()?;
-        let Self { input, state } = self;
-        match input {
-            Input::Borrowed(input) => state.read(input, cancellation).await,
-            // A finished body needs no input, which its connection may
-            // already have taken back for the next request.
-            Input::Lent(_) if state.is_finished() => Ok(BodyFrame::End),
-            Input::Lent(lane) => lane.read(state, cancellation).await,
-        }
+        self.state.read(self.input, cancellation).await
     }
 }
 
 impl<R> Drop for IncomingBody<'_, R> {
     fn drop(&mut self) {
-        if !self.state.complete {
-            self.state.exchange.abandon();
-        }
+        self.state.abandon_unfinished();
     }
 }
 

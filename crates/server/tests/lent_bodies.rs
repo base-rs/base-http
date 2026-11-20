@@ -96,6 +96,8 @@ enum Mode {
     ReadFirst,
     /// Fail after passing the body on.
     Fail,
+    /// Respond, then drop the body unread.
+    Ignore,
 }
 
 /// How deferred work's reads of a request body ended.
@@ -142,6 +144,13 @@ impl<'h> Handler<'h> for Defer<'_, 'h> {
         _: &Cancellation,
     ) -> Result<Response<BufferedBody<Vec<u8>>>, io::Error> {
         let mut body = request.body;
+        if self.mode == Mode::Ignore {
+            self.deferred.push(Box::pin(async move { drop(body) }));
+            return Ok(Response::new(
+                Status::OK,
+                BufferedBody::from(b"ok".to_vec()),
+            ));
+        }
         let mut first = None;
         if self.mode == Mode::ReadFirst {
             first = Some(read_all(&mut body).await);
@@ -407,4 +416,20 @@ fn call_send_awaits_a_scope_bound_handler_in_a_send_future() {
     }));
     assert_eq!(status, Status::OK);
     assert_eq!(deferred.queued.lock().unwrap().len(), 1);
+}
+
+#[test]
+fn a_body_dropped_unread_after_its_response_closes_the_connection() {
+    let (served, (status, closed), reads) = run(Mode::Ignore, true, |mut peer, _, _| {
+        peer.get_mut()
+            .write_all(b"POST /1 HTTP/1.1\r\nHost: x\r\nContent-Length: 5\r\n\r\nhelloGET /2 HTTP/1.1\r\nHost: x\r\n\r\n")
+            .unwrap();
+        let status = response(&mut peer);
+        let closed = peer.fill_buf().unwrap().is_empty();
+        (status, closed)
+    });
+    assert_eq!(status, 200);
+    assert!(closed, "unread input is not drained for the next request");
+    assert_eq!(served.unwrap(), 1);
+    assert!(reads.is_empty());
 }
