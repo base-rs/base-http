@@ -26,10 +26,10 @@ use support::*;
 struct Collect {
     seen: Arc<Mutex<Vec<(RequestMetadata, HttpHeaders)>>>,
 }
-impl Handler for Collect {
+impl<'h> Handler<'h> for Collect {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         interim: &mut InterimResponses<I>,
@@ -168,10 +168,10 @@ fn head_and_bodyless_statuses_do_not_emit_representation_bytes() {
 }
 
 struct Echo;
-impl Handler for Echo {
+impl<'h> Handler<'h> for Echo {
     type Error = io::Error;
-    type Body<B: ReadableBody> = B;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = B;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         _: &mut InterimResponses<I>,
@@ -264,10 +264,10 @@ fn upgrade_keeps_managed_duplex_body_and_buffered_input() {
 struct Producer {
     body: Mutex<Option<BodyReader>>,
 }
-impl Handler for Producer {
+impl<'h> Handler<'h> for Producer {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BodyReader;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BodyReader;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,
@@ -335,10 +335,10 @@ fn http10_unknown_body_is_close_delimited() {
 
 /// Responds with `data` and then a trailer, with a known length on `/length`.
 struct Trailed;
-impl Handler for Trailed {
+impl<'h> Handler<'h> for Trailed {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BodyReader;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BodyReader;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         _: &mut InterimResponses<I>,
@@ -441,10 +441,10 @@ fn truncated_and_invalid_chunked_bodies_fail_without_a_successful_response() {
 
 /// Fails every request, after sending an early hint for `/hints` or reading the whole body for `/read`.
 struct Fail;
-impl Handler for Fail {
+impl<'h> Handler<'h> for Fail {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         interim: &mut InterimResponses<I>,
@@ -518,10 +518,10 @@ fn handler_errors_respond_with_a_server_error_and_close_the_connection() {
 }
 
 struct Invalid;
-impl Handler for Invalid {
+impl<'h> Handler<'h> for Invalid {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         interim: &mut InterimResponses<I>,
@@ -614,10 +614,10 @@ fn invalid_responses_respond_with_a_server_error_and_close_the_connection() {
 
 // A replaced body which keeps the received declaration.
 struct Stale;
-impl Handler for Stale {
+impl<'h> Handler<'h> for Stale {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _request: Request<B>,
         _interim: &mut InterimResponses<I>,
@@ -688,10 +688,10 @@ fn cancellation_of_pending_output_retires_lanes_and_wakes_producer() {
 }
 
 struct Never(Arc<AtomicBool>);
-impl Handler for Never {
+impl<'h> Handler<'h> for Never {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,
@@ -722,10 +722,10 @@ fn cancellation_interrupts_a_handler_that_ignores_its_signal() {
 }
 
 struct PendingRead(Arc<AtomicBool>);
-impl Handler for PendingRead {
+impl<'h> Handler<'h> for PendingRead {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         _: &mut InterimResponses<I>,
@@ -777,10 +777,10 @@ struct Count {
     active: Arc<AtomicUsize>,
     maximum: Arc<AtomicUsize>,
 }
-impl Handler for Count {
+impl<'h> Handler<'h> for Count {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,
@@ -953,10 +953,10 @@ fn listener_accepts_new_peers_while_previous_connections_retire() {
     });
     block_on(scheduler.shutdown());
 }
-impl Handler for OneThenPending {
+impl<'h> Handler<'h> for OneThenPending {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         _: &mut InterimResponses<I>,
@@ -975,10 +975,10 @@ impl Handler for OneThenPending {
 }
 
 struct Early;
-impl Handler for Early {
+impl<'h> Handler<'h> for Early {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,
@@ -1065,10 +1065,10 @@ struct Racing {
     clock: Arc<base_scheduler_native::NativeScheduler>,
     timeouts: Arc<AtomicUsize>,
 }
-impl Handler for Racing {
+impl<'h> Handler<'h> for Racing {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         _: &mut InterimResponses<I>,

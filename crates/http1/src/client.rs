@@ -226,10 +226,10 @@ fn request_plan(
     if raw_chunked && version != Version::Http11 {
         return Err(Error::Invalid("HTTP/1.0 transfer-encoding"));
     }
-    if let (Some(length), Some(declared)) = (length, declared) {
-        if length != declared {
-            return Err(Error::LengthMismatch);
-        }
+    if let (Some(length), Some(declared)) = (length, declared)
+        && length != declared
+    {
+        return Err(Error::LengthMismatch);
     }
     // Request trailers are rare and a client cannot assume the server accepts chunked uploads (RFC 9112 §6.1), so a known length always selects Content-Length and any trailers are dropped. A Trailer field is only a hint and never affects framing.
     let framing = if raw_chunked {
@@ -274,14 +274,13 @@ fn request_plan(
             write!(bytes, "{name}: {value}\r\n").expect("writing to a Vec");
         }
     }
-    if let output::Framing::Fixed(length) = framing {
-        if raw_length.is_none()
-            && (declared.is_some()
-                || length != 0
-                || matches!(head.method.as_str(), "POST" | "PUT" | "PATCH"))
-        {
-            write!(bytes, "Content-Length: {length}\r\n").expect("writing to a Vec");
-        }
+    if let output::Framing::Fixed(length) = framing
+        && raw_length.is_none()
+        && (declared.is_some()
+            || length != 0
+            || matches!(head.method.as_str(), "POST" | "PUT" | "PATCH"))
+    {
+        write!(bytes, "Content-Length: {length}\r\n").expect("writing to a Vec");
     }
     bytes.extend_from_slice(b"\r\n");
     Ok((framing, persistent))

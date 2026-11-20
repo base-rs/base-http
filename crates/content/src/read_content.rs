@@ -74,10 +74,10 @@ where
         request.body.close(None);
     }
     let mut cleanup = Vec::new();
-    if let Some(upload) = upload {
-        if let Err(error) = store.abort(upload).await {
-            cleanup.push(error);
-        }
+    if let Some(upload) = upload
+        && let Err(error) = store.abort(upload).await
+    {
+        cleanup.push(error);
     }
     // An upload in progress leaves the content incomplete, so accepted content never follows an abort.
     let rejected = match parser.finish() {

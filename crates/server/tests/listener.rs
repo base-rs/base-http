@@ -17,10 +17,10 @@ mod support;
 use support::*;
 
 struct Hello;
-impl Handler for Hello {
+impl<'h> Handler<'h> for Hello {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,

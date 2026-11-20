@@ -10,7 +10,7 @@ use base_endpoint::stream::{ReadableStream, WritableStream};
 use base_http::{
     InterimHandler, InterimResponses, Request, Response, Scheme, Status, body::ReadableBody,
 };
-use base_http1::{RequestReader, ResponseWriter};
+use base_http1::{LentInput, RequestReader, ResponseWriter};
 use base_scheduler::{
     Cancellation, Clock, OperationError, SocketAccept, SocketClose, SocketSetOption,
     SocketStreamReading, SocketStreamWriting, TcpNoDelay,
@@ -29,18 +29,49 @@ use std::{
 };
 
 /// Generic bodies and hooks keep handlers independent of the HTTP wire version
-/// and scheduler. A returned body may retain the request body, including borrows.
+/// and scheduler. A returned body may retain the request body.
+///
+/// The request body is an independent value that lives for `'scope`, the
+/// server's borrow of its scheduler, so a handler can pass it to work that
+/// outlives the call, such as a client forwarding it upstream. Its connection
+/// reads the next request only once the body has ended, or has been closed or
+/// dropped; when the connection is cancelled or fails, it takes its input back
+/// at once and the body's later reads fail with
+/// [`base_http1::Error::Closed`].
+///
+/// Generic code awaiting a handler that is bound to one `'scope` inside its own
+/// `Send` future may be rejected by rustc with "implementation of `Handler` is
+/// not general enough"; awaiting [`call_send`] instead avoids it. The server's
+/// entry points need no such care.
+///
 /// An error responds with a bodiless status and closes the connection, which then reports it as [`Error::Handler`]: 400 when a request read failed, such as a malformed or truncated body, even if the error has another cause, and otherwise 500. Return an ordinary response for other client errors. A final response which HTTP/1 cannot send, such as an informational status, conflicting framing, a `Content-Length` field its body contradicts or an unsolicited upgrade, likewise receives a bodiless 500 and closes the connection, which reports it as [`Error::Response`].
-pub trait Handler: Sync {
+pub trait Handler<'scope>: Sync {
     type Error: std::error::Error + Send + Sync + 'static;
-    type Body<B: ReadableBody>: ReadableBody;
+    type Body<B: ReadableBody + 'scope>: ReadableBody;
 
-    fn call<B: ReadableBody, I: InterimHandler>(
+    fn call<B: ReadableBody + 'scope, I: InterimHandler>(
         &self,
         request: Request<B>,
         interim: &mut InterimResponses<I>,
         cancellation: &Cancellation,
     ) -> impl Future<Output = Result<Response<Self::Body<B>>, Self::Error>> + Send;
+}
+
+/// Call `handler` through a future whose type states `Send`, for generic code
+/// that awaits a handler bound to one `'scope` within its own `Send` future,
+/// which rustc may otherwise reject as "not general enough".
+pub fn call_send<'scope, H, B, I>(
+    handler: &H,
+    request: Request<B>,
+    interim: &mut InterimResponses<I>,
+    cancellation: &Cancellation,
+) -> impl Future<Output = Result<Response<H::Body<B>>, H::Error>> + Send
+where
+    H: Handler<'scope>,
+    B: ReadableBody + 'scope,
+    I: InterimHandler,
+{
+    handler.call(request, interim, cancellation)
 }
 
 #[derive(Clone, Debug)]
@@ -142,8 +173,27 @@ async fn cancellable<F: Future>(
 /// Own one accepted socket through request admission, handler execution, output,
 /// uncancellable lane retirement, and finally exclusive socket closure. Await
 /// completion after cooperative cancellation; dropping this future is not a join.
-pub async fn serve_connection<S, H>(
-    scheduler: &S,
+pub fn serve_connection<'scope, S, H>(
+    scheduler: &'scope S,
+    socket: S::Socket,
+    handler: &H,
+    options: &base_http1::Options,
+    cancellation: &Cancellation,
+) -> impl Future<Output = Result<u64, Error>> + Send
+where
+    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S::Socket: 'static,
+    H: Handler<'scope>,
+    S: Sync,
+    S::Socket: Send,
+{
+    // Stating `Send` on the returned type proves it here, for every request
+    // body lifetime, rather than in each caller's future.
+    serve_connection_inner(scheduler, socket, handler, options, cancellation)
+}
+
+async fn serve_connection_inner<'scope, S, H>(
+    scheduler: &'scope S,
     socket: S::Socket,
     handler: &H,
     options: &base_http1::Options,
@@ -152,7 +202,7 @@ pub async fn serve_connection<S, H>(
 where
     S: SocketStreamReading + SocketStreamWriting + SocketClose,
     S::Socket: 'static,
-    H: Handler,
+    H: Handler<'scope>,
 {
     let outcome = connection_outcome(scheduler, socket, handler, options, cancellation).await;
     outcome.result.map(|()| outcome.requests)
@@ -163,8 +213,8 @@ struct Outcome {
     result: Result<(), Error>,
 }
 
-async fn connection_outcome<S, H>(
-    scheduler: &S,
+async fn connection_outcome<'scope, S, H>(
+    scheduler: &'scope S,
     socket: S::Socket,
     handler: &H,
     options: &base_http1::Options,
@@ -173,7 +223,7 @@ async fn connection_outcome<S, H>(
 where
     S: SocketStreamReading + SocketStreamWriting + SocketClose,
     S::Socket: 'static,
-    H: Handler,
+    H: Handler<'scope>,
 {
     let mut requests = 0;
     // The outer owner closes the socket even when capability construction fails.
@@ -212,8 +262,8 @@ where
 }
 
 /// Serve exchanges over established codecs, then retire both directions.
-async fn serve_codecs<R, W, H>(
-    mut input: RequestReader<R>,
+async fn serve_codecs<'scope, R, W, H>(
+    input: RequestReader<R>,
     mut output: ResponseWriter<W>,
     handler: &H,
     cancellation: &Cancellation,
@@ -221,10 +271,11 @@ async fn serve_codecs<R, W, H>(
     scheme: &Scheme,
 ) -> Result<(), Error>
 where
-    R: ReadableStream,
+    R: ReadableStream + Send + 'scope,
     W: WritableStream,
-    H: Handler,
+    H: Handler<'scope>,
 {
+    let mut input = LentInput::new(input);
     let result = exchanges(
         &mut input,
         &mut output,
@@ -234,6 +285,12 @@ where
         scheme,
     )
     .await;
+    // After a normal end, wait for the last request body before retiring input,
+    // so work still reading it, such as a forwarded upload, can finish.
+    // Cancellation, or any failure, takes the input back from the body at once.
+    if result.is_ok() {
+        let _ = input.returned(cancellation).await;
+    }
     // Both cleanups run regardless of the exchange or the other cleanup result.
     let input_closed = input.close().await;
     let output_closed = output.close().await;
@@ -243,8 +300,8 @@ where
     Ok(())
 }
 
-async fn exchanges<R, W, H>(
-    input: &mut RequestReader<R>,
+async fn exchanges<'scope, R, W, H>(
+    input: &mut LentInput<R>,
     output: &mut ResponseWriter<W>,
     handler: &H,
     cancellation: &Cancellation,
@@ -252,9 +309,9 @@ async fn exchanges<R, W, H>(
     scheme: &Scheme,
 ) -> Result<(), Error>
 where
-    R: ReadableStream,
+    R: ReadableStream + Send + 'scope,
     W: WritableStream,
-    H: Handler,
+    H: Handler<'scope>,
 {
     loop {
         let (mut request, exchange) = match input.read_request(cancellation).await {
@@ -293,8 +350,9 @@ where
             if cancellation.is_cancelled() {
                 return Err(Error::Cancelled);
             }
-            // No final head has been written, so the peer can still learn of the failure: failed request input means the request was bad, and anything else is a server error. The input position may be unknown and unread input may remain, so the connection always closes afterwards; output already out of sync refuses the response and just closes.
-            let status = if input.is_poisoned() {
+            // No final head has been written, so the peer can still learn of the failure: failed request input means the request was bad, and anything else is a server error. The input position may be unknown and unread input may remain, so the connection always closes afterwards; output already out of sync refuses the response and just closes. The input is taken back from a request body that outlived the handler, whose later reads fail.
+            input.reclaim().await;
+            let status = if input.input().is_some_and(RequestReader::is_poisoned) {
                 Status::BAD_REQUEST
             } else {
                 Status::INTERNAL_SERVER_ERROR
@@ -318,7 +376,13 @@ where
             Err(error) => return Err(error.into()),
         };
         *count += 1;
-        if !persistent || !input.is_reusable() {
+        if !persistent {
+            return Ok(());
+        }
+        // The request body may outlive its handler, such as one a client is
+        // still forwarding; the next request waits until it ends or is dropped.
+        input.returned(cancellation).await?;
+        if !input.is_reusable() {
             return Ok(());
         }
     }
@@ -456,8 +520,32 @@ async fn accept<S: SocketAccept + Clock>(
 /// are counted in [`Statistics::accept_errors`]. Any other accept failure,
 /// including scheduler closure or a failed backoff wait, is returned after the
 /// same shutdown sequence, in preference to a listener close failure.
-pub async fn serve<S, H>(
-    scheduler: &S,
+pub fn serve<'scope, S, H>(
+    scheduler: &'scope S,
+    listener: S::Socket,
+    handler: &H,
+    options: &Options,
+    cancellation: &Cancellation,
+) -> impl Future<Output = Result<Statistics, Error>> + Send
+where
+    S: SocketAccept
+        + Clock
+        + SocketSetOption<TcpNoDelay>
+        + SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose,
+    S::Socket: 'static,
+    H: Handler<'scope>,
+    S: Sync,
+    S::Socket: Send,
+{
+    // Stating `Send` on the returned type proves it here, for every request
+    // body lifetime, rather than in each caller's future.
+    serve_inner(scheduler, listener, handler, options, cancellation)
+}
+
+async fn serve_inner<'scope, S, H>(
+    scheduler: &'scope S,
     listener: S::Socket,
     handler: &H,
     options: &Options,
@@ -471,7 +559,7 @@ where
         + SocketStreamWriting
         + SocketClose,
     S::Socket: 'static,
-    H: Handler,
+    H: Handler<'scope>,
 {
     serve_with(
         scheduler,
@@ -588,8 +676,28 @@ fn record(statistics: &mut Statistics, outcome: Outcome) {
 /// Serve HTTP/1 over an already authenticated TLS connection. ALPN is
 /// interpreted by HTTP before any request is admitted.
 #[cfg(feature = "rustls")]
-pub async fn serve_tls_connection<S, H>(
-    scheduler: &S,
+pub fn serve_tls_connection<'scope, S, H>(
+    scheduler: &'scope S,
+    connection: base_endpoint::tls::rustls::RustlsConnection<S::Socket>,
+    handler: &H,
+    options: &Options,
+    cancellation: &Cancellation,
+) -> impl Future<Output = Result<u64, Error>> + Send
+where
+    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S::Socket: 'static,
+    H: Handler<'scope>,
+    S: Sync,
+    S::Socket: Send,
+{
+    // Stating `Send` on the returned type proves it here, for every request
+    // body lifetime, rather than in each caller's future.
+    serve_tls_connection_inner(scheduler, connection, handler, options, cancellation)
+}
+
+#[cfg(feature = "rustls")]
+async fn serve_tls_connection_inner<'scope, S, H>(
+    scheduler: &'scope S,
     connection: base_endpoint::tls::rustls::RustlsConnection<S::Socket>,
     handler: &H,
     options: &Options,
@@ -598,7 +706,7 @@ pub async fn serve_tls_connection<S, H>(
 where
     S: SocketStreamReading + SocketStreamWriting + SocketClose,
     S::Socket: 'static,
-    H: Handler,
+    H: Handler<'scope>,
 {
     let outcome =
         tls_connection_outcome(scheduler, connection, handler, options, cancellation).await;
@@ -606,8 +714,8 @@ where
 }
 
 #[cfg(feature = "rustls")]
-async fn tls_connection_outcome<S, H>(
-    scheduler: &S,
+async fn tls_connection_outcome<'scope, S, H>(
+    scheduler: &'scope S,
     connection: base_endpoint::tls::rustls::RustlsConnection<S::Socket>,
     handler: &H,
     options: &Options,
@@ -616,7 +724,7 @@ async fn tls_connection_outcome<S, H>(
 where
     S: SocketStreamReading + SocketStreamWriting + SocketClose,
     S::Socket: 'static,
-    H: Handler,
+    H: Handler<'scope>,
 {
     use base_endpoint::tls::TlsSession;
     let selected = connection.negotiated_protocol().map(<[u8]>::to_vec);
@@ -642,8 +750,34 @@ where
 /// Configure HTTP/1 ALPN and serve TLS on an owned TCP listener. Handshakes
 /// occupy bounded connection slots and progress concurrently with acceptance.
 #[cfg(feature = "rustls")]
-pub async fn serve_tls<S, H>(
-    scheduler: &S,
+pub fn serve_tls<'scope, S, H>(
+    scheduler: &'scope S,
+    listener: S::Socket,
+    config: std::sync::Arc<rustls::ServerConfig>,
+    handler: &H,
+    options: &Options,
+    cancellation: &Cancellation,
+) -> impl Future<Output = Result<Statistics, Error>> + Send
+where
+    S: SocketAccept
+        + Clock
+        + SocketSetOption<TcpNoDelay>
+        + SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose,
+    S::Socket: 'static,
+    H: Handler<'scope>,
+    S: Sync,
+    S::Socket: Send,
+{
+    // Stating `Send` on the returned type proves it here, for every request
+    // body lifetime, rather than in each caller's future.
+    serve_tls_inner(scheduler, listener, config, handler, options, cancellation)
+}
+
+#[cfg(feature = "rustls")]
+async fn serve_tls_inner<'scope, S, H>(
+    scheduler: &'scope S,
     listener: S::Socket,
     config: std::sync::Arc<rustls::ServerConfig>,
     handler: &H,
@@ -658,7 +792,7 @@ where
         + SocketStreamWriting
         + SocketClose,
     S::Socket: 'static,
-    H: Handler,
+    H: Handler<'scope>,
 {
     use base_endpoint::tls::{TlsAcceptor, rustls::RustlsAcceptor};
     let mut config = (*config).clone();

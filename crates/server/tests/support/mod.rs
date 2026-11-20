@@ -54,14 +54,14 @@ pub fn connect(address: SocketAddr) -> BufReader<TcpStream> {
     BufReader::new(socket)
 }
 
-pub fn connection<H: Handler, T: Send + 'static>(
+pub fn connection<H: for<'h> Handler<'h>, T: Send + 'static>(
     handler: H,
     peer: impl FnOnce(BufReader<TcpStream>, Cancellation) -> T + Send + 'static,
 ) -> (Result<u64, Error>, T) {
     connection_options(handler, base_http1::Options::default(), peer)
 }
 
-pub fn connection_options<H: Handler, T: Send + 'static>(
+pub fn connection_options<H: for<'h> Handler<'h>, T: Send + 'static>(
     handler: H,
     options: base_http1::Options,
     peer: impl FnOnce(BufReader<TcpStream>, Cancellation) -> T + Send + 'static,

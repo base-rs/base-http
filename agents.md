@@ -8,4 +8,4 @@ Use `base-security-audit` when reviewing code for security issues, and record ea
 
 Keep runtime dependencies independent of concrete schedulers, `http`, `http-body`, Hyper and third-party protocol engines. Development tooling belongs in the private `bake/` package, which depends on `base-project` for shared tooling.
 
-Before opening a pull request, run `cargo bake test`, `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --all-features -- -D warnings` and `cargo bake test:coverage --all-targets true --all-features true`. The crates declare Rust 1.87.
+Before opening a pull request, run `cargo bake test`, `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --all-features -- -D warnings` and `cargo bake test:coverage --all-targets true --all-features true`. The crates declare Rust 1.92.

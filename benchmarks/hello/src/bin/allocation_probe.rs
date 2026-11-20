@@ -5,7 +5,7 @@
 //! Input supplies exactly one GET per read; output is a non-allocating sink.
 
 use base_http::{Response, Status, body::BufferedBody};
-use base_http1::{RequestReader, ResponseWriter};
+use base_http1::{LentInput, RequestReader, ResponseWriter};
 use base_scheduler::{
     BufferLease, Cancellation, IoBufSequence, IoBufSequenceMut, OperationResult, SocketRecvFlags,
     SocketRecvResult, SocketSendFlags, SocketStreamReader, SocketStreamWriter,
@@ -143,6 +143,28 @@ fn main() {
         write.await.unwrap();
     });
     writes.store(0, Ordering::Relaxed);
+    // `--lent` measures the server's path instead: the input lent to each
+    // request body, which the connection waits for before the next request.
+    if std::env::args().any(|argument| argument == "--lent") {
+        let mut input = LentInput::new(input);
+        let measured = allocation_counter::measure(|| {
+            block_on(async {
+                for _ in 0..requests {
+                    let (request, context) = input.read_request(&never).await.unwrap().unwrap();
+                    drop(request);
+                    let mut response = Response::new(Status::OK, BufferedBody::from(BODY));
+                    response.fields.add("Content-Type", "text/plain").unwrap();
+                    output
+                        .write_response(&context, &mut response, &never)
+                        .await
+                        .unwrap();
+                    input.returned(&never).await.unwrap();
+                }
+            })
+        });
+        report(requests, &measured, &writes);
+        return;
+    }
     let measured = allocation_counter::measure(|| {
         block_on(async {
             for _ in 0..requests {
@@ -157,6 +179,10 @@ fn main() {
             }
         })
     });
+    report(requests, &measured, &writes);
+}
+
+fn report(requests: u64, measured: &allocation_counter::AllocationInfo, writes: &AtomicUsize) {
     println!(
         "{{\"requests\":{requests},\"allocations_per_request\":{},\"allocated_bytes_per_request\":{},\"writes_per_response\":{}}}",
         measured.count_total as f64 / requests as f64,

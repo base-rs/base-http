@@ -363,10 +363,10 @@ async fn run<'scope>(
                 queue.begin_close();
                 context.pool.begin_close();
             }
-            if cleaned.is_none() {
-                if let Poll::Ready(result) = cleanup.as_mut().poll(cx) {
-                    cleaned = Some(result);
-                }
+            if cleaned.is_none()
+                && let Poll::Ready(result) = cleanup.as_mut().poll(cx)
+            {
+                cleaned = Some(result);
             }
             if cleaned.is_some() && jobs.is_empty() && lock(&queue.state).work.is_empty() {
                 return Poll::Ready(cleaned.take());

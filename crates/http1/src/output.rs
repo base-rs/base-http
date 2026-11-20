@@ -463,10 +463,10 @@ impl BodyEncoder {
                 if self.forbid_content && self.total != 0 {
                     return Err(Error::Invalid("content on 205"));
                 }
-                if let Framing::Fixed(length) | Framing::Chunked(Some(length)) = self.framing {
-                    if self.total > length {
-                        return Err(Error::LengthMismatch);
-                    }
+                if let Framing::Fixed(length) | Framing::Chunked(Some(length)) = self.framing
+                    && self.total > length
+                {
+                    return Err(Error::LengthMismatch);
                 }
                 if !bytes.is_empty() {
                     if matches!(self.framing, Framing::Chunked(_)) {
@@ -494,10 +494,10 @@ impl BodyEncoder {
             BodyFrame::End => {}
         }
         if end {
-            if let Framing::Fixed(length) | Framing::Chunked(Some(length)) = self.framing {
-                if self.total != length {
-                    return Err(Error::LengthMismatch);
-                }
+            if let Framing::Fixed(length) | Framing::Chunked(Some(length)) = self.framing
+                && self.total != length
+            {
+                return Err(Error::LengthMismatch);
             }
             if matches!(self.framing, Framing::Chunked(_)) {
                 output.write_all(b"0\r\n", cancellation).await?;
@@ -626,10 +626,10 @@ fn plan<'a>(
             }
             framing = Framing::Absent;
         } else {
-            if let (Some(actual), Some(declared)) = (length, declared) {
-                if actual != declared {
-                    return Err(Error::LengthMismatch);
-                }
+            if let (Some(actual), Some(declared)) = (length, declared)
+                && actual != declared
+            {
+                return Err(Error::LengthMismatch);
             }
             if response.status == Status::RESET_CONTENT
                 && (length.is_some_and(|n| n != 0) || declared.is_some_and(|n| n != 0))

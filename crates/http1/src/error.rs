@@ -14,6 +14,9 @@ pub enum Error {
     Truncated,
     LengthMismatch,
     Body(Box<dyn std::error::Error + Send + Sync>),
+    /// The connection took back the input this request body reads, because it
+    /// was cancelled or failed. No further input is available to the body.
+    Closed,
 }
 
 impl fmt::Display for Error {
@@ -26,6 +29,7 @@ impl fmt::Display for Error {
             Self::Truncated => f.write_str("truncated HTTP/1 message"),
             Self::LengthMismatch => f.write_str("body does not match its declared length"),
             Self::Body(_) => f.write_str("HTTP/1 body failed"),
+            Self::Closed => f.write_str("HTTP/1 request input was closed by its connection"),
         }
     }
 }
@@ -91,6 +95,10 @@ mod tests {
                 "HTTP/1 limit exceeded: message head",
             ),
             (Error::Truncated, "truncated HTTP/1 message"),
+            (
+                Error::Closed,
+                "HTTP/1 request input was closed by its connection",
+            ),
             (
                 Error::LengthMismatch,
                 "body does not match its declared length",

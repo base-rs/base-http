@@ -325,10 +325,10 @@ impl SocketClose for Memory {
 struct Hello {
     called: AtomicBool,
 }
-impl Handler for Hello {
+impl<'h> Handler<'h> for Hello {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,
@@ -344,7 +344,7 @@ impl Handler for Hello {
 
 fn serve(
     memory: &Memory,
-    handler: &impl Handler,
+    handler: &impl for<'h> Handler<'h>,
     options: &base_http1::Options,
     cancellation: &Cancellation,
 ) -> Result<u64, Error> {
@@ -494,10 +494,10 @@ fn cancellation_while_a_head_is_read_prevents_handler_admission() {
 
 // A handler which stops the server and reports the resulting failure, as one observing a cancelled operation would.
 struct Shutdown(Cancellation);
-impl Handler for Shutdown {
+impl<'h> Handler<'h> for Shutdown {
     type Error = io::Error;
-    type Body<B: ReadableBody> = BufferedBody;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         _: Request<B>,
         _: &mut InterimResponses<I>,

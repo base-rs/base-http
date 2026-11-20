@@ -34,11 +34,11 @@ fn route<B>(mut request: Request<B>, path: &str) -> Request<B> {
     request
 }
 
-impl Handler for Sabotaged {
+impl<'h> Handler<'h> for Sabotaged {
     type Error = io::Error;
-    type Body<B: ReadableBody> = Reply<B>;
+    type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         interim: &mut InterimResponses<I>,
@@ -186,11 +186,11 @@ impl Borrow<App> for Misrouted {
     }
 }
 
-impl Handler for Misrouted {
+impl<'h> Handler<'h> for Misrouted {
     type Error = io::Error;
-    type Body<B: ReadableBody> = Reply<B>;
+    type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         interim: &mut InterimResponses<I>,
@@ -314,11 +314,11 @@ impl Borrow<App> for Reframed {
     }
 }
 
-impl Handler for Reframed {
+impl<'h> Handler<'h> for Reframed {
     type Error = io::Error;
-    type Body<B: ReadableBody> = Reply<B>;
+    type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         _: &mut InterimResponses<I>,
@@ -356,11 +356,11 @@ impl Borrow<App> for Buffering {
     }
 }
 
-impl Handler for Buffering {
+impl<'h> Handler<'h> for Buffering {
     type Error = io::Error;
-    type Body<B: ReadableBody> = Reply<B>;
+    type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         _: &mut InterimResponses<I>,

@@ -839,10 +839,10 @@ fn cancelled_and_dropped_open_waiters_do_not_abandon_active_exchange() {
 }
 
 struct Echo;
-impl base_http_server::Handler for Echo {
+impl<'h> base_http_server::Handler<'h> for Echo {
     type Error = std::convert::Infallible;
-    type Body<B: ReadableBody> = B;
-    async fn call<B: ReadableBody, I: base_http::InterimHandler>(
+    type Body<B: ReadableBody + 'h> = B;
+    async fn call<B: ReadableBody + 'h, I: base_http::InterimHandler>(
         &self,
         request: Request<B>,
         _: &mut base_http::InterimResponses<I>,

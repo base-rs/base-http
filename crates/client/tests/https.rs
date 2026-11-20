@@ -58,10 +58,10 @@ async fn payload(body: &mut impl ReadableBody) -> Vec<u8> {
     }
 }
 struct Echo;
-impl Handler for Echo {
+impl<'h> Handler<'h> for Echo {
     type Error = Infallible;
-    type Body<B: ReadableBody> = B;
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    type Body<B: ReadableBody + 'h> = B;
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         request: Request<B>,
         _: &mut InterimResponses<I>,

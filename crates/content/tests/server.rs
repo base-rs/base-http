@@ -40,11 +40,11 @@ struct Profiles {
     next: Arc<AtomicUsize>,
 }
 
-impl Handler for Profiles {
+impl<'h> Handler<'h> for Profiles {
     type Error = Infallible;
-    type Body<B: ReadableBody> = BufferedBody<Vec<u8>>;
+    type Body<B: ReadableBody + 'h> = BufferedBody<Vec<u8>>;
 
-    async fn call<B: ReadableBody, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
         &self,
         mut request: Request<B>,
         _: &mut InterimResponses<I>,

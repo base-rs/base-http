@@ -176,10 +176,10 @@ fn request(parsed: &httparse::Request<'_, '_>) -> Result<(RequestMetadata, Reque
     let upgrade = if connection_upgrade {
         if version == Version::Http11 {
             let first = first_upgrade.ok_or(Error::Invalid("missing upgrade protocol"))?;
-            if upgrade_count == 1 {
-                if let Ok(offer) = std::str::from_utf8(trim(first)) {
-                    head.protocol = Protocol::new(offer).ok();
-                }
+            if upgrade_count == 1
+                && let Ok(offer) = std::str::from_utf8(trim(first))
+            {
+                head.protocol = Protocol::new(offer).ok();
             }
         }
         let mut offers = Vec::new();
