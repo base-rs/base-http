@@ -6,7 +6,7 @@ mod error;
 mod readable;
 mod writable;
 
-use base_http::body::{BufferedBody, EmptyBody, HeadBody, ReadableBody};
+use base_http::body::{BufferedBody, Chunk, EmptyBody, HeadBody, ReadableBody};
 use base_scheduler::{Cancellation, Cancelled};
 use futures_lite::future::block_on;
 use std::sync::Arc;
@@ -69,6 +69,40 @@ fn immutable_shared_chunks_do_not_require_copying_payloads() {
     let mut body = BufferedBody::from(Arc::clone(&original));
     let returned = body.read_chunk().unwrap();
     assert!(Arc::ptr_eq(&original, &returned));
+}
+
+#[test]
+fn shared_chunks_are_readable_body_data() {
+    let original: Arc<[u8]> = Arc::from(&b"hello"[..]);
+    let mut body = BufferedBody::from(Arc::clone(&original));
+    let read = block_on(next_chunk(&mut body, &Cancellation::never()))
+        .unwrap()
+        .unwrap();
+    assert!(Arc::ptr_eq(&original, &read));
+    // A shared buffer may have other owners, so converting it copies.
+    assert_eq!(Chunk::into_vec(read), b"hello");
+}
+
+#[test]
+fn owned_chunks_convert_without_copying() {
+    let chunk = b"hello".to_vec();
+    let address = chunk.as_ptr();
+    let converted = Chunk::into_vec(chunk);
+    assert_eq!(converted.as_ptr(), address);
+    let text = String::from("hello");
+    let address = text.as_ptr();
+    let converted = Chunk::into_vec(text);
+    assert_eq!(converted.as_ptr(), address);
+    let boxed: Box<[u8]> = Box::from(&b"hello"[..]);
+    let address = boxed.as_ptr();
+    let converted = Chunk::into_vec(boxed);
+    assert_eq!(converted.as_ptr(), address);
+    assert_eq!(Chunk::into_vec(&b"hello"[..]), b"hello");
+    assert_eq!(Chunk::into_vec("hello"), b"hello");
+    assert_eq!(
+        Chunk::into_vec(std::borrow::Cow::Borrowed(&b"hello"[..])),
+        b"hello"
+    );
 }
 
 #[test]

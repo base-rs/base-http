@@ -1,7 +1,7 @@
 // Released under the MIT License.
 // Copyright, 2024-2026, by Samuel Williams.
 
-use super::{BodyError, BodyFrame, ReadableBody, WritableBody};
+use super::{BodyError, BodyFrame, Chunk, ReadableBody, WritableBody};
 use crate::future::cancellable;
 use base_scheduler::Cancellation;
 use event_listener::Event;
@@ -118,7 +118,7 @@ impl<D: AsRef<[u8]> + Send> BodyReader<D> {
     }
 }
 
-impl<D: AsRef<[u8]> + Send> ReadableBody for BodyReader<D> {
+impl<D: Chunk> ReadableBody for BodyReader<D> {
     type Data = D;
     type Error = BodyError;
 
