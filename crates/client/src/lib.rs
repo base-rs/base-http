@@ -202,7 +202,6 @@ impl<'scope> Client<'scope> {
     ) -> Result<Response<ResponseBody>, Error>
     where
         B: ReadableBody + 'scope,
-        B::Data: Into<Vec<u8>>,
     {
         self.call_with_interim(
             request,
@@ -220,7 +219,6 @@ impl<'scope> Client<'scope> {
     ) -> Result<Response<ResponseBody>, Error>
     where
         B: ReadableBody + 'scope,
-        B::Data: Into<Vec<u8>>,
         I: InterimHandler + 'scope,
     {
         if cancellation.is_cancelled() {

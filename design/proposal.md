@@ -230,7 +230,7 @@ pub enum BodyFrame<D> {
 }
 
 pub trait ReadableBody: Send {
-    type Data: AsRef<[u8]> + Send;
+    type Data: Chunk; // AsRef<[u8]> + Send, convertible into Vec<u8>
     type Error: std::error::Error + Send + Sync + 'static;
 
     fn is_ready(&self) -> bool { false }

@@ -2,7 +2,7 @@
 // Copyright, 2026, by Samuel Williams.
 
 use base_http::body::{
-    BodyError, BodyFrame, BodyReader, BufferedBody, EmptyBody, ReadableBody, WritableBody,
+    BodyError, BodyFrame, BodyReader, BufferedBody, Chunk, EmptyBody, ReadableBody, WritableBody,
 };
 use base_http::{Fields, Method, Request, Response, Status};
 use base_scheduler::Cancellation;
@@ -14,6 +14,12 @@ struct Data(Vec<u8>);
 impl AsRef<[u8]> for Data {
     fn as_ref(&self) -> &[u8] {
         &self.0
+    }
+}
+// An application's own chunk type becomes body data by implementing `Chunk`.
+impl Chunk for Data {
+    fn into_vec(self) -> Vec<u8> {
+        self.0
     }
 }
 

@@ -3,7 +3,7 @@
 // Copyright, 2020, by Bryan Powell.
 // Copyright, 2025, by William T. Nelson.
 
-use super::{BodyFrame, ReadableBody};
+use super::{BodyFrame, Chunk, ReadableBody};
 use base_scheduler::{Cancellation, Cancelled};
 
 /// An in-memory, replayable sequence of chunks.
@@ -129,7 +129,7 @@ impl<D: AsRef<[u8]> + Clone + Send> From<D> for BufferedBody<D> {
     }
 }
 
-impl<D: AsRef<[u8]> + Clone + Send> ReadableBody for BufferedBody<D> {
+impl<D: Chunk + Clone> ReadableBody for BufferedBody<D> {
     type Data = D;
     type Error = Cancelled;
 

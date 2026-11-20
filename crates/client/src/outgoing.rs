@@ -4,7 +4,7 @@
 use crate::{Error, driver::Work};
 use base_http::{
     InterimHandler, ResponseMetadata,
-    body::{BodyFrame, ReadableBody},
+    body::{BodyFrame, Chunk, ReadableBody},
 };
 use base_scheduler::Cancellation;
 use futures_util::{
@@ -34,7 +34,6 @@ impl<'scope> OutgoingBody<'scope> {
     pub fn new<B>(body: B, cancellation: Cancellation) -> Self
     where
         B: ReadableBody + 'scope,
-        B::Data: Into<Vec<u8>>,
     {
         let length = body.length();
         let trailers = body.may_have_trailers();
@@ -48,7 +47,7 @@ impl<'scope> OutgoingBody<'scope> {
                 let frame = body.0.read(&cancellation).await.map_err(Error::body)?;
                 let end = frame.is_end();
                 Ok(Some((
-                    frame.map_data(Into::into),
+                    frame.map_data(Chunk::into_vec),
                     (body, cancellation, end),
                 )))
             },

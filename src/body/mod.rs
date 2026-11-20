@@ -125,6 +125,7 @@ use base_scheduler::Cancellation;
 use std::future::Future;
 
 mod buffered;
+mod chunk;
 mod empty;
 mod error;
 mod frame;
@@ -132,6 +133,7 @@ mod head;
 mod writable;
 
 pub use buffered::BufferedBody;
+pub use chunk::Chunk;
 pub use empty::EmptyBody;
 pub use error::BodyError;
 pub use frame::BodyFrame;
@@ -143,8 +145,9 @@ pub use writable::{BodyReader, BodyWriter};
 /// No observation performs I/O or requires a scheduler. Readiness, exhaustion,
 /// known representation length and rewindability are independent properties.
 pub trait ReadableBody: Send {
-    /// Application data, without imposing completion-I/O buffer requirements.
-    type Data: AsRef<[u8]> + Send;
+    /// Application data, which a consumer needing owned storage converts with
+    /// [`Chunk::into_vec`], moving vectors.
+    type Data: Chunk;
     type Error: std::error::Error + Send + Sync + 'static;
 
     /// Whether another read can proceed without waiting for produced data.
