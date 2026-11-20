@@ -1,6 +1,5 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
-use base_http_server::ServerContext;
 
 use crate::{Latch, RawPeer, Scheduler, native};
 use base_http::{
@@ -8,7 +7,7 @@ use base_http::{
     body::{BufferedBody, ReadableBody},
 };
 use base_http_client::{Client, Driver, Endpoint};
-use base_http_server::Handler;
+use base_http_server::{Handler, ServerContext};
 use base_scheduler::{Cancellation, Clock, SocketType, Spawn, TaskError};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::{block_on, or, zip};

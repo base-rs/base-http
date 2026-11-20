@@ -1,9 +1,9 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
-use base_http_server::ServerContext;
 
 use super::*;
 use base_http::{Request, Response, Status, body::EmptyBody};
+use base_http_server::ServerContext;
 use std::{convert::Infallible, io::Write, net::TcpStream};
 
 /// Blocks its worker in every call until released, so the server cannot observe cancellation.

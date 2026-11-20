@@ -4,14 +4,13 @@
 //! A deliberately small protocol-driver experiment, not a gateway policy API.
 //! Upload and download futures remain separately owned and polled until joined.
 mod support;
-use base_http_server::{HandlerContext, ServerContext};
+use base_http_server::{Handler, HandlerContext, ServerContext};
 use support::*;
 
 use base_http::{
     Fields, InterimResponses, Request, RequestMetadata, Response, ResponseMetadata, Status,
     body::ReadableBody,
 };
-use base_http_server::Handler;
 use base_http1::{Error, RequestReader, RequestWriter, ResponseReader, ResponseWriter};
 use base_scheduler::{
     Cancellation, SocketAccept, SocketClose, SocketConnect, SocketOpen, SocketStreamReading,

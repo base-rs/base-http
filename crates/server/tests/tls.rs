@@ -2,15 +2,13 @@
 // Copyright, 2026, by Samuel Williams.
 
 #![cfg(feature = "rustls")]
-use base_http_server::ServerContext;
-
 use base_endpoint::tls::{TlsAcceptor, rustls::RustlsAcceptor};
 use base_http::{
     Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
 use base_http_protocol::{HttpProtocols, NegotiationError};
-use base_http_server::{Error, Handler, Options};
+use base_http_server::{Error, Handler, Options, ServerContext};
 use base_scheduler::{Cancellation, SocketAccept, SocketClose};
 use futures_lite::future::block_on;
 use rustls::{

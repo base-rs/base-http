@@ -2,15 +2,13 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Reading content in a `base-http-server` handler, over real connections.
-use base_http_server::ServerContext;
-
 use base_http::{
     Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
 use base_http_content::{FileStore, read_content};
 use base_http_fixtures::{RawPeer, ServerFixture};
-use base_http_server::Handler;
+use base_http_server::{Handler, ServerContext};
 use base_scheduler::Cancellation;
 use base_scheduler_native::NativeScheduler;
 use base_web_content::{Content, ContentFormat, FieldPath, Upload};

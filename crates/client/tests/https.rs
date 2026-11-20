@@ -2,8 +2,6 @@
 // Copyright, 2026, by Samuel Williams.
 
 #![cfg(feature = "rustls")]
-use base_http_server::ServerContext;
-
 use base_endpoint::{AddressEndpoint, BindEndpoint, BindOptions};
 use base_http::{
     Method, Request, Response, Status,
@@ -11,7 +9,7 @@ use base_http::{
 };
 use base_http_client::{Client, Endpoint, Error, Options};
 use base_http_fixtures::socket::wait_acknowledged;
-use base_http_server::Handler;
+use base_http_server::{Handler, ServerContext};
 use base_scheduler::{Cancellation, Clock, SocketLocalAddress};
 use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};

@@ -2,10 +2,8 @@
 // Copyright, 2026, by Samuel Williams.
 
 #![allow(dead_code)]
-use base_http_server::ServerContext;
-
 use base_http_fixtures::raw;
-use base_http_server::{Error, Handler};
+use base_http_server::{Error, Handler, ServerContext};
 use base_scheduler::{
     Cancellation, SocketAccept, SocketBind, SocketClose, SocketListen, SocketLocalAddress,
     SocketOpen, SocketType,

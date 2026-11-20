@@ -9,8 +9,7 @@ use base_http::{
     body::{BodyFrame, BufferedBody, ReadableBody},
 };
 use base_http_client::{Client, Endpoint};
-use base_http_server::Handler;
-use base_http_server::ServerContext;
+use base_http_server::{Handler, ServerContext};
 use base_scheduler::{Cancellation, SocketAccept, SocketClose, SocketLocalAddress};
 use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, zip};

@@ -4,8 +4,7 @@
 //! A spawned server runs on the scheduler's workers beside a client driven from the test's thread, and reports each way it can fail, in order.
 use base_http::{Method, Request, Response, Status, body::EmptyBody, body::ReadableBody};
 use base_http_fixtures::{Context, Hello, ServerFixture, body::payload, protocol::App};
-use base_http_server::Handler;
-use base_http_server::ServerContext;
+use base_http_server::{Handler, ServerContext};
 use base_scheduler::Cancellation;
 use base_scheduler_native::NativeScheduler;
 use std::{convert::Infallible, io::Read};

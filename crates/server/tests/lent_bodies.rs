@@ -6,13 +6,11 @@
 //! cancelled or its handler fails.
 
 mod support;
-use base_http_server::{HandlerContext, ServerContext};
-
 use base_http::{
     Request, Response, Status,
     body::{BodyFrame, BufferedBody, ReadableBody},
 };
-use base_http_server::{Error, Handler};
+use base_http_server::{Error, Handler, HandlerContext, ServerContext};
 use base_scheduler::{Cancellation, Clock, SocketAccept, SocketClose};
 use futures_lite::future::block_on;
 use futures_util::{StreamExt, stream::FuturesUnordered};

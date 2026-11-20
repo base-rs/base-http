@@ -4,14 +4,12 @@
 //! The [`protocol_tests!`](crate::protocol_tests) suite, ported from `async-http`'s `AProtocol` shared behaviour.
 //!
 //! One application, [`App`], serves every case on its own route, so a runner only chooses how to serve and connect: the HTTP version, options and transport. Each case is a standalone `pub async fn` taking the running [`Context`], so a partial implementation can call a subset. The cases address the application through `H: Borrow<App>`, so a test can wrap it to change its behaviour.
-use base_http_server::{HandlerContext, ServerContext};
-
 use crate::{Context, Latch, Scheduler, body};
 use base_http::{
     Fields, Method, Request, Response, ResponseMetadata, Status, Version,
     body::{BodyError, BodyFrame, BodyReader, BufferedBody, ReadableBody},
 };
-use base_http_server::Handler;
+use base_http_server::{Handler, HandlerContext, ServerContext};
 use base_scheduler::Cancellation;
 use event_listener::{Event, listener};
 use futures_lite::future::zip;

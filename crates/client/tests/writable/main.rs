@@ -5,13 +5,13 @@
 mod support;
 
 mod open;
-use base_http_server::ServerContext;
 
 use base_http::{
     Fields, Method, Request, RequestMetadata, Scheme,
     body::{BodyFrame, EmptyBody, ReadableBody, WritableBody},
 };
 use base_http_client::{Client, Endpoint, Error, Options};
+use base_http_server::ServerContext;
 use base_scheduler::Cancellation;
 use base_scheduler_native::NativeScheduler;
 use futures_lite::future::{block_on, poll_once, zip};

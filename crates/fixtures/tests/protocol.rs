@@ -10,8 +10,7 @@ use base_http_fixtures::{
     ServerFixture, body,
     protocol::{self, App, LARGE_BODY, Reply, Staged, Step},
 };
-use base_http_server::Handler;
-use base_http_server::{HandlerContext, ServerContext};
+use base_http_server::{Handler, HandlerContext, ServerContext};
 use base_scheduler::Cancellation;
 use base_scheduler::Clock;
 use futures_lite::future::{or, zip};
