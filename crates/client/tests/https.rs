@@ -282,12 +282,8 @@ fn https_upload_progresses_while_response_consumption_is_paused() {
         scheduler
             .timeout(Duration::from_secs(15), async {
                 let endpoint = Endpoint::new(address).with_tls(client_config, "localhost");
-                let options = Options {
-                    response_buffer_bytes: 32768,
-                    response_buffer_frames: 1,
-                    ..Options::default()
-                };
-                let (client, driver) = Client::new(&scheduler, endpoint, options).unwrap();
+                let (client, driver) =
+                    Client::new(&scheduler, endpoint, Options::default()).unwrap();
                 let application = async {
                     let request = Request::new(
                         Method::POST,

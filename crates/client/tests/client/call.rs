@@ -4,7 +4,7 @@
 use super::{Tracked, accept, chain, head, payload, peer, remainder, run_endpoint, unconnected};
 use base_http::{
     Method, Protocol, Request, Scheme,
-    body::{BodyError, EmptyBody, ReadableBody},
+    body::{EmptyBody, ReadableBody},
 };
 use base_http_client::{Endpoint, Error, Options};
 use base_scheduler::Cancellation;
@@ -50,6 +50,18 @@ fn rejected_calls_close_their_bodies_without_dialing() {
             ["unsupported HTTP client operation: request scheme does not match the endpoint"]
         );
         assert_eq!(closed.load(Ordering::Relaxed), 5);
+
+        // Calls through the request interface are rejected the same way.
+        let mut context = base_http::ClientContext::new(|_: base_http::ResponseMetadata| async {
+            Ok::<_, std::convert::Infallible>(())
+        });
+        let connect = Request::new(Method::CONNECT, "/", Tracked(closed.clone()));
+        let error = base_http::Handler::call(&client, connect, &mut context, &never)
+            .await
+            .err()
+            .unwrap();
+        assert!(matches!(error, Error::Unsupported(_)));
+        assert_eq!(closed.load(Ordering::Relaxed), 6);
         assert_eq!(client.pool_stats().total(), 0);
     });
 }
@@ -122,7 +134,7 @@ fn closing_a_response_body_abandons_its_connection() {
             .call(Request::new(Method::GET, "/", EmptyBody), &never)
             .await
             .unwrap();
-        response.body.close(Some(BodyError::Abandoned));
+        response.body.close(Some(Error::Abandoned));
         assert!(response.body.read(&never).await.is_err());
         let mut response = client
             .call(Request::new(Method::GET, "/next", EmptyBody), &never)
@@ -157,12 +169,8 @@ fn truncated_response_bodies_report_the_protocol_failure() {
                 Err(error) => break error,
             }
         };
-        assert_eq!(chain(&error), ["body failed", "truncated HTTP/1 message"]);
-        let source = std::error::Error::source(&error).unwrap();
-        assert!(matches!(
-            source.downcast_ref::<Error>(),
-            Some(Error::Protocol(_))
-        ));
+        assert_eq!(chain(&error), ["truncated HTTP/1 message"]);
+        assert!(matches!(error, Error::Protocol(_)), "{error:?}");
         client.begin_close();
     });
     peer.join().unwrap();

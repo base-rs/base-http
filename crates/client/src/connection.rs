@@ -2,10 +2,8 @@
 // Copyright, 2026, by Samuel Williams.
 
 use crate::{
-    Endpoint, Error, Options, ResponseBody,
-    body::Consumption,
-    driver::{Assigned, Operation, Queue, checked, linked, lock},
-    outgoing::Interim,
+    Endpoint, Error, Options,
+    driver::{Queue, checked, lock},
     writable::{
         COMPLETE, ExchangeCompletion, FINALIZE, Open, OpenFactory, Opening, Return, ReturnTo,
     },
@@ -13,10 +11,6 @@ use crate::{
 use base_endpoint::{
     AddressEndpoint, ConnectEndpoint,
     stream::{ReadableStream, WritableStream},
-};
-use base_http::{
-    InterimResponses, Response,
-    body::{BodyError, BodyReader, ReadableBody},
 };
 use base_http1::{RequestWriter, ResponseReader};
 use base_pool::{Admission, MultiplexBuildPermit, MultiplexResource};
@@ -26,14 +20,12 @@ use base_scheduler::{
 };
 use event_listener::Event;
 use futures_channel::oneshot;
-use futures_util::future::join;
 use std::sync::{
     Arc, Mutex, Weak,
     atomic::{AtomicBool, Ordering},
 };
 
 struct Inner<'scope> {
-    assigned: Mutex<Option<Assigned<'scope>>>,
     direct: Mutex<Option<Arc<dyn DirectConnection<'scope> + 'scope>>>,
     changed: Event,
     stop: Cancellation,
@@ -41,8 +33,8 @@ struct Inner<'scope> {
 }
 
 /// An established HTTP/1 session retaining its transport and codec buffers.
-/// Direct requests take and return its directions in the calling task;
-/// supervised work handles construction, queued calls and retirement.
+/// Requests take and return its directions in the calling task; supervised
+/// work handles construction and retirement.
 #[derive(Clone)]
 pub struct Connection<'scope> {
     inner: Arc<Inner<'scope>>,
@@ -51,7 +43,6 @@ impl<'scope> Connection<'scope> {
     fn new() -> Self {
         Self {
             inner: Arc::new(Inner {
-                assigned: Mutex::new(None),
                 direct: Mutex::new(None),
                 changed: Event::new(),
                 stop: Cancellation::new(),
@@ -61,13 +52,6 @@ impl<'scope> Connection<'scope> {
     }
     pub(crate) fn clone_handle(&self) -> Self {
         self.clone()
-    }
-    pub(crate) fn submit(&self, assigned: Assigned<'scope>) {
-        let mut slot = lock(&self.inner.assigned);
-        assert!(slot.is_none(), "HTTP/1 admits one exchange at a time");
-        *slot = Some(assigned);
-        drop(slot);
-        self.inner.changed.notify(usize::MAX);
     }
     pub(crate) fn open(&self, opening: Open<'scope>) -> Opening<'scope> {
         // Admission is published only after the session installs its direct state, which it never removes.
@@ -85,28 +69,16 @@ impl<'scope> Connection<'scope> {
             .expect("an admitted connection has direct state");
         direct.probe()
     }
-    async fn next(&self, lifetime: &Cancellation) -> Option<Assigned<'scope>> {
-        loop {
-            event_listener::listener!(self.inner.changed => listener);
-            if let Some(assigned) = lock(&self.inner.assigned).take() {
-                return Some(assigned);
-            }
-            if checked(
-                checked(
-                    async {
-                        listener.await;
-                        Ok(())
-                    },
-                    &self.inner.stop,
-                ),
-                lifetime,
-            )
-            .await
-            .is_err()
-            {
-                return None;
-            }
-        }
+    /// Wait until the connection is stopped or its lifetime ends.
+    async fn stopped(&self, lifetime: &Cancellation) {
+        let _ = checked(
+            checked(
+                std::future::pending::<Result<(), Error>>(),
+                &self.inner.stop,
+            ),
+            lifetime,
+        )
+        .await;
     }
     pub(crate) fn stop(&self) {
         self.inner.stop.cancel();
@@ -139,8 +111,6 @@ impl Drop for Owner<'_> {
         if let Some(registration) = &self.registration {
             registration.retire();
         }
-        let abandoned = lock(&self.connection.inner.assigned).take();
-        drop(abandoned);
         self.connection.finish(Err(Error::Closed));
     }
 }
@@ -204,7 +174,6 @@ pub(crate) async fn run<'scope, S>(
                         &mut owner,
                         &mut build,
                         &mut ready,
-                        &options,
                         &cancellation,
                         &lifetime,
                         queue.clone(),
@@ -243,7 +212,6 @@ pub(crate) async fn run<'scope, S>(
                     &mut owner,
                     &mut build,
                     &mut ready,
-                    &options,
                     &cancellation,
                     &lifetime,
                     queue.clone(),
@@ -478,7 +446,6 @@ async fn session<'scope, R, W>(
     owner: &mut Owner<'scope>,
     build: &mut Option<MultiplexBuildPermit<Connection<'scope>>>,
     ready: &mut Option<oneshot::Sender<Result<(), Error>>>,
-    options: &Options,
     cancellation: &Cancellation,
     lifetime: &Cancellation,
     queue: Weak<Queue<'scope>>,
@@ -494,20 +461,14 @@ where
     }
     // Set the direct interface before publication; no admitted caller can see
     // a connection without its codec storage.
-    let Ok(registration) = build
+    // The pool closes only once the driver's cancellation, which construction
+    // inherits from its waiting request, has been cancelled, and that was
+    // checked above with no wait since, so the pool is still open.
+    let registration = build
         .take()
         .unwrap()
         .commit(owner.connection.clone(), Admission::concurrent(0))
-    else {
-        // Commit fails only once shutdown has closed the pool, which queues this connection for retirement. Its waiter sees the closed client, and only a failed close is a driver failure.
-        let ready = ready.take().expect("a session reports readiness once");
-        let _ = ready.send(Err(Error::Closed));
-        let input = input.close().await;
-        let output = output.close().await;
-        input?;
-        output?;
-        return Ok(());
-    };
+        .expect("the pool closes only after construction is cancelled");
     owner.registration = Some(registration.clone());
     let state = Arc::new(Http1Connection {
         codecs: Mutex::new(Codecs {
@@ -526,161 +487,17 @@ where
     // Construction runs one session, and reports readiness itself only if the session never does.
     let ready = ready.take().expect("a session reports readiness once");
     let _ = ready.send(Ok(()));
-    // Only queued pull-body calls run here. Imperative open/write/read acquires the retained state directly on the calling task.
-    while let Some(Assigned {
-        mut operation,
-        active,
-    }) = owner.connection.next(lifetime).await
-    {
-        // Direct exchanges restore both directions before releasing their use, and closing begins only after this loop.
-        let (mut input, mut output) = state
-            .take()
-            .expect("an admitted exchange finds both codec directions");
-        let local = operation.cancellation.clone();
-        let caller = operation.lifetime.clone();
-        let outcome = linked(
-            exchange(&mut input, &mut output, &mut operation, options),
-            &local,
-            &caller,
-            lifetime,
-        )
-        .await;
-        operation.request.body.close(None);
-        if let Some(reply) = operation.reply.take() {
-            let _ = reply.send(Err(outcome
-                .as_ref()
-                .err()
-                .cloned()
-                .unwrap_or(Error::Closed)));
-        }
-        let reusable = matches!(outcome, Ok(true));
-        if !reusable {
-            state.registration.retire();
-        }
-        {
-            let mut codecs = lock(&state.codecs);
-            codecs.input = Some(input);
-            codecs.output = Some(output);
-        }
-        drop(operation);
-        active.complete();
-        if !reusable {
-            break;
-        }
-    }
+    // Requests acquire the retained state directly on their calling tasks;
+    // the session only keeps the connection until it is stopped.
+    owner.connection.stopped(lifetime).await;
     state.registration.retire();
     state.close().await
-}
-
-async fn exchange<R: ReadableStream, W: WritableStream>(
-    input: &mut ResponseReader<R>,
-    output: &mut RequestWriter<W>,
-    operation: &mut Operation<'_>,
-    options: &Options,
-) -> Result<bool, Error> {
-    let Operation {
-        request,
-        interim,
-        reply,
-        cancellation,
-        ..
-    } = operation;
-    let metadata = request.metadata.clone();
-    let headers = AtomicBool::new(false);
-    let send = async {
-        let result = checked(
-            async {
-                output
-                    .write_request(request, cancellation)
-                    .await
-                    .map_err(Error::from)
-            },
-            cancellation,
-        )
-        .await;
-        // Preserve a readable final response when the peer refuses further
-        // upload. The connection is retired even if that response succeeds.
-        if result.is_err() && !headers.load(Ordering::Acquire) {
-            cancellation.cancel();
-        }
-        result
-    };
-    let receive = async {
-        let mut writer = None;
-        let result = checked(
-            async {
-                let mut observer = InterimResponses::new(Interim(interim.as_mut()));
-                let mut response = input
-                    .read_response(&metadata, &mut observer, cancellation)
-                    .await?;
-                let consumption = Consumption::new(cancellation.clone());
-                let empty = response.body.is_empty();
-                let (reader, mut producer) = BodyReader::bounded(
-                    options.response_buffer_bytes,
-                    options.response_buffer_frames,
-                );
-                // Publish known-empty input as completed before handing it to
-                // another task. Its consumer may drop it immediately, without
-                // racing a redundant End write or retiring a healthy session.
-                if empty {
-                    consumption.complete();
-                    producer.close_write(None);
-                }
-                let body = ResponseBody {
-                    reader,
-                    consumption: consumption.clone(),
-                    length: response.body.length(),
-                    trailers: response.body.may_have_trailers(),
-                };
-                writer = Some(producer);
-                let returned = Response::from_parts(response.metadata, body);
-                if reply.take().unwrap().send(Ok(returned)).is_err() {
-                    return Err(Error::Abandoned);
-                }
-                headers.store(true, Ordering::Release);
-                if !empty {
-                    loop {
-                        let frame = response.body.read(cancellation).await?;
-                        let end = frame.is_end();
-                        writer
-                            .as_mut()
-                            .unwrap()
-                            .write_frame(frame, cancellation)
-                            .await?;
-                        if end {
-                            break;
-                        }
-                    }
-                }
-                consumption.wait().await
-            },
-            cancellation,
-        )
-        .await;
-        if let Err(error) = &result {
-            if let Some(writer) = &mut writer {
-                writer.close_write(Some(match error {
-                    Error::Body(error) => error.clone(),
-                    error => BodyError::new(error.clone()),
-                }));
-            }
-            cancellation.cancel();
-        }
-        result
-    };
-    let (sent, received) = join(send, receive).await;
-    match (sent, received) {
-        (Ok(persistent), Ok(())) => Ok(persistent && input.is_reusable()),
-        (Err(_), Ok(())) => Ok(false),
-        (Err(error), Err(Error::Cancelled)) if !matches!(error, Error::Cancelled) => Err(error),
-        (_, Err(error)) => Err(error),
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Client, driver::Pending, outgoing::tests::ignore};
+    use crate::{Client, driver::Pending, observer::tests::ignore};
     use base_http::{Method, RequestMetadata};
     use base_scheduler_native::NativeScheduler;
     use futures_lite::future::{block_on, yield_now, zip};

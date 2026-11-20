@@ -5,7 +5,7 @@
 use crate::{
     Client, Error,
     driver::{CancelOnDrop, Pending, checked, lock},
-    outgoing::{Interim, Observer},
+    observer::{Interim, Observer},
     reuse::{Cache, Recycle, Reused},
     sink::owned_sink,
 };
@@ -130,7 +130,14 @@ impl<'scope> Client<'scope> {
             checked(self.context.acquire(&local), &self.context.cancellation),
             cancellation,
         )
-        .await?;
+        .await
+        .map_err(|error| match error {
+            // A dropped driver closed the client; a cancelled one reports cancellation.
+            Error::Cancelled if self.queue.is_abandoned() && !cancellation.is_cancelled() => {
+                Error::Closed
+            }
+            error => error,
+        })?;
         let connection = active.clone_handle();
         let opening = Open {
             metadata,
@@ -319,6 +326,51 @@ impl RequestBodyWriter<'_> {
         self.sink.take();
         self.ended = true;
     }
+    /// Poll until the previous frame is written, for callers that interleave
+    /// output with other work. The write in progress stays in the sink, so a
+    /// dropped poll loses nothing. After the final frame, the sink is released
+    /// once it is written.
+    pub(crate) fn poll_writable(
+        &mut self,
+        cx: &mut Context<'_>,
+        cancellation: &Cancellation,
+    ) -> Poll<Result<(), Error>> {
+        if cancellation.is_cancelled() || self.exchange.cancellation.is_cancelled() {
+            return Poll::Ready(Err(Error::Cancelled));
+        }
+        let sink = self
+            .sink
+            .as_mut()
+            .expect("output retains its sink until its final frame is written");
+        if let Err(error) = std::task::ready!(sink.poll_ready_unpin(cx)) {
+            self.abort();
+            return Poll::Ready(Err(error));
+        }
+        if self.ended {
+            self.sink.take();
+            self.completion = Some(Ok(()));
+        }
+        Poll::Ready(Ok(()))
+    }
+    /// Cancelled when the exchange ends early, such as when its response is
+    /// dropped unfinished.
+    pub(crate) fn exchange_cancellation(&self) -> &Cancellation {
+        &self.exchange.cancellation
+    }
+    /// Whether the final frame has been started.
+    pub(crate) fn is_ended(&self) -> bool {
+        self.ended
+    }
+    /// Start writing `frame` once [`poll_writable`](Self::poll_writable) is
+    /// ready, before the final frame.
+    pub(crate) fn start_frame(&mut self, frame: BodyFrame<Vec<u8>>, cancellation: &Cancellation) {
+        self.ended = frame.is_end();
+        self.sink
+            .as_mut()
+            .expect("output retains its sink until its final frame is written")
+            .start_send_unpin((frame, cancellation.clone()))
+            .expect("a ready sink accepts a write");
+    }
 }
 impl WritableBody for RequestBodyWriter<'_> {
     type Data = Vec<u8>;
@@ -382,6 +434,7 @@ impl<'scope> Future for PendingResponse<'scope> {
                         length,
                         trailers,
                         empty,
+                        failure: None,
                     },
                 )))
             }
@@ -416,6 +469,8 @@ pub struct StreamingResponseBody<'scope> {
     length: Option<u64>,
     trailers: bool,
     empty: bool,
+    /// The failure reported by a close, which later reads return.
+    failure: Option<Error>,
 }
 impl ReadableBody for StreamingResponseBody<'_> {
     type Data = Vec<u8>;
@@ -429,13 +484,23 @@ impl ReadableBody for StreamingResponseBody<'_> {
     fn is_empty(&self) -> bool {
         self.empty
     }
-    fn close(&mut self, _: Option<Error>) {
+    /// A body known to be empty, or read to its end, is ready.
+    fn is_ready(&self) -> bool {
+        self.empty
+    }
+    /// Abandon the rest of the response, which retires its connection unless
+    /// the body had ended. Later reads report `error`, or the end without one.
+    fn close(&mut self, error: Option<Error>) {
         self.stream.take();
         self.empty = true;
+        self.failure = error;
     }
     async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Error> {
         if cancellation.is_cancelled() {
             return Err(Error::Cancelled);
+        }
+        if let Some(failure) = &self.failure {
+            return Err(failure.clone());
         }
         if self.empty {
             return Ok(BodyFrame::End);

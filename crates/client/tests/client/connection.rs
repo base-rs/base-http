@@ -2,10 +2,10 @@
 // Copyright, 2026, by Samuel Williams.
 
 //! Connection construction, cleanup and exchange failures, using a scheduler with injected faults where the real one cannot fail on demand.
-use super::{Stalled, accept, chain, head, peer, remainder, run_endpoint};
+use super::{Stalled, accept, chain, drive_until, head, peer, remainder, run_endpoint};
 use base_http::{
     Method, Request,
-    body::{BodyFrame, EmptyBody, ReadableBody},
+    body::{BodyFrame, BufferedBody, EmptyBody, ReadableBody},
 };
 use base_http_client::{Client, Endpoint, Error, Options};
 use base_scheduler::{
@@ -31,6 +31,16 @@ use std::{
     thread,
     time::Duration,
 };
+
+/// The client closed this connection without sending anything more. Closing
+/// with unread response bytes resets the connection instead of ending it.
+fn closed_unused(stream: &mut impl std::io::Read) {
+    let mut rest = Vec::new();
+    match stream.read_to_end(&mut rest) {
+        Ok(_) => assert!(rest.is_empty(), "{rest:?}"),
+        Err(error) => assert_eq!(error.kind(), io::ErrorKind::ConnectionReset),
+    }
+}
 
 fn respond_no_content(listener: &TcpListener) {
     let mut stream = accept(listener);
@@ -143,7 +153,6 @@ struct Plan {
     // Pause the next connect until released, before or after the TCP handshake.
     connect: Mutex<Option<Gate>>,
     // Block the polling thread after the next nonempty read until another thread proceeds.
-    read: Mutex<Option<(mpsc::Sender<()>, mpsc::Receiver<()>)>>,
 }
 impl Plan {
     fn gate(&self, after: bool) -> (oneshot::Receiver<()>, oneshot::Sender<()>) {
@@ -155,12 +164,6 @@ impl Plan {
             release: release_wait,
         });
         (reached_wait, release)
-    }
-    fn pause_read(&self) -> (mpsc::Receiver<()>, mpsc::Sender<()>) {
-        let (reached, reached_wait) = mpsc::channel();
-        let (proceed, proceed_wait) = mpsc::channel();
-        *self.read.lock().unwrap() = Some((reached, proceed_wait));
-        (reached_wait, proceed)
     }
 }
 struct Faults<'a> {
@@ -343,16 +346,7 @@ impl<R: SocketStreamReader> SocketStreamReader for FaultReader<R> {
         buffer: &mut [u8],
         cancellation: &Cancellation,
     ) -> OperationResult<usize> {
-        let length = self.inner.read_into(buffer, cancellation).await?;
-        if length > 0 {
-            let pause = self.plan.read.lock().unwrap().take();
-            if let Some((reached, proceed)) = pause {
-                // Hold this poll after data arrived but before the codec observes it.
-                reached.send(()).unwrap();
-                proceed.recv().unwrap();
-            }
-        }
-        Ok(length)
+        self.inner.read_into(buffer, cancellation).await
     }
     fn try_read_into(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
         self.inner.try_read_into(buffer)
@@ -595,8 +589,12 @@ fn driver_cancellation_during_tcp_connect_waits_for_construction_to_stop() {
 }
 
 #[test]
-fn driver_shutdown_during_establishment_retires_a_late_connection() {
-    // A clean close of the late connection is not a driver failure; its close errors still are.
+fn driver_shutdown_during_establishment_closes_the_late_connection() {
+    // Shutdown cancels construction, which closes both directions even when
+    // one fails; a close failure during cancelled construction reports the
+    // cancellation, so the driver does not fail. Failures closing a connection
+    // retired after establishment are reported by
+    // `cleanup_failures_are_reported_by_the_driver_after_closing_everything`.
     for fault in [None, Some("reader close"), Some("writer close")] {
         let (address, peer) = peer(|listener| {
             assert!(remainder(&mut accept(&listener)).is_empty());
@@ -625,19 +623,13 @@ fn driver_shutdown_during_establishment_retires_a_late_connection() {
             let mut call = pin!(client.call(Request::new(Method::GET, "/", EmptyBody), &never));
             assert!(poll_once(call.as_mut()).await.is_none());
             reached.await.unwrap();
-            // Construction resumes in the same supervisor poll that closes the pool, before the waiting call observes shutdown.
             release.send(()).unwrap();
             lifetime.cancel();
+            // Cancelling the driver's lifetime cancels the waiting call.
             let error = call.await.err().unwrap();
-            assert!(matches!(error, Error::Closed), "{error:?}");
+            assert!(matches!(error, Error::Cancelled), "{error:?}");
         });
-        match fault {
-            Some(fault) => {
-                let error = result.unwrap_err();
-                assert_eq!(chain(&error)[1], format!("injected {fault} failure"));
-            }
-            None => result.unwrap(),
-        }
+        result.unwrap();
         // Both directions are closed even when one fails.
         assert_eq!(plan.reader_closes.load(Ordering::SeqCst), 1);
         assert_eq!(plan.writer_closes.load(Ordering::SeqCst), 1);
@@ -756,6 +748,36 @@ fn request_body_failure_before_a_response_fails_the_call_with_that_error() {
 }
 
 #[test]
+fn a_failed_upload_write_fails_the_call_and_retires_the_connection() {
+    let (address, peer) = peer(|listener| {
+        let mut stream = accept(&listener);
+        head(&mut stream);
+        // Closing with the upload unread resets the connection, so the
+        // client's later writes fail.
+        drop(stream);
+        respond_no_content(&listener);
+    });
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
+        let upload = BufferedBody::from(vec![b'u'; 64 * 1024 * 1024]);
+        let error = client
+            .call(
+                Request::new(Method::POST, "/", upload),
+                &Cancellation::never(),
+            )
+            .await
+            .err()
+            .unwrap();
+        assert!(
+            matches!(error, Error::Io(_) | Error::Protocol(_)),
+            "{error:?}"
+        );
+        next_call(&client).await;
+        client.begin_close();
+    });
+    peer.join().unwrap();
+}
+
+#[test]
 fn cancelling_during_upload_and_response_wait_retires_the_connection() {
     let (sent, request) = oneshot::channel();
     let (address, peer) = peer(move |listener| {
@@ -768,8 +790,7 @@ fn cancelling_during_upload_and_response_wait_retires_the_connection() {
     run_endpoint(Endpoint::new(address), Options::default(), async |client| {
         let cancel = Cancellation::new();
         let mut call = pin!(client.call(Request::new(Method::POST, "/", Stalled), &cancel));
-        assert!(poll_once(call.as_mut()).await.is_none());
-        request.await.unwrap();
+        drive_until(&mut call, request).await.unwrap();
         cancel.cancel();
         assert!(matches!(call.await, Err(Error::Cancelled)));
         next_call(&client).await;
@@ -829,7 +850,7 @@ fn truncated_response_body_reports_an_error_to_its_reader() {
                 Err(error) => break error,
             }
         };
-        assert_eq!(chain(&error), ["body failed", "truncated HTTP/1 message"]);
+        assert_eq!(chain(&error), ["truncated HTTP/1 message"]);
         drop(response);
         next_call(&client).await;
         client.begin_close();
@@ -837,57 +858,42 @@ fn truncated_response_body_reports_an_error_to_its_reader() {
     peer.join().unwrap();
 }
 
-// Run the driver on another thread, so the application can act while a driver poll is held inside a read.
-fn drive_threaded(
-    faults: &Faults<'_>,
-    address: SocketAddr,
-    application: impl for<'scope> FnOnce(&Client<'scope>),
-) {
-    let (client, driver) = Client::new(faults, Endpoint::new(address), Options::default()).unwrap();
-    let lifetime = Cancellation::new();
-    thread::scope(|scope| {
-        let driving = scope.spawn(|| block_on(driver.run(&lifetime)));
-        application(&client);
-        client.begin_close();
-        driving.join().unwrap().unwrap();
-    });
-    assert_eq!(client.pool_stats().total(), 0);
-}
-
 #[test]
 fn call_dropped_as_its_response_arrives_retires_the_connection() {
-    let (address, peer) = peer(|listener| {
+    let (received, request) = oneshot::channel();
+    let (respond, go) = mpsc::channel::<()>();
+    let (responded, arrived) = oneshot::channel();
+    let (address, peer) = peer(move |listener| {
         let mut stream = accept(&listener);
         head(&mut stream);
+        received.send(()).unwrap();
+        go.recv().unwrap();
         stream
             .get_mut()
             .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nhello")
             .unwrap();
-        assert!(remainder(&mut stream).is_empty());
+        responded.send(()).unwrap();
+        closed_unused(&mut stream);
         respond_no_content(&listener);
     });
-    let scheduler = NativeScheduler::new().unwrap();
-    let faults = Faults::new(&scheduler);
-    let (reached, proceed) = faults.plan.pause_read();
-    drive_threaded(&faults, address, |client| {
-        block_on(async {
-            let never = Cancellation::never();
-            let mut call = Box::pin(client.call(Request::new(Method::GET, "/", EmptyBody), &never));
-            assert!(poll_once(call.as_mut()).await.is_none());
-            // The driver holds the response head; abandon the call before it is delivered.
-            reached.recv().unwrap();
-            drop(call);
-            proceed.send(()).unwrap();
-            next_call(client).await;
-        });
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
+        let never = Cancellation::never();
+        let mut call = Box::pin(client.call(Request::new(Method::GET, "/", EmptyBody), &never));
+        drive_until(&mut call, request).await.unwrap();
+        // The response arrives while the call is not polled; abandon it unread.
+        respond.send(()).unwrap();
+        arrived.await.unwrap();
+        drop(call);
+        next_call(&client).await;
+        client.begin_close();
     });
     peer.join().unwrap();
-    block_on(scheduler.shutdown());
 }
 
 #[test]
 fn response_dropped_while_its_body_arrives_retires_the_connection() {
     let (send_body, body_requested) = mpsc::channel::<()>();
+    let (sent_body, body_sent) = oneshot::channel();
     let (address, peer) = peer(move |listener| {
         let mut stream = accept(&listener);
         head(&mut stream);
@@ -897,32 +903,26 @@ fn response_dropped_while_its_body_arrives_retires_the_connection() {
             .unwrap();
         body_requested.recv().unwrap();
         stream.get_mut().write_all(b"hello").unwrap();
-        assert!(remainder(&mut stream).is_empty());
+        sent_body.send(()).unwrap();
+        closed_unused(&mut stream);
         respond_no_content(&listener);
     });
-    let scheduler = NativeScheduler::new().unwrap();
-    let faults = Faults::new(&scheduler);
-    let plan = faults.plan.clone();
-    drive_threaded(&faults, address, |client| {
-        block_on(async {
-            let response = client
-                .call(
-                    Request::new(Method::GET, "/", EmptyBody),
-                    &Cancellation::never(),
-                )
-                .await
-                .unwrap();
-            let (reached, proceed) = plan.pause_read();
-            send_body.send(()).unwrap();
-            // The driver holds body bytes; abandon the response before they are forwarded.
-            reached.recv().unwrap();
-            drop(response);
-            proceed.send(()).unwrap();
-            next_call(client).await;
-        });
+    run_endpoint(Endpoint::new(address), Options::default(), async |client| {
+        let response = client
+            .call(
+                Request::new(Method::GET, "/", EmptyBody),
+                &Cancellation::never(),
+            )
+            .await
+            .unwrap();
+        send_body.send(()).unwrap();
+        // The body is on its way; abandon the response before reading it.
+        body_sent.await.unwrap();
+        drop(response);
+        next_call(&client).await;
+        client.begin_close();
     });
     peer.join().unwrap();
-    block_on(scheduler.shutdown());
 }
 
 #[cfg(feature = "rustls")]

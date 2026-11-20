@@ -122,10 +122,7 @@ fn a_truncated_body_fails_the_client_read() {
         let error = body::collect(&mut response.body, &Cancellation::never())
             .await
             .unwrap_err();
-        assert_eq!(
-            error_chain(&error),
-            ["body failed", "truncated HTTP/1 message"]
-        );
+        assert_eq!(error_chain(&error), ["truncated HTTP/1 message"]);
     });
     server.join();
 }

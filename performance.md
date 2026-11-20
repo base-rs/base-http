@@ -23,9 +23,9 @@ The established client path has these layers:
 
 For imperative `Client::open_request`, acquisition is followed by direct connection use. The exchange independently owns request output and response input. Writes drive output; response body reads drive input. Both codec directions return before the active pool use completes. Receiving response metadata, or reaching response EOF, does not finish an active upload.
 
-The explicit client driver handles establishment, queued calls, deferred closure and retirement, plus supervised connection/TLS work. Ordinary established direct requests require no per-request supervisor acknowledgment. Direct TLS reads/writes also make progress in application futures. Connection supervision is currently scoped under one client driver; this prototype does not establish independently scheduled multiworker connection drivers.
+The explicit client driver handles establishment, uploads that outlive their `call`, deferred closure and retirement, plus supervised connection/TLS work. Ordinary established direct requests require no per-request supervisor acknowledgment. Direct TLS reads/writes also make progress in application futures. Connection supervision is currently scoped under one client driver; this prototype does not establish independently scheduled multiworker connection drivers.
 
-The latest pooled benchmark measures the imperative **`base-open` path**. The queued pull-body **`base-call` path** is a separate implementation and is not included in the latest comparison. Erasure occurs at the client adapter boundary; transport operations remain statically dispatched. There is no body-data queue or new boxed future per frame on the direct path.
+The latest pooled benchmark measures the imperative **`base-open` path**. The pull-body **`base-call` path** used a separate queued implementation until 2026-11-21 and is not included in the latest comparison; it now runs on the same direct path, writing its body from the calling future. Erasure occurs at the client adapter boundary; transport operations remain statically dispatched. There is no body-data queue or new boxed future per frame on the direct path.
 
 See [client/connection taxonomy](design/client-connection.md), [transport layering](design/transport.md), [duplex ownership](design/duplex.md) and the [client implementation notes](crates/client/readme.md).
 

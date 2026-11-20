@@ -36,7 +36,20 @@ A spike on 2026-11-20 and 2026-11-21, kept on the local branch `client-handler-b
 
 Owning a body costs nothing measurable. The 11 further allocations per request are in the client's existing `call`, which queues each request to the driver and buffers the response. The spike's replacement removes them: a handler calling it through the server measured 7.04 allocations and 2,600 bytes per request, and 38.8 ms against the first row's 39.8 ms in the same seven runs. It opens the request on the direct path and writes the body from the calling future until the response head arrives; only an upload unfinished by then moves to the client's driver, at one allocation. It returns the direct path's streaming response body, which borrows the client's scope and which the caller's reads drive, rather than the buffered one. It does not yet relay interim responses, which M6 adds.
 
-The user decided on 2026-11-21 that the client keeps one such call: `call` takes this design and replaces the buffered one, so the client implements the interface without a response copy or a queue per request, and its response body streams from the connection as Async::HTTP's does. A caller that wants the response read ahead of its own reads wraps the body in a buffering body. `open_request` stays, for a caller writing a request body itself rather than passing one. Before the buffered `call` is removed, M6 relays interim responses through the new one and checks that no test or example depends on the buffered response. Per-exchange data added later goes into the relevant context, without changing the interface's signature.
+The user decided on 2026-11-21 that the client keeps one such call: `call` takes this design and replaces the buffered one, so the client implements the interface without a response copy or a queue per request, and its response body streams from the connection as Async::HTTP's does. A caller that wants the response read ahead of its own reads wraps the body in a buffering body. `open_request` stays, for a caller writing a request body itself rather than passing one. Before the buffered `call` is removed, M6 relays interim responses through the new one and checks that no test or example depends on the buffered response.
+
+Implemented on 2026-11-21. The client benchmark, over plain HTTP on hana with three 3-second samples per case and allocation counting, measured the new `call` (`base-call`) at the direct writer's (`base-open`) cost:
+
+| Path | In flight | Requests per second | Client CPU per request | Allocations per request | Bytes allocated per request |
+| --- | --- | --- | --- | --- | --- |
+| Buffered `call`, before | 1 | 127,168 | 5.41 µs | 18.00 | 5,577 |
+| Direct-path `call` | 1 | 157,439 | 3.82 µs | 7.00 | 593 |
+| `open` | 1 | 155,591 | 3.92 µs | 7.00 | 593 |
+| Buffered `call`, before | 32 | 225,170 | 3.90 µs | 17.06 | 5,112 |
+| Direct-path `call` | 32 | 290,643 | 2.78 µs | 7.00 | 600 |
+| `open` | 32 | 303,567 | 2.70 µs | 7.00 | 600 |
+
+These requests have no body and pass no context. A call through `Handler` with a `ClientContext` also allocates its relay and the observer's box, and an upload unfinished at the response head one driver work item. Per-exchange data added later goes into the relevant context, without changing the interface's signature.
 
 A middleware is an implementation of the interface that holds a delegate implementing it, for the same context, and calls through to it, transforming the request on the way in and the response on the way out, or answering without calling its delegate. Middleware compose by wrapping, with static dispatch: a stack is a nested type, and no layer requires boxing, a `'static` bound or a task. Request and response bodies stay generic, so a layer passes bodies through without copying, and a returned body may borrow the request body, as the server's handler contract allows now. A middleware that only transforms requests and responses is generic over the context type, so the same layer wraps a server application or a client. A middleware that needs one side's data, such as the `Peer` or the client's request options, is written for that side's context, so placing it on the other side is a compile-time error. A small trait implemented by both contexts gives generic middleware access to the interim hook where it needs one.
 

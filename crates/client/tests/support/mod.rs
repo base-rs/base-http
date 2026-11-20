@@ -46,6 +46,24 @@ pub fn remainder(stream: &mut impl Read) -> Vec<u8> {
 
 pub use base_http_fixtures::{body::payload, error_chain as chain};
 
+/// Keep polling `work`, such as a call, which makes progress only while it is
+/// polled, until `point` is reached, such as the peer receiving its request.
+/// Panics if `work` finishes first.
+#[allow(dead_code)] // The writable suite does not use it.
+pub async fn drive_until<W, T>(work: &mut W, point: impl std::future::Future<Output = T>) -> T
+where
+    W: std::future::Future + Unpin,
+{
+    let mut point = std::pin::pin!(point);
+    std::future::poll_fn(|cx| {
+        if std::pin::Pin::new(&mut *work).poll(cx).is_ready() {
+            panic!("the work finished before the point was reached");
+        }
+        point.as_mut().poll(cx)
+    })
+    .await
+}
+
 /// Run a client with a single pooled connection beside its driver, then require that every connection was retired.
 pub fn run_endpoint(
     endpoint: Endpoint,
