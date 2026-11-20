@@ -8,6 +8,7 @@
 
 use base_endpoint::stream::{ReadableStream, WritableStream};
 use base_http::{InterimHandler, InterimRelay, Scheme, Status};
+use base_http_protocol::{ProtocolError, ServerConnection};
 use base_http1::{LentInput, RequestReader, ResponseWriter};
 use base_scheduler::{
     Cancellation, Clock, OperationError, SocketAccept, SocketClose, SocketLocalAddress,
@@ -57,10 +58,11 @@ impl Default for Options {
 /// A server failure. Protocol and negotiation errors are transparent; other wrapping variants describe this layer and report their cause as the source, so a cause chain never repeats a message.
 #[derive(Debug)]
 pub enum Error {
-    Protocol(base_http1::Error),
+    /// The connection's engine failed, such as on a malformed request.
+    Protocol(ProtocolError),
     Handler(Box<dyn std::error::Error + Send + Sync>),
     /// A handler returned a final response which the protocol writer refused before writing any of it, such as an informational status or conflicting framing.
-    Response(base_http1::Error),
+    Response(ProtocolError),
     Io(std::io::Error),
     Cancelled,
     Negotiation(base_http_protocol::NegotiationError),
@@ -91,9 +93,14 @@ impl std::error::Error for Error {
 }
 impl From<base_http1::Error> for Error {
     fn from(e: base_http1::Error) -> Self {
-        match e {
-            base_http1::Error::Cancelled => Self::Cancelled,
-            e => Self::Protocol(e),
+        ProtocolError::from(e).into()
+    }
+}
+impl From<ProtocolError> for Error {
+    fn from(error: ProtocolError) -> Self {
+        match error {
+            ProtocolError::Http1(base_http1::Error::Cancelled) => Self::Cancelled,
+            error => Self::Protocol(error),
         }
     }
 }
@@ -128,13 +135,14 @@ async fn cancellable<F: Future>(
 }
 
 /// Own one accepted socket through request admission, handler execution, output,
-/// uncancellable lane retirement, and finally exclusive socket closure. Await
-/// completion after cooperative cancellation; dropping this future is not a join.
+/// uncancellable lane retirement, and finally exclusive socket closure. The
+/// engine is `options.protocols`'s plaintext selection. Await completion after
+/// cooperative cancellation; dropping this future is not a join.
 pub fn serve_connection<'scope, S, H>(
     scheduler: &'scope S,
     socket: S::Socket,
     handler: &H,
-    options: &base_http1::Options,
+    options: &Options,
     cancellation: &Cancellation,
 ) -> impl Future<Output = Result<u64, Error>> + Send
 where
@@ -157,7 +165,7 @@ async fn serve_connection_inner<'scope, S, H>(
     scheduler: &'scope S,
     socket: S::Socket,
     handler: &H,
-    options: &base_http1::Options,
+    options: &Options,
     cancellation: &Cancellation,
 ) -> Result<u64, Error>
 where
@@ -182,7 +190,7 @@ async fn connection_outcome<'scope, S, H>(
     scheduler: &'scope S,
     socket: S::Socket,
     handler: &H,
-    options: &base_http1::Options,
+    options: &Options,
     cancellation: &Cancellation,
 ) -> Outcome
 where
@@ -197,7 +205,8 @@ where
     let mut requests = 0;
     // The outer owner closes the socket even when capability construction fails.
     let result = async {
-        options.validate()?;
+        options.http1.validate()?;
+        let protocol = options.protocols.plaintext()?;
         let mut reader = scheduler.socket_stream_reader(&socket)?;
         let writer = match scheduler.socket_stream_writer(&socket) {
             Ok(writer) => writer,
@@ -212,21 +221,24 @@ where
             scheduler.socket_peer_address(&socket).ok(),
             scheduler.socket_local_address(&socket).ok(),
         ));
-        // The plaintext engine is HTTP/1, whose codecs fail to construct only when `options.validate` above fails.
-        let (input, output) = base_http_protocol::HttpProtocols::default()
-            .plaintext()
-            .server(reader, writer, options.clone())
-            .expect("validated HTTP/1 options construct server codecs");
-        serve_codecs(
-            input,
-            output,
-            handler,
-            &peer,
-            cancellation,
-            &mut requests,
-            &Scheme::HTTP,
-        )
-        .await
+        // Codecs fail to construct only when the options validated above are invalid.
+        let connection = protocol
+            .server(reader, writer, options.http1.clone())
+            .expect("validated options construct server codecs");
+        match connection {
+            ServerConnection::Http1(input, output) => {
+                serve_codecs(
+                    input,
+                    output,
+                    handler,
+                    &peer,
+                    cancellation,
+                    &mut requests,
+                    &Scheme::HTTP,
+                )
+                .await
+            }
+        }
     }
     .await;
     let closed = scheduler.socket_close(socket).await;
@@ -366,7 +378,7 @@ where
                 let _ = output
                     .reject(Status::INTERNAL_SERVER_ERROR, cancellation)
                     .await;
-                return Err(Error::Response(error));
+                return Err(Error::Response(error.into()));
             }
             Err(error) => return Err(error.into()),
         };
@@ -566,7 +578,7 @@ where
         options,
         cancellation,
         |socket, cancellation| async move {
-            connection_outcome(scheduler, socket, handler, &options.http1, &cancellation).await
+            connection_outcome(scheduler, socket, handler, options, &cancellation).await
         },
     )
     .await
@@ -592,9 +604,7 @@ where
     let result = async {
         options.http1.validate()?;
         if options.max_connections == 0 {
-            return Err(Error::Protocol(base_http1::Error::Invalid(
-                "zero connection limit",
-            )));
+            return Err(base_http1::Error::Invalid("zero connection limit").into());
         }
         loop {
             if connections.len() == options.max_connections {
@@ -751,17 +761,20 @@ where
     let result = connection
         .with_duplex(scheduler, cancellation, |reader, writer| async {
             let protocol = options.protocols.negotiated(selected.as_deref())?;
-            let (input, output) = protocol.server(reader, writer, options.http1.clone())?;
-            serve_codecs(
-                input,
-                output,
-                handler,
-                &peer,
-                cancellation,
-                &mut requests,
-                &Scheme::HTTPS,
-            )
-            .await
+            match protocol.server(reader, writer, options.http1.clone())? {
+                ServerConnection::Http1(input, output) => {
+                    serve_codecs(
+                        input,
+                        output,
+                        handler,
+                        &peer,
+                        cancellation,
+                        &mut requests,
+                        &Scheme::HTTPS,
+                    )
+                    .await
+                }
+            }
         })
         .await;
     Outcome { requests, result }
@@ -885,7 +898,7 @@ mod tests {
 
     #[test]
     fn invalid_responses_report_the_refusal_as_the_source() {
-        let error = Error::Response(base_http1::Error::Invalid("final response required"));
+        let error = Error::Response(base_http1::Error::Invalid("final response required").into());
         assert_eq!(
             error.to_string(),
             "request handler returned an invalid response"
@@ -908,9 +921,9 @@ mod tests {
         let error = Error::from(base_scheduler::OperationError::from(io::Error::from(
             io::ErrorKind::ConnectionReset,
         )));
-        let expected = Error::Protocol(base_http1::Error::Io(io::Error::from(
-            io::ErrorKind::ConnectionReset,
-        )));
+        let expected = Error::Protocol(
+            base_http1::Error::Io(io::Error::from(io::ErrorKind::ConnectionReset)).into(),
+        );
         assert_eq!(format!("{error:?}"), format!("{expected:?}"));
         assert_eq!(error.source().unwrap().to_string(), "connection reset");
     }

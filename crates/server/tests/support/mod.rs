@@ -89,7 +89,10 @@ pub fn connection_options<H: for<'h> Handler<'h, ServerContext>, T: Send + 'stat
                 &scheduler,
                 socket,
                 &handler,
-                &options,
+                &base_http_server::Options {
+                    http1: options.clone(),
+                    ..Default::default()
+                },
                 &cancellation,
             )
             .await;

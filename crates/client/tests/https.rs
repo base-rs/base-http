@@ -93,7 +93,10 @@ fn https_echo_reuses_connections_and_accepts_during_another_handshake() {
                     let endpoint = Endpoint::new(address).with_tls(client_config, "localhost");
                     assert_eq!(endpoint.scheme(), "https");
                     let options = Options {
-                        protocols: base_http_protocol::HttpProtocols { require_alpn: true },
+                        protocols: base_http_protocol::HttpProtocols {
+                            require_alpn: true,
+                            ..Default::default()
+                        },
                         ..Options::default()
                     };
                     let (client, driver) = Client::new(&scheduler, endpoint, options).unwrap();
@@ -198,6 +201,7 @@ fn https_client_applies_missing_alpn_policy_before_pool_publication() {
                     let options = Options {
                         protocols: base_http_protocol::HttpProtocols {
                             require_alpn: required,
+                            ..Default::default()
                         },
                         ..Options::default()
                     };

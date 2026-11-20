@@ -393,11 +393,15 @@ fn serve(
     options: &base_http1::Options,
     cancellation: &Cancellation,
 ) -> Result<u64, Error> {
+    let options = base_http_server::Options {
+        http1: options.clone(),
+        ..Default::default()
+    };
     block_on(base_http_server::serve_connection(
         memory,
         (),
         handler,
-        options,
+        &options,
         cancellation,
     ))
 }
@@ -419,6 +423,34 @@ fn never_cancelled_connection_serves_and_retires_every_capability() {
 }
 
 #[test]
+fn a_disabled_plaintext_engine_closes_the_socket_without_constructing_streams() {
+    let memory = Memory::new(REQUEST);
+    let handler = Hello::default();
+    let options = base_http_server::Options {
+        protocols: base_http_protocol::HttpProtocols {
+            enabled: Vec::new(),
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let served = block_on(base_http_server::serve_connection(
+        &memory,
+        (),
+        &handler,
+        &options,
+        &Cancellation::new(),
+    ));
+    let error = served.unwrap_err();
+    assert!(matches!(error, Error::Negotiation(_)), "{error:?}");
+    assert_eq!(
+        error.to_string(),
+        "HTTP application protocol \"http/1.1\" is not enabled"
+    );
+    assert!(!handler.called.load(Ordering::SeqCst));
+    assert_eq!(memory.closes(), (0, 0, 1));
+}
+
+#[test]
 fn invalid_options_close_the_socket_without_constructing_streams() {
     let memory = Memory::new(REQUEST);
     let handler = Hello::default();
@@ -429,7 +461,9 @@ fn invalid_options_close_the_socket_without_constructing_streams() {
     let served = serve(&memory, &handler, &options, &Cancellation::new());
     assert!(matches!(
         served,
-        Err(Error::Protocol(base_http1::Error::Invalid(_)))
+        Err(Error::Protocol(base_http_protocol::ProtocolError::Http1(
+            base_http1::Error::Invalid(_)
+        )))
     ));
     assert!(!handler.called.load(Ordering::SeqCst));
     assert_eq!(memory.output(), "");
@@ -606,18 +640,24 @@ fn protocol_codecs_reject_invalid_limits_at_construction() {
         max_fields: 0,
         ..Default::default()
     };
-    let protocol = base_http_protocol::HttpProtocols::default().plaintext();
+    let protocol = base_http_protocol::HttpProtocols::default()
+        .plaintext()
+        .unwrap();
     let reader = memory.socket_stream_reader(&()).unwrap();
     let writer = memory.socket_stream_writer(&()).unwrap();
     assert!(matches!(
         protocol.server(reader, writer, options.clone()),
-        Err(base_http1::Error::Invalid(_))
+        Err(base_http_protocol::ProtocolError::Http1(
+            base_http1::Error::Invalid(_)
+        ))
     ));
     let reader = memory.socket_stream_reader(&()).unwrap();
     let writer = memory.socket_stream_writer(&()).unwrap();
     assert!(matches!(
         protocol.client(reader, writer, options),
-        Err(base_http1::Error::Invalid(_))
+        Err(base_http_protocol::ProtocolError::Http1(
+            base_http1::Error::Invalid(_)
+        ))
     ));
 }
 

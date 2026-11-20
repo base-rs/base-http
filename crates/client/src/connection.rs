@@ -12,6 +12,7 @@ use base_endpoint::{
     AddressEndpoint, ConnectEndpoint,
     stream::{ReadableStream, WritableStream},
 };
+use base_http_protocol::ClientConnection;
 use base_http1::{RequestWriter, ResponseReader};
 use base_pool::{Admission, MultiplexBuildPermit, MultiplexResource};
 use base_scheduler::{
@@ -165,23 +166,29 @@ pub(crate) async fn run<'scope, S>(
             return transport
                 .with_duplex(scheduler, &lifetime, |reader, writer| async {
                     let protocol = options.protocols.negotiated(selected.as_deref())?;
-                    let (input, output) = protocol
+                    let connection = protocol
                         .client(reader, writer, options.http1.clone())
                         .expect("Client::new validated the HTTP/1 options");
-                    session(
-                        input,
-                        output,
-                        &mut owner,
-                        &mut build,
-                        &mut ready,
-                        &cancellation,
-                        &lifetime,
-                        queue.clone(),
-                    )
-                    .await
+                    match connection {
+                        ClientConnection::Http1(input, output) => {
+                            session(
+                                input,
+                                output,
+                                &mut owner,
+                                &mut build,
+                                &mut ready,
+                                &cancellation,
+                                &lifetime,
+                                queue.clone(),
+                            )
+                            .await
+                        }
+                    }
                 })
                 .await;
         }
+        // A plain TCP connection negotiates nothing, so select its engine before connecting.
+        let protocol = options.protocols.plaintext()?;
         let socket = endpoint_transport
             .connect(scheduler, &cancellation)
             .await
@@ -196,16 +203,14 @@ pub(crate) async fn run<'scope, S>(
                 }
             };
             Ok::<_, Error>(
-                options
-                    .protocols
-                    .plaintext()
+                protocol
                     .client(reader, writer, options.http1.clone())
                     .expect("Client::new validated the HTTP/1 options"),
             )
         }
         .await;
         let result = match initialized {
-            Ok((input, output)) => {
+            Ok(ClientConnection::Http1(input, output)) => {
                 session(
                     input,
                     output,

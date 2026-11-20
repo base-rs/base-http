@@ -70,3 +70,33 @@ fn clients_report_their_endpoint() {
         assert_eq!(endpoint.scheme(), "http");
     });
 }
+
+#[test]
+fn a_disabled_plaintext_engine_fails_calls_before_connecting() {
+    let scheduler = NativeScheduler::new().unwrap();
+    let options = Options {
+        protocols: base_http_protocol::HttpProtocols {
+            enabled: Vec::new(),
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    // Nothing listens on port 1, so connecting would fail; selection fails first.
+    let endpoint = Endpoint::new("127.0.0.1:1".parse().unwrap());
+    let (client, driver) = Client::new(&scheduler, endpoint, options).unwrap();
+    let never = base_scheduler::Cancellation::never();
+    let (driven, ()) =
+        futures_lite::future::block_on(futures_lite::future::zip(driver.run(&never), async {
+            let request =
+                base_http::Request::new(base_http::Method::GET, "/", base_http::body::EmptyBody);
+            let error = client.call(request, &never).await.err().unwrap();
+            assert!(matches!(error, Error::Negotiation(_)), "{error:?}");
+            assert_eq!(
+                chain(&error),
+                ["HTTP application protocol \"http/1.1\" is not enabled"]
+            );
+            client.begin_close();
+        }));
+    driven.unwrap();
+    futures_lite::future::block_on(scheduler.shutdown());
+}
