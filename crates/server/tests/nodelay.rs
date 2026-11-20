@@ -3,14 +3,15 @@
 
 // Real TCP connections served through a scheduler that reads back each socket's TCP_NODELAY before closing it.
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
-use base_http_server::{Handler, Options};
+use base_http_server::{Handler, Options, ServerContext};
 use base_scheduler::{
     BufferPool, BufferPoolOptions, BufferPooling, Cancellation, Clock, IoBuf, OperationResult,
-    SocketAccept, SocketAddress, SocketClose, SocketGetOption, SocketOperation, SocketSetOption,
-    SocketStreamReader, SocketStreamReading, SocketStreamWriter, SocketStreamWriting, TcpNoDelay,
+    SocketAccept, SocketAddress, SocketClose, SocketGetOption, SocketLocalAddress, SocketOperation,
+    SocketPeerAddress, SocketSetOption, SocketStreamReader, SocketStreamReading,
+    SocketStreamWriter, SocketStreamWriting, TcpNoDelay,
 };
 use base_scheduler_native::{NativeScheduler, NativeSocket};
 use futures_lite::future::block_on;
@@ -68,6 +69,16 @@ impl SocketSetOption<TcpNoDelay> for Recording<'_> {
     ) -> impl Future<Output = OperationResult<()>> + Send {
         self.inner
             .socket_set_option(socket, option, value, cancellation)
+    }
+}
+impl SocketPeerAddress for Recording<'_> {
+    fn socket_peer_address(&self, socket: &NativeSocket) -> io::Result<SocketAddress> {
+        self.inner.socket_peer_address(socket)
+    }
+}
+impl SocketLocalAddress for Recording<'_> {
+    fn socket_local_address(&self, socket: &NativeSocket) -> io::Result<SocketAddress> {
+        self.inner.socket_local_address(socket)
     }
 }
 impl SocketClose for Recording<'_> {
@@ -130,13 +141,13 @@ impl<'a> SocketStreamWriting for Recording<'a> {
 }
 
 struct Hello;
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         Ok(Response::new(

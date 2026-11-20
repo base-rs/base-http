@@ -3,11 +3,11 @@
 
 use crate::{Latch, RawPeer, Scheduler, native};
 use base_http::{
-    InterimHandler, InterimResponses, Method, Request, Response, Status, Version,
+    Method, Request, Response, Status, Version,
     body::{BufferedBody, ReadableBody},
 };
 use base_http_client::{Client, Driver, Endpoint};
-use base_http_server::Handler;
+use base_http_server::{Handler, ServerContext};
 use base_scheduler::{Cancellation, Clock, SocketType, Spawn, TaskError};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::{block_on, or, zip};
@@ -37,14 +37,14 @@ pub const TEARDOWN_TIMEOUT: Duration = Duration::from_secs(5);
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Hello;
 
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = BufferedBody<&'static [u8]>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<Self::Body<B>>, Infallible> {
         Ok(Response::new(
@@ -109,11 +109,11 @@ pub const SERVER_NAME: &str = "localhost";
 
 /// A server bound to an OS-selected loopback port, with a client connected to it, for the duration of one test.
 ///
-/// This follows `sus-fixtures-async-http`'s `ServerContext`: builder methods replace its overridable `app`, `protocol`, endpoint and client options. [`ServerContext::run`] binds the listener before serving, so the client never races the server's start, then runs the test beside the server and the client's driver.
+/// This follows `sus-fixtures-async-http`'s `ServerContext`: builder methods replace its overridable `app`, `protocol`, endpoint and client options. [`ServerFixture::run`] binds the listener before serving, so the client never races the server's start, then runs the test beside the server and the client's driver.
 ///
-/// Rust has no asynchronous destructor, so teardown happens inside `run`, in order: the client stops accepting calls and retires its connections, then the server stops, closing its listener and joining its connections. Teardown is bounded by [`ServerContext::teardown_timeout`]; when it expires, the client and server are cancelled, still joined, and the test fails. A panic in the test is propagated after teardown. The test must not return a response body it has not finished with, since its connection cannot retire.
+/// Rust has no asynchronous destructor, so teardown happens inside `run`, in order: the client stops accepting calls and retires its connections, then the server stops, closing its listener and joining its connections. Teardown is bounded by [`ServerFixture::teardown_timeout`]; when it expires, the client and server are cancelled, still joined, and the test fails. A panic in the test is propagated after teardown. The test must not return a response body it has not finished with, since its connection cannot retire.
 #[derive(Debug)]
-pub struct ServerContext<H = Hello> {
+pub struct ServerFixture<H = Hello> {
     handler: H,
     version: Version,
     server: base_http_server::Options,
@@ -123,7 +123,7 @@ pub struct ServerContext<H = Hello> {
     tls: Option<Tls>,
 }
 
-impl ServerContext {
+impl ServerFixture {
     /// Serve [`Hello`] over HTTP/1.1 with default options.
     pub fn new() -> Self {
         Self {
@@ -138,16 +138,16 @@ impl ServerContext {
     }
 }
 
-impl Default for ServerContext {
+impl Default for ServerFixture {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<H> ServerContext<H> {
+impl<H> ServerFixture<H> {
     /// Serve `handler` instead, as overriding `app` does.
-    pub fn handler<A>(self, handler: A) -> ServerContext<A> {
-        ServerContext {
+    pub fn handler<A>(self, handler: A) -> ServerFixture<A> {
+        ServerFixture {
             handler,
             version: self.version,
             server: self.server,
@@ -196,7 +196,7 @@ impl<H> ServerContext<H> {
     }
 }
 
-impl<H: for<'h> Handler<'h>> ServerContext<H> {
+impl<H: for<'h> Handler<'h, ServerContext>> ServerFixture<H> {
     /// Run `test` with a fresh Native scheduler, which is shut down afterwards.
     pub fn run<T>(self, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, H>) -> T) -> T {
         native(|scheduler| self.run_on(scheduler, test))
@@ -284,12 +284,12 @@ impl<H: for<'h> Handler<'h>> ServerContext<H> {
     }
 }
 
-impl<H: for<'h> Handler<'h> + Send + Sync + 'static> ServerContext<H> {
+impl<H: for<'h> Handler<'h, ServerContext> + Send + Sync + 'static> ServerFixture<H> {
     /// Run `test` against a server spawned onto the workers of a fresh two-worker Native scheduler, with the client driven from the test's thread, then stop the server and shut the scheduler down.
     ///
-    /// Unlike [`ServerContext::run`], the server makes progress on the scheduler's workers rather than on the test's thread, so it runs in parallel with the client. That exposes cross-thread wake-ups and races which a single `block_on` hides, at the cost of reproducible interleavings. The fixture relies only on the server running on the scheduler's workers; how the server spreads its connections across them is the server's choice and may change. The context owns the scheduler and the application, so the application must be `Send + Sync + 'static`, as a server spawning its own tasks needs.
+    /// Unlike [`ServerFixture::run`], the server makes progress on the scheduler's workers rather than on the test's thread, so it runs in parallel with the client. That exposes cross-thread wake-ups and races which a single `block_on` hides, at the cost of reproducible interleavings. The fixture relies only on the server running on the scheduler's workers; how the server spreads its connections across them is the server's choice and may change. The context owns the scheduler and the application, so the application must be `Send + Sync + 'static`, as a server spawning its own tasks needs.
     ///
-    /// This has the guarantees of [`ServerContext::run`]: the listener is bound before the test starts, the test is bounded, the client retires its connections before the server stops, the server is cancelled and must stop within the teardown timeout, a server error fails the test, a server panic is resumed with its own payload, and a test failure is reported first, with any server failure printed beforehand. The server's teardown timeout is measured on a thread of its own, so a server occupying every worker still fails its join on time. Native's stall rescue, on by default since scheduler 0.5, would let the scheduler's clock bound the join too, but it can be turned off with `stall_rescue: false`, and then a timer is stranded behind the busy worker, so the fixture does not depend on it. The own-thread deadline can be removed once Native fires timers behind a busy worker in every configuration. The test's timeout and the client's teardown are still measured by the scheduler's clock, so they are bounded only while the scheduler's timers can run.
+    /// This has the guarantees of [`ServerFixture::run`]: the listener is bound before the test starts, the test is bounded, the client retires its connections before the server stops, the server is cancelled and must stop within the teardown timeout, a server error fails the test, a server panic is resumed with its own payload, and a test failure is reported first, with any server failure printed beforehand. The server's teardown timeout is measured on a thread of its own, so a server occupying every worker still fails its join on time. Native's stall rescue, on by default since scheduler 0.5, would let the scheduler's clock bound the join too, but it can be turned off with `stall_rescue: false`, and then a timer is stranded behind the busy worker, so the fixture does not depend on it. The own-thread deadline can be removed once Native fires timers behind a busy worker in every configuration. The test's timeout and the client's teardown are still measured by the scheduler's clock, so they are bounded only while the scheduler's timers can run.
     ///
     /// Shutting the scheduler down afterwards waits for every task's current poll to return. A poll which never returns, such as a handler blocked forever, cannot be preempted, so it hangs the test after the failure is reported.
     pub fn run_spawned<T>(
@@ -533,7 +533,7 @@ async fn listen<S: Scheduler>(scheduler: &S) -> S::Socket {
     socket
 }
 
-/// What a test receives from [`ServerContext::run`] or [`ServerContext::run_spawned`].
+/// What a test receives from [`ServerFixture::run`] or [`ServerFixture::run_spawned`].
 pub struct Context<'s, S, H> {
     scheduler: &'s S,
     // Shared with a spawned server's task.
@@ -589,7 +589,7 @@ impl<'s, S, H> Context<'s, S, H> {
 
     /// Run `work` with a raw client connected to the server, for wire-level requests, on its own thread. It does not use TLS.
     ///
-    /// The client's driver, and with [`ServerContext::run`] the server too, runs on the test's thread, so a blocking peer there would stall them; the test instead awaits the peer thread without blocking. A panic in `work` propagates.
+    /// The client's driver, and with [`ServerFixture::run`] the server too, runs on the test's thread, so a blocking peer there would stall them; the test instead awaits the peer thread without blocking. A panic in `work` propagates.
     pub async fn raw<T: Send + 'static>(
         &self,
         work: impl FnOnce(RawPeer) -> T + Send + 'static,
@@ -624,15 +624,15 @@ impl Drop for Released {
 
 /// A client of an existing endpoint, such as a [`RawServer`](crate::RawServer), for the duration of one test.
 ///
-/// The client's driver runs beside the test. Teardown follows [`ServerContext`]: the client stops accepting calls and retires its connections within a bounded time, the test fails if any connection remains, and a panic in the test is propagated afterwards.
+/// The client's driver runs beside the test. Teardown follows [`ServerFixture`]: the client stops accepting calls and retires its connections within a bounded time, the test fails if any connection remains, and a panic in the test is propagated afterwards.
 #[derive(Debug)]
-pub struct ClientContext {
+pub struct ClientFixture {
     endpoint: Endpoint,
     options: base_http_client::Options,
     limits: Limits,
 }
 
-impl ClientContext {
+impl ClientFixture {
     /// A client of `endpoint` with default options.
     pub fn new(endpoint: Endpoint) -> Self {
         Self {

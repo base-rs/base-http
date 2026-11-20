@@ -6,12 +6,11 @@
 //! cancelled or its handler fails.
 
 mod support;
-
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BodyFrame, BufferedBody, ReadableBody},
 };
-use base_http_server::{Error, Handler};
+use base_http_server::{Error, Handler, HandlerContext, ServerContext};
 use base_scheduler::{Cancellation, Clock, SocketAccept, SocketClose};
 use futures_lite::future::block_on;
 use futures_util::{StreamExt, stream::FuturesUnordered};
@@ -134,13 +133,13 @@ struct Defer<'q, 'h> {
     mode: Mode,
     reads: Arc<Mutex<Vec<Outcome>>>,
 }
-impl<'h> Handler<'h> for Defer<'_, 'h> {
+impl<'h> Handler<'h, ServerContext> for Defer<'_, 'h> {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody<Vec<u8>>;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody<Vec<u8>>>, io::Error> {
         let mut body = request.body;
@@ -373,16 +372,16 @@ fn assert_send<F: Future + Send>(future: F) -> F {
 
 /// A pass-through middleware layer.
 struct Layer<H>(H);
-impl<'h, H: Handler<'h>> Handler<'h> for Layer<H> {
+impl<'h, C: HandlerContext, H: Handler<'h, C>> Handler<'h, C> for Layer<H> {
     type Error = H::Error;
     type Body<B: ReadableBody + 'h> = H::Body<B>;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut C,
         cancellation: &Cancellation,
     ) -> Result<Response<H::Body<B>>, H::Error> {
-        self.0.call(request, interim, cancellation).await
+        self.0.call(request, context, cancellation).await
     }
 }
 
@@ -404,12 +403,11 @@ fn call_send_awaits_a_scope_bound_handler_in_a_send_future() {
         reads: Arc::default(),
     }));
     let status = block_on(assert_send(async {
-        let mut interim = InterimResponses::new(|_: base_http::ResponseMetadata| async {
-            Ok::<_, io::Error>(())
-        });
+        let relay = base_http::InterimRelay::new();
+        let mut context = ServerContext::new(Arc::default(), relay.sender());
         let request = Request::new(base_http::Method::POST, "/", &mut local);
         let response =
-            base_http_server::call_send(&handler, request, &mut interim, &Cancellation::never())
+            base_http_server::call_send(&handler, request, &mut context, &Cancellation::never())
                 .await
                 .unwrap();
         response.status

@@ -3,14 +3,14 @@
 
 //! Each protocol case fails, at the assertion it exists for, against an application which breaks that case.
 use base_http::{
-    InterimHandler, InterimResponses, Method, Request, Response, ResponseMetadata, Status, Version,
+    Method, Request, Response, ResponseMetadata, Status, Version,
     body::{BodyReader, BufferedBody, ReadableBody},
 };
 use base_http_fixtures::{
-    ServerContext, body,
+    ServerFixture, body,
     protocol::{self, App, LARGE_BODY, Reply, Staged, Step},
 };
-use base_http_server::Handler;
+use base_http_server::{Handler, HandlerContext, ServerContext};
 use base_scheduler::Cancellation;
 use base_scheduler::Clock;
 use futures_lite::future::{or, zip};
@@ -34,14 +34,14 @@ fn route<B>(mut request: Request<B>, path: &str) -> Request<B> {
     request
 }
 
-impl<'h> Handler<'h> for Sabotaged {
+impl<'h> Handler<'h, ServerContext> for Sabotaged {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<Reply<B>>, io::Error> {
         let path = request.path.as_deref().unwrap_or_default().to_owned();
@@ -59,7 +59,8 @@ impl<'h> Handler<'h> for Sabotaged {
             (_, "/length") => reply("Content Length: 0!"),
             // Send a hint without its link.
             (_, "/interim") => {
-                let _ = interim
+                let _ = context
+                    .interim()
                     .send_interim_response(ResponseMetadata::new(Status::EARLY_HINTS), cancellation)
                     .await;
                 reply("Hello World")
@@ -70,7 +71,7 @@ impl<'h> Handler<'h> for Sabotaged {
             (_, "/broken") => {
                 return self
                     .0
-                    .call(route(request, "/"), interim, cancellation)
+                    .call(route(request, "/"), context, cancellation)
                     .await;
             }
             // Lose the first chunk of the stream.
@@ -125,7 +126,7 @@ macro_rules! sabotaged {
             #[test]
             #[should_panic(expected = $message)]
             fn $name() {
-                ServerContext::new()
+                ServerFixture::new()
                     .handler(Sabotaged(App::new()))
                     .run(async |context| protocol::$name(context).await);
             }
@@ -152,7 +153,7 @@ sabotaged! {
 #[test]
 #[should_panic(expected = "the request data and trailer the handler received")]
 fn request_trailer_http10() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Sabotaged(App::new()))
         .version(Version::Http10)
         .run(async |context| protocol::request_trailer(context).await);
@@ -161,7 +162,7 @@ fn request_trailer_http10() {
 #[test]
 #[should_panic(expected = "data after the response trailer")]
 fn response_trailer_http10() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Sabotaged(App::new()))
         .version(Version::Http10)
         .run(async |context| protocol::response_trailer(context).await);
@@ -171,7 +172,7 @@ fn response_trailer_http10() {
 #[test]
 #[should_panic(expected = "the echo's framing")]
 fn duplex_chunked_stream_http10() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Sabotaged(App::new()))
         .version(Version::Http10)
         .run(async |context| protocol::duplex_chunked_stream(context).await);
@@ -186,18 +187,18 @@ impl Borrow<App> for Misrouted {
     }
 }
 
-impl<'h> Handler<'h> for Misrouted {
+impl<'h> Handler<'h, ServerContext> for Misrouted {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<Reply<B>>, io::Error> {
         self.0
-            .call(route(request, "/missing"), interim, cancellation)
+            .call(route(request, "/missing"), context, cancellation)
             .await
     }
 }
@@ -206,7 +207,7 @@ impl<'h> Handler<'h> for Misrouted {
 #[test]
 #[should_panic(expected = "test exceeded")]
 fn a_misrouted_application_is_not_found() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Misrouted(App::new()))
         .timeout(Duration::from_millis(200))
         .run(async |context| {
@@ -225,7 +226,7 @@ fn a_misrouted_application_is_not_found() {
 // An upload truncated after its head fails the handler's read, so the server rejects the request instead of answering it.
 #[test]
 fn a_truncated_trailer_upload_fails_the_handler() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(App::new())
         .run(async |context| {
             let received = context.handler().request_received().clone();
@@ -250,7 +251,7 @@ const SEQUENTIAL_BODY: u64 = 1 << 30;
 // A client which uploads the whole request before reading the echo stalls once the unread echo fills the buffers between it and the server, which is why the two-way case must read and write at once.
 #[test]
 fn a_sequential_duplex_stream_stalls() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(App::new())
         .run(async |context| {
             let (upload, mut writer) =
@@ -314,14 +315,14 @@ impl Borrow<App> for Reframed {
     }
 }
 
-impl<'h> Handler<'h> for Reframed {
+impl<'h> Handler<'h, ServerContext> for Reframed {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<Reply<B>>, io::Error> {
         Ok(Response::new(Status::OK, Reply::Stream(request.body)))
@@ -332,7 +333,7 @@ impl<'h> Handler<'h> for Reframed {
 #[test]
 #[should_panic(expected = "the echo's framing")]
 fn duplex_stream_reframed() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Reframed(App::new()))
         .run(async |context| protocol::duplex_stream(context).await);
 }
@@ -341,7 +342,7 @@ fn duplex_stream_reframed() {
 #[test]
 #[should_panic(expected = "the echo's framing")]
 fn duplex_stream_reframed_http10() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Reframed(App::new()))
         .version(Version::Http10)
         .run(async |context| protocol::duplex_stream(context).await);
@@ -356,14 +357,14 @@ impl Borrow<App> for Buffering {
     }
 }
 
-impl<'h> Handler<'h> for Buffering {
+impl<'h> Handler<'h, ServerContext> for Buffering {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = Reply<B>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         mut request: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<Reply<B>>, io::Error> {
         let collected = body::collect(&mut request.body, cancellation)
@@ -377,7 +378,7 @@ impl<'h> Handler<'h> for Buffering {
 #[test]
 #[should_panic(expected = "test exceeded")]
 fn the_duplex_stream_stalls_against_a_buffering_server() {
-    ServerContext::new()
+    ServerFixture::new()
         .handler(Buffering(App::new()))
         .timeout(Duration::from_secs(1))
         .run(async |context| protocol::duplex_stream(context).await);

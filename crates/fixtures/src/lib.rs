@@ -15,7 +15,7 @@ pub mod socket;
 
 #[cfg(feature = "rustls")]
 pub use context::SERVER_NAME;
-pub use context::{ClientContext, Context, Hello, ServerContext, TEARDOWN_TIMEOUT, TEST_TIMEOUT};
+pub use context::{ClientFixture, Context, Hello, ServerFixture, TEARDOWN_TIMEOUT, TEST_TIMEOUT};
 pub use latch::{LATCH_TIMEOUT, Latch};
 pub use raw::{RawListener, RawPeer, RawReader, RawServer, RawWriter};
 pub use scheduler::{Scheduler, native};

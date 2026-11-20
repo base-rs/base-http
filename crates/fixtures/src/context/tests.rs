@@ -2,7 +2,8 @@
 // Copyright, 2026, by Samuel Williams.
 
 use super::*;
-use base_http::{InterimHandler, InterimResponses, Request, Response, Status, body::EmptyBody};
+use base_http::{Request, Response, Status, body::EmptyBody};
+use base_http_server::ServerContext;
 use std::{convert::Infallible, io::Write, net::TcpStream};
 
 /// Blocks its worker in every call until released, so the server cannot observe cancellation.
@@ -11,14 +12,14 @@ struct Blocking {
     release: Latch,
 }
 
-impl<'h> Handler<'h> for Blocking {
+impl<'h> Handler<'h, ServerContext> for Blocking {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = EmptyBody;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<EmptyBody>, Infallible> {
         self.started.release();
@@ -31,7 +32,7 @@ impl<'h> Handler<'h> for Blocking {
 #[test]
 fn a_server_occupying_the_only_worker_fails_its_join() {
     let (started, release) = (Latch::new(), Latch::new());
-    let context = ServerContext::new()
+    let context = ServerFixture::new()
         .handler(Blocking {
             started: started.clone(),
             release: release.clone(),

@@ -4,7 +4,7 @@
 //! A server context serves, connects, bounds and tears down a test, and reports each way it can fail.
 use base_http::{Method, Status, body::EmptyBody};
 use base_http_fixtures::{
-    ClientContext, Hello, Latch, RawServer, ServerContext, TEARDOWN_TIMEOUT, TEST_TIMEOUT,
+    ClientFixture, Hello, Latch, RawServer, ServerFixture, TEARDOWN_TIMEOUT, TEST_TIMEOUT,
     body::payload, native,
 };
 use base_scheduler::Cancellation;
@@ -12,7 +12,7 @@ use std::time::Duration;
 
 #[test]
 fn the_default_context_serves_hello_to_its_client_and_a_raw_peer() {
-    let output = ServerContext::default()
+    let output = ServerFixture::default()
         .server_options(base_http_server::Options::default())
         .client_options(base_http_client::Options::default())
         .timeout(TEST_TIMEOUT)
@@ -49,13 +49,13 @@ fn the_default_context_serves_hello_to_its_client_and_a_raw_peer() {
 #[test]
 #[should_panic(expected = "the test failed")]
 fn a_test_panic_propagates_after_teardown() {
-    ServerContext::new().run(async |_| panic!("the test failed"));
+    ServerFixture::new().run(async |_| panic!("the test failed"));
 }
 
 #[test]
 #[should_panic(expected = "test exceeded")]
 fn a_test_exceeding_its_timeout_fails() {
-    ServerContext::new()
+    ServerFixture::new()
         .timeout(Duration::from_millis(10))
         .run(async |_| {
             let _ = Latch::new().wait(&Cancellation::never()).await;
@@ -66,7 +66,7 @@ fn a_test_exceeding_its_timeout_fails() {
 #[test]
 #[should_panic(expected = "teardown exceeded")]
 fn a_teardown_exceeding_its_timeout_is_forced_and_fails() {
-    ServerContext::new()
+    ServerFixture::new()
         .teardown_timeout(Duration::from_millis(50))
         .run(async |context| {
             context
@@ -83,7 +83,7 @@ fn a_teardown_exceeding_its_timeout_is_forced_and_fails() {
 #[test]
 #[should_panic(expected = "server failed")]
 fn a_server_failure_fails_the_test() {
-    ServerContext::new()
+    ServerFixture::new()
         .server_options(base_http_server::Options {
             max_connections: 0,
             ..Default::default()
@@ -94,7 +94,7 @@ fn a_server_failure_fails_the_test() {
 #[test]
 fn a_client_context_runs_against_a_raw_server() {
     let server = RawServer::respond_then_close("HTTP/1.1 204 No Content\r\n\r\n");
-    let status = ClientContext::new(server.endpoint())
+    let status = ClientFixture::new(server.endpoint())
         .options(base_http_client::Options::default())
         .timeout(TEST_TIMEOUT)
         .teardown_timeout(TEARDOWN_TIMEOUT)
@@ -119,7 +119,7 @@ fn native_shuts_down_before_propagating_a_panic() {
 #[test]
 #[should_panic(expected = "the raw peer failed")]
 fn a_raw_peer_panic_propagates() {
-    ServerContext::new().run(async |context| {
+    ServerFixture::new().run(async |context| {
         context.raw(|_| panic!("the raw peer failed")).await;
     });
 }
@@ -128,7 +128,7 @@ fn a_raw_peer_panic_propagates() {
 #[test]
 #[should_panic(expected = "the test failed first")]
 fn a_test_panic_is_reported_before_a_server_failure() {
-    ServerContext::new()
+    ServerFixture::new()
         .server_options(base_http_server::Options {
             max_connections: 0,
             ..Default::default()

@@ -4,15 +4,15 @@
 //! Pooled connections the server closes or writes to while idle are retired before reuse, and the request runs on a fresh connection.
 use base_http::{Method, Request, RequestMetadata, Status, body::EmptyBody};
 use base_http_client::{Client, Options};
-use base_http_fixtures::{ClientContext, Latch, RawServer, body::payload};
+use base_http_fixtures::{ClientFixture, Latch, RawServer, body::payload};
 use base_scheduler::Cancellation;
 
 const FIRST: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfirst";
 const NEXT: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\nnext";
 
 // One pooled connection, so the second request must either reuse the idle connection or retire it first.
-fn client(server: &RawServer) -> ClientContext {
-    ClientContext::new(server.endpoint()).options(Options {
+fn client(server: &RawServer) -> ClientFixture {
+    ClientFixture::new(server.endpoint()).options(Options {
         pool: base_pool::Options {
             max_resources: 1,
             ..Default::default()

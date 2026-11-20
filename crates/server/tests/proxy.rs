@@ -4,13 +4,13 @@
 //! A deliberately small protocol-driver experiment, not a gateway policy API.
 //! Upload and download futures remain separately owned and polled until joined.
 mod support;
+use base_http_server::{Handler, HandlerContext, ServerContext};
 use support::*;
 
 use base_http::{
-    Fields, InterimHandler, InterimResponses, Request, RequestMetadata, Response, ResponseMetadata,
-    Status, body::ReadableBody,
+    Fields, InterimResponses, Request, RequestMetadata, Response, ResponseMetadata, Status,
+    body::ReadableBody,
 };
-use base_http_server::Handler;
 use base_http1::{Error, RequestReader, RequestWriter, ResponseReader, ResponseWriter};
 use base_scheduler::{
     Cancellation, SocketAccept, SocketClose, SocketConnect, SocketOpen, SocketStreamReading,
@@ -249,19 +249,20 @@ fn request_head(peer: &mut impl BufRead) -> (String, Head) {
 struct Echo {
     seen: Arc<Mutex<Vec<RequestMetadata>>>,
 }
-impl<'h> Handler<'h> for Echo {
+impl<'h> Handler<'h, ServerContext> for Echo {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = B;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         request: Request<B>,
-        interim: &mut InterimResponses<I>,
+        context: &mut ServerContext,
         cancellation: &Cancellation,
     ) -> Result<Response<B>, io::Error> {
         self.seen.lock().unwrap().push(request.metadata.clone());
         if request.fields.contains("expect") {
             for status in [Status::CONTINUE, Status::EARLY_HINTS] {
-                interim
+                context
+                    .interim()
                     .send_interim_response(ResponseMetadata::new(status), cancellation)
                     .await
                     .map_err(io::Error::other)?;

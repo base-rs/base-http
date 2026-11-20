@@ -2,10 +2,10 @@
 // Copyright, 2026, by Samuel Williams.
 
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
-use base_http_server::{Handler, Options};
+use base_http_server::{Handler, Options, ServerContext};
 use base_scheduler::{
     Cancellation, SocketAccept, SocketBind, SocketClose, SocketListen, SocketLocalAddress,
     SocketOpen, SocketType,
@@ -17,14 +17,14 @@ use std::{convert::Infallible, net::SocketAddr};
 struct Hello {
     close: bool,
 }
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = Infallible;
     type Body<B: ReadableBody + 'h> = BufferedBody<&'static [u8]>;
 
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<Self::Body<B>>, Infallible> {
         let mut response = Response::new(

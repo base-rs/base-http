@@ -3,8 +3,8 @@
 
 use base_scheduler::{
     Clock, SocketAccept, SocketBind, SocketClose, SocketConnect, SocketListen, SocketLocalAddress,
-    SocketOpen, SocketOperation, SocketSetOption, SocketStreamReading, SocketStreamWriting,
-    TcpNoDelay,
+    SocketOpen, SocketOperation, SocketPeerAddress, SocketSetOption, SocketStreamReading,
+    SocketStreamWriting, TcpNoDelay,
 };
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
@@ -18,6 +18,7 @@ pub trait Scheduler:
     + SocketBind
     + SocketListen
     + SocketLocalAddress
+    + SocketPeerAddress
     + SocketAccept
     + SocketConnect
     + SocketClose
@@ -34,6 +35,8 @@ impl<S> Scheduler for S where
         + SocketBind
         + SocketListen
         + SocketLocalAddress
+        + SocketPeerAddress
+        + SocketPeerAddress
         + SocketAccept
         + SocketConnect
         + SocketClose

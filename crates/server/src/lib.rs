@@ -7,13 +7,11 @@
 #![forbid(unsafe_code)]
 
 use base_endpoint::stream::{ReadableStream, WritableStream};
-use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Scheme, Status, body::ReadableBody,
-};
+use base_http::{InterimHandler, InterimRelay, Scheme, Status};
 use base_http1::{LentInput, RequestReader, ResponseWriter};
 use base_scheduler::{
-    Cancellation, Clock, OperationError, SocketAccept, SocketClose, SocketSetOption,
-    SocketStreamReading, SocketStreamWriting, TcpNoDelay,
+    Cancellation, Clock, OperationError, SocketAccept, SocketClose, SocketLocalAddress,
+    SocketPeerAddress, SocketSetOption, SocketStreamReading, SocketStreamWriting, TcpNoDelay,
 };
 use futures_util::{
     future::{Either, select},
@@ -24,55 +22,14 @@ use std::{
     future::{Future, poll_fn},
     io,
     pin::pin,
+    sync::Arc,
     task::Poll,
     time::Duration,
 };
 
-/// Generic bodies and hooks keep handlers independent of the HTTP wire version
-/// and scheduler. A returned body may retain the request body.
-///
-/// The request body is an independent value that lives for `'scope`, the
-/// server's borrow of its scheduler, so a handler can pass it to work that
-/// outlives the call, such as a client forwarding it upstream. Its connection
-/// reads the next request only once the body has ended, or has been closed or
-/// dropped; when the connection is cancelled or fails, it takes its input back
-/// at once and the body's later reads fail with
-/// [`base_http1::Error::Closed`].
-///
-/// Generic code awaiting a handler that is bound to one `'scope` inside its own
-/// `Send` future may be rejected by rustc with "implementation of `Handler` is
-/// not general enough"; awaiting [`call_send`] instead avoids it. The server's
-/// entry points need no such care.
-///
-/// An error responds with a bodiless status and closes the connection, which then reports it as [`Error::Handler`]: 400 when a request read failed, such as a malformed or truncated body, even if the error has another cause, and otherwise 500. Return an ordinary response for other client errors. A final response which HTTP/1 cannot send, such as an informational status, conflicting framing, a `Content-Length` field its body contradicts or an unsolicited upgrade, likewise receives a bodiless 500 and closes the connection, which reports it as [`Error::Response`].
-pub trait Handler<'scope>: Sync {
-    type Error: std::error::Error + Send + Sync + 'static;
-    type Body<B: ReadableBody + 'scope>: ReadableBody;
-
-    fn call<B: ReadableBody + 'scope, I: InterimHandler>(
-        &self,
-        request: Request<B>,
-        interim: &mut InterimResponses<I>,
-        cancellation: &Cancellation,
-    ) -> impl Future<Output = Result<Response<Self::Body<B>>, Self::Error>> + Send;
-}
-
-/// Call `handler` through a future whose type states `Send`, for generic code
-/// that awaits a handler bound to one `'scope` within its own `Send` future,
-/// which rustc may otherwise reject as "not general enough".
-pub fn call_send<'scope, H, B, I>(
-    handler: &H,
-    request: Request<B>,
-    interim: &mut InterimResponses<I>,
-    cancellation: &Cancellation,
-) -> impl Future<Output = Result<Response<H::Body<B>>, H::Error>> + Send
-where
-    H: Handler<'scope>,
-    B: ReadableBody + 'scope,
-    I: InterimHandler,
-{
-    handler.call(request, interim, cancellation)
-}
+/// The shared request interface, implemented by server applications for
+/// [`ServerContext`], which carries the connection's [`Peer`].
+pub use base_http::{Handler, HandlerContext, Peer, ServerContext, call_send};
 
 #[derive(Clone, Debug)]
 pub struct Options {
@@ -181,9 +138,13 @@ pub fn serve_connection<'scope, S, H>(
     cancellation: &Cancellation,
 ) -> impl Future<Output = Result<u64, Error>> + Send
 where
-    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
     S: Sync,
     S::Socket: Send,
 {
@@ -200,9 +161,13 @@ async fn serve_connection_inner<'scope, S, H>(
     cancellation: &Cancellation,
 ) -> Result<u64, Error>
 where
-    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
     let outcome = connection_outcome(scheduler, socket, handler, options, cancellation).await;
     outcome.result.map(|()| outcome.requests)
@@ -221,9 +186,13 @@ async fn connection_outcome<'scope, S, H>(
     cancellation: &Cancellation,
 ) -> Outcome
 where
-    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
     let mut requests = 0;
     // The outer owner closes the socket even when capability construction fails.
@@ -238,6 +207,11 @@ where
                 return Err(Error::Io(error));
             }
         };
+        // Addresses a transport cannot report, such as a Unix socket's, are absent.
+        let peer = Arc::new(Peer::new(
+            scheduler.socket_peer_address(&socket).ok(),
+            scheduler.socket_local_address(&socket).ok(),
+        ));
         // The plaintext engine is HTTP/1, whose codecs fail to construct only when `options.validate` above fails.
         let (input, output) = base_http_protocol::HttpProtocols::default()
             .plaintext()
@@ -247,6 +221,7 @@ where
             input,
             output,
             handler,
+            &peer,
             cancellation,
             &mut requests,
             &Scheme::HTTP,
@@ -266,6 +241,7 @@ async fn serve_codecs<'scope, R, W, H>(
     input: RequestReader<R>,
     mut output: ResponseWriter<W>,
     handler: &H,
+    peer: &Arc<Peer>,
     cancellation: &Cancellation,
     count: &mut u64,
     scheme: &Scheme,
@@ -273,13 +249,14 @@ async fn serve_codecs<'scope, R, W, H>(
 where
     R: ReadableStream + Send + 'scope,
     W: WritableStream,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
     let mut input = LentInput::new(input);
     let result = exchanges(
         &mut input,
         &mut output,
         handler,
+        peer,
         cancellation,
         count,
         scheme,
@@ -304,6 +281,7 @@ async fn exchanges<'scope, R, W, H>(
     input: &mut LentInput<R>,
     output: &mut ResponseWriter<W>,
     handler: &H,
+    peer: &Arc<Peer>,
     cancellation: &Cancellation,
     count: &mut u64,
     scheme: &Scheme,
@@ -311,8 +289,9 @@ async fn exchanges<'scope, R, W, H>(
 where
     R: ReadableStream + Send + 'scope,
     W: WritableStream,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
+    let relay = InterimRelay::new();
     loop {
         let (mut request, exchange) = match input.read_request(cancellation).await {
             Ok(Some(pair)) => pair,
@@ -332,13 +311,29 @@ where
         };
         request.scheme.get_or_insert_with(|| scheme.clone());
         let result = {
-            let mut interim = InterimResponses::new(output.interim(exchange.version()));
-            let result = {
-                let called = pin!(handler.call(request, &mut interim, cancellation));
-                cancellable(called, cancellation).await?
+            let mut context = ServerContext::new(peer.clone(), relay.sender());
+            let mut called = pin!(handler.call(request, &mut context, cancellation));
+            // Write each interim response the handler hands over while still
+            // polling the handler, which waits for it.
+            let handled = async {
+                loop {
+                    let response = match select(called.as_mut(), pin!(relay.next())).await {
+                        Either::Left((result, _)) => break result,
+                        Either::Right((response, _)) => response,
+                    };
+                    let mut writer = output.interim(exchange.version());
+                    let written = pin!(writer.on_interim_response(response, cancellation));
+                    match select(written, called.as_mut()).await {
+                        Either::Left((written, _)) => relay.complete(written),
+                        // The handler abandoned its send; dropping the write
+                        // poisons output if it had started.
+                        Either::Right((result, _)) => break result,
+                    }
+                }
             };
-            interim.finish();
-            result
+            let result = cancellable(handled, cancellation).await;
+            relay.finish();
+            result?
         };
         // The response can borrow the input lane, which a failure inspects, so only a successful result leaves this block.
         let mut response = 'handled: {
@@ -533,9 +528,11 @@ where
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
-        + SocketClose,
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
     S: Sync,
     S::Socket: Send,
 {
@@ -557,9 +554,11 @@ where
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
-        + SocketClose,
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
     serve_with(
         scheduler,
@@ -684,9 +683,13 @@ pub fn serve_tls_connection<'scope, S, H>(
     cancellation: &Cancellation,
 ) -> impl Future<Output = Result<u64, Error>> + Send
 where
-    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
     S: Sync,
     S::Socket: Send,
 {
@@ -704,9 +707,13 @@ async fn serve_tls_connection_inner<'scope, S, H>(
     cancellation: &Cancellation,
 ) -> Result<u64, Error>
 where
-    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
     let outcome =
         tls_connection_outcome(scheduler, connection, handler, options, cancellation).await;
@@ -722,12 +729,24 @@ async fn tls_connection_outcome<'scope, S, H>(
     cancellation: &Cancellation,
 ) -> Outcome
 where
-    S: SocketStreamReading + SocketStreamWriting + SocketClose,
+    S: SocketStreamReading
+        + SocketStreamWriting
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
     use base_endpoint::tls::TlsSession;
     let selected = connection.negotiated_protocol().map(<[u8]>::to_vec);
+    let socket = connection.socket();
+    let peer = Arc::new(
+        Peer::new(
+            scheduler.socket_peer_address(socket).ok(),
+            scheduler.socket_local_address(socket).ok(),
+        )
+        .encrypted(selected.as_deref()),
+    );
     let mut requests = 0;
     let result = connection
         .with_duplex(scheduler, cancellation, |reader, writer| async {
@@ -737,6 +756,7 @@ where
                 input,
                 output,
                 handler,
+                &peer,
                 cancellation,
                 &mut requests,
                 &Scheme::HTTPS,
@@ -764,9 +784,11 @@ where
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
-        + SocketClose,
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
     S: Sync,
     S::Socket: Send,
 {
@@ -790,9 +812,11 @@ where
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
-        + SocketClose,
+        + SocketClose
+        + SocketPeerAddress
+        + SocketLocalAddress,
     S::Socket: 'static,
-    H: Handler<'scope>,
+    H: Handler<'scope, ServerContext>,
 {
     use base_endpoint::tls::{TlsAcceptor, rustls::RustlsAcceptor};
     let mut config = (*config).clone();

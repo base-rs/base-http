@@ -6,9 +6,11 @@
 
 pub mod body;
 pub mod fields;
+pub mod handler;
 pub mod headers;
 pub mod interim;
 pub mod method;
+pub mod peer;
 pub mod protocol;
 pub mod request;
 pub mod response;
@@ -20,9 +22,15 @@ mod future;
 mod syntax;
 
 pub use fields::{Field, FieldError, Fields};
+pub use handler::{
+    ClientContext, Handler, HandlerContext, RequestOptions, ServerContext, call_send,
+};
 pub use headers::HttpHeaders;
-pub use interim::{InterimError, InterimHandler, InterimResponses};
+pub use interim::{
+    InterimError, InterimHandler, InterimRelay, InterimRelayError, InterimResponses, InterimSender,
+};
 pub use method::Method;
+pub use peer::Peer;
 pub use protocol::Protocol;
 pub use request::{Request, RequestMetadata};
 pub use response::{Response, ResponseMetadata};

@@ -2,10 +2,10 @@
 // Copyright, 2026, by Samuel Williams.
 
 use base_http::{
-    InterimHandler, InterimResponses, Request, Response, Status,
+    Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
-use base_http_server::{Error, Handler, Options};
+use base_http_server::{Error, Handler, Options, ServerContext};
 use base_scheduler::Cancellation;
 use futures_lite::future::block_on;
 use std::{
@@ -17,13 +17,13 @@ mod support;
 use support::*;
 
 struct Hello;
-impl<'h> Handler<'h> for Hello {
+impl<'h> Handler<'h, ServerContext> for Hello {
     type Error = io::Error;
     type Body<B: ReadableBody + 'h> = BufferedBody;
-    async fn call<B: ReadableBody + 'h, I: InterimHandler>(
+    async fn call<B: ReadableBody + 'h>(
         &self,
         _: Request<B>,
-        _: &mut InterimResponses<I>,
+        _: &mut ServerContext,
         _: &Cancellation,
     ) -> Result<Response<BufferedBody>, io::Error> {
         Ok(Response::new(
