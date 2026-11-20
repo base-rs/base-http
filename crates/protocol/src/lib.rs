@@ -4,8 +4,6 @@
 #![doc = include_str!("../readme.md")]
 #![forbid(unsafe_code)]
 
-use base_endpoint::stream::{ReadableStream, WritableStream};
-use base_http1::{RequestReader, RequestWriter, ResponseReader, ResponseWriter};
 use std::fmt;
 
 /// Enabled HTTP engines and their establishment policy, shared by plain and
@@ -91,48 +89,6 @@ impl HttpProtocol {
             Self::Http1 => b"http/1.1",
         }
     }
-    /// Construct a client connection of this engine over an established
-    /// stream.
-    pub fn client<R: ReadableStream, W: WritableStream>(
-        self,
-        reader: R,
-        writer: W,
-        http1: base_http1::Options,
-    ) -> Result<ClientConnection<R, W>, ProtocolError> {
-        match self {
-            Self::Http1 => Ok(ClientConnection::Http1(
-                ResponseReader::new(reader, http1)?,
-                RequestWriter::new(writer),
-            )),
-        }
-    }
-    /// Construct a server connection of this engine over an established
-    /// stream.
-    pub fn server<R: ReadableStream, W: WritableStream>(
-        self,
-        reader: R,
-        writer: W,
-        http1: base_http1::Options,
-    ) -> Result<ServerConnection<R, W>, ProtocolError> {
-        match self {
-            Self::Http1 => Ok(ServerConnection::Http1(
-                RequestReader::new(reader, http1)?,
-                ResponseWriter::new(writer),
-            )),
-        }
-    }
-}
-
-/// A selected client connection, one variant for each engine compiled in. The
-/// client dispatches on it, so adding an engine adds a variant.
-pub enum ClientConnection<R, W> {
-    Http1(ResponseReader<R>, RequestWriter<W>),
-}
-
-/// A selected server connection, one variant for each engine compiled in. The
-/// server dispatches on it, so adding an engine adds a variant.
-pub enum ServerConnection<R, W> {
-    Http1(RequestReader<R>, ResponseWriter<W>),
 }
 
 /// A failure of an engine, naming the engine that produced it. Transparent: it

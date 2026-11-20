@@ -6,14 +6,16 @@
 #![doc = include_str!("../readme.md")]
 #![forbid(unsafe_code)]
 
-use base_endpoint::stream::{ReadableStream, WritableStream};
-use base_http::{InterimHandler, InterimRelay, Scheme, Status};
-use base_http_protocol::{ProtocolError, ServerConnection};
-use base_http1::{LentInput, RequestReader, ResponseWriter};
+use base_endpoint::stream::ReadableStream;
+use base_http::Scheme;
+use base_http_protocol::ProtocolError;
+
+mod connection;
 use base_scheduler::{
     Cancellation, Clock, OperationError, SocketAccept, SocketClose, SocketLocalAddress,
     SocketPeerAddress, SocketSetOption, SocketStreamReading, SocketStreamWriting, TcpNoDelay,
 };
+use connection::ServerConnection;
 use futures_util::{
     future::{Either, select},
     stream::{FuturesUnordered, StreamExt},
@@ -115,7 +117,7 @@ impl From<base_scheduler::OperationError> for Error {
     }
 }
 
-async fn cancellable<F: Future>(
+pub(crate) async fn cancellable<F: Future>(
     future: F,
     cancellation: &Cancellation,
 ) -> Result<F::Output, Error> {
@@ -221,177 +223,18 @@ where
             scheduler.socket_peer_address(&socket).ok(),
             scheduler.socket_local_address(&socket).ok(),
         ));
-        // Codecs fail to construct only when the options validated above are invalid.
-        let connection = protocol
-            .server(reader, writer, options.http1.clone())
-            .expect("validated options construct server codecs");
-        match connection {
-            ServerConnection::Http1(input, output) => {
-                serve_codecs(
-                    input,
-                    output,
-                    handler,
-                    &peer,
-                    cancellation,
-                    &mut requests,
-                    &Scheme::HTTP,
-                )
-                .await
-            }
-        }
+        // A connection fails to construct only when the options validated above are invalid.
+        let connection = ServerConnection::new(protocol, reader, writer, options)
+            .expect("validated options construct server connections");
+        connection
+            .serve(handler, &peer, cancellation, &mut requests, &Scheme::HTTP)
+            .await
     }
     .await;
     let closed = scheduler.socket_close(socket).await;
     Outcome {
         requests,
         result: result.and_then(|()| Ok(closed?)),
-    }
-}
-
-/// Serve exchanges over established codecs, then retire both directions.
-async fn serve_codecs<'scope, R, W, H>(
-    input: RequestReader<R>,
-    mut output: ResponseWriter<W>,
-    handler: &H,
-    peer: &Arc<Peer>,
-    cancellation: &Cancellation,
-    count: &mut u64,
-    scheme: &Scheme,
-) -> Result<(), Error>
-where
-    R: ReadableStream + Send + 'scope,
-    W: WritableStream,
-    H: Handler<'scope, ServerContext>,
-{
-    let mut input = LentInput::new(input);
-    let result = exchanges(
-        &mut input,
-        &mut output,
-        handler,
-        peer,
-        cancellation,
-        count,
-        scheme,
-    )
-    .await;
-    // After a normal end, wait for the last request body before retiring input,
-    // so work still reading it, such as a forwarded upload, can finish.
-    // Cancellation, or any failure, takes the input back from the body at once.
-    if result.is_ok() {
-        let _ = input.returned(cancellation).await;
-    }
-    // Both cleanups run regardless of the exchange or the other cleanup result.
-    let input_closed = input.close().await;
-    let output_closed = output.close().await;
-    result?;
-    input_closed?;
-    output_closed?;
-    Ok(())
-}
-
-async fn exchanges<'scope, R, W, H>(
-    input: &mut LentInput<R>,
-    output: &mut ResponseWriter<W>,
-    handler: &H,
-    peer: &Arc<Peer>,
-    cancellation: &Cancellation,
-    count: &mut u64,
-    scheme: &Scheme,
-) -> Result<(), Error>
-where
-    R: ReadableStream + Send + 'scope,
-    W: WritableStream,
-    H: Handler<'scope, ServerContext>,
-{
-    let relay = InterimRelay::new();
-    loop {
-        let (mut request, exchange) = match input.read_request(cancellation).await {
-            Ok(Some(pair)) => pair,
-            Ok(None) => return Ok(()),
-            Err(error) => {
-                if !matches!(error, base_http1::Error::Cancelled) {
-                    let status = if matches!(error, base_http1::Error::Limit(_)) {
-                        Status::new(431).unwrap()
-                    } else {
-                        Status::BAD_REQUEST
-                    };
-                    // A bad request cannot be reused even if rejection succeeds.
-                    let _ = output.reject(status, cancellation).await;
-                }
-                return Err(error.into());
-            }
-        };
-        request.scheme.get_or_insert_with(|| scheme.clone());
-        let result = {
-            let mut context = ServerContext::new(peer.clone(), relay.sender());
-            let mut called = pin!(handler.call(request, &mut context, cancellation));
-            // Write each interim response the handler hands over while still
-            // polling the handler, which waits for it.
-            let handled = async {
-                loop {
-                    let response = match select(called.as_mut(), pin!(relay.next())).await {
-                        Either::Left((result, _)) => break result,
-                        Either::Right((response, _)) => response,
-                    };
-                    let mut writer = output.interim(exchange.version());
-                    let written = pin!(writer.on_interim_response(response, cancellation));
-                    match select(written, called.as_mut()).await {
-                        Either::Left((written, _)) => relay.complete(written),
-                        // The handler abandoned its send; dropping the write
-                        // poisons output if it had started.
-                        Either::Right((result, _)) => break result,
-                    }
-                }
-            };
-            let result = cancellable(handled, cancellation).await;
-            relay.finish();
-            result?
-        };
-        // The response can borrow the input lane, which a failure inspects, so only a successful result leaves this block.
-        let mut response = 'handled: {
-            let error = match result.map_err(|error| Error::Handler(Box::new(error))) {
-                Ok(response) => break 'handled response,
-                Err(error) => error,
-            };
-            // Cancellation can arrive between polling the outer signal and polling a handler which propagates a cancelled body operation.
-            if cancellation.is_cancelled() {
-                return Err(Error::Cancelled);
-            }
-            // No final head has been written, so the peer can still learn of the failure: failed request input means the request was bad, and anything else is a server error. The input position may be unknown and unread input may remain, so the connection always closes afterwards; output already out of sync refuses the response and just closes. The input is taken back from a request body that outlived the handler, whose later reads fail.
-            input.reclaim().await;
-            let status = if input.input().is_some_and(RequestReader::is_poisoned) {
-                Status::BAD_REQUEST
-            } else {
-                Status::INTERNAL_SERVER_ERROR
-            };
-            let _ = output.reject(status, cancellation).await;
-            return Err(error);
-        };
-        let written = output
-            .write_response(&exchange, &mut response, cancellation)
-            .await;
-        drop(response);
-        let persistent = match written {
-            Ok(persistent) => persistent,
-            // Usable output means the writer refused the response before writing any of it, so the peer can still learn of the failure; the request may be unfinished, so the connection closes afterwards.
-            Err(error) if output.is_usable() && !matches!(error, base_http1::Error::Cancelled) => {
-                let _ = output
-                    .reject(Status::INTERNAL_SERVER_ERROR, cancellation)
-                    .await;
-                return Err(Error::Response(error.into()));
-            }
-            Err(error) => return Err(error.into()),
-        };
-        *count += 1;
-        if !persistent {
-            return Ok(());
-        }
-        // The request body may outlive its handler, such as one a client is
-        // still forwarding; the next request waits until it ends or is dropped.
-        input.returned(cancellation).await?;
-        if !input.is_reusable() {
-            return Ok(());
-        }
     }
 }
 
@@ -761,20 +604,9 @@ where
     let result = connection
         .with_duplex(scheduler, cancellation, |reader, writer| async {
             let protocol = options.protocols.negotiated(selected.as_deref())?;
-            match protocol.server(reader, writer, options.http1.clone())? {
-                ServerConnection::Http1(input, output) => {
-                    serve_codecs(
-                        input,
-                        output,
-                        handler,
-                        &peer,
-                        cancellation,
-                        &mut requests,
-                        &Scheme::HTTPS,
-                    )
-                    .await
-                }
-            }
+            ServerConnection::new(protocol, reader, writer, options)?
+                .serve(handler, &peer, cancellation, &mut requests, &Scheme::HTTPS)
+                .await
         })
         .await;
     Outcome { requests, result }

@@ -634,34 +634,6 @@ fn listener_close_failure_is_reported_after_cancelled_acceptance() {
 }
 
 #[test]
-fn protocol_codecs_reject_invalid_limits_at_construction() {
-    let memory = Memory::default();
-    let options = base_http1::Options {
-        max_fields: 0,
-        ..Default::default()
-    };
-    let protocol = base_http_protocol::HttpProtocols::default()
-        .plaintext()
-        .unwrap();
-    let reader = memory.socket_stream_reader(&()).unwrap();
-    let writer = memory.socket_stream_writer(&()).unwrap();
-    assert!(matches!(
-        protocol.server(reader, writer, options.clone()),
-        Err(base_http_protocol::ProtocolError::Http1(
-            base_http1::Error::Invalid(_)
-        ))
-    ));
-    let reader = memory.socket_stream_reader(&()).unwrap();
-    let writer = memory.socket_stream_writer(&()).unwrap();
-    assert!(matches!(
-        protocol.client(reader, writer, options),
-        Err(base_http_protocol::ProtocolError::Http1(
-            base_http1::Error::Invalid(_)
-        ))
-    ));
-}
-
-#[test]
 fn a_listener_serves_connections_that_reject_nodelay() {
     for tcp_nodelay in [true, false] {
         let memory = Memory::new(REQUEST);
