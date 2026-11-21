@@ -1,16 +1,16 @@
 # Servers, endpoints and connection placement
 
-Accepted 2026-11-21; not yet implemented.
+Accepted 2026-11-21; implemented 2026-11-22, except for the benchmark reruns its validation requires.
 
 ## Requirement
 
 ### Server and endpoint
 
-`base-http-server` provides a `Server` value, constructed from a handler, a server endpoint and options, and run until cancelled, as Async::HTTP's `Server.new(app, endpoint)` and `server.run` are:
+`base-http-server` provides a `Server` value, constructed from a handler, a server endpoint and options, the handler and options borrowed, and run until cancelled, as Async::HTTP's `Server.new(app, endpoint)` and `server.run` are:
 
 ```rust
 let endpoint = Endpoint::new(listener).with_tls(config);
-let server = Server::new(&handler, endpoint, options);
+let server = Server::new(&handler, endpoint, &options);
 let statistics = server.run(&scheduler, &cancellation).await?;
 ```
 
@@ -34,11 +34,11 @@ scheduler.scope(async |scope| {
 
 In both modes, the server's or client's supervision keeps owning admission, cancellation and joined retirement: a spawned connection counts against `max_connections` or the pool as an interleaved one does, cancellation reaches it the same way, and `run` returns only after every connection it started has retired. The direct HTTP/1 client path keeps running in its calling tasks, and the client's queued calls and deferred closing stay in its driver. A spawned connection that panics is counted as a failed connection, as a connection that fails is.
 
-Both kinds of argument implement one `base-http` trait, which supplies the scheduler, through `base-scheduler`'s `Scope::scheduler` for a scope, and places a connection's future: polling it in place for the scheduler, spawning it into the scope otherwise.
+Both kinds of argument implement `base-scheduler`'s `Placement`, which supplies the scheduler, through `Scope::scheduler` for a scope, and places a connection's future: returning it to be polled in place for the scheduler, spawning it into the scope otherwise. It lives in `base-scheduler` because telling a scheduler from a scope relies on `Scope` implementing no scheduler capability, which only that crate can guarantee; the user agreed on 2026-11-22.
 
 ### Lifetimes
 
-A spawned connection may borrow only what outlives the scope: the scheduler, and a handler, client or other state created before `scheduler.scope` is entered. A handler created inside the scope's root cannot be borrowed by spawned connections, because the root may return while they still run. The documentation shows this with the program shape above, the handler created before the scope.
+A spawned connection may borrow only what outlives the scope: the scheduler, and a handler, options or other state created before `scheduler.scope` is entered. A handler created inside the scope's root cannot be borrowed by spawned connections, because the root may return while they still run. A client's connection drivers own their state but the scheduler, so a client may be created inside the root. The documentation shows this with the program shape above, the handler created before the scope.
 
 ### Efficiency
 
@@ -54,7 +54,7 @@ The user asked on 2026-11-21 for an interface as simple as Async::HTTP's, in whi
 
 - `base-http-server`: `Server`, its `Endpoint`, and the replacement of `serve` and `serve_tls`.
 - `base-http-client`: `Client::new`'s first argument and its driver's placement of connection drivers.
-- The placement trait in `base-http`, and `Scope::scheduler` in `base-scheduler`.
+- `Placement` and `Scope::scheduler` in `base-scheduler`.
 - The fixtures, examples, tests and benchmarks that call these entry points.
 
 ## Validation

@@ -924,18 +924,21 @@ fn native_echo(tls: Option<bool>) {
                 let server = async {
                     #[cfg(feature = "rustls")]
                     if let Some(config) = server_config {
-                        return base_http_server::serve_tls(
-                            &scheduler,
-                            listener,
-                            config,
+                        return base_http_server::Server::new(
                             &Echo,
+                            base_http_server::Endpoint::new(listener).with_tls(config),
                             &Default::default(),
-                            &stop,
                         )
+                        .run(&scheduler, &stop)
                         .await;
                     }
-                    base_http_server::serve(&scheduler, listener, &Echo, &Default::default(), &stop)
-                        .await
+                    base_http_server::Server::new(
+                        &Echo,
+                        base_http_server::Endpoint::new(listener),
+                        &Default::default(),
+                    )
+                    .run(&scheduler, &stop)
+                    .await
                 };
                 let application = async {
                     for _ in 0..2 {

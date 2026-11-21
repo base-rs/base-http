@@ -284,14 +284,12 @@ fn listener_counts_a_connection_without_required_alpn_as_failed() {
             ..Default::default()
         };
         // The listener replaces any configured ALPN list with the enabled protocols.
-        let statistics = base_http_server::serve_tls(
-            &scheduler,
-            listener,
-            server_config(vec![b"h2".to_vec()]),
+        let statistics = base_http_server::Server::new(
             &Hello,
+            base_http_server::Endpoint::new(listener).with_tls(server_config(vec![b"h2".to_vec()])),
             &options,
-            &cancellation,
         )
+        .run(&scheduler, &cancellation)
         .await
         .unwrap();
         peer.join().unwrap().unwrap();

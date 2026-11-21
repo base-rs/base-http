@@ -62,14 +62,14 @@ fn ready(listener: &TcpListener) -> Result<()> {
 fn connection_finished<T, E: std::fmt::Display>(result: std::result::Result<T, E>) {
     if let Err(error) = result {
         // Load generators may close a socket with an in-flight final request.
-        // Peer failures do not stop admission, as in base_http_server::serve.
+        // Peer failures do not stop admission, as in base_http_server::Server::run.
         eprintln!("connection: {error}");
     }
 }
 
 // HTTP variants have one application worker and one FuturesUnordered supervisor.
-// Connections are polled in that supervisor, matching base_http_server::serve.
-// Like serve, this small accept loop sets TCP_NODELAY on every accepted socket.
+// Connections are polled in that supervisor, matching base_http_server::Server::run in the scoped mode.
+// Like Server::run, this small accept loop sets TCP_NODELAY on every accepted socket.
 async fn base_server<S>(scheduler: &S) -> Result<()>
 where
     S: SocketRegistration

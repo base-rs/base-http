@@ -124,18 +124,18 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52d978231df300e03843100c9d738f369a638b018d2aabf93863cdccbd08db6d"
+checksum = "da85e405906c7f4f10e8ad54e26f5970fec677dafaca1d00eb31a73b2a712a02"
 dependencies = [
  "event-listener",
 ]
 
 [[package]]
 name = "base-scheduler-iouring"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf1c93c85a37411fbaf08fcb1d65310535471c51b6cfa775f882eea2b4f449a5"
+checksum = "3f5af4f53e62c15149b83422d92fd52de7abcb5fa87e1b5896e03cb97415b2c3"
 dependencies = [
  "atomic-waker",
  "base-scheduler",
@@ -149,9 +149,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-native"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4691682bed312fa4acefc5f208490c4d1a6d2bfe0cbc8759a6bc06e71e847ee6"
+checksum = "cdbf0d0a4ac58cf201209b061b712e80b2cae476147a4aab5cf3940829778aa8"
 dependencies = [
  "async-task",
  "base-scheduler",
@@ -163,9 +163,9 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-selector"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26b62ae0ae7a678dd1bafdc78799e795ca1c5194525475c1326132c5cd83236c"
+checksum = "c795934c1f5f16930373694a27d720d6fff94b76d2798b65ad13b8d8c18846fa"
 dependencies = [
  "async-io",
  "base-scheduler",
@@ -181,15 +181,15 @@ dependencies = [
 
 [[package]]
 name = "base-scheduler-timers"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b03450e950772cebbf0615964475e9809c5103894b3f178c0aa8c123e03ed6c"
+checksum = "6e46fbe6ef408bf2d530b156fb628528313746f17c7d3e56934863bedec68875"
 
 [[package]]
 name = "base-scheduler-tokio"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c46960cb99ea9e951c83dfc8d583c26d400ca6b28c0964d6844390343233aef"
+checksum = "9a288aba7c49a522f021ea0f51451401b2c41c113e708b2d010c9f790bb3c67a"
 dependencies = [
  "async-io",
  "base-scheduler",

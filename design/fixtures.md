@@ -38,11 +38,29 @@ Rust has no asynchronous destructor, so a fixture which leaves teardown to the t
 
 `crates/fixtures/tests/context.rs` exercises a test panic, a test timeout, a forced teardown, a server failure and a raw peer panic, and checks each is reported.
 
+## Spawned connection context
+
+### Requirement
+
+`ServerFixture::run_in_scope` runs the server and the client in the spawned connection mode of [connection placement](connection-placement.md): on a two-worker Native scheduler, it enters a scope, passes it to `Server::run` and `Client::new`, and runs the test in the scope's root, so every server and client connection is a task of the scope while acceptance and the test run on the test's thread. The handler and the server's options are created before the scope, as spawned connections must outlive what they borrow. It shares `run`'s serving and teardown, with the same guarantees, except that a connection that panics is counted as a failed connection, as the spawned mode requires, so a panicking handler fails its request rather than resuming its panic in the test. `run_in_scope_on` does the same on a caller's scheduler. The client's shared protocol suites run through it for HTTP/1.1, HTTP/1.0 and HTTPS, as they run through `run` and `run_spawned`.
+
+### Rationale
+
+The roadmap's M6 requires the same scenarios to pass in the spawned mode as in the scoped mode. Running the shared protocol suites through a third runner provides that without duplicating cases, and keeping `run_spawned`, whose single server task resumes a handler's panic, keeps its own guarantees.
+
+### Scope
+
+`ServerFixture::run_in_scope` and `run_in_scope_on`, and the serving they share with `run_on`, in `crates/fixtures/src/context.rs`.
+
+### Validation
+
+Run the client's protocol suites in their `*_scope` modules. `crates/client/tests/placement.rs` checks that the spawned mode's connections progress on more than one worker on each side, that a panicking connection is counted as failed, and that `Server::run` returns only after a held connection has retired.
+
 ## Spawned server context
 
 ### Requirement
 
-`ServerFixture::run_spawned` creates a two-worker Native scheduler, binds the listener, then spawns the server's public entry point, `base_http_server::serve` or `serve_tls`, as one task through `base_scheduler::Spawn`, so the server runs on the scheduler's workers in parallel with a client driven from the test's thread. It takes ownership of the application and owns the scheduler for the whole run; the test receives the same `Context<'_, NativeScheduler, H>` as `run`, with the application as `&H`. Any sharing between the test and the server's task, such as an `Arc`, stays inside the fixture and is not part of its public API. The fixture relies only on the server running on the scheduler's workers. It adds nothing to `base-http-server`'s public API and does not choose how connections are spread across tasks or workers. The application must be `Handler + Send + Sync + 'static`, as a server which spawned its own connection tasks would need.
+`ServerFixture::run_spawned` creates a two-worker Native scheduler, binds the listener, then spawns the server's public entry point, `base_http_server::Server::run` given the scheduler, as one task through `base_scheduler::Spawn`, so the server runs on the scheduler's workers in parallel with a client driven from the test's thread. It takes ownership of the application and owns the scheduler for the whole run; the test receives the same `Context<'_, NativeScheduler, H>` as `run`, with the application as `&H`. Any sharing between the test and the server's task, such as an `Arc`, stays inside the fixture and is not part of its public API. The fixture relies only on the server running on the scheduler's workers. It adds nothing to `base-http-server`'s public API and does not choose how connections are spread across tasks or workers. The application must be `Handler + Send + Sync + 'static`, as a server which spawned its own connection tasks would need.
 
 `run_spawned` has the guarantees of `run`: the listener is bound before the test starts, the test is bounded, the client retires its connections before the server stops, a server error fails the test, a server panic is resumed with its original payload, and a test failure is reported before any server failure, which is printed to stderr first. After the test, the server is cancelled and joined for at most the teardown timeout, and fails the test if it overruns. That timeout is measured on its own thread rather than by the scheduler's clock, so a server occupying every worker, such as a handler which blocks, still fails on time. Native's stall rescue, on by default since scheduler 0.5, also lets the scheduler's clock bound the join, but it can be turned off with `stall_rescue: false`, and Native then strands a timer behind the busy worker. The fixture keeps the own-thread deadline so it does not depend on rescue; it can be removed once Native fires timers behind a busy worker in every configuration. The test's timeout and the client's teardown, in `supervise` and `bounded`, are still measured by the scheduler's clock, so they are bounded only while the scheduler's timers can run. The scheduler is then shut down, and Native drains its tasks, so the call does not return until an overrunning server's current poll returns. A poll which never returns cannot be preempted and hangs the test after the failure is reported, so teardown is bounded only for servers whose polls return. The scoped `run` and `run_on` are unchanged.
 
@@ -56,7 +74,7 @@ Rust has no asynchronous destructor, so a fixture which leaves teardown to the t
 
 ### Validation
 
-Inspect the private spawn: its task calls only `serve` or `serve_tls`, and the change leaves `crates/server/src` untouched. Check that `crates/fixtures/src/lib.rs` exports no `Arc`-based or spawned-server type. `crates/fixtures/tests/spawned.rs` covers the following, and checks how each is reported:
+Inspect the private spawn: its task calls only `Server::run`, and the change leaves `crates/server/src` untouched. Check that `crates/fixtures/src/lib.rs` exports no `Arc`-based or spawned-server type. `crates/fixtures/tests/spawned.rs` covers the following, and checks how each is reported:
 
 - a spawned server serving a client and a raw peer;
 - an application shared with the server;

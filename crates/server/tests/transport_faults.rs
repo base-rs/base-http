@@ -620,13 +620,14 @@ fn listener_close_failure_is_reported_after_cancelled_acceptance() {
     memory.faults().socket_close_error = true;
     let cancellation = Cancellation::new();
     cancellation.cancel();
-    let served = block_on(base_http_server::serve(
-        &memory,
-        (),
-        &Hello::default(),
-        &Default::default(),
-        &cancellation,
-    ));
+    let served = block_on(
+        base_http_server::Server::new(
+            &Hello::default(),
+            base_http_server::Endpoint::new(()),
+            &Default::default(),
+        )
+        .run(&memory, &cancellation),
+    );
     let error = served.unwrap_err();
     assert!(matches!(error, Error::Io(_)));
     assert_eq!(error.source().unwrap().to_string(), "socket close failed");
@@ -643,13 +644,14 @@ fn a_listener_serves_connections_that_reject_nodelay() {
             tcp_nodelay,
             ..Default::default()
         };
-        let statistics = block_on(base_http_server::serve(
-            &memory,
-            (),
-            &Hello::default(),
-            &options,
-            &cancellation,
-        ))
+        let statistics = block_on(
+            base_http_server::Server::new(
+                &Hello::default(),
+                base_http_server::Endpoint::new(()),
+                &options,
+            )
+            .run(&memory, &cancellation),
+        )
         .unwrap();
         assert_eq!(
             (

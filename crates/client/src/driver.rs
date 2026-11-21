@@ -4,8 +4,8 @@
 use crate::{Connection, Endpoint, Error, Options, connection};
 use base_pool::{Acquisition, MultiplexBuildPermit, MultiplexPool, MultiplexUse};
 use base_scheduler::{
-    Cancellation, SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
-    SocketStreamWriting, TcpNoDelay,
+    Cancellation, Placement, SocketClose, SocketConnect, SocketOpen, SocketSetOption,
+    SocketStreamReading, SocketStreamWriting, TcpNoDelay,
 };
 use event_listener::Event;
 use futures_channel::oneshot;
@@ -197,12 +197,13 @@ pub(crate) struct ClientParts<'scope> {
     pub context: Arc<Context<'scope>>,
 }
 
-pub(crate) fn make<'scope, S>(
-    scheduler: &'scope S,
+pub(crate) fn make<'scope, P, S>(
+    placement: P,
     endpoint: Endpoint,
     options: Options,
 ) -> ClientParts<'scope>
 where
+    P: Placement<'scope, Scheduler = S> + 'scope,
     S: SocketOpen
         + SocketConnect
         + SocketClose
@@ -236,8 +237,11 @@ where
         let queue = weak_queue.upgrade().expect("an acquirer retains the queue");
         Box::pin(async move {
             let (ready, established) = oneshot::channel();
-            queue.push_work(Box::pin(connection::run(
-                scheduler,
+            // The driver joins the placed connection, in place or as a scope task. A task
+            // destroyed or panicking before it reports readiness drops `ready`, which
+            // reports the connection closed.
+            let connection = placement.place(connection::run(
+                placement.scheduler(),
                 endpoint,
                 options,
                 build,
@@ -245,7 +249,10 @@ where
                 lifetime,
                 ready,
                 Arc::downgrade(&queue),
-            )))?;
+            ))?;
+            queue.push_work(Box::pin(async move {
+                let _ = connection.await;
+            }))?;
             // Only an abandoned driver drops construction before it reports readiness.
             established.await.unwrap_or(Err(Error::Closed))
         }) as Work<'scope, _>

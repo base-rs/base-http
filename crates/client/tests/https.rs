@@ -101,14 +101,12 @@ fn https_echo_reuses_connections_and_accepts_during_another_handshake() {
                     };
                     let (client, driver) = Client::new(&scheduler, endpoint, options).unwrap();
                     let server_options = Default::default();
-                    let server = base_http_server::serve_tls(
-                        &scheduler,
-                        listener,
-                        server_config,
+                    let server = base_http_server::Server::new(
                         &Echo,
+                        base_http_server::Endpoint::new(listener).with_tls(server_config),
                         &server_options,
-                        &stop,
-                    );
+                    )
+                    .run(&scheduler, &stop);
                     let application = async {
                         for index in 0..2 {
                             let bytes = vec![b'x'; 1024 * 1024];
@@ -352,14 +350,12 @@ fn https_server_interoperates_with_an_independent_http_client() {
         let statistics = scheduler
             .timeout(
                 Duration::from_secs(15),
-                base_http_server::serve_tls(
-                    &scheduler,
-                    listener,
-                    server_config,
+                base_http_server::Server::new(
                     &Echo,
+                    base_http_server::Endpoint::new(listener).with_tls(server_config),
                     &options,
-                    &stop,
-                ),
+                )
+                .run(&scheduler, &stop),
             )
             .await
             .unwrap()

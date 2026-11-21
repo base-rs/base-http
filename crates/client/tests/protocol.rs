@@ -69,3 +69,33 @@ mod https_spawned {
     base_http_fixtures::protocol_tests!(run: super::https_spawned);
     base_http_fixtures::protocol_trailer_tests!(run: super::https_spawned);
 }
+
+// The same cases in the spawned connection mode: the server's and the client's connections are tasks of a scope on two workers.
+fn http11_scope(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
+    serve(app, Version::Http11).run_in_scope(test);
+}
+
+mod http11_scope {
+    base_http_fixtures::protocol_tests!(run: super::http11_scope);
+    base_http_fixtures::protocol_trailer_tests!(run: super::http11_scope);
+}
+
+fn http10_scope(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
+    serve(app, Version::Http10).run_in_scope(test);
+}
+
+mod http10_scope {
+    base_http_fixtures::protocol_tests!(run: super::http10_scope);
+    base_http_fixtures::protocol_trailer_tests!(run: super::http10_scope);
+}
+
+#[cfg(feature = "rustls")]
+fn https_scope(app: App, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, App>)) {
+    serve(app, Version::Http11).tls().run_in_scope(test);
+}
+
+#[cfg(feature = "rustls")]
+mod https_scope {
+    base_http_fixtures::protocol_tests!(run: super::https_scope);
+    base_http_fixtures::protocol_trailer_tests!(run: super::https_scope);
+}
