@@ -623,8 +623,9 @@ fn driver_shutdown_during_establishment_closes_the_late_connection() {
             let mut call = pin!(client.call(Request::new(Method::GET, "/", EmptyBody), &never));
             assert!(poll_once(call.as_mut()).await.is_none());
             reached.await.unwrap();
-            release.send(()).unwrap();
+            // Cancel while construction is still held, so it cannot complete first and leave the shutdown to close an established connection. Cancellation may already have dropped the gate.
             lifetime.cancel();
+            let _ = release.send(());
             // Cancelling the driver's lifetime cancels the waiting call.
             let error = call.await.err().unwrap();
             assert!(matches!(error, Error::Cancelled), "{error:?}");
