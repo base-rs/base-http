@@ -152,9 +152,12 @@ impl<'h> Handler<'h, ServerContext> for Hello {
 
 #[test]
 fn negotiated_http1_serves_https_requests_on_an_accepted_connection() {
-    let protocols = HttpProtocols { require_alpn: true };
+    let protocols = HttpProtocols {
+        require_alpn: true,
+        ..Default::default()
+    };
     let options = Options {
-        protocols,
+        protocols: protocols.clone(),
         ..Default::default()
     };
     let (served, (negotiated, response)) = tls_connection(
@@ -185,9 +188,12 @@ fn negotiated_http1_serves_https_requests_on_an_accepted_connection() {
 
 #[test]
 fn missing_alpn_is_rejected_when_negotiation_is_required() {
-    let protocols = HttpProtocols { require_alpn: true };
+    let protocols = HttpProtocols {
+        require_alpn: true,
+        ..Default::default()
+    };
     let options = Options {
-        protocols,
+        protocols: protocols.clone(),
         ..Default::default()
     };
     let (served, ()) = tls_connection(
@@ -243,7 +249,9 @@ fn invalid_http1_options_reject_a_negotiated_connection() {
     );
     assert!(matches!(
         served,
-        Err(Error::Protocol(base_http1::Error::Invalid(_)))
+        Err(Error::Protocol(base_http_protocol::ProtocolError::Http1(
+            base_http1::Error::Invalid(_)
+        )))
     ));
 }
 
@@ -269,7 +277,10 @@ fn listener_counts_a_connection_without_required_alpn_as_failed() {
             result
         });
         let options = Options {
-            protocols: HttpProtocols { require_alpn: true },
+            protocols: HttpProtocols {
+                require_alpn: true,
+                ..Default::default()
+            },
             ..Default::default()
         };
         // The listener replaces any configured ALPN list with the enabled protocols.

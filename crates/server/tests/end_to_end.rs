@@ -666,7 +666,9 @@ fn limits_are_enforced_before_handler_admission() {
     );
     assert!(matches!(
         served,
-        Err(Error::Protocol(base_http1::Error::Limit(_)))
+        Err(Error::Protocol(base_http_protocol::ProtocolError::Http1(
+            base_http1::Error::Limit(_)
+        )))
     ));
 }
 

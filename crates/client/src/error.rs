@@ -21,7 +21,8 @@ pub enum Error {
     InvalidOptions,
     Unsupported(&'static str),
     Pool(base_pool::Error),
-    Protocol(Arc<base_http1::Error>),
+    /// The connection's engine failed, such as on a malformed response.
+    Protocol(Arc<base_http_protocol::ProtocolError>),
     Io(Arc<io::Error>),
     Body(base_http::body::BodyError),
 }
@@ -91,6 +92,11 @@ impl From<base_pool::Error> for Error {
         }
     }
 }
+impl Error {
+    fn protocol(error: base_http1::Error) -> Self {
+        Self::Protocol(Arc::new(error.into()))
+    }
+}
 impl From<base_http1::Error> for Error {
     fn from(error: base_http1::Error) -> Self {
         match error {
@@ -101,12 +107,12 @@ impl From<base_http1::Error> for Error {
                 Err(error) => match error.downcast::<base_http::InterimError<Self>>() {
                     Ok(error) => match *error {
                         base_http::InterimError::Handler(error) => error,
-                        error => Self::Protocol(Arc::new(base_http1::Error::Body(Box::new(error)))),
+                        error => Self::protocol(base_http1::Error::Body(Box::new(error))),
                     },
-                    Err(error) => Self::Protocol(Arc::new(base_http1::Error::Body(error))),
+                    Err(error) => Self::protocol(base_http1::Error::Body(error)),
                 },
             },
-            error => Self::Protocol(Arc::new(error)),
+            error => Self::protocol(error),
         }
     }
 }

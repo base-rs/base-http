@@ -12,6 +12,7 @@ use base_endpoint::{
     AddressEndpoint, ConnectEndpoint,
     stream::{ReadableStream, WritableStream},
 };
+use base_http_protocol::HttpProtocol;
 use base_http1::{RequestWriter, ResponseReader};
 use base_pool::{Admission, MultiplexBuildPermit, MultiplexResource};
 use base_scheduler::{
@@ -26,24 +27,24 @@ use std::sync::{
 };
 
 struct Inner<'scope> {
-    direct: Mutex<Option<Arc<dyn DirectConnection<'scope> + 'scope>>>,
+    selected: Mutex<Option<ClientConnection<'scope>>>,
     changed: Event,
     stop: Cancellation,
     result: Mutex<Option<Result<(), Error>>>,
 }
 
-/// An established HTTP/1 session retaining its transport and codec buffers.
-/// Requests take and return its directions in the calling task; supervised
-/// work handles construction and retirement.
+/// An endpoint pool's entry for one established connection, holding the
+/// connection the selected protocol constructed. Requests use it in the
+/// calling task; supervised work handles construction and retirement.
 #[derive(Clone)]
-pub struct Connection<'scope> {
+pub(crate) struct Connection<'scope> {
     inner: Arc<Inner<'scope>>,
 }
 impl<'scope> Connection<'scope> {
     fn new() -> Self {
         Self {
             inner: Arc::new(Inner {
-                direct: Mutex::new(None),
+                selected: Mutex::new(None),
                 changed: Event::new(),
                 stop: Cancellation::new(),
                 result: Mutex::new(None),
@@ -53,21 +54,21 @@ impl<'scope> Connection<'scope> {
     pub(crate) fn clone_handle(&self) -> Self {
         self.clone()
     }
-    pub(crate) fn open(&self, opening: Open<'scope>) -> Opening<'scope> {
-        // Admission is published only after the session installs its direct state, which it never removes.
-        let direct = lock(&self.inner.direct)
+    /// The selected connection. Admission is published only after the session
+    /// installs it, which it never removes.
+    fn selected(&self) -> ClientConnection<'scope> {
+        lock(&self.inner.selected)
             .clone()
-            .expect("an admitted connection has direct state");
-        direct.open(opening)
+            .expect("an admitted connection has a selected protocol connection")
+    }
+    pub(crate) fn open(&self, opening: Open<'scope>) -> Opening<'scope> {
+        self.selected().open(opening)
     }
     /// Check an admitted idle connection before its exchange begins. A failed
     /// probe retires the registration; the caller completes its use and
     /// acquires again, since no request bytes have been sent.
     pub(crate) fn probe(&self) -> bool {
-        let direct = lock(&self.inner.direct)
-            .clone()
-            .expect("an admitted connection has direct state");
-        direct.probe()
+        self.selected().probe()
     }
     /// Wait until the connection is stopped or its lifetime ends.
     async fn stopped(&self, lifetime: &Cancellation) {
@@ -165,23 +166,28 @@ pub(crate) async fn run<'scope, S>(
             return transport
                 .with_duplex(scheduler, &lifetime, |reader, writer| async {
                     let protocol = options.protocols.negotiated(selected.as_deref())?;
-                    let (input, output) = protocol
-                        .client(reader, writer, options.http1.clone())
-                        .expect("Client::new validated the HTTP/1 options");
-                    session(
-                        input,
-                        output,
-                        &mut owner,
-                        &mut build,
-                        &mut ready,
-                        &cancellation,
-                        &lifetime,
-                        queue.clone(),
-                    )
-                    .await
+                    match protocol {
+                        HttpProtocol::Http1 => {
+                            let input = ResponseReader::new(reader, options.http1.clone())
+                                .expect("Client::new validated the HTTP/1 options");
+                            session(
+                                input,
+                                RequestWriter::new(writer),
+                                &mut owner,
+                                &mut build,
+                                &mut ready,
+                                &cancellation,
+                                &lifetime,
+                                queue.clone(),
+                            )
+                            .await
+                        }
+                    }
                 })
                 .await;
         }
+        // A plain TCP connection negotiates nothing, so select its engine before connecting.
+        let protocol = options.protocols.plaintext()?;
         let socket = endpoint_transport
             .connect(scheduler, &cancellation)
             .await
@@ -195,13 +201,13 @@ pub(crate) async fn run<'scope, S>(
                     return Err(Error::from(error));
                 }
             };
-            Ok::<_, Error>(
-                options
-                    .protocols
-                    .plaintext()
-                    .client(reader, writer, options.http1.clone())
-                    .expect("Client::new validated the HTTP/1 options"),
-            )
+            Ok::<_, Error>(match protocol {
+                HttpProtocol::Http1 => (
+                    ResponseReader::new(reader, options.http1.clone())
+                        .expect("Client::new validated the HTTP/1 options"),
+                    RequestWriter::new(writer),
+                ),
+            })
         }
         .await;
         let result = match initialized {
@@ -266,9 +272,34 @@ where
     }
 }
 
-// A connection retains its typed HTTP buffers and transport directions. Only
-// an admitted exchange may take them; short locks protect transfer, never I/O.
-trait DirectConnection<'scope>: Send + Sync {
+/// One outbound connection speaking the selected protocol, as Async::HTTP's
+/// `Protocol::HTTP1::Client` is: it opens each exchange on the connection and
+/// checks an idle connection before reuse. HTTP/1's session publishes its fixed
+/// admission of one exchange on the pool registration; an engine whose
+/// admission changes, such as HTTP/2's stream limits, will publish it here. There is one variant for each engine compiled in, on which
+/// the client dispatches. Each variant erases its transport's types, which
+/// depend on the scheduler and on whether the connection is encrypted.
+#[derive(Clone)]
+enum ClientConnection<'scope> {
+    Http1(Arc<dyn Http1Exchanges<'scope> + 'scope>),
+}
+impl<'scope> ClientConnection<'scope> {
+    fn open(self, opening: Open<'scope>) -> Opening<'scope> {
+        match self {
+            Self::Http1(connection) => connection.open(opening),
+        }
+    }
+    fn probe(&self) -> bool {
+        match self {
+            Self::Http1(connection) => connection.probe(),
+        }
+    }
+}
+
+// An HTTP/1 connection retains its typed buffers and transport directions.
+// Only an admitted exchange may take them; short locks protect transfer, never
+// I/O.
+trait Http1Exchanges<'scope>: Send + Sync {
     fn open(self: Arc<Self>, opening: Open<'scope>) -> Opening<'scope>;
     fn probe(&self) -> bool;
 }
@@ -324,7 +355,7 @@ impl<R: ReadableStream, W: WritableStream> Http1Connection<'_, R, W> {
         Ok(())
     }
 }
-impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope> DirectConnection<'scope>
+impl<'scope, R: ReadableStream + 'scope, W: WritableStream + 'scope> Http1Exchanges<'scope>
     for Http1Connection<'scope, R, W>
 {
     fn open(self: Arc<Self>, opening: Open<'scope>) -> Opening<'scope> {
@@ -459,8 +490,8 @@ where
         let _ = output.close().await;
         return Err(Error::Cancelled);
     }
-    // Set the direct interface before publication; no admitted caller can see
-    // a connection without its codec storage.
+    // Install the selected connection before publication; no admitted caller
+    // can see a connection without its codec storage.
     // The pool closes only once the driver's cancellation, which construction
     // inherits from its waiting request, has been cancelled, and that was
     // checked above with no wait since, so the pool is still open.
@@ -481,7 +512,7 @@ where
         queue,
         open: crate::writable::factory(),
     });
-    *lock(&owner.connection.inner.direct) = Some(state.clone());
+    *lock(&owner.connection.inner.selected) = Some(ClientConnection::Http1(state.clone()));
     // A registration that is already draining publishes no admission; its retirement stops the session below.
     state.registration.update(Admission::concurrent(1));
     // Construction runs one session, and reports readiness itself only if the session never does.

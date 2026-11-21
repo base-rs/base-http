@@ -86,7 +86,7 @@ where
     ready(&listener)?;
     let listener = scheduler.register_listener(listener)?;
     let cancellation = Cancellation::never();
-    let options = base_http1::Options::default();
+    let options = base_http_server::Options::default();
     let mut connections = FuturesUnordered::new();
     loop {
         if connections.len() == MAX_CONNECTIONS {

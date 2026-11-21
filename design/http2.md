@@ -33,7 +33,7 @@ The following must not carry over. Each is addressed by a requirement below, whe
 
 ### Requirement
 
-`base-http-protocol` factories must construct a selected *connection*, not a pair of HTTP/1 codec directions. Selection returns a closed enum over the engines compiled in, for example `ServerConnection<R, W>` with `Http1` and `Http2` variants, and the client equivalent. The client and server dispatch on that enum; adding an engine adds a variant and a feature, not a trait object or a second selection path.
+`base-http-protocol` selects the engine, and each side constructs a selected *connection* of that engine, not a pair of HTTP/1 codec directions: a closed enum over the engines compiled in, `ServerConnection` in `base-http-server` and `ClientConnection` in `base-http-client`, each with `Http1` and `Http2` variants. As Async::HTTP's `Protocol::HTTP1::Server` and `Protocol::HTTP1::Client` are, a `ServerConnection` serves its requests, and a `ClientConnection`, the connection an endpoint client's pool entries hold, opens each exchange and checks an idle connection before reuse. A pool entry, which the client reserves before dialing, holds the `ClientConnection` once the engine is selected and is private to the client. HTTP/1's fixed admission of one exchange is published by its session on the pool registration; an `Http2` variant publishes its changing admission, from the peer's stream limits, through `ClientConnection`, in M7. The client and server dispatch on that enum; adding an engine adds a variant and a feature, not a trait object or a second selection path. The connections live with the client and server because their behaviour depends on each side's supervision, pool and error types, decided on 2026-11-21 in place of factories in `base-http-protocol`.
 
 `HttpProtocols` must describe the enabled engines in preference order and the plaintext policy, in addition to the existing `require_alpn`:
 
@@ -45,6 +45,8 @@ The following must not carry over. Each is addressed by a requirement below, whe
 Errors in `base-http-server` and `base-http-client` must not name a single engine's error type. A protocol error carries the engine that produced it. Per-engine options are separate fields, as `Options::http1` is now.
 
 M6 delivers the enum, the engine list, the plaintext policy types and the version-neutral errors and options, with HTTP/1 as the only engine. Client prior knowledge and server preface detection take effect when the `http2` engine is added in M7.
+
+Implemented on 2026-11-21: `base-http-server`'s `ServerConnection` and `base-http-client`'s `ClientConnection` have an `Http1` variant, which the server's request loop and the client's exchange opening and idle probe dispatch through. The HTTP/1 client variant erases its transport's types, which depend on the scheduler and on encryption, behind one trait object; engine dispatch has none. `HttpProtocol` names an engine and its ALPN identifier, and constructs nothing; `HttpProtocols` has `enabled`, in preference order, a `Plaintext` policy with an `Http1` variant, and `require_alpn`, and a disabled engine is reported as `NegotiationError::Disabled`; the server's `Protocol` and `Response` errors and the client's `Protocol` error carry a `ProtocolError`, whose `Http1` variant names the engine. `serve_connection` takes the server's `Options`, as `serve_tls_connection` does, and so uses its configured plaintext engine instead of the default; plain TCP selects its engine before streams are constructed or, on the client, before connecting.
 
 ### Rationale
 
