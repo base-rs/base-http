@@ -1,5 +1,9 @@
 # Releases
 
+## Unreleased
+
+- Requires `base-scheduler 0.6`, `base-pool 0.6` and `base-endpoint 0.4`. This is a breaking change: scheduler, pool and endpoint types appear in the public API, so callers must use the same versions. The HTTP crates use only streams, so the scheduler's breaking change, packet ECN's new `SocketRecvResult::ecn` field, needs no change here. Scheduler 0.6 also provides the scoped spawn that the spawned connection mode will use.
+
 ## v0.4.0
 
 - Requires `base-scheduler 0.5`, `base-pool 0.5` and `base-endpoint 0.3`. This is a breaking change: scheduler, pool and endpoint types such as `Cancellation` and `ReadableStream` appear in the public API, so callers must use the same versions. The HTTP crates read sockets only through `read_into` and `try_read_into`, whose readiness contract scheduler 0.5 leaves unchanged, so HTTP/1 input and the client's idle-connection check are unaffected by its wider readiness rule. The Tokio adapter's `read_into` now clears readiness after a short read on Linux and Android, which that contract already allowed. Scheduler 0.5 removes the Direct backend; run on `base-scheduler-native` or `base-scheduler-tokio` instead.
