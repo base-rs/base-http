@@ -98,9 +98,28 @@ jobs:
       - name: Check license files and Rust source headers
         run: cargo bake --locked license:check
 
+  releases:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The check compares the commits under review with their base.
+          fetch-depth: 0
+      - uses: actions-rust-lang/setup-rust-toolchain@v2
+        with:
+          cache-shared-key: releases-bake-launcher-v1
+      - name: Install Bake launcher
+        run: cargo install bake --locked
+      - name: Reject hand edits to the generated release notes
+        env:
+          # A pull request's checkout merges it into its base branch as that is now, the merge's first parent; the event's base SHA can be older, from when the pull request was opened, and would count the base branch's own commits since. A merge group uses its own base. A push checks what it landed against the branch's tip before it, so a hand edit that passed its pull request's check, such as with a forged `Release:` trailer on its own commits, still fails on `main`. Empty on manual runs, which check nothing.
+          BAKE_BASE: ${{ github.event_name == 'pull_request' && 'HEAD^1' || github.event.merge_group.base_sha || github.event.before }}
+        run: cargo bake --locked releases:check "$BAKE_BASE"
+
   test-result:
     if: always()
-    needs: [test, msrv, benchmarks, license]
+    needs: [test, msrv, benchmarks, license, releases]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
