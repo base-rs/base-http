@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-- Requires `base-scheduler 0.6`, `base-pool 0.6` and `base-endpoint 0.4`. This is a breaking change: scheduler, pool and endpoint types appear in the public API, so callers must use the same versions. The HTTP crates use only streams, so the scheduler's breaking change, packet ECN's new `SocketRecvResult::ecn` field, needs no change here. Scheduler 0.6 also provides the scoped spawn that the spawned connection mode will use.
+**Breaking changes**
+
+- Requires `base-scheduler 0.6`, `base-pool 0.6` and `base-endpoint 0.4`, whose types appear in the public API, so callers must use the same versions. The minimum Rust version is now 1.92, the first whose compiler proves the servers' futures `Send`.
+- `ReadableBody::Data` must implement the new `base_http::body::Chunk` instead of `AsRef<[u8]> + Send`. It is implemented for `Vec<u8>`, `Box<[u8]>`, `String`, `&[u8]`, `&str`, `Cow<[u8]>` and `Arc<[u8]>`; implement it for other chunk types.
+- `Handler` moves to `base-http` as `Handler<'scope, C: HandlerContext>`, called as `call(request, &mut context, &cancellation)`, and `call_send` moves with it; `base-http-server` re-exports both. Servers pass a `ServerContext`, which carries the connection's `Peer` and an `InterimSender`, and clients a `ClientContext`. Write implementations as `impl<'h> Handler<'h, ServerContext>`, or generic over the context, and bounds as `for<'h> Handler<'h, _>`. Request bodies can outlive the handler. The server's entry points require a `Sync` scheduler with `Send` sockets and `SocketPeerAddress` and `SocketLocalAddress`, which every Base backend provides.
+- `Client::call` streams on the direct path and returns a `StreamingResponseBody`, which cannot outlive the client's scope, and progresses only while it is polled. `call_with_interim`, `ResponseBody` and `Options::response_buffer_bytes` and `response_buffer_frames` are removed; pass an interim observer in the `ClientContext` instead.
+- `base-http-protocol` only selects engines: `HttpProtocols` gains `enabled` and a `Plaintext` policy and is no longer `Copy`, and `HttpProtocol` no longer constructs codecs. The client's pool entry `Connection` is no longer public. The server's `Error::Protocol` and `Error::Response` and the client's `Error::Protocol` carry the new `ProtocolError` instead of `base_http1::Error`, and `serve_connection` takes the server's `Options`.
 
 ## v0.4.0
 

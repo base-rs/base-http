@@ -18,6 +18,8 @@ resolver = "3"
 manifest = "bake/Cargo.toml"
 
 [workspace.metadata.bake.release]
+# Benchmark records and design notes are not changes to the published crates.
+notes-exclude = ["benchmarks", "design"]
 reviewers = ["base-rs/maintainers"]
 
 [dependencies]
