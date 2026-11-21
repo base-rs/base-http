@@ -223,10 +223,7 @@ where
             scheduler.socket_peer_address(&socket).ok(),
             scheduler.socket_local_address(&socket).ok(),
         ));
-        // A connection fails to construct only when the options validated above are invalid.
-        let connection = ServerConnection::new(protocol, reader, writer, options)
-            .expect("validated options construct server connections");
-        connection
+        ServerConnection::new(protocol, reader, writer, options)
             .serve(handler, &peer, cancellation, &mut requests, &Scheme::HTTP)
             .await
     }
@@ -603,8 +600,9 @@ where
     let mut requests = 0;
     let result = connection
         .with_duplex(scheduler, cancellation, |reader, writer| async {
+            options.http1.validate()?;
             let protocol = options.protocols.negotiated(selected.as_deref())?;
-            ServerConnection::new(protocol, reader, writer, options)?
+            ServerConnection::new(protocol, reader, writer, options)
                 .serve(handler, &peer, cancellation, &mut requests, &Scheme::HTTPS)
                 .await
         })

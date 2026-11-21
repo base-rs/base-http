@@ -20,18 +20,17 @@ pub(crate) enum ServerConnection<R, W> {
 }
 
 impl<R: ReadableStream + Send, W: WritableStream> ServerConnection<R, W> {
-    /// Construct a connection of `protocol` over an established stream.
-    pub(crate) fn new(
-        protocol: HttpProtocol,
-        reader: R,
-        writer: W,
-        options: &Options,
-    ) -> Result<Self, Error> {
+    /// Construct a connection of `protocol` over an established stream, with
+    /// options the caller has validated.
+    pub(crate) fn new(protocol: HttpProtocol, reader: R, writer: W, options: &Options) -> Self {
         match protocol {
-            HttpProtocol::Http1 => Ok(Self::Http1(Http1Connection {
-                input: LentInput::new(RequestReader::new(reader, options.http1.clone())?),
+            HttpProtocol::Http1 => Self::Http1(Http1Connection {
+                input: LentInput::new(
+                    RequestReader::new(reader, options.http1.clone())
+                        .expect("validated options construct server codecs"),
+                ),
                 output: ResponseWriter::new(writer),
-            })),
+            }),
         }
     }
 
