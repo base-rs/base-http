@@ -37,7 +37,7 @@ struct Inner<'scope> {
 /// connection the selected protocol constructed. Requests use it in the
 /// calling task; supervised work handles construction and retirement.
 #[derive(Clone)]
-pub struct Connection<'scope> {
+pub(crate) struct Connection<'scope> {
     inner: Arc<Inner<'scope>>,
 }
 impl<'scope> Connection<'scope> {
@@ -274,8 +274,9 @@ where
 
 /// One outbound connection speaking the selected protocol, as Async::HTTP's
 /// `Protocol::HTTP1::Client` is: it opens each exchange on the connection and
-/// checks an idle connection before reuse, and its admission bounds the pool's
-/// concurrent uses. There is one variant for each engine compiled in, on which
+/// checks an idle connection before reuse. HTTP/1's session publishes its fixed
+/// admission of one exchange on the pool registration; an engine whose
+/// admission changes, such as HTTP/2's stream limits, will publish it here. There is one variant for each engine compiled in, on which
 /// the client dispatches. Each variant erases its transport's types, which
 /// depend on the scheduler and on whether the connection is encrypted.
 #[derive(Clone)]

@@ -15,7 +15,7 @@ Updated 2026-10-28. This records the taxonomy and orchestration boundary for the
 | Exchange | One request and its informational/final response sequence, with both body directions. | Remains active until both directions and associated work finish or are terminated. In HTTP/2 and HTTP/3 it normally occupies one request stream. |
 | Server | The application-facing accept/serve capability. | Establishes accepted transports, selects the protocol, owns connection drivers and dispatches requests to handlers. |
 
-`Client` names the durable remote-server interface. `Connection` names the actual selected session, whether selected by negotiation or explicit configuration. An HTTP/2 connection is not one request stream; an HTTP/3 connection contains QUIC streams and is not a TCP-shaped byte stream.
+`Client` names the durable remote-server interface. A connection names the actual selected session, whether selected by negotiation or explicit configuration: `ClientConnection` on the client, which the client's pool holds, and `ServerConnection` on the server, as Async::HTTP's `Protocol::HTTP1::Client` and `Server`. An HTTP/2 connection is not one request stream; an HTTP/3 connection contains QUIC streams and is not a TCP-shaped byte stream.
 
 These terms define responsibilities, not a new public trait hierarchy. `base-http` retains shared message/body semantics; `base-http-client` and `base-http-server` compose protocol-specific connection APIs. The existing semantic `Protocol` type expresses upgrade/tunnel intent, not the set of enabled HTTP engines or an ALPN selector.
 

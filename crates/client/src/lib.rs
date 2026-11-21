@@ -15,7 +15,7 @@ mod sink;
 mod writable;
 pub use writable::{PendingResponse, RequestBodyWriter, StreamingResponseBody, WritableRequest};
 
-pub use connection::Connection;
+use connection::Connection;
 pub use driver::Driver;
 pub use error::Error;
 
