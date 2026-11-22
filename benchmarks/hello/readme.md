@@ -28,6 +28,7 @@ The Hyper service follows the [official HTTP/1 hello-world guide](https://hyper.
 | --- | --- | --- |
 | `http-closed` | Closed loop, 64 connections, one request outstanding on each. | The full HTTP modes: `base-native` (the baseline), `base-iouring`, `base-tokio`, `hyper-tokio`, `base-native-background`, `hyper-task-tokio`. |
 | `http-rate` | Fixed rate of 100,000 requests per second over 64 connections. | As `http-closed`. |
+| `http-closed-placement` | As `http-closed`. | Connection placement, from M6: `base-native` (the baseline), whose `Server::run` is given the scheduler, against `base-native-spawned` and `base-native-spawned-2`, given a scope. Every variant shares the server's CPUs, so give the server two. |
 | `raw-closed` | As `http-closed`. | The raw controls: `base-native-raw` (the baseline), `base-iouring-raw`, `base-iouring-owned-raw`, `base-tokio-raw`, `tokio-raw`, `tokio-task-raw`. |
 | `raw-rate` | As `http-rate`. | As `raw-closed`. |
 
@@ -167,6 +168,8 @@ Before every sample, an independent Python HTTP client checks body/status/fields
 | Mode | HTTP implementation | I/O and execution |
 | --- | --- | --- |
 | `base-native` | Base HTTP/1 and application handler | Published `base-scheduler-native` 0.5.0, worker-owned readiness selector (direct kqueue on macOS and epoll on Linux), one native task worker. |
+| `base-native-spawned` | Same Base HTTP implementation | As `base-native`, but `Server::run` is given a scope of the scheduler's scoped spawn, so each connection runs as its own task. The accept loop runs as a task of the scope too, on the worker, so the process has `base-native`'s threads. |
+| `base-native-spawned-2` | Same Base HTTP implementation | As `base-native-spawned`, with two native task workers. |
 | `base-iouring` (Linux) | Same Base HTTP implementation | Published `base-scheduler-iouring` 0.5.0 with one Native task/ring worker and one readiness fallback worker. Default ring settings; borrowed payload buffers use nonblocking receive/send syscalls. |
 | `base-iouring-raw` (Linux) | One read then one fixed response write | Same released io_uring configuration. |
 | `base-iouring-owned-raw` (Linux) | Same raw loop | Uses `read_owned` with one reusable 16 KiB buffer; response writes remain borrowed. The borrowed Base raw controls use identical buffer storage. |

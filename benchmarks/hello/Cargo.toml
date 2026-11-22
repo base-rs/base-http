@@ -146,3 +146,27 @@ invalid-responses = "responses_invalid"
 arguments = ["rate", "--address", "{server.address}", "--rate", "100k", "--connections", "64", "--workers", "1", "--depth", "1", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
 smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
 measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]
+
+# Connection placement, as http-closed: base_http_server::Server::run given the scheduler, polling every connection within its future on one worker, against given a scope of the scheduler's scoped spawn, running each connection as its own task, on one worker and on two. Only trees with Server, from M6, have these modes. Every variant shares the server role's CPUs, so give it two, SMT siblings on hana, for the two workers.
+[[package.metadata.base-benchmark.scenario]]
+name = "http-closed-placement"
+variants = [
+    { name = "base-native", arguments = ["base-native"] },
+    { name = "base-native-spawned", arguments = ["base-native-spawned"] },
+    { name = "base-native-spawned-2", arguments = ["base-native-spawned-2"] },
+]
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "server"
+kind = "service"
+subject = true
+ready = "{address}"
+
+[[package.metadata.base-benchmark.scenario.role]]
+name = "client"
+kind = "driver"
+external = "load"
+invalid-responses = "responses_invalid"
+arguments = ["closed", "--address", "{server.address}", "--connections", "64", "--workers", "2", "--body", "Hello, world!", "--expect-header", "Content-Type: text/plain", "--expect-header", "Content-Length: 13"]
+smoke-arguments = ["--warmup", "100ms", "--duration", "200ms", "--fail-on", "invalid"]
+measure-arguments = ["--warmup", "2s", "--duration", "8s", "--window-lead", "500ms"]

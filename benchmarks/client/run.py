@@ -17,7 +17,23 @@ import tempfile
 import tarfile
 import time
 
-BASELINE_IMPLEMENTATIONS = {"before-open": "base-open", "before-connection": "base-connection"}
+BASELINE_IMPLEMENTATIONS = {"before-open": "base-open", "before-call": "base-call", "before-connection": "base-connection"}
+
+
+def pinned(cpus):
+    """Confine a child process to `cpus`, a set of CPU numbers, or leave it unpinned when empty."""
+    if not cpus:
+        return None
+    return lambda: os.sched_setaffinity(0, cpus)
+
+
+def cpu_set(text):
+    """Parse a CPU list such as `1,2` or `2-3`."""
+    cpus = set()
+    for part in filter(None, text.split(",")):
+        first, _, last = part.partition("-")
+        cpus.update(range(int(first), int(last or first) + 1))
+    return cpus
 
 
 def cpu_usage():
@@ -25,10 +41,12 @@ def cpu_usage():
     return usage.ru_utime + usage.ru_stime
 
 
-def execute(binary, identity, out, implementation, tls, fresh, concurrency, seconds, warmup, baseline_binary=None):
+def execute(binary, identity, out, implementation, tls, fresh, concurrency, seconds, warmup, baseline_binary=None,
+            client_cpus=None, server_cpus=None):
     suffix = ["--tls"] if tls else []
     server_cmd = [str(binary), "server", "--identity", str(identity), *suffix]
-    server = subprocess.Popen(server_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    server = subprocess.Popen(server_cmd, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                              preexec_fn=pinned(server_cpus))
     measured = None
     failure = None
     try:
@@ -48,7 +66,8 @@ def execute(binary, identity, out, implementation, tls, fresh, concurrency, seco
                       "--seconds", str(seconds), "--warmup", str(warmup), *suffix]
         if fresh:
             client_cmd.append("--fresh")
-        client = subprocess.run(client_cmd, capture_output=True, text=True, timeout=seconds + warmup + 25)
+        client = subprocess.run(client_cmd, capture_output=True, text=True, timeout=seconds + warmup + 25,
+                                preexec_fn=pinned(client_cpus))
         out.with_suffix(".client.stderr").write_text(client.stderr)
         if client.returncode:
             raise RuntimeError(f"client failed ({client.returncode}): {client.stderr}")
@@ -182,7 +201,10 @@ def main():
     parser.add_argument("--fresh-seconds", type=float, default=2)
     parser.add_argument("--fresh-cooldown", type=float, default=10,
                         help="Pause before fresh-connection samples to limit macOS TIME_WAIT pressure")
-    parser.add_argument("--implementations", default="base-open,base-call,hyper")
+    parser.add_argument("--implementations", default="base-open,base-call,hyper",
+                        help="A `-spawned` suffix on base-open or base-call runs the client's connections as tasks of a scope")
+    parser.add_argument("--client-cpus", type=cpu_set, default=set(), help="Pin every client to these CPUs, such as 1 (Linux)")
+    parser.add_argument("--server-cpus", type=cpu_set, default=set(), help="Pin every server to these CPUs, such as 2,3 (Linux)")
     options = parser.parse_args()
     rustc = subprocess.check_output([*toolchain("rustc", options.toolchain), "-Vv"], text=True)
     options.output.mkdir(parents=True, exist_ok=False)
@@ -190,7 +212,8 @@ def main():
     metadata = dict(platform=platform.platform(), machine=platform.machine(), logical_cpus=os.cpu_count(),
                     started=time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
                     binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(), arguments=vars(options).copy())
-    metadata["arguments"] = {key: str(value) if isinstance(value, Path) else value for key, value in metadata["arguments"].items()}
+    metadata["arguments"] = {key: str(value) if isinstance(value, Path) else sorted(value) if isinstance(value, set) else value
+                             for key, value in metadata["arguments"].items()}
     metadata["cpu"] = cpu_model()
     metadata["rustc"] = rustc
     (options.output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
@@ -230,7 +253,8 @@ def main():
                             time.sleep(options.fresh_cooldown)
                         label = f'{"tls" if tls else "tcp"}-{"fresh" if fresh else "reuse"}-c{concurrency}-{implementation}-r{repetition + 1}'
                         row = execute(binary, Path(identity), options.output / label, implementation, tls, fresh, concurrency,
-                                      options.fresh_seconds if fresh else options.seconds, options.warmup, options.baseline_binary)
+                                      options.fresh_seconds if fresh else options.seconds, options.warmup, options.baseline_binary,
+                                      options.client_cpus, options.server_cpus)
                         row["repetition"] = repetition + 1
                         rows.append(row)
                         print(f'{label}: {row["requests_per_second"]:.0f} req/s, {row["client_cpu_us_per_request"]:.2f} CPU us/req, {row["server"]["connections"]} connections', flush=True)

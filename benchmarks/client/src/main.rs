@@ -6,7 +6,7 @@ use base_http::{
     body::{BodyFrame, EmptyBody, ReadableBody},
 };
 use base_http_client::{Client as BaseClient, Endpoint, Options};
-use base_scheduler::{Cancellation, Clock, Spawn};
+use base_scheduler::{Cancellation, Clock, Placement, Spawn, SpawnScoped};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_util::{StreamExt, future::join, stream::FuturesUnordered};
 use hdrhistogram::Histogram;
@@ -49,6 +49,8 @@ struct Args {
     identity: PathBuf,
     tls: bool,
     fresh: bool,
+    /// Run the client's connections as tasks of a scope, from an implementation's `-spawned` suffix.
+    spawned: bool,
     concurrency: usize,
     seconds: f64,
     warmup: f64,
@@ -63,6 +65,7 @@ impl Args {
             identity: PathBuf::from("/tmp/base-http-benchmark-identity"),
             tls: false,
             fresh: false,
+            spawned: false,
             concurrency: 1,
             seconds: 5.0,
             warmup: 1.0,
@@ -83,6 +86,10 @@ impl Args {
                 "--warmup" => config.warmup = args.next().ok_or("missing warmup")?.parse()?,
                 _ => return Err(format!("unknown flag {flag}").into()),
             }
+        }
+        if let Some(implementation) = config.implementation.strip_suffix("-spawned") {
+            config.implementation = implementation.into();
+            config.spawned = true;
         }
         if config.concurrency == 0 || config.seconds <= 0.0 || config.warmup <= 0.0 {
             return Err("invalid measurement limits".into());
@@ -306,7 +313,7 @@ fn result_json(
     cpu: f64,
 ) -> serde_json::Value {
     json!({
-        "implementation": args.implementation, "tls": args.tls, "fresh": args.fresh,
+        "implementation": args.implementation, "spawned": args.spawned, "tls": args.tls, "fresh": args.fresh,
         "concurrency": args.concurrency, "warmup_requests": warmup_requests, "requests": measured.len(),
         "elapsed_seconds": elapsed, "requests_per_second": measured.len() as f64 / elapsed,
         "client_cpu_seconds": cpu, "client_cpu_us_per_request": cpu * 1e6 / measured.len() as f64,
@@ -316,7 +323,13 @@ fn result_json(
             "mean": measured.mean() / 1000.0, "max": measured.max() as f64 / 1000.0},
     })
 }
-async fn base_client(scheduler: &NativeScheduler, args: &Args) -> Result<serde_json::Value> {
+// Given the scheduler, the driver polls every connection within its own future; given a scope,
+// it runs each connection as a task of the scope.
+async fn base_client<'p, P>(placement: P, args: &Args) -> Result<serde_json::Value>
+where
+    P: Placement<'p, Scheduler = NativeScheduler>,
+{
+    let scheduler = placement.scheduler();
     let mut endpoint = Endpoint::new(args.address);
     if args.tls {
         endpoint = endpoint.with_tls(Arc::new(client_config(args)?), "127.0.0.1");
@@ -346,7 +359,7 @@ async fn base_client(scheduler: &NativeScheduler, args: &Args) -> Result<serde_j
         client.client.begin_close();
         result
     };
-    let (driven, measured) = join(driver.run(scheduler, &lifetime), work).await;
+    let (driven, measured) = join(driver.run(placement, &lifetime), work).await;
     driven?;
     assert_eq!(client.client.pool_stats().total(), 0);
     measured
@@ -496,15 +509,26 @@ fn main() -> Result<()> {
                 // Keep stall rescue on, the 0.5 default, so the benchmark measures what users get. base-scheduler suggests turning it off for benchmarks, but on the hello benchmark its monitor thread used no CPU ticks over about 1.1 million requests.
                 stall_rescue: true,
             })?);
-            let worker = scheduler.clone();
-            let task = scheduler.spawn(async move {
-                if args.implementation == "base-connection" {
-                    established::base(&worker, &args).await
-                } else {
-                    base_client(&worker, &args).await
-                }
-            })?;
-            let result = scheduler.block_on(task).map_err(|error| error.to_string());
+            let result = if args.spawned && args.implementation != "base-connection" {
+                // The scope's root runs on this thread, so the client runs as a task of the
+                // scope, on the worker, as in the scoped mode; this thread only waits.
+                scheduler.scope(async |scope| match scope.spawn(base_client(scope, &args)) {
+                    Ok(task) => task.await.map_err(|error| error.to_string()),
+                    Err(error) => Err(error.to_string()),
+                })
+            } else if args.spawned {
+                Err("base-connection has no driver to place".to_owned())
+            } else {
+                let worker = scheduler.clone();
+                let task = scheduler.spawn(async move {
+                    if args.implementation == "base-connection" {
+                        established::base(&worker, &args).await
+                    } else {
+                        base_client(worker.as_ref(), &args).await
+                    }
+                })?;
+                scheduler.block_on(task).map_err(|error| error.to_string())
+            };
             scheduler.block_on(scheduler.shutdown());
             println!("{}", result??);
             Ok(())
