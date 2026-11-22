@@ -16,13 +16,14 @@ use std::{
     error::Error,
     fmt,
     future::poll_fn,
-    sync::{Arc, Mutex, MutexGuard, PoisonError},
+    sync::{
+        Arc, Mutex, MutexGuard, PoisonError,
+        atomic::{AtomicBool, AtomicU64, Ordering},
+    },
     task::{Poll, Waker},
 };
 
 struct State {
-    /// The exchange whose senders may hand over responses.
-    exchange: u64,
     /// A response handed over and not yet taken by the server.
     pending: Option<ResponseMetadata>,
     /// The server is writing the response it took.
@@ -36,6 +37,12 @@ struct State {
 }
 
 struct Shared {
+    /// The exchange whose senders may hand over responses.
+    exchange: AtomicU64,
+    /// Whether a sender may have touched `state` since the exchange began,
+    /// so finishing it must clear `state`. Most exchanges send no interim
+    /// response, and finish without locking.
+    touched: AtomicBool,
     state: Mutex<State>,
 }
 
@@ -69,8 +76,9 @@ impl InterimRelay {
     pub fn new() -> Self {
         Self {
             shared: Arc::new(Shared {
+                exchange: AtomicU64::new(0),
+                touched: AtomicBool::new(false),
                 state: Mutex::new(State {
-                    exchange: 0,
                     pending: None,
                     writing: false,
                     result: None,
@@ -85,7 +93,7 @@ impl InterimRelay {
     pub fn sender(&self) -> InterimSender {
         InterimSender {
             shared: self.shared.clone(),
-            exchange: self.shared.lock().exchange,
+            exchange: self.shared.exchange.load(Ordering::SeqCst),
         }
     }
 
@@ -126,9 +134,16 @@ impl InterimRelay {
     /// End the current exchange. Its senders' later sends fail with
     /// [`InterimRelayError::Finished`], and one not yet taken is discarded.
     pub fn finish(&self) {
+        // A send marks `touched` before checking the exchange, and finishing
+        // advances the exchange before checking `touched`, both sequentially
+        // consistent: either the send sees the new exchange and is refused, or
+        // this sees the mark and clears what the send handed over.
+        self.shared.exchange.fetch_add(1, Ordering::SeqCst);
+        if !self.shared.touched.swap(false, Ordering::SeqCst) {
+            return;
+        }
         let sender = {
             let mut state = self.shared.lock();
-            state.exchange += 1;
             state.pending = None;
             state.writing = false;
             state.result = None;
@@ -152,7 +167,7 @@ struct Withdraw<'a>(&'a InterimSender);
 impl Drop for Withdraw<'_> {
     fn drop(&mut self) {
         let mut state = self.0.shared.lock();
-        if state.exchange == self.0.exchange {
+        if self.0.shared.exchange.load(Ordering::SeqCst) == self.0.exchange {
             state.pending = None;
             state.result = None;
         }
@@ -166,9 +181,10 @@ impl InterimHandler for InterimSender {
         response: ResponseMetadata,
         _: &Cancellation,
     ) -> Result<(), InterimRelayError> {
+        self.shared.touched.store(true, Ordering::SeqCst);
         let relay = {
             let mut state = self.shared.lock();
-            if state.exchange != self.exchange {
+            if self.shared.exchange.load(Ordering::SeqCst) != self.exchange {
                 return Err(InterimRelayError::Finished);
             }
             state.pending = Some(response);
@@ -179,7 +195,7 @@ impl InterimHandler for InterimSender {
         let _withdraw = Withdraw(self);
         poll_fn(|cx| {
             let mut state = self.shared.lock();
-            if state.exchange != self.exchange {
+            if self.shared.exchange.load(Ordering::SeqCst) != self.exchange {
                 return Poll::Ready(Err(InterimRelayError::Finished));
             }
             if let Some(result) = state.result.take() {

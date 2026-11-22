@@ -134,6 +134,11 @@ impl Exchange {
                     .any(|offer| wire::trim(offer).eq_ignore_ascii_case(protocol))
             })
     }
+    /// Whether the input is complete and can never change: no body, no CONNECT
+    /// and no offered upgrade, so nothing can read, abandon or switch it.
+    pub(crate) fn is_settled(&self) -> bool {
+        self.state.is_none()
+    }
     pub fn is_complete(&self) -> bool {
         self.state
             .as_ref()

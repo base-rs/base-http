@@ -119,6 +119,15 @@ impl<R: ReadableStream> LentInput<R> {
         else {
             return Ok(None);
         };
+        // Input that can never change needs no lending: the body has already
+        // ended, and the connection keeps its input for the next request.
+        if exchange.is_settled() {
+            let body = LentBody {
+                lane: None,
+                state: BodyState::new(exchange.clone(), framing, length, false, false),
+            };
+            return Ok(Some((Request::from_parts(head, body), exchange)));
+        }
         let generation = {
             let mut state = self.slot.lock();
             state.generation += 1;
@@ -132,7 +141,7 @@ impl<R: ReadableStream> LentInput<R> {
             generation,
         };
         let body = LentBody {
-            lane,
+            lane: Some(lane),
             state: BodyState::new(exchange.clone(), framing, length, false, false),
         };
         Ok(Some((Request::from_parts(head, body), exchange)))
@@ -244,7 +253,9 @@ impl<R: ReadableStream> LentInput<R> {
 /// cancellation safe. Once the connection takes the input back, reads fail
 /// with [`Error::Closed`]; a body that has ended keeps returning end.
 pub struct LentBody<R> {
-    lane: Lane<R>,
+    /// The lane to the connection's input, absent for settled input, whose
+    /// body has ended before it is read.
+    lane: Option<Lane<R>>,
     state: BodyState,
 }
 
@@ -255,7 +266,8 @@ impl<R: ReadableStream + Send> ReadableBody for LentBody<R> {
         self.state.may_have_trailers()
     }
     fn is_ready(&self) -> bool {
-        self.state.is_ready(self.lane.has_available())
+        self.state
+            .is_ready(self.lane.as_ref().is_some_and(Lane::has_available))
     }
     fn is_empty(&self) -> bool {
         self.state.is_empty()
@@ -265,16 +277,21 @@ impl<R: ReadableStream + Send> ReadableBody for LentBody<R> {
     }
     fn close(&mut self, _: Option<Error>) {
         self.state.close();
-        self.lane.release();
+        if let Some(lane) = &self.lane {
+            lane.release();
+        }
     }
     async fn read(&mut self, cancellation: &Cancellation) -> Result<BodyFrame<Vec<u8>>, Error> {
         cancellation.check()?;
         // A finished body needs no input, which its connection may already
         // have taken back for the next request.
-        if self.state.is_finished() {
-            return Ok(BodyFrame::End);
+        // Settled input has no lane, and its body has ended.
+        match &self.lane {
+            Some(lane) if !self.state.is_finished() => {
+                lane.read(&mut self.state, cancellation).await
+            }
+            _ => Ok(BodyFrame::End),
         }
-        self.lane.read(&mut self.state, cancellation).await
     }
 }
 
