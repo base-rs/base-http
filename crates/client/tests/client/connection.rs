@@ -121,7 +121,7 @@ where
             watchdog.cancel();
         }
     });
-    let (result, ()) = block_on(zip(driver.run(lifetime), application(client)));
+    let (result, ()) = block_on(zip(driver.run(scheduler, lifetime), application(client)));
     let _ = done.send(());
     timer.join().unwrap();
     assert_eq!(stats.pool_stats().total(), 0);
@@ -682,7 +682,7 @@ fn dropping_the_driver_discards_deferred_finalization() {
         let never = Cancellation::never();
         let opened = or(
             async {
-                driver.run(&never).await.unwrap();
+                driver.run(&scheduler, &never).await.unwrap();
                 unreachable!("the driver runs until the request is open")
             },
             async {
@@ -977,7 +977,7 @@ mod tls {
                 wait_until(|| client.pool_stats().total() == 0).await;
                 client.begin_close();
             };
-            let (result, ()) = block_on(zip(driver.run(&lifetime), application));
+            let (result, ()) = block_on(zip(driver.run(&scheduler, &lifetime), application));
             result.unwrap();
             assert_eq!(client.pool_stats().total(), 0);
             peer.join().unwrap();

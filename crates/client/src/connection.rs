@@ -573,7 +573,7 @@ mod tests {
             let error = connection.open(opening).await.err().unwrap();
             assert_eq!(error.to_string(), Error::Closed.to_string());
         };
-        let (result, ()) = block_on(zip(driver.run(&lifetime), application));
+        let (result, ()) = block_on(zip(driver.run(&scheduler, &lifetime), application));
         result.unwrap();
         assert_eq!(client.pool_stats().total(), 0);
         peer.join().unwrap();

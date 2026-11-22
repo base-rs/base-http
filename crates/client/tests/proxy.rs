@@ -164,7 +164,7 @@ fn forwarding(response_bytes: usize) {
                 client.begin_close();
                 result
             };
-            let (driven, proxied) = zip(driver.run(&lifetime), supervised(proxy, &lifetime)).await;
+            let (driven, proxied) = zip(driver.run(&scheduler, &lifetime), supervised(proxy, &lifetime)).await;
             proxied.unwrap(); driven.unwrap();
             assert_eq!(client.pool_stats().total(), 0);
             downstream.join().unwrap();

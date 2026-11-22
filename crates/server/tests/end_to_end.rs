@@ -846,10 +846,14 @@ fn listener_bounds_connections_and_joins_them_on_shutdown() {
             max_connections: 2,
             ..Default::default()
         };
-        let statistics =
-            base_http_server::serve(&scheduler, listener, &handler, &options, &cancellation)
-                .await
-                .unwrap();
+        let statistics = base_http_server::Server::new(
+            &handler,
+            base_http_server::Endpoint::new(listener),
+            &options,
+        )
+        .run(&scheduler, &cancellation)
+        .await
+        .unwrap();
         peer.join().unwrap().unwrap();
         assert_eq!(statistics.connections, 2);
         assert_eq!(handler.maximum.load(Ordering::SeqCst), 2);
@@ -894,13 +898,12 @@ fn listener_isolates_bad_peers_and_counts_completed_requests_before_cancellation
             peer_cancel.cancel();
             result
         });
-        let statistics = base_http_server::serve(
-            &scheduler,
-            listener,
+        let statistics = base_http_server::Server::new(
             &OneThenPending { pending },
+            base_http_server::Endpoint::new(listener),
             &Default::default(),
-            &cancellation,
         )
+        .run(&scheduler, &cancellation)
         .await
         .unwrap();
         peer.join().unwrap().unwrap();
@@ -942,13 +945,12 @@ fn listener_accepts_new_peers_while_previous_connections_retire() {
             peer_cancel.cancel();
             result
         });
-        let statistics = base_http_server::serve(
-            &scheduler,
-            listener,
+        let statistics = base_http_server::Server::new(
             &Collect::default(),
+            base_http_server::Endpoint::new(listener),
             &Default::default(),
-            &cancellation,
         )
+        .run(&scheduler, &cancellation)
         .await
         .unwrap();
         peer.join().unwrap().unwrap();

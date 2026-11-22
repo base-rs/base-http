@@ -147,7 +147,7 @@ async fn run(scheduler: &NativeScheduler, encrypted: bool) -> Result<()> {
         supervised(server, &lifetime),
         zip(
             supervised(
-                async { driver.run(&lifetime).await.map_err(Into::into) },
+                async { driver.run(scheduler, &lifetime).await.map_err(Into::into) },
                 &lifetime,
             ),
             supervised(application, &lifetime),

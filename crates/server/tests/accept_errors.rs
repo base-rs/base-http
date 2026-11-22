@@ -255,13 +255,12 @@ fn serve_scripted<T: Send + 'static>(
             let cancellation = cancellation.clone();
             std::thread::spawn(move || peer(address, cancellation, sleeping))
         };
-        let result = base_http_server::serve(
-            &scripted,
-            listener,
+        let result = base_http_server::Server::new(
             &Hello,
+            base_http_server::Endpoint::new(listener),
             &Options::default(),
-            &cancellation,
         )
+        .run(&scripted, &cancellation)
         .await;
         let peer = peer.join().unwrap();
         let refused = TcpStream::connect(address)

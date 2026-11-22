@@ -12,8 +12,10 @@ use base_http_protocol::ProtocolError;
 
 mod connection;
 use base_scheduler::{
-    Cancellation, Clock, OperationError, SocketAccept, SocketClose, SocketLocalAddress,
-    SocketPeerAddress, SocketSetOption, SocketStreamReading, SocketStreamWriting, TcpNoDelay,
+    Cancellation, Clock, OperationError, Placement, SocketAccept, SocketBind, SocketClose,
+    SocketListen, SocketLocalAddress, SocketOpen, SocketOperation, SocketPeerAddress,
+    SocketSetOption, SocketStreamReading, SocketStreamWriting, SocketType, SpawnError, TaskError,
+    TcpNoDelay,
 };
 use connection::ServerConnection;
 use futures_util::{
@@ -24,6 +26,7 @@ use std::{
     fmt,
     future::{Future, poll_fn},
     io,
+    net::SocketAddr,
     pin::pin,
     sync::Arc,
     task::Poll,
@@ -68,6 +71,10 @@ pub enum Error {
     Io(std::io::Error),
     Cancelled,
     Negotiation(base_http_protocol::NegotiationError),
+    /// A connection could not be spawned into its scope, as when the scheduler is closed.
+    Spawn(SpawnError),
+    /// A spawned connection panicked; it is counted as a failed connection.
+    Panicked,
 }
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -78,6 +85,8 @@ impl fmt::Display for Error {
             Self::Io(_) => f.write_str("HTTP server I/O failed"),
             Self::Cancelled => f.write_str("HTTP server cancelled"),
             Self::Negotiation(error) => error.fmt(f),
+            Self::Spawn(_) => f.write_str("HTTP connection could not be spawned"),
+            Self::Panicked => f.write_str("HTTP connection panicked"),
         }
     }
 }
@@ -90,6 +99,8 @@ impl std::error::Error for Error {
             Self::Io(e) => Some(e),
             Self::Cancelled => None,
             Self::Negotiation(error) => error.source(),
+            Self::Spawn(error) => Some(error),
+            Self::Panicked => None,
         }
     }
 }
@@ -104,6 +115,11 @@ impl From<ProtocolError> for Error {
             ProtocolError::Http1(base_http1::Error::Cancelled) => Self::Cancelled,
             error => Self::Protocol(error),
         }
+    }
+}
+impl From<SpawnError> for Error {
+    fn from(error: SpawnError) -> Self {
+        Self::Spawn(error)
     }
 }
 impl From<std::io::Error> for Error {
@@ -353,89 +369,249 @@ async fn accept<S: SocketAccept + Clock>(
     }
 }
 
-/// Serve an already-bound listener with bounded concurrent connection futures.
-/// No hidden tasks or detached jobs are created. Cancellation stops acceptance,
-/// closes the owned listener, then cancels active exchanges and joins their
-/// retirement. Individual peer/handler failures are counted without stopping
-/// other peers.
-///
-/// Transient accept failures do not stop the listener: those belonging to one
-/// pending peer, such as `ECONNABORTED`, are retried immediately, and resource
-/// exhaustion, such as `EMFILE`, pauses acceptance briefly on the scheduler's
-/// clock while existing connections continue. Repeated per-peer failures also
-/// pause after a few immediate retries, so a persistent one cannot spin. Both
-/// are counted in [`Statistics::accept_errors`]. Any other accept failure,
-/// including scheduler closure or a failed backoff wait, is returned after the
-/// same shutdown sequence, in preference to a listener close failure.
-pub fn serve<'scope, S, H>(
-    scheduler: &'scope S,
-    listener: S::Socket,
-    handler: &H,
-    options: &Options,
-    cancellation: &Cancellation,
-) -> impl Future<Output = Result<Statistics, Error>> + Send
-where
-    S: SocketAccept
-        + Clock
-        + SocketSetOption<TcpNoDelay>
-        + SocketStreamReading
-        + SocketStreamWriting
-        + SocketClose
-        + SocketPeerAddress
-        + SocketLocalAddress,
-    S::Socket: 'static,
-    H: Handler<'scope, ServerContext>,
-    S: Sync,
-    S::Socket: Send,
-{
-    // Stating `Send` on the returned type proves it here, for every request
-    // body lifetime, rather than in each caller's future.
-    serve_inner(scheduler, listener, handler, options, cancellation)
+/// Where a [`Server`] accepts connections, and whether it encrypts them.
+pub struct Endpoint<Socket> {
+    listener: Socket,
+    #[cfg(feature = "rustls")]
+    tls: Option<std::sync::Arc<rustls::ServerConfig>>,
 }
 
-async fn serve_inner<'scope, S, H>(
-    scheduler: &'scope S,
-    listener: S::Socket,
-    handler: &H,
-    options: &Options,
+/// The listen backlog [`Endpoint::bind`] requests.
+pub const BACKLOG: i32 = 128;
+
+impl<Socket> Endpoint<Socket> {
+    /// Accept plaintext connections on an already bound, listening socket.
+    pub fn new(listener: Socket) -> Self {
+        Self {
+            listener,
+            #[cfg(feature = "rustls")]
+            tls: None,
+        }
+    }
+
+    /// Open a TCP socket, bind it to `address` and listen on it with a backlog
+    /// of [`BACKLOG`], for plaintext connections. Bind port 0 for an OS-selected
+    /// port, which [`listener`](Self::listener) reports. A socket that fails to
+    /// bind or listen is closed before the error is returned.
+    pub async fn bind<S>(scheduler: &S, address: SocketAddr) -> Result<Self, Error>
+    where
+        S: SocketOpen + SocketBind + SocketListen + SocketClose + SocketOperation<Socket = Socket>,
+    {
+        let never = Cancellation::never();
+        let socket = scheduler
+            .socket_open(address.into(), SocketType::Stream, None, &never)
+            .await?;
+        let listening = async {
+            scheduler.socket_bind(&socket, address, &never).await?;
+            scheduler.socket_listen(&socket, BACKLOG, &never).await
+        }
+        .await;
+        if let Err(error) = listening {
+            // The bind or listen failure explains a consequent close failure.
+            let _ = scheduler.socket_close(socket).await;
+            return Err(error.into());
+        }
+        Ok(Self::new(socket))
+    }
+
+    /// The listening socket, for example to read the address it is bound to.
+    pub fn listener(&self) -> &Socket {
+        &self.listener
+    }
+
+    /// Encrypt every accepted connection with `config`. The server sets its
+    /// ALPN protocols from [`Options::protocols`], so the handshake selects an
+    /// enabled engine; handshakes occupy connection slots and progress
+    /// concurrently with acceptance.
+    #[cfg(feature = "rustls")]
+    pub fn with_tls(mut self, config: std::sync::Arc<rustls::ServerConfig>) -> Self {
+        self.tls = Some(config);
+        self
+    }
+}
+
+/// An HTTP server: a handler, the endpoint it serves and its options, run until
+/// cancelled.
+///
+/// [`run`](Self::run) takes where connections run: the scheduler, `&scheduler`,
+/// supervises them within the returned future, interleaving on whichever worker
+/// polls it; a scope of the scheduler's scoped spawn gives each connection its
+/// own task, so connections progress on more than one worker. Spawned
+/// connections borrow the handler and options, so create them before entering
+/// the scope:
+///
+/// ```rust,ignore
+/// let handler = Application::new();
+/// let options = Options::default();
+/// scheduler.scope(async |scope| {
+///     let server = Server::new(&handler, Endpoint::new(listener), &options);
+///     server.run(scope, &cancellation).await
+/// });
+/// ```
+pub struct Server<'h, H, Socket> {
+    handler: &'h H,
+    endpoint: Endpoint<Socket>,
+    options: &'h Options,
+}
+
+impl<'h, H, Socket> Server<'h, H, Socket> {
+    pub fn new(handler: &'h H, endpoint: Endpoint<Socket>, options: &'h Options) -> Self {
+        Self {
+            handler,
+            endpoint,
+            options,
+        }
+    }
+
+    /// Serve the endpoint until cancelled, with bounded concurrent connections.
+    /// Cancellation stops acceptance, closes the owned listener, then cancels
+    /// active exchanges and joins every connection's retirement, including
+    /// spawned ones. Individual peer and handler failures are counted without
+    /// stopping other peers; a spawned connection that panics is counted as a
+    /// failed connection.
+    ///
+    /// Transient accept failures do not stop the listener: those belonging to one
+    /// pending peer, such as `ECONNABORTED`, are retried immediately, and resource
+    /// exhaustion, such as `EMFILE`, pauses acceptance briefly on the scheduler's
+    /// clock while existing connections continue. Repeated per-peer failures also
+    /// pause after a few immediate retries, so a persistent one cannot spin. Both
+    /// are counted in [`Statistics::accept_errors`]. Any other accept failure,
+    /// including scheduler closure or a failed backoff wait, is returned after the
+    /// same shutdown sequence, in preference to a listener close failure, as is a
+    /// failure to spawn a connection.
+    pub fn run<'p, P, S>(
+        self,
+        placement: P,
+        cancellation: &Cancellation,
+    ) -> impl Future<Output = Result<Statistics, Error>> + Send
+    where
+        'h: 'p,
+        P: Placement<'p, Scheduler = S>,
+        S: SocketAccept<Socket = Socket>
+            + Clock
+            + SocketSetOption<TcpNoDelay>
+            + SocketStreamReading
+            + SocketStreamWriting
+            + SocketClose
+            + SocketPeerAddress
+            + SocketLocalAddress
+            + Sync
+            + 'p,
+        Socket: Send + Sync + 'static,
+        H: Handler<'p, ServerContext> + Sync,
+    {
+        // Stating `Send` on the returned type proves it here, for every request
+        // body lifetime, rather than in each caller's future.
+        run(self, placement, cancellation)
+    }
+}
+
+async fn run<'h, 'p, P, S, H, Socket>(
+    server: Server<'h, H, Socket>,
+    placement: P,
     cancellation: &Cancellation,
 ) -> Result<Statistics, Error>
 where
-    S: SocketAccept
+    'h: 'p,
+    P: Placement<'p, Scheduler = S>,
+    S: SocketAccept<Socket = Socket>
         + Clock
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
         + SocketClose
         + SocketPeerAddress
-        + SocketLocalAddress,
-    S::Socket: 'static,
-    H: Handler<'scope, ServerContext>,
+        + SocketLocalAddress
+        + Sync
+        + 'p,
+    Socket: Send + Sync + 'static,
+    H: Handler<'p, ServerContext> + Sync,
 {
+    let Server {
+        handler,
+        endpoint,
+        options,
+    } = server;
+    let scheduler = placement.scheduler();
+    // The endpoint's choice is made once, entering fully typed connection code.
+    #[cfg(feature = "rustls")]
+    if let Some(config) = endpoint.tls {
+        use base_endpoint::tls::{TlsAcceptor, rustls::RustlsAcceptor};
+        let mut config = (*config).clone();
+        config.alpn_protocols = options.protocols.alpn_protocols();
+        // Shared by every connection, which a spawned connection cannot borrow from this future.
+        let acceptor = Arc::new(RustlsAcceptor::new(Arc::new(config)));
+        return serve_with(
+            placement,
+            endpoint.listener,
+            options,
+            cancellation,
+            move |socket, cancellation| {
+                let acceptor = Arc::clone(&acceptor);
+                async move {
+                    nodelay(scheduler, &socket, options, &cancellation).await;
+                    match acceptor.accept(scheduler, socket, &cancellation).await {
+                        Ok(connection) => {
+                            tls_connection_outcome(
+                                scheduler,
+                                connection,
+                                handler,
+                                options,
+                                &cancellation,
+                            )
+                            .await
+                        }
+                        Err(error) => Outcome {
+                            requests: 0,
+                            result: Err(error.into()),
+                        },
+                    }
+                }
+            },
+        )
+        .await;
+    }
     serve_with(
-        scheduler,
-        listener,
+        placement,
+        endpoint.listener,
         options,
         cancellation,
-        |socket, cancellation| async move {
+        move |socket, cancellation| async move {
+            nodelay(scheduler, &socket, options, &cancellation).await;
             connection_outcome(scheduler, socket, handler, options, &cancellation).await
         },
     )
     .await
 }
 
-async fn serve_with<S, F, Fut>(
+// A latency hint only: the connection is served without it.
+async fn nodelay<S: SocketSetOption<TcpNoDelay>>(
     scheduler: &S,
+    socket: &S::Socket,
+    options: &Options,
+    cancellation: &Cancellation,
+) {
+    if options.tcp_nodelay {
+        let _ = scheduler
+            .socket_set_option(socket, TcpNoDelay, true, cancellation)
+            .await;
+    }
+}
+
+async fn serve_with<'p, P, S, F, Fut>(
+    placement: P,
     listener: S::Socket,
     options: &Options,
     cancellation: &Cancellation,
     connection: F,
 ) -> Result<Statistics, Error>
 where
-    S: SocketAccept + Clock + SocketSetOption<TcpNoDelay> + SocketClose,
+    P: Placement<'p, Scheduler = S>,
+    S: SocketAccept + Clock + SocketClose + 'p,
     F: Fn(S::Socket, Cancellation) -> Fut,
-    Fut: Future<Output = Outcome>,
+    Fut: Future<Output = Outcome> + Send + 'p,
 {
+    let scheduler = placement.scheduler();
     let connections_cancel = cancellation.child();
     let mut connections = FuturesUnordered::new();
     let mut statistics = Statistics::default();
@@ -482,16 +658,8 @@ where
             };
             let socket = accepted.map_err(base_http1::Error::from)?;
             statistics.connections += 1;
-            let cancellation = connections_cancel.clone();
-            connections.push(async {
-                if options.tcp_nodelay {
-                    // A latency hint only: the connection is served without it.
-                    let _ = scheduler
-                        .socket_set_option(&socket, TcpNoDelay, true, &cancellation)
-                        .await;
-                }
-                connection(socket, cancellation).await
-            });
+            // A connection owns everything it uses but what outlives the placement, so a scope can run it as a task.
+            connections.push(placement.place(connection(socket, connections_cancel.clone()))?);
         }
     }
     .await;
@@ -513,7 +681,15 @@ where
     }
 }
 
-fn record(statistics: &mut Statistics, outcome: Outcome) {
+// A placed connection's outcome, or the panic or destruction of its task.
+fn record(statistics: &mut Statistics, placed: Result<Outcome, TaskError>) {
+    let outcome = placed.unwrap_or_else(|error| Outcome {
+        requests: 0,
+        result: Err(match error {
+            TaskError::Cancelled => Error::Cancelled,
+            TaskError::Panicked(_) => Error::Panicked,
+        }),
+    });
     statistics.requests += outcome.requests;
     match outcome.result {
         Ok(()) => {}
@@ -610,91 +786,6 @@ where
     Outcome { requests, result }
 }
 
-/// Configure HTTP/1 ALPN and serve TLS on an owned TCP listener. Handshakes
-/// occupy bounded connection slots and progress concurrently with acceptance.
-#[cfg(feature = "rustls")]
-pub fn serve_tls<'scope, S, H>(
-    scheduler: &'scope S,
-    listener: S::Socket,
-    config: std::sync::Arc<rustls::ServerConfig>,
-    handler: &H,
-    options: &Options,
-    cancellation: &Cancellation,
-) -> impl Future<Output = Result<Statistics, Error>> + Send
-where
-    S: SocketAccept
-        + Clock
-        + SocketSetOption<TcpNoDelay>
-        + SocketStreamReading
-        + SocketStreamWriting
-        + SocketClose
-        + SocketPeerAddress
-        + SocketLocalAddress,
-    S::Socket: 'static,
-    H: Handler<'scope, ServerContext>,
-    S: Sync,
-    S::Socket: Send,
-{
-    // Stating `Send` on the returned type proves it here, for every request
-    // body lifetime, rather than in each caller's future.
-    serve_tls_inner(scheduler, listener, config, handler, options, cancellation)
-}
-
-#[cfg(feature = "rustls")]
-async fn serve_tls_inner<'scope, S, H>(
-    scheduler: &'scope S,
-    listener: S::Socket,
-    config: std::sync::Arc<rustls::ServerConfig>,
-    handler: &H,
-    options: &Options,
-    cancellation: &Cancellation,
-) -> Result<Statistics, Error>
-where
-    S: SocketAccept
-        + Clock
-        + SocketSetOption<TcpNoDelay>
-        + SocketStreamReading
-        + SocketStreamWriting
-        + SocketClose
-        + SocketPeerAddress
-        + SocketLocalAddress,
-    S::Socket: 'static,
-    H: Handler<'scope, ServerContext>,
-{
-    use base_endpoint::tls::{TlsAcceptor, rustls::RustlsAcceptor};
-    let mut config = (*config).clone();
-    config.alpn_protocols = options.protocols.alpn_protocols();
-    let acceptor = RustlsAcceptor::new(std::sync::Arc::new(config));
-    serve_with(
-        scheduler,
-        listener,
-        options,
-        cancellation,
-        |socket, cancellation| {
-            let acceptor = &acceptor;
-            async move {
-                match acceptor.accept(scheduler, socket, &cancellation).await {
-                    Ok(connection) => {
-                        tls_connection_outcome(
-                            scheduler,
-                            connection,
-                            handler,
-                            options,
-                            &cancellation,
-                        )
-                        .await
-                    }
-                    Err(error) => Outcome {
-                        requests: 0,
-                        result: Err(error.into()),
-                    },
-                }
-            }
-        },
-    )
-    .await
-}
-
 impl From<base_http_protocol::NegotiationError> for Error {
     fn from(error: base_http_protocol::NegotiationError) -> Self {
         Self::Negotiation(error)
@@ -717,6 +808,9 @@ mod tests {
         let error = Error::from(io::Error::from(io::ErrorKind::ConnectionReset));
         assert_eq!(error.to_string(), "HTTP server I/O failed");
         assert_eq!(error.source().unwrap().to_string(), "connection reset");
+        // A panicked connection has no source error to report; a failed spawn reports the scheduler's.
+        assert_eq!(Error::Panicked.to_string(), "HTTP connection panicked");
+        assert!(Error::Panicked.source().is_none());
     }
 
     #[test]

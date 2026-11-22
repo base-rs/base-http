@@ -5,11 +5,8 @@ use base_http::{
     Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
-use base_http_server::{Handler, Options, ServerContext};
-use base_scheduler::{
-    Cancellation, SocketAccept, SocketBind, SocketClose, SocketListen, SocketLocalAddress,
-    SocketOpen, SocketType,
-};
+use base_http_server::{Endpoint, Handler, Options, Server, ServerContext};
+use base_scheduler::{Cancellation, Placement, SocketAccept, SocketLocalAddress, SpawnScoped};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
 use std::{convert::Infallible, net::SocketAddr};
@@ -39,54 +36,57 @@ impl<'h> Handler<'h, ServerContext> for Hello {
     }
 }
 
+// Serve `handler` until the process ends. `placement` decides where connections run: the scheduler polls them within this future, and a scope runs each as its own task.
+async fn serve<'p, P>(
+    placement: P,
+    handler: &'p Hello,
+    options: &'p Options,
+    once: bool,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    P: Placement<'p, Scheduler = NativeScheduler>,
+{
+    let scheduler = placement.scheduler();
+    let address: SocketAddr = std::env::var("BASE_HTTP_ADDRESS")
+        .unwrap_or_else(|_| "127.0.0.1:8080".to_owned())
+        .parse()?;
+    let cancellation = Cancellation::never();
+    let endpoint = Endpoint::bind(scheduler, address).await?;
+    eprintln!(
+        "Listening on http://{}",
+        scheduler.socket_local_address(endpoint.listener())?
+    );
+    if once {
+        let (socket, _) = scheduler
+            .socket_accept(endpoint.listener(), &cancellation)
+            .await?;
+        // Stop listening before serving the one connection.
+        drop(endpoint);
+        base_http_server::serve_connection(scheduler, socket, handler, options, &cancellation)
+            .await?;
+    } else {
+        Server::new(handler, endpoint, options)
+            .run(placement, &cancellation)
+            .await?;
+    }
+    Ok(())
+}
+
+// `--spawned` runs each connection as its own task, on both workers; otherwise connections interleave on whichever worker polls the server.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let scheduler = NativeScheduler::with_options(NativeOptions {
         workers: 2,
         ..Default::default()
     })?;
-    let result = block_on(async {
-        let address: SocketAddr = std::env::var("BASE_HTTP_ADDRESS")
-            .unwrap_or_else(|_| "127.0.0.1:8080".to_owned())
-            .parse()?;
-        let once = std::env::args().any(|arg| arg == "--once");
-        let handler = Hello { close: once };
-        let cancellation = Cancellation::never();
-        let listener = scheduler
-            .socket_open(address.into(), SocketType::Stream, None, &cancellation)
-            .await?;
-        scheduler
-            .socket_bind(&listener, address, &cancellation)
-            .await?;
-        scheduler
-            .socket_listen(&listener, 128, &cancellation)
-            .await?;
-        eprintln!(
-            "Listening on http://{}",
-            scheduler.socket_local_address(&listener)?
-        );
-        if once {
-            let (socket, _) = scheduler.socket_accept(&listener, &cancellation).await?;
-            scheduler.socket_close(listener).await?;
-            base_http_server::serve_connection(
-                &scheduler,
-                socket,
-                &handler,
-                &Default::default(),
-                &cancellation,
-            )
-            .await?;
-        } else {
-            base_http_server::serve(
-                &scheduler,
-                listener,
-                &handler,
-                &Options::default(),
-                &cancellation,
-            )
-            .await?;
-        }
-        Ok(())
-    });
+    let once = std::env::args().any(|arg| arg == "--once");
+    // Spawned connections borrow the handler and options, so they outlive the scope.
+    let handler = Hello { close: once };
+    let options = Options::default();
+    let result = if std::env::args().any(|arg| arg == "--spawned") {
+        scheduler.scope(async |scope| serve(scope, &handler, &options, once).await)
+    } else {
+        block_on(serve(&scheduler, &handler, &options, once))
+    };
     block_on(scheduler.shutdown());
     result
 }

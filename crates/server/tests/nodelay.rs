@@ -180,10 +180,14 @@ fn served_nodelay(options: Options) -> Vec<bool> {
                 response
             })
         };
-        let statistics =
-            base_http_server::serve(&recording, listener, &Hello, &options, &cancellation)
-                .await
-                .unwrap();
+        let statistics = base_http_server::Server::new(
+            &Hello,
+            base_http_server::Endpoint::new(listener),
+            &options,
+        )
+        .run(&recording, &cancellation)
+        .await
+        .unwrap();
         assert_eq!((statistics.connections, statistics.requests), (1, 1));
         assert!(peer.join().unwrap().ends_with(b"\r\n\r\nhello"));
     });

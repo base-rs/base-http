@@ -6,9 +6,9 @@ use base_http::{
     Method, Request, Response, Status, Version,
     body::{BufferedBody, ReadableBody},
 };
-use base_http_client::{Client, Driver, Endpoint};
+use base_http_client::{Client, Endpoint};
 use base_http_server::{Handler, ServerContext};
-use base_scheduler::{Cancellation, Clock, SocketType, Spawn, TaskError};
+use base_scheduler::{Cancellation, Clock, Placement, SocketType, Spawn, SpawnScoped, TaskError};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::{block_on, or, zip};
 use std::{
@@ -208,6 +208,35 @@ impl<H: for<'h> Handler<'h, ServerContext>> ServerFixture<H> {
         scheduler: &'s S,
         test: impl AsyncFnOnce(&Context<'s, S, H>) -> T,
     ) -> T {
+        let (fixture, handler, server) = self.into_parts();
+        // The server's placement is inferred with a shorter lifetime than the client's, so that it may borrow the handler and options of this call.
+        block_on(fixture.serve(scheduler, scheduler, &handler, &server, test))
+    }
+
+    /// Run `test` with the server's and the client's connections spawned as tasks of a scope on a fresh two-worker Native scheduler, so they progress on more than one worker, with the guarantees of [`ServerFixture::run`]. The test and the server's acceptance run on the test's thread. A connection that panics is counted as a failed connection, so a panicking handler fails the request rather than the test.
+    pub fn run_in_scope<T>(self, test: impl AsyncFnOnce(&Context<'_, NativeScheduler, H>) -> T) -> T
+    where
+        H: Sync,
+    {
+        native(|scheduler| self.run_in_scope_on(scheduler, test))
+    }
+
+    /// Run `test` as [`ServerFixture::run_in_scope`] does, on `scheduler`, which the caller owns and shuts down.
+    pub fn run_in_scope_on<S, T>(
+        self,
+        scheduler: &S,
+        test: impl AsyncFnOnce(&Context<'_, S, H>) -> T,
+    ) -> T
+    where
+        S: Scheduler + SpawnScoped + Sync,
+        H: Sync,
+    {
+        // Spawned connections borrow the handler and options, so they are created before the scope.
+        let (fixture, handler, server) = self.into_parts();
+        scheduler.scope(async |scope| fixture.serve(scope, scope, &handler, &server, test).await)
+    }
+
+    fn into_parts(self) -> (Parts, Arc<H>, base_http_server::Options) {
         let Self {
             handler,
             version,
@@ -217,70 +246,97 @@ impl<H: for<'h> Handler<'h, ServerContext>> ServerFixture<H> {
             #[cfg(feature = "rustls")]
             tls,
         } = self;
-        block_on(async {
-            let listener = listen(scheduler).await;
-            let address = scheduler
-                .socket_local_address(&listener)
-                .expect("listener address");
-            let endpoint = Endpoint::new(address);
+        let parts = Parts {
+            version,
+            client,
+            limits,
             #[cfg(feature = "rustls")]
-            let endpoint = match &tls {
-                Some(tls) => endpoint.with_tls(tls.client.clone(), SERVER_NAME),
-                None => endpoint,
-            };
-            let (client, driver) =
-                Client::new(scheduler, endpoint.clone(), client).expect("valid client options");
-            let context = Context {
-                scheduler,
-                handler: Arc::new(handler),
-                client,
-                endpoint,
-                address,
-                version,
-            };
-            let stop = Cancellation::new();
-            let serving = async {
-                #[cfg(feature = "rustls")]
-                if let Some(tls) = &tls {
-                    return base_http_server::serve_tls(
-                        scheduler,
-                        listener,
-                        tls.server.clone(),
-                        &*context.handler,
-                        &server,
-                        &stop,
-                    )
-                    .await;
-                }
-                base_http_server::serve(scheduler, listener, &*context.handler, &server, &stop)
-                    .await
-            };
-            let supervised = supervise(
-                scheduler,
-                limits,
-                &context.client,
-                driver,
-                serving,
-                &stop,
-                test(&context),
-            )
-            .await;
-            // A test failure is reported first: it is usually the cause of a server failure.
-            let Supervised {
-                tested,
-                served,
-                forced,
-            } = supervised;
-            // `finish` may panic for the test, a forced teardown or a remaining connection before the server's result is reported, so print it rather than drop it.
-            if let Err(error) = &served {
-                eprintln!("server failed: {error}");
-            }
-            let output = finish(tested, forced, &context.client, limits);
-            if let Err(error) = served {
-                panic!("server failed: {error}");
-            }
-            output
-        })
+            tls,
+        };
+        (parts, Arc::new(handler), server)
+    }
+}
+
+// What a run needs besides the handler and the server's options, which the server borrows.
+struct Parts {
+    version: Version,
+    client: base_http_client::Options,
+    limits: Limits,
+    #[cfg(feature = "rustls")]
+    tls: Option<Tls>,
+}
+
+impl Parts {
+    // Serve on a fresh listener, run `test` with a client of it, then tear both down. `client` places the client's connections and `server` the server's.
+    async fn serve<'s, 'l, P, Q, S, H, T>(
+        self,
+        client: P,
+        server: Q,
+        handler: &'l Arc<H>,
+        options: &'l base_http_server::Options,
+        test: impl AsyncFnOnce(&Context<'s, S, H>) -> T,
+    ) -> T
+    where
+        P: Placement<'s, Scheduler = S> + 's,
+        Q: Placement<'l, Scheduler = S>,
+        S: Scheduler + Sync + 'l + 's,
+        H: for<'h> Handler<'h, ServerContext> + Sync,
+    {
+        let scheduler = client.scheduler();
+        let listener = listen(scheduler).await;
+        let address = scheduler
+            .socket_local_address(&listener)
+            .expect("listener address");
+        let endpoint = Endpoint::new(address);
+        #[cfg(feature = "rustls")]
+        let endpoint = match &self.tls {
+            Some(tls) => endpoint.with_tls(tls.client.clone(), SERVER_NAME),
+            None => endpoint,
+        };
+        let (client_handle, driver) =
+            Client::new(scheduler, endpoint.clone(), self.client).expect("valid client options");
+        let context = Context {
+            scheduler,
+            handler: handler.clone(),
+            client: client_handle,
+            endpoint,
+            address,
+            version: self.version,
+        };
+        let stop = Cancellation::new();
+        let listening = base_http_server::Endpoint::new(listener);
+        #[cfg(feature = "rustls")]
+        let listening = match &self.tls {
+            Some(tls) => listening.with_tls(tls.server.clone()),
+            None => listening,
+        };
+        let serving =
+            base_http_server::Server::new(&**handler, listening, options).run(server, &stop);
+        let supervised = supervise(
+            scheduler,
+            self.limits,
+            &context.client,
+            async move |lifetime: &Cancellation| driver.run(client, lifetime).await,
+            serving,
+            &stop,
+            test(&context),
+        )
+        .await;
+        // A test failure is reported first: it is usually the cause of a server failure.
+        let Supervised {
+            tested,
+            served,
+            forced,
+        } = supervised;
+        // `finish` may panic for the test, a forced teardown or a remaining connection before the server's result is reported, so print it rather than drop it.
+        if let Err(error) = &served {
+            eprintln!("server failed: {error}");
+        }
+        let output = finish(tested, forced, &context.client, self.limits);
+        if let Err(error) = served {
+            panic!("server failed: {error}");
+        }
+        output
     }
 }
 
@@ -364,17 +420,21 @@ impl<H: for<'h> Handler<'h, ServerContext> + Send + Sync + 'static> ServerFixtur
             async move {
                 #[cfg(feature = "rustls")]
                 if let Some(config) = tls {
-                    return base_http_server::serve_tls(
-                        &*scheduler,
-                        listener,
-                        config,
+                    return base_http_server::Server::new(
                         &*handler,
+                        base_http_server::Endpoint::new(listener).with_tls(config),
                         &server,
-                        &stop,
                     )
+                    .run(&*scheduler, &stop)
                     .await;
                 }
-                base_http_server::serve(&*scheduler, listener, &*handler, &server, &stop).await
+                base_http_server::Server::new(
+                    &*handler,
+                    base_http_server::Endpoint::new(listener),
+                    &server,
+                )
+                .run(&*scheduler, &stop)
+                .await
             }
         };
         let task = scheduler.spawn(serving).expect("spawn the server");
@@ -456,7 +516,7 @@ impl<S: Scheduler + Spawn, H> Spawned<S, H> {
                 scheduler,
                 self.limits,
                 &context.client,
-                driver,
+                async move |lifetime: &Cancellation| driver.run(scheduler, lifetime).await,
                 async {},
                 &stop,
                 test(&context),
@@ -679,7 +739,7 @@ impl ClientFixture {
                 scheduler,
                 self.limits,
                 &client,
-                driver,
+                async move |lifetime: &Cancellation| driver.run(scheduler, lifetime).await,
                 async {},
                 &stop,
                 test(&client),
@@ -727,7 +787,8 @@ async fn supervise<S: Clock, T, R>(
     scheduler: &S,
     limits: Limits,
     client: &Client<'_>,
-    driver: Driver<'_>,
+    // Runs the client's driver until the given lifetime ends it.
+    driver: impl AsyncFnOnce(&Cancellation) -> Result<(), base_http_client::Error>,
     server: impl Future<Output = R>,
     stop: &Cancellation,
     test: impl Future<Output = T>,
@@ -743,7 +804,7 @@ async fn supervise<S: Clock, T, R>(
                 client.begin_close();
                 tested
             };
-            let (driven, tested) = zip(driver.run(&lifetime), tested).await;
+            let (driven, tested) = zip(driver(&lifetime), tested).await;
             stop.cancel();
             // A driver only fails when its lifetime is cancelled, which forced teardown reports.
             let _ = driven;

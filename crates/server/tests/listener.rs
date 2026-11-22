@@ -59,13 +59,12 @@ fn invalid_listener_options_are_rejected_and_the_listener_closed() {
         let scheduler = scheduler();
         block_on(async {
             let (listener, address) = listener(&scheduler).await;
-            let served = base_http_server::serve(
-                &scheduler,
-                listener,
+            let served = base_http_server::Server::new(
                 &Hello,
+                base_http_server::Endpoint::new(listener),
                 &options,
-                &Cancellation::new(),
             )
+            .run(&scheduler, &Cancellation::new())
             .await;
             let error = served.unwrap_err();
             assert!(matches!(error, Error::Protocol(_)), "{message}");
@@ -104,10 +103,14 @@ fn listener_at_its_connection_limit_accepts_again_after_a_connection_completes()
             max_connections: 1,
             ..Default::default()
         };
-        let statistics =
-            base_http_server::serve(&scheduler, listener, &Hello, &options, &cancellation)
-                .await
-                .unwrap();
+        let statistics = base_http_server::Server::new(
+            &Hello,
+            base_http_server::Endpoint::new(listener),
+            &options,
+        )
+        .run(&scheduler, &cancellation)
+        .await
+        .unwrap();
         peer.join().unwrap().unwrap();
         assert_eq!(statistics.connections, 3);
         assert_eq!(statistics.requests, 3);

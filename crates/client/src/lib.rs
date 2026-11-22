@@ -139,8 +139,8 @@ pub struct Client<'scope> {
 }
 impl<'scope> Client<'scope> {
     /// Construct without dialing. Poll the returned driver concurrently with
-    /// calls. Bodies may borrow for the driver's scope; spawning requires owned
-    /// `Send + 'static` captures, as with any scheduler task.
+    /// calls, choosing where its connections run when it is run. Bodies may
+    /// borrow for the driver's scope.
     pub fn new<S>(
         scheduler: &'scope S,
         endpoint: Endpoint,

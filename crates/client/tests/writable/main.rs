@@ -924,18 +924,21 @@ fn native_echo(tls: Option<bool>) {
                 let server = async {
                     #[cfg(feature = "rustls")]
                     if let Some(config) = server_config {
-                        return base_http_server::serve_tls(
-                            &scheduler,
-                            listener,
-                            config,
+                        return base_http_server::Server::new(
                             &Echo,
+                            base_http_server::Endpoint::new(listener).with_tls(config),
                             &Default::default(),
-                            &stop,
                         )
+                        .run(&scheduler, &stop)
                         .await;
                     }
-                    base_http_server::serve(&scheduler, listener, &Echo, &Default::default(), &stop)
-                        .await
+                    base_http_server::Server::new(
+                        &Echo,
+                        base_http_server::Endpoint::new(listener),
+                        &Default::default(),
+                    )
+                    .run(&scheduler, &stop)
+                    .await
                 };
                 let application = async {
                     for _ in 0..2 {
@@ -986,7 +989,7 @@ fn native_echo(tls: Option<bool>) {
                     client.begin_close();
                 };
                 let client_work = async {
-                    let (driven, ()) = zip(driver.run(&lifetime), application).await;
+                    let (driven, ()) = zip(driver.run(&scheduler, &lifetime), application).await;
                     stop.cancel();
                     driven.unwrap();
                     assert_eq!(client.pool_stats().total(), 0);
@@ -1314,7 +1317,7 @@ fn established_http1_runs_without_polling_client_driver() {
             },
         )
         .unwrap();
-        let mut driven = Box::pin(driver.run(&lifetime));
+        let mut driven = Box::pin(driver.run(&scheduler, &lifetime));
         {
             // Only connection establishment and this queued warmup call are
             // driven by the supervisor.

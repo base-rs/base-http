@@ -66,7 +66,7 @@ fn run<'scope>(
                 watchdog.cancel();
             }
         });
-        let (result, ()) = zip(driver.run(&lifetime), application(client)).await;
+        let (result, ()) = zip(driver.run(scheduler, &lifetime), application(client)).await;
         let _ = done.send(());
         timer.join().unwrap();
         result.unwrap();
@@ -434,7 +434,7 @@ fn lifetime_cancellation_stops_an_uncooperative_upload_and_joins_cleanup() {
         let lifetime = Cancellation::new();
         let (client, driver) =
             Client::new(&scheduler, Endpoint::new(address), Options::default()).unwrap();
-        let (result, ()) = zip(driver.run(&lifetime), async {
+        let (result, ()) = zip(driver.run(&scheduler, &lifetime), async {
             let response = client
                 .call(
                     Request::new(Method::POST, "/", Stalled),
