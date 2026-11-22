@@ -116,15 +116,6 @@ impl From<base_http1::Error> for Error {
         }
     }
 }
-// A connection driver could not be spawned into its scope: a closed scheduler closes the client.
-impl From<base_scheduler::SpawnError> for Error {
-    fn from(error: base_scheduler::SpawnError) -> Self {
-        match error {
-            base_scheduler::SpawnError::SchedulerClosed => Self::Closed,
-            error => io::Error::other(error).into(),
-        }
-    }
-}
 impl From<io::Error> for Error {
     fn from(error: io::Error) -> Self {
         Self::Io(Arc::new(error))

@@ -130,7 +130,8 @@ fn spawned_connections_progress_in_parallel() {
     };
     let (statistics, statuses) = scheduler.scope(async |scope| {
         let (listener, address) = listen(scope.scheduler()).await;
-        let (client, driver) = Client::new(scope, Endpoint::new(address), client_options).unwrap();
+        let (client, driver) =
+            Client::new(scope.scheduler(), Endpoint::new(address), client_options).unwrap();
         let server = Server::new(
             &handler,
             base_http_server::Endpoint::new(listener),
@@ -169,7 +170,7 @@ fn spawned_connections_progress_in_parallel() {
         let lifetime = Cancellation::new();
         let (statuses, statistics) = zip(
             async {
-                let (statuses, driven) = zip(calls, driver.run(&lifetime)).await;
+                let (statuses, driven) = zip(calls, driver.run(scope, &lifetime)).await;
                 driven.unwrap();
                 stop.cancel();
                 statuses
@@ -222,8 +223,12 @@ fn serve_one<H: for<'h> Handler<'h, ServerContext> + Sync>(
     let stop = Cancellation::new();
     scheduler.scope(async |scope| {
         let (listener, address) = listen(scope.scheduler()).await;
-        let (client, driver) =
-            Client::new(scope, Endpoint::new(address), Default::default()).unwrap();
+        let (client, driver) = Client::new(
+            scope.scheduler(),
+            Endpoint::new(address),
+            Default::default(),
+        )
+        .unwrap();
         let server = Server::new(handler, base_http_server::Endpoint::new(listener), &options)
             .run(scope, &stop);
         let lifetime = Cancellation::new();
@@ -236,7 +241,7 @@ fn serve_one<H: for<'h> Handler<'h, ServerContext> + Sync>(
         };
         let (answered, statistics) = zip(
             async {
-                let (answered, driven) = zip(calling, driver.run(&lifetime)).await;
+                let (answered, driven) = zip(calling, driver.run(scope, &lifetime)).await;
                 driven.unwrap();
                 stop.cancel();
                 answered
@@ -304,8 +309,12 @@ fn run_joins_spawned_connections_after_cancellation() {
     let stop = Cancellation::new();
     let destroyed_at_return = scheduler.scope(async |scope| {
         let (listener, address) = listen(scope.scheduler()).await;
-        let (client, driver) =
-            Client::new(scope, Endpoint::new(address), Default::default()).unwrap();
+        let (client, driver) = Client::new(
+            scope.scheduler(),
+            Endpoint::new(address),
+            Default::default(),
+        )
+        .unwrap();
         let server = Server::new(
             &handler,
             base_http_server::Endpoint::new(listener),
@@ -332,14 +341,20 @@ fn run_joins_spawned_connections_after_cancellation() {
             }
             stop.cancel();
         };
-        let (statistics, ()) = zip(server, stopping).await;
-        statistics.unwrap();
-        let destroyed_at_return = destroyed.load(Ordering::SeqCst);
-        let _ = call.await;
-        client.begin_close();
-        drop(client);
-        lifetime.cancel();
-        let _ = driver.run(&lifetime).await;
+        // The client's driver runs throughout, so the call's connection can be established.
+        let client_side = async {
+            let _ = call.await;
+            client.begin_close();
+            drop(client);
+        };
+        let serving = async {
+            let (statistics, ()) = zip(server, stopping).await;
+            statistics.unwrap();
+            destroyed.load(Ordering::SeqCst)
+        };
+        let ((destroyed_at_return, ()), driven) =
+            zip(zip(serving, client_side), driver.run(scope, &lifetime)).await;
+        let _ = driven;
         destroyed_at_return
     });
     block_on(scheduler.shutdown());
@@ -349,7 +364,7 @@ fn run_joins_spawned_connections_after_cancellation() {
     );
 }
 
-// Spawning fails as a scoped spawn's can: a closed scheduler closes the client, and another failure is reported as I/O.
+// Spawning fails as a scoped spawn's can: the connection is dropped unspawned, which reports it closed to its call.
 #[derive(Clone, Copy)]
 struct Refusing<'a> {
     scheduler: &'a NativeScheduler,
@@ -381,12 +396,9 @@ impl<'a> base_scheduler::Placement<'a> for Refusing<'a> {
 #[test]
 fn a_refused_connection_spawn_fails_the_call() {
     let scheduler = scheduler();
-    for (error, closed) in [
-        (
-            (|| base_scheduler::SpawnError::SchedulerClosed) as fn() -> _,
-            true,
-        ),
-        (|| base_scheduler::SpawnError::IdentifiersExhausted, false),
+    for error in [
+        (|| base_scheduler::SpawnError::SchedulerClosed) as fn() -> _,
+        || base_scheduler::SpawnError::IdentifiersExhausted,
     ] {
         let placement = Refusing {
             scheduler: &scheduler,
@@ -394,7 +406,7 @@ fn a_refused_connection_spawn_fails_the_call() {
         };
         let address: SocketAddr = ([127, 0, 0, 1], 9).into();
         let (client, driver) =
-            Client::new(placement, Endpoint::new(address), Default::default()).unwrap();
+            Client::new(&scheduler, Endpoint::new(address), Default::default()).unwrap();
         let lifetime = Cancellation::new();
         let calling = async {
             let request = Request::new(Method::GET, "/", EmptyBody);
@@ -402,20 +414,10 @@ fn a_refused_connection_spawn_fails_the_call() {
             client.begin_close();
             result
         };
-        let (result, driven) = block_on(zip(calling, driver.run(&lifetime)));
+        let (result, driven) = block_on(zip(calling, driver.run(placement, &lifetime)));
         drop(client);
         driven.unwrap();
-        match result.err().unwrap() {
-            base_http_client::Error::Closed => assert!(closed),
-            base_http_client::Error::Io(error) => {
-                assert!(!closed);
-                assert_eq!(
-                    error.to_string(),
-                    base_scheduler::SpawnError::IdentifiersExhausted.to_string()
-                );
-            }
-            error => panic!("unexpected error: {error:?}"),
-        }
+        assert!(matches!(result, Err(base_http_client::Error::Closed)));
     }
     block_on(scheduler.shutdown());
 }

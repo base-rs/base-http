@@ -9,26 +9,28 @@ Accepted 2026-11-21; implemented 2026-11-22, except for the benchmark reruns its
 `base-http-server` provides a `Server` value, constructed from a handler, a server endpoint and options, the handler and options borrowed, and run until cancelled, as Async::HTTP's `Server.new(app, endpoint)` and `server.run` are:
 
 ```rust
-let endpoint = Endpoint::new(listener).with_tls(config);
+let endpoint = Endpoint::bind(&scheduler, address).await?.with_tls(config);
 let server = Server::new(&handler, endpoint, &options);
 let statistics = server.run(&scheduler, &cancellation).await?;
 ```
 
-- The endpoint decides whether connections are encrypted. `Endpoint::new` takes a bound, listening socket; `with_tls`, with the `rustls` feature, takes the `rustls::ServerConfig` that `serve_tls` takes now and configures HTTP's ALPN on it as `serve_tls` does. Nothing else in the server's API names TLS.
+- The endpoint decides whether connections are encrypted. `Endpoint::bind` opens, binds and listens on a TCP socket, as Async::HTTP's endpoints bind from an address, and `Endpoint::new` takes a socket already bound and listening; `with_tls`, with the `rustls` feature, takes the `rustls::ServerConfig` that `serve_tls` takes now and configures HTTP's ALPN on it as `serve_tls` does. Nothing else in the server's API names TLS.
 - `Server::run` replaces `serve` and `serve_tls`, keeping their behaviour: accept-failure handling, `Options::max_connections`, the shutdown sequence and its error precedence, and the `Statistics` it returns.
 - `serve_connection` and `serve_tls_connection` remain for code that accepts its own connections.
 
 ### Connection placement
 
-The first argument of `Server::run` and of `Client::new` decides where connections run, on both sides alike:
+The first argument of `Server::run` and of the client's `Driver::run` decides where connections run, on both sides alike:
 
 - The scheduler, `&scheduler`: the scoped mode, as now. Connections are supervised within the calling future, interleaving on whichever worker polls it.
 - A scope of `base-scheduler`'s scoped spawn, `scope`: the spawned mode. Each connection runs as its own task of that scope, so connections progress on more than one worker. On the server a connection is one accepted socket, served until it closes; on the client it is one connection's driver, from construction to retirement.
 
 ```rust
+let (client, driver) = Client::new(&scheduler, endpoint, client_options)?;
+let handler = Proxy::new(client);
 scheduler.scope(async |scope| {
-    let (client, driver) = Client::new(scope, endpoint, client_options)?;
-    join(server.run(scope, &cancellation), driver.run(&cancellation)).await
+    let server = Server::new(&handler, server_endpoint, &server_options);
+    join(server.run(scope, &cancellation), driver.run(scope, &cancellation)).await
 });
 ```
 
@@ -38,7 +40,7 @@ Both kinds of argument implement `base-scheduler`'s `Placement`, which supplies 
 
 ### Lifetimes
 
-A spawned connection may borrow only what outlives the scope: the scheduler, and a handler, options or other state created before `scheduler.scope` is entered. A handler created inside the scope's root cannot be borrowed by spawned connections, because the root may return while they still run. A client's connection drivers own their state but the scheduler, so a client may be created inside the root. The documentation shows this with the program shape above, the handler created before the scope.
+A spawned connection may borrow only what outlives the scope: the scheduler, and a handler, options or other state created before `scheduler.scope` is entered. A handler created inside the scope's root cannot be borrowed by spawned connections, because the root may return while they still run. Choosing the client's placement when its driver runs, rather than when the client is created, lets a client be created before the scope with only the scheduler, so a handler created before the scope can hold it and forward through it, while its connections still run as tasks of the scope; the user decided this on 2026-11-22. Its connection drivers borrow only the scheduler and own the rest of their state. The documentation shows this with the program shape above, the handler created before the scope.
 
 ### Efficiency
 
@@ -53,7 +55,7 @@ The user asked on 2026-11-21 for an interface as simple as Async::HTTP's, in whi
 ## Scope
 
 - `base-http-server`: `Server`, its `Endpoint`, and the replacement of `serve` and `serve_tls`.
-- `base-http-client`: `Client::new`'s first argument and its driver's placement of connection drivers.
+- `base-http-client`: its `Driver::run`'s placement of connection drivers.
 - `Placement` and `Scope::scheduler` in `base-scheduler`.
 - The fixtures, examples, tests and benchmarks that call these entry points.
 

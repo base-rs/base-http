@@ -346,7 +346,7 @@ async fn base_client(scheduler: &NativeScheduler, args: &Args) -> Result<serde_j
         client.client.begin_close();
         result
     };
-    let (driven, measured) = join(driver.run(&lifetime), work).await;
+    let (driven, measured) = join(driver.run(scheduler, &lifetime), work).await;
     driven?;
     assert_eq!(client.client.pool_stats().total(), 0);
     measured

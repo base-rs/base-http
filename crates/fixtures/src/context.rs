@@ -6,7 +6,7 @@ use base_http::{
     Method, Request, Response, Status, Version,
     body::{BufferedBody, ReadableBody},
 };
-use base_http_client::{Client, Driver, Endpoint};
+use base_http_client::{Client, Endpoint};
 use base_http_server::{Handler, ServerContext};
 use base_scheduler::{Cancellation, Clock, Placement, SocketType, Spawn, SpawnScoped, TaskError};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
@@ -294,7 +294,7 @@ impl Parts {
             None => endpoint,
         };
         let (client_handle, driver) =
-            Client::new(client, endpoint.clone(), self.client).expect("valid client options");
+            Client::new(scheduler, endpoint.clone(), self.client).expect("valid client options");
         let context = Context {
             scheduler,
             handler: handler.clone(),
@@ -316,7 +316,7 @@ impl Parts {
             scheduler,
             self.limits,
             &context.client,
-            driver,
+            async move |lifetime: &Cancellation| driver.run(client, lifetime).await,
             serving,
             &stop,
             test(&context),
@@ -516,7 +516,7 @@ impl<S: Scheduler + Spawn, H> Spawned<S, H> {
                 scheduler,
                 self.limits,
                 &context.client,
-                driver,
+                async move |lifetime: &Cancellation| driver.run(scheduler, lifetime).await,
                 async {},
                 &stop,
                 test(&context),
@@ -739,7 +739,7 @@ impl ClientFixture {
                 scheduler,
                 self.limits,
                 &client,
-                driver,
+                async move |lifetime: &Cancellation| driver.run(scheduler, lifetime).await,
                 async {},
                 &stop,
                 test(&client),
@@ -787,7 +787,8 @@ async fn supervise<S: Clock, T, R>(
     scheduler: &S,
     limits: Limits,
     client: &Client<'_>,
-    driver: Driver<'_>,
+    // Runs the client's driver until the given lifetime ends it.
+    driver: impl AsyncFnOnce(&Cancellation) -> Result<(), base_http_client::Error>,
     server: impl Future<Output = R>,
     stop: &Cancellation,
     test: impl Future<Output = T>,
@@ -803,7 +804,7 @@ async fn supervise<S: Clock, T, R>(
                 client.begin_close();
                 tested
             };
-            let (driven, tested) = zip(driver.run(&lifetime), tested).await;
+            let (driven, tested) = zip(driver(&lifetime), tested).await;
             stop.cancel();
             // A driver only fails when its lifetime is cancelled, which forced teardown reports.
             let _ = driven;

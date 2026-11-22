@@ -22,7 +22,7 @@ pub use error::Error;
 use base_http::{Authority, Scheme};
 use base_pool::MultiplexPool;
 use base_scheduler::{
-    Placement, SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
+    SocketClose, SocketConnect, SocketOpen, SocketSetOption, SocketStreamReading,
     SocketStreamWriting, TcpNoDelay,
 };
 use driver::Queue;
@@ -139,22 +139,14 @@ pub struct Client<'scope> {
 }
 impl<'scope> Client<'scope> {
     /// Construct without dialing. Poll the returned driver concurrently with
-    /// calls. Bodies may borrow for the driver's scope.
-    ///
-    /// `placement` decides where each connection's driver runs: the scheduler,
-    /// `&scheduler`, supervises them within the returned [`Driver`]; a scope
-    /// of the scheduler's scoped spawn runs each as its own task of that scope,
-    /// so connections progress on more than one worker. Calls on established
-    /// connections run in their calling tasks either way, and the driver still
-    /// owns admission, cancellation and the joined retirement of every
-    /// connection.
-    pub fn new<P, S>(
-        placement: P,
+    /// calls, choosing where its connections run when it is run. Bodies may
+    /// borrow for the driver's scope.
+    pub fn new<S>(
+        scheduler: &'scope S,
         endpoint: Endpoint,
         options: Options,
     ) -> Result<(Self, Driver<'scope>), Error>
     where
-        P: Placement<'scope, Scheduler = S> + 'scope,
         S: SocketOpen
             + SocketConnect
             + SocketClose
@@ -170,7 +162,7 @@ impl<'scope> Client<'scope> {
             pool,
             driver,
             context,
-        } = driver::make(placement, endpoint.clone(), options);
+        } = driver::make(scheduler, endpoint.clone(), options);
         Ok((
             Self {
                 endpoint,

@@ -989,7 +989,7 @@ fn native_echo(tls: Option<bool>) {
                     client.begin_close();
                 };
                 let client_work = async {
-                    let (driven, ()) = zip(driver.run(&lifetime), application).await;
+                    let (driven, ()) = zip(driver.run(&scheduler, &lifetime), application).await;
                     stop.cancel();
                     driven.unwrap();
                     assert_eq!(client.pool_stats().total(), 0);
@@ -1317,7 +1317,7 @@ fn established_http1_runs_without_polling_client_driver() {
             },
         )
         .unwrap();
-        let mut driven = Box::pin(driver.run(&lifetime));
+        let mut driven = Box::pin(driver.run(&scheduler, &lifetime));
         {
             // Only connection establishment and this queued warmup call are
             // driven by the supervisor.

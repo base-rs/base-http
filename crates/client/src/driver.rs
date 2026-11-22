@@ -34,6 +34,8 @@ type Factory<'scope> = Box<
 >;
 struct State<'scope> {
     work: VecDeque<Work<'scope, ()>>,
+    /// Connection drivers, which the driver places when it collects them.
+    connections: VecDeque<Work<'scope, ()>>,
     pending: usize,
     closed: bool,
     abandoned: bool,
@@ -46,13 +48,24 @@ pub(crate) struct Queue<'scope> {
 }
 impl<'scope> Queue<'scope> {
     pub(crate) fn push_work(&self, work: Work<'scope, ()>) -> Result<(), Error> {
+        self.push(work, |state| &mut state.work)
+    }
+    /// Queue a connection's driver, which runs where the driver's placement decides.
+    fn push_connection(&self, work: Work<'scope, ()>) -> Result<(), Error> {
+        self.push(work, |state| &mut state.connections)
+    }
+    fn push(
+        &self,
+        work: Work<'scope, ()>,
+        list: for<'s> fn(&'s mut State<'scope>) -> &'s mut VecDeque<Work<'scope, ()>>,
+    ) -> Result<(), Error> {
         let mut state = lock(&self.state);
         if state.abandoned {
             drop(state);
             drop(work);
             return Err(Error::Closed);
         }
-        state.work.push_back(work);
+        list(&mut state).push_back(work);
         drop(state);
         self.changed.notify(usize::MAX);
         Ok(())
@@ -70,7 +83,10 @@ impl<'scope> Queue<'scope> {
             let mut state = lock(&self.state);
             state.closed = true;
             state.abandoned = true;
-            std::mem::take(&mut state.work)
+            (
+                std::mem::take(&mut state.work),
+                std::mem::take(&mut state.connections),
+            )
         };
         self.changed.notify(usize::MAX);
         drop(discarded);
@@ -162,26 +178,50 @@ impl<'scope> Context<'scope> {
 /// and body consumers. Cancellation forces cleanup; await it to join all lane
 /// retirements and socket closes. Established plaintext direct requests run in
 /// their calling tasks. Direct request/response handles must be polled or dropped
-/// during cancellation so their codecs can return. The current scoped
-/// implementation polls all supervised connection work inside this one future;
-/// it does not distribute connections across task workers. Drop provides no
+/// during cancellation so their codecs can return. Drop provides no
 /// asynchronous join.
 pub struct Driver<'scope> {
-    work: Work<'scope, Result<(), Error>>,
+    queue: Arc<Queue<'scope>>,
+    context: Arc<Context<'scope>>,
     cancellation: Cancellation,
     abandon: Box<dyn Fn() + Send + Sync + 'scope>,
 }
-impl Driver<'_> {
-    pub async fn run(mut self, cancellation: &Cancellation) -> Result<(), Error> {
-        let mut cancelled = pin!(cancellation.cancelled());
-        poll_fn(|cx| {
-            if !self.cancellation.is_cancelled() && cancelled.as_mut().poll(cx).is_ready() {
-                self.cancellation.cancel();
-            }
-            self.work.as_mut().poll(cx)
-        })
-        .await
+impl<'scope> Driver<'scope> {
+    /// Supervise the client until it is closed and its connections have
+    /// retired. `placement` decides where each connection's driver runs: the
+    /// scheduler, `&scheduler`, polls them within this future, interleaving on
+    /// whichever worker polls it; a scope of the scheduler's scoped spawn runs
+    /// each as its own task, so connections progress on more than one worker.
+    /// Calls on established connections run in their calling tasks either way,
+    /// and this future still owns admission, cancellation and the joined
+    /// retirement of every connection; queued calls and deferred closing stay
+    /// within it. A connection that cannot be spawned, as when the scheduler is
+    /// closed, is reported closed to the call that opened it.
+    pub fn run<P: Placement<'scope>>(
+        self,
+        placement: P,
+        cancellation: &Cancellation,
+    ) -> impl Future<Output = Result<(), Error>> + Send {
+        // Stating `Send` on the returned type proves it here, for every placement
+        // lifetime, rather than in each caller's future.
+        drive(self, placement, cancellation)
     }
+}
+
+async fn drive<'scope, P: Placement<'scope>>(
+    driver: Driver<'scope>,
+    placement: P,
+    cancellation: &Cancellation,
+) -> Result<(), Error> {
+    let mut work = pin!(run(driver.queue.clone(), driver.context.clone(), placement));
+    let mut cancelled = pin!(cancellation.cancelled());
+    poll_fn(|cx| {
+        if !driver.cancellation.is_cancelled() && cancelled.as_mut().poll(cx).is_ready() {
+            driver.cancellation.cancel();
+        }
+        work.as_mut().poll(cx)
+    })
+    .await
 }
 impl Drop for Driver<'_> {
     fn drop(&mut self) {
@@ -197,13 +237,12 @@ pub(crate) struct ClientParts<'scope> {
     pub context: Arc<Context<'scope>>,
 }
 
-pub(crate) fn make<'scope, P, S>(
-    placement: P,
+pub(crate) fn make<'scope, S>(
+    scheduler: &'scope S,
     endpoint: Endpoint,
     options: Options,
 ) -> ClientParts<'scope>
 where
-    P: Placement<'scope, Scheduler = S> + 'scope,
     S: SocketOpen
         + SocketConnect
         + SocketClose
@@ -218,6 +257,7 @@ where
     let queue = Arc::new(Queue {
         state: Mutex::new(State {
             work: VecDeque::new(),
+            connections: VecDeque::new(),
             pending: 0,
             closed: false,
             abandoned: false,
@@ -237,11 +277,11 @@ where
         let queue = weak_queue.upgrade().expect("an acquirer retains the queue");
         Box::pin(async move {
             let (ready, established) = oneshot::channel();
-            // The driver joins the placed connection, in place or as a scope task. A task
-            // destroyed or panicking before it reports readiness drops `ready`, which
+            // The driver places the connection, in place or as a scope task. One destroyed,
+            // panicking or never spawned before it reports readiness drops `ready`, which
             // reports the connection closed.
-            let connection = placement.place(connection::run(
-                placement.scheduler(),
+            queue.push_connection(Box::pin(connection::run(
+                scheduler,
                 endpoint,
                 options,
                 build,
@@ -249,10 +289,7 @@ where
                 lifetime,
                 ready,
                 Arc::downgrade(&queue),
-            ))?;
-            queue.push_work(Box::pin(async move {
-                let _ = connection.await;
-            }))?;
+            )))?;
             // Only an abandoned driver drops construction before it reports readiness.
             established.await.unwrap_or(Err(Error::Closed))
         }) as Work<'scope, _>
@@ -265,7 +302,8 @@ where
     let abandoned = queue.clone();
     let abandoned_pool = pool.clone();
     let driver = Driver {
-        work: Box::pin(run(queue.clone(), context.clone())),
+        queue: queue.clone(),
+        context: context.clone(),
         cancellation,
         abandon: Box::new(move || {
             abandoned.abandon();
@@ -280,11 +318,14 @@ where
     }
 }
 
-async fn run<'scope>(
+async fn run<'scope, P: Placement<'scope>>(
     queue: Arc<Queue<'scope>>,
     context: Arc<Context<'scope>>,
+    placement: P,
 ) -> Result<(), Error> {
     let mut jobs: FuturesUnordered<Work<'scope, ()>> = FuturesUnordered::new();
+    // Placed connection drivers, polled here in place or joined as scope tasks.
+    let mut connections = FuturesUnordered::new();
     let cleanup_context = context.clone();
     let mut cleanup = pin!(cleanup_context.cleanup());
     let mut cancellation = pin!(context.cancellation.cancelled());
@@ -292,8 +333,20 @@ async fn run<'scope>(
     let mut cleaned = None;
     loop {
         event_listener::listener!(queue.changed => listener);
-        let work = std::mem::take(&mut lock(&queue.state).work);
+        let (work, placing) = {
+            let mut state = lock(&queue.state);
+            (
+                std::mem::take(&mut state.work),
+                std::mem::take(&mut state.connections),
+            )
+        };
         jobs.extend(work);
+        // A connection that cannot be spawned is dropped, reporting it closed.
+        connections.extend(
+            placing
+                .into_iter()
+                .filter_map(|work| placement.place(work).ok()),
+        );
         let close = {
             let state = lock(&queue.state);
             state.closed && state.pending == 0
@@ -313,10 +366,17 @@ async fn run<'scope>(
             {
                 cleaned = Some(result);
             }
-            if cleaned.is_some() && jobs.is_empty() && lock(&queue.state).work.is_empty() {
+            if cleaned.is_some() && jobs.is_empty() && connections.is_empty() && {
+                let state = lock(&queue.state);
+                state.work.is_empty() && state.connections.is_empty()
+            } {
                 return Poll::Ready(cleaned.take());
             }
             if let Poll::Ready(Some(())) = jobs.poll_next_unpin(cx) {
+                return Poll::Ready(None);
+            }
+            // A connection's driver reports its own outcome; its task's panic or destruction drops its readiness.
+            if let Poll::Ready(Some(_)) = connections.poll_next_unpin(cx) {
                 return Poll::Ready(None);
             }
             if listener.as_mut().poll(cx).is_ready() {
@@ -465,6 +525,7 @@ mod tests {
         let queue = Arc::new(Queue {
             state: Mutex::new(State {
                 work: VecDeque::new(),
+                connections: VecDeque::new(),
                 pending: 0,
                 closed: false,
                 abandoned: false,

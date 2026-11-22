@@ -89,7 +89,7 @@ pub fn run_endpoint(
         };
         let (client, driver) = Client::new(&scheduler, endpoint, options).unwrap();
         let stats = client.clone();
-        let (driven, ()) = zip(driver.run(&lifetime), application(client)).await;
+        let (driven, ()) = zip(driver.run(&scheduler, &lifetime), application(client)).await;
         let _ = done.send(());
         timer.join().unwrap();
         driven.unwrap();

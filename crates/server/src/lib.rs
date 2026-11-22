@@ -12,9 +12,10 @@ use base_http_protocol::ProtocolError;
 
 mod connection;
 use base_scheduler::{
-    Cancellation, Clock, OperationError, Placement, SocketAccept, SocketClose, SocketLocalAddress,
-    SocketPeerAddress, SocketSetOption, SocketStreamReading, SocketStreamWriting, SpawnError,
-    TaskError, TcpNoDelay,
+    Cancellation, Clock, OperationError, Placement, SocketAccept, SocketBind, SocketClose,
+    SocketListen, SocketLocalAddress, SocketOpen, SocketOperation, SocketPeerAddress,
+    SocketSetOption, SocketStreamReading, SocketStreamWriting, SocketType, SpawnError, TaskError,
+    TcpNoDelay,
 };
 use connection::ServerConnection;
 use futures_util::{
@@ -25,6 +26,7 @@ use std::{
     fmt,
     future::{Future, poll_fn},
     io,
+    net::SocketAddr,
     pin::pin,
     sync::Arc,
     task::Poll,
@@ -374,6 +376,9 @@ pub struct Endpoint<Socket> {
     tls: Option<std::sync::Arc<rustls::ServerConfig>>,
 }
 
+/// The listen backlog [`Endpoint::bind`] requests.
+pub const BACKLOG: i32 = 128;
+
 impl<Socket> Endpoint<Socket> {
     /// Accept plaintext connections on an already bound, listening socket.
     pub fn new(listener: Socket) -> Self {
@@ -382,6 +387,36 @@ impl<Socket> Endpoint<Socket> {
             #[cfg(feature = "rustls")]
             tls: None,
         }
+    }
+
+    /// Open a TCP socket, bind it to `address` and listen on it with a backlog
+    /// of [`BACKLOG`], for plaintext connections. Bind port 0 for an OS-selected
+    /// port, which [`listener`](Self::listener) reports. A socket that fails to
+    /// bind or listen is closed before the error is returned.
+    pub async fn bind<S>(scheduler: &S, address: SocketAddr) -> Result<Self, Error>
+    where
+        S: SocketOpen + SocketBind + SocketListen + SocketClose + SocketOperation<Socket = Socket>,
+    {
+        let never = Cancellation::never();
+        let socket = scheduler
+            .socket_open(address.into(), SocketType::Stream, None, &never)
+            .await?;
+        let listening = async {
+            scheduler.socket_bind(&socket, address, &never).await?;
+            scheduler.socket_listen(&socket, BACKLOG, &never).await
+        }
+        .await;
+        if let Err(error) = listening {
+            // The bind or listen failure explains a consequent close failure.
+            let _ = scheduler.socket_close(socket).await;
+            return Err(error.into());
+        }
+        Ok(Self::new(socket))
+    }
+
+    /// The listening socket, for example to read the address it is bound to.
+    pub fn listener(&self) -> &Socket {
+        &self.listener
     }
 
     /// Encrypt every accepted connection with `config`. The server sets its

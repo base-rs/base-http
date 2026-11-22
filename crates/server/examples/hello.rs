@@ -6,10 +6,7 @@ use base_http::{
     body::{BufferedBody, ReadableBody},
 };
 use base_http_server::{Endpoint, Handler, Options, Server, ServerContext};
-use base_scheduler::{
-    Cancellation, Placement, SocketAccept, SocketBind, SocketClose, SocketListen,
-    SocketLocalAddress, SocketOpen, SocketType, SpawnScoped,
-};
+use base_scheduler::{Cancellation, Placement, SocketAccept, SocketLocalAddress, SpawnScoped};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
 use std::{convert::Infallible, net::SocketAddr};
@@ -54,26 +51,21 @@ where
         .unwrap_or_else(|_| "127.0.0.1:8080".to_owned())
         .parse()?;
     let cancellation = Cancellation::never();
-    let listener = scheduler
-        .socket_open(address.into(), SocketType::Stream, None, &cancellation)
-        .await?;
-    scheduler
-        .socket_bind(&listener, address, &cancellation)
-        .await?;
-    scheduler
-        .socket_listen(&listener, 128, &cancellation)
-        .await?;
+    let endpoint = Endpoint::bind(scheduler, address).await?;
     eprintln!(
         "Listening on http://{}",
-        scheduler.socket_local_address(&listener)?
+        scheduler.socket_local_address(endpoint.listener())?
     );
     if once {
-        let (socket, _) = scheduler.socket_accept(&listener, &cancellation).await?;
-        scheduler.socket_close(listener).await?;
+        let (socket, _) = scheduler
+            .socket_accept(endpoint.listener(), &cancellation)
+            .await?;
+        // Stop listening before serving the one connection.
+        drop(endpoint);
         base_http_server::serve_connection(scheduler, socket, handler, options, &cancellation)
             .await?;
     } else {
-        Server::new(handler, Endpoint::new(listener), options)
+        Server::new(handler, endpoint, options)
             .run(placement, &cancellation)
             .await?;
     }
