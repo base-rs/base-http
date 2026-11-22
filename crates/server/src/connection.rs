@@ -135,24 +135,29 @@ where
             let mut context = ServerContext::new(peer.clone(), relay.sender());
             let mut called = pin!(handler.call(request, &mut context, cancellation));
             // Write each interim response the handler hands over while still
-            // polling the handler, which waits for it.
-            let handled = async {
-                loop {
-                    let response = match select(called.as_mut(), pin!(relay.next())).await {
-                        Either::Left((result, _)) => break result,
-                        Either::Right((response, _)) => response,
+            // polling the handler, which waits for it. Each wait is cancellable
+            // on its own, rather than as one block, so that the interim writer,
+            // large and rarely used, is pinned here when used instead of being
+            // moved with the block for every request.
+            let result = loop {
+                let response =
+                    match cancellable(select(called.as_mut(), pin!(relay.next())), cancellation)
+                        .await
+                    {
+                        Ok(Either::Left((result, _))) => break Ok(result),
+                        Ok(Either::Right((response, _))) => response,
+                        Err(error) => break Err(error),
                     };
-                    let mut writer = output.interim(exchange.version());
-                    let written = pin!(writer.on_interim_response(response, cancellation));
-                    match select(written, called.as_mut()).await {
-                        Either::Left((written, _)) => relay.complete(written),
-                        // The handler abandoned its send; dropping the write
-                        // poisons output if it had started.
-                        Either::Right((result, _)) => break result,
-                    }
+                let mut writer = output.interim(exchange.version());
+                let written = pin!(writer.on_interim_response(response, cancellation));
+                match cancellable(select(written, called.as_mut()), cancellation).await {
+                    Ok(Either::Left((written, _))) => relay.complete(written),
+                    // The handler abandoned its send; dropping the write
+                    // poisons output if it had started.
+                    Ok(Either::Right((result, _))) => break Ok(result),
+                    Err(error) => break Err(error),
                 }
             };
-            let result = cancellable(handled, cancellation).await;
             relay.finish();
             result?
         };
