@@ -6,7 +6,7 @@ use base_http::{
     body::{BufferedBody, ReadableBody},
 };
 use base_http_server::{Endpoint, Handler, Options, Server, ServerContext};
-use base_scheduler::{Cancellation, Placement, SocketAccept, SocketLocalAddress, SpawnScoped};
+use base_scheduler::{Cancellation, Parent, SocketAccept, SocketLocalAddress, SpawnScoped};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::block_on;
 use std::{convert::Infallible, net::SocketAddr};
@@ -36,17 +36,17 @@ impl<'h> Handler<'h, ServerContext> for Hello {
     }
 }
 
-// Serve `handler` until the process ends. `placement` decides where connections run: the scheduler polls them within this future, and a scope runs each as its own task.
+// Serve `handler` until the process ends. `parent` decides where connections run: the scheduler polls them within this future, and a scope runs each as its own task.
 async fn serve<'p, P>(
-    placement: P,
+    parent: P,
     handler: &'p Hello,
     options: &'p Options,
     once: bool,
 ) -> Result<(), Box<dyn std::error::Error>>
 where
-    P: Placement<'p, Scheduler = NativeScheduler>,
+    P: Parent<'p, Scheduler = NativeScheduler>,
 {
-    let scheduler = placement.scheduler();
+    let scheduler = parent.scheduler();
     let address: SocketAddr = std::env::var("BASE_HTTP_ADDRESS")
         .unwrap_or_else(|_| "127.0.0.1:8080".to_owned())
         .parse()?;
@@ -66,7 +66,7 @@ where
             .await?;
     } else {
         Server::new(handler, endpoint, options)
-            .run(placement, &cancellation)
+            .run(parent, &cancellation)
             .await?;
     }
     Ok(())

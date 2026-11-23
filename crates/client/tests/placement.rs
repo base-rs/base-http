@@ -371,7 +371,7 @@ struct Refusing<'a> {
     error: fn() -> base_scheduler::SpawnError,
 }
 
-impl<'a> base_scheduler::Placement<'a> for Refusing<'a> {
+impl<'a> base_scheduler::Parent<'a> for Refusing<'a> {
     type Scheduler = NativeScheduler;
 
     fn scheduler(self) -> &'a NativeScheduler {
@@ -400,7 +400,7 @@ fn a_refused_connection_spawn_fails_the_call() {
         (|| base_scheduler::SpawnError::SchedulerClosed) as fn() -> _,
         || base_scheduler::SpawnError::IdentifiersExhausted,
     ] {
-        let placement = Refusing {
+        let parent = Refusing {
             scheduler: &scheduler,
             error,
         };
@@ -414,7 +414,7 @@ fn a_refused_connection_spawn_fails_the_call() {
             client.begin_close();
             result
         };
-        let (result, driven) = block_on(zip(calling, driver.run(placement, &lifetime)));
+        let (result, driven) = block_on(zip(calling, driver.run(parent, &lifetime)));
         drop(client);
         driven.unwrap();
         assert!(matches!(result, Err(base_http_client::Error::Closed)));

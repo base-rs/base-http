@@ -4,7 +4,7 @@
 use crate::{Connection, Endpoint, Error, Options, connection};
 use base_pool::{Acquisition, MultiplexBuildPermit, MultiplexPool, MultiplexUse};
 use base_scheduler::{
-    Cancellation, Placement, SocketClose, SocketConnect, SocketOpen, SocketSetOption,
+    Cancellation, Parent, SocketClose, SocketConnect, SocketOpen, SocketSetOption,
     SocketStreamReading, SocketStreamWriting, TcpNoDelay,
 };
 use event_listener::Event;
@@ -50,7 +50,7 @@ impl<'scope> Queue<'scope> {
     pub(crate) fn push_work(&self, work: Work<'scope, ()>) -> Result<(), Error> {
         self.push(work, |state| &mut state.work)
     }
-    /// Queue a connection's driver, which runs where the driver's placement decides.
+    /// Queue a connection's driver, which runs where the driver's parent decides.
     fn push_connection(&self, work: Work<'scope, ()>) -> Result<(), Error> {
         self.push(work, |state| &mut state.connections)
     }
@@ -188,7 +188,7 @@ pub struct Driver<'scope> {
 }
 impl<'scope> Driver<'scope> {
     /// Supervise the client until it is closed and its connections have
-    /// retired. `placement` decides where each connection's driver runs: the
+    /// retired. `parent` decides where each connection's driver runs: the
     /// scheduler, `&scheduler`, polls them within this future, interleaving on
     /// whichever worker polls it; a scope of the scheduler's scoped spawn runs
     /// each as its own task, so connections progress on more than one worker.
@@ -197,23 +197,23 @@ impl<'scope> Driver<'scope> {
     /// retirement of every connection; queued calls and deferred closing stay
     /// within it. A connection that cannot be spawned, as when the scheduler is
     /// closed, is reported closed to the call that opened it.
-    pub fn run<P: Placement<'scope>>(
+    pub fn run<P: Parent<'scope>>(
         self,
-        placement: P,
+        parent: P,
         cancellation: &Cancellation,
     ) -> impl Future<Output = Result<(), Error>> + Send {
-        // Stating `Send` on the returned type proves it here, for every placement
+        // Stating `Send` on the returned type proves it here, for every parent
         // lifetime, rather than in each caller's future.
-        drive(self, placement, cancellation)
+        drive(self, parent, cancellation)
     }
 }
 
-async fn drive<'scope, P: Placement<'scope>>(
+async fn drive<'scope, P: Parent<'scope>>(
     driver: Driver<'scope>,
-    placement: P,
+    parent: P,
     cancellation: &Cancellation,
 ) -> Result<(), Error> {
-    let mut work = pin!(run(driver.queue.clone(), driver.context.clone(), placement));
+    let mut work = pin!(run(driver.queue.clone(), driver.context.clone(), parent));
     let mut cancelled = pin!(cancellation.cancelled());
     poll_fn(|cx| {
         if !driver.cancellation.is_cancelled() && cancelled.as_mut().poll(cx).is_ready() {
@@ -318,10 +318,10 @@ where
     }
 }
 
-async fn run<'scope, P: Placement<'scope>>(
+async fn run<'scope, P: Parent<'scope>>(
     queue: Arc<Queue<'scope>>,
     context: Arc<Context<'scope>>,
-    placement: P,
+    parent: P,
 ) -> Result<(), Error> {
     let mut jobs: FuturesUnordered<Work<'scope, ()>> = FuturesUnordered::new();
     // Placed connection drivers, polled here in place or joined as scope tasks.
@@ -345,7 +345,7 @@ async fn run<'scope, P: Placement<'scope>>(
         connections.extend(
             placing
                 .into_iter()
-                .filter_map(|work| placement.place(work).ok()),
+                .filter_map(|work| parent.place(work).ok()),
         );
         let close = {
             let state = lock(&queue.state);

@@ -12,7 +12,7 @@ use base_http_protocol::ProtocolError;
 
 mod connection;
 use base_scheduler::{
-    Cancellation, Clock, OperationError, Placement, SocketAccept, SocketBind, SocketClose,
+    Cancellation, Clock, OperationError, Parent, SocketAccept, SocketBind, SocketClose,
     SocketListen, SocketLocalAddress, SocketOpen, SocketOperation, SocketPeerAddress,
     SocketSetOption, SocketStreamReading, SocketStreamWriting, SocketType, SpawnError, TaskError,
     TcpNoDelay,
@@ -481,12 +481,12 @@ impl<'h, H, Socket> Server<'h, H, Socket> {
     /// failure to spawn a connection.
     pub fn run<'p, P, S>(
         self,
-        placement: P,
+        parent: P,
         cancellation: &Cancellation,
     ) -> impl Future<Output = Result<Statistics, Error>> + Send
     where
         'h: 'p,
-        P: Placement<'p, Scheduler = S>,
+        P: Parent<'p, Scheduler = S>,
         S: SocketAccept<Socket = Socket>
             + Clock
             + SocketSetOption<TcpNoDelay>
@@ -502,18 +502,18 @@ impl<'h, H, Socket> Server<'h, H, Socket> {
     {
         // Stating `Send` on the returned type proves it here, for every request
         // body lifetime, rather than in each caller's future.
-        run(self, placement, cancellation)
+        run(self, parent, cancellation)
     }
 }
 
 async fn run<'h, 'p, P, S, H, Socket>(
     server: Server<'h, H, Socket>,
-    placement: P,
+    parent: P,
     cancellation: &Cancellation,
 ) -> Result<Statistics, Error>
 where
     'h: 'p,
-    P: Placement<'p, Scheduler = S>,
+    P: Parent<'p, Scheduler = S>,
     S: SocketAccept<Socket = Socket>
         + Clock
         + SocketSetOption<TcpNoDelay>
@@ -532,7 +532,7 @@ where
         endpoint,
         options,
     } = server;
-    let scheduler = placement.scheduler();
+    let scheduler = parent.scheduler();
     // The endpoint's choice is made once, entering fully typed connection code.
     #[cfg(feature = "rustls")]
     if let Some(config) = endpoint.tls {
@@ -542,7 +542,7 @@ where
         // Shared by every connection, which a spawned connection cannot borrow from this future.
         let acceptor = Arc::new(RustlsAcceptor::new(Arc::new(config)));
         return serve_with(
-            placement,
+            parent,
             endpoint.listener,
             options,
             cancellation,
@@ -572,7 +572,7 @@ where
         .await;
     }
     serve_with(
-        placement,
+        parent,
         endpoint.listener,
         options,
         cancellation,
@@ -599,19 +599,19 @@ async fn nodelay<S: SocketSetOption<TcpNoDelay>>(
 }
 
 async fn serve_with<'p, P, S, F, Fut>(
-    placement: P,
+    parent: P,
     listener: S::Socket,
     options: &Options,
     cancellation: &Cancellation,
     connection: F,
 ) -> Result<Statistics, Error>
 where
-    P: Placement<'p, Scheduler = S>,
+    P: Parent<'p, Scheduler = S>,
     S: SocketAccept + Clock + SocketClose + 'p,
     F: Fn(S::Socket, Cancellation) -> Fut,
     Fut: Future<Output = Outcome> + Send + 'p,
 {
-    let scheduler = placement.scheduler();
+    let scheduler = parent.scheduler();
     let connections_cancel = cancellation.child();
     let mut connections = FuturesUnordered::new();
     let mut statistics = Statistics::default();
@@ -658,8 +658,8 @@ where
             };
             let socket = accepted.map_err(base_http1::Error::from)?;
             statistics.connections += 1;
-            // A connection owns everything it uses but what outlives the placement, so a scope can run it as a task.
-            connections.push(placement.place(connection(socket, connections_cancel.clone()))?);
+            // A connection owns everything it uses but what outlives the parent, so a scope can run it as a task.
+            connections.push(parent.place(connection(socket, connections_cancel.clone()))?);
         }
     }
     .await;

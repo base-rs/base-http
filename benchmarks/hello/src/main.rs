@@ -7,9 +7,9 @@ use base_http::{
 };
 use base_http_server::{Endpoint, Handler, Server, ServerContext};
 use base_scheduler::{
-    Cancellation, Clock, Placement, SocketAccept, SocketClose, SocketLocalAddress,
-    SocketPeerAddress, SocketRegistration, SocketSetOption, SocketStreamReading,
-    SocketStreamWriting, Spawn, SpawnScoped, TcpNoDelay,
+    Cancellation, Clock, Parent, SocketAccept, SocketClose, SocketLocalAddress, SocketPeerAddress,
+    SocketRegistration, SocketSetOption, SocketStreamReading, SocketStreamWriting, Spawn,
+    SpawnScoped, TcpNoDelay,
 };
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use base_scheduler_tokio::TokioScheduler;
@@ -70,9 +70,9 @@ fn connection_finished<T, E: std::fmt::Display>(result: std::result::Result<T, E
 // HTTP variants serve through base_http_server::Server::run, which sets TCP_NODELAY on
 // every accepted socket. Given the scheduler, it polls every connection within its own
 // future, on one application worker; given a scope, it runs each connection as a task.
-async fn base_server<'p, P, S>(placement: P, options: &'p base_http_server::Options) -> Result<()>
+async fn base_server<'p, P, S>(parent: P, options: &'p base_http_server::Options) -> Result<()>
 where
-    P: Placement<'p, Scheduler = S>,
+    P: Parent<'p, Scheduler = S>,
     S: SocketRegistration
         + SocketAccept
         + Clock
@@ -88,10 +88,10 @@ where
 {
     let listener = TcpListener::bind("127.0.0.1:0")?;
     ready(&listener)?;
-    let listener = placement.scheduler().register_listener(listener)?;
+    let listener = parent.scheduler().register_listener(listener)?;
     let server = Server::new(&Hello, Endpoint::new(listener), options);
     // Peer failures are counted without stopping admission, so only a listener failure returns.
-    server.run(placement, &Cancellation::never()).await?;
+    server.run(parent, &Cancellation::never()).await?;
     Ok(())
 }
 
