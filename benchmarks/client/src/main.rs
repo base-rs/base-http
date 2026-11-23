@@ -123,8 +123,8 @@ fn server_config(args: &Args) -> Result<ServerConfig> {
 struct Usage {
     user: f64,
     system: f64,
-    voluntary: i64,
-    involuntary: i64,
+    voluntary: libc::c_long,
+    involuntary: libc::c_long,
 }
 impl Usage {
     fn now() -> Self {
@@ -139,8 +139,8 @@ impl Usage {
         Self {
             user: seconds(usage.ru_utime),
             system: seconds(usage.ru_stime),
-            voluntary: usage.ru_nvcsw as i64,
-            involuntary: usage.ru_nivcsw as i64,
+            voluntary: usage.ru_nvcsw,
+            involuntary: usage.ru_nivcsw,
         }
     }
     fn since(self, start: Self) -> Self {
