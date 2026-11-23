@@ -1,0 +1,27 @@
+From 05976a8f9db17539c8f2dde652d17b5012663515 Mon Sep 17 00:00:00 2001
+From: Samuel Williams <samuel.williams@oriontransfer.co.nz>
+Date: Tue, 24 Nov 2026 08:55:13 +1300
+Subject: [PATCH] DIAGNOSTIC: DIAG_NO_PROBE skips the idle probe's immediate
+ read.
+
+---
+ crates/http1/src/input.rs | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/crates/http1/src/input.rs b/crates/http1/src/input.rs
+index 9697737..e638694 100644
+--- a/crates/http1/src/input.rs
++++ b/crates/http1/src/input.rs
+@@ -264,7 +264,8 @@ impl<R: ReadableStream> RequestReader<R> {
+         if !self.is_reusable() {
+             return false;
+         }
+-        if self.previous.is_none() {
++        static SKIP: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
++        if self.previous.is_none() || *SKIP.get_or_init(|| std::env::var_os("DIAG_NO_PROBE").is_some()) {
+             return true;
+         }
+         if self.available().is_empty() {
+-- 
+2.56.1
+

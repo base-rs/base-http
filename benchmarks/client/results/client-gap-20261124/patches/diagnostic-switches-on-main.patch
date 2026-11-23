@@ -1,0 +1,29 @@
+diff --git a/benchmarks/client/src/main.rs b/benchmarks/client/src/main.rs
+index e861853..0b1d5a1 100644
+--- a/benchmarks/client/src/main.rs
++++ b/benchmarks/client/src/main.rs
+@@ -282,6 +282,10 @@ async fn lane(client: &impl BenchClient, deadline: Instant) -> Result<Histogram<
+         let start = Instant::now();
+         client.request().await?;
+         latency.record(start.elapsed().as_nanos().max(1) as u64)?;
++        static YIELD: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
++        if *YIELD.get_or_init(|| std::env::var_os("DIAG_YIELD").is_some()) {
++            futures_lite::future::yield_now().await;
++        }
+     }
+     Ok(latency)
+ }
+diff --git a/crates/http1/src/input.rs b/crates/http1/src/input.rs
+index 9697737..e638694 100644
+--- a/crates/http1/src/input.rs
++++ b/crates/http1/src/input.rs
+@@ -264,7 +264,8 @@ impl<R: ReadableStream> RequestReader<R> {
+         if !self.is_reusable() {
+             return false;
+         }
+-        if self.previous.is_none() {
++        static SKIP: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
++        if self.previous.is_none() || *SKIP.get_or_init(|| std::env::var_os("DIAG_NO_PROBE").is_some()) {
+             return true;
+         }
+         if self.available().is_empty() {
