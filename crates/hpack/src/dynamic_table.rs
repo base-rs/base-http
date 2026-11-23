@@ -13,7 +13,7 @@ pub(crate) const ENTRY_OVERHEAD: usize = 32;
 
 /// The table of fields an encoder and decoder share, newest first.
 ///
-/// Its entries live in one byte buffer, appended as they are inserted and reclaimed in bulk after eviction, so that inserting a field allocates nothing once the buffer has reached its steady size: at most three times the table's capacity, and usually less.
+/// Its entries live in one byte buffer, appended as they are inserted and reclaimed in bulk after eviction, so that inserting a field allocates nothing once the buffer has reached its steady size: after each insertion it holds less than three times the table's capacity.
 #[derive(Clone)]
 pub struct DynamicTable {
     /// Entry bytes, oldest first. Bytes before `start` belong to evicted entries.

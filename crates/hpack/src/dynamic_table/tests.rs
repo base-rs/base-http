@@ -178,7 +178,7 @@ fn reuses_its_buffer_in_the_steady_state() {
         }
         assert!(table.insert(name, value.as_bytes()));
         assert!(
-            table.bytes.len() <= 3 * table.capacity(),
+            table.bytes.len() < 3 * table.capacity(),
             "{}",
             table.bytes.len()
         );

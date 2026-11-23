@@ -40,7 +40,7 @@ The public interface is Base-owned, as the [HTTP/2 packages](http2.md#packages-a
 
 ### Rationale
 
-The [component evaluation](components.md#hpack-own-a-small-codec-with-a-familiar-reference) asks for reused output storage, input progress, explicit limits and field delivery without a temporary message or map, and for sensitivity to survive forwarding. A block encoder rather than an iterator of fields avoids monomorphizing the encoder for each caller's iterator type. A callback that cannot fail matches RFC 9113 §4.3, which requires every block to be decoded, and HTTP/2's handling of malformed messages as stream errors after the block is processed. Keeping split representations inside the decoder lets HTTP/2 pass each HEADERS and CONTINUATION payload as it arrives without concatenating the block, at the cost of a copy only for a field split between frames.
+The [component evaluation](components.md#hpack-own-a-small-codec-with-a-familiar-reference) asks for reused output storage, input progress, explicit limits and field delivery without a temporary message or map, and for sensitivity to survive forwarding. A block encoder rather than an iterator of fields avoids monomorphizing the encoder for each caller's iterator type. The encoder's static table lookup is a `match` on a name's length and first byte, generated from the table and checked by a test against a linear search for every name and near miss. A callback that cannot fail matches RFC 9113 §4.3, which requires every block to be decoded, and HTTP/2's handling of malformed messages as stream errors after the block is processed. Keeping split representations inside the decoder lets HTTP/2 pass each HEADERS and CONTINUATION payload as it arrives without concatenating the block, at the cost of a copy only for a field split between frames.
 
 ### Scope
 
@@ -96,7 +96,7 @@ RFC 7541 §4.2 and RFC 9113 §4.3.1. HTTP/2 applies a local limit only once the 
 
 ### Requirement
 
-Once the dynamic tables and buffers have grown to their working size, encoding a block into a reused `Vec<u8>` and decoding it, in one fragment or several, allocate nothing. The dynamic table keeps its entries' bytes in one buffer, newest last, reclaiming evicted bytes in bulk: its buffer never exceeds three times its capacity.
+Once the dynamic tables and buffers have grown to their working size, encoding a block into a reused `Vec<u8>` and decoding it, in one fragment or several, allocate nothing. The dynamic table keeps its entries' bytes in one buffer, newest last, reclaiming evicted bytes in bulk: after each insertion the buffer holds less than three times the table's capacity.
 
 ### Rationale
 
@@ -114,7 +114,7 @@ The roadmap requires reusable output storage and no allocation per field in the 
 
 ### Requirement
 
-The tests import, with their provenance and licenses, `protocol-hpack`'s RFC 7541 Appendix C fixtures and its sequence fixture, and stories 00, 01, 03 and 15 of every directory of [hpack-test-case](https://github.com/http2jp/hpack-test-case) at `8a1406e`, the revision `protocol-hpack` uses. Every imported encoded story decodes; every raw story round-trips with each of nine encoder configurations and two table sizes, and is decoded by `fluke-hpack` as an independent oracle, which also encodes random fields for this decoder. An ignored test runs the whole 66 MB corpus from a checkout. `protocol-hpack`'s unit tests are ported where the behaviour they test is kept, with the defects above tested as their corrections.
+The tests import, with their provenance and licenses, `protocol-hpack`'s RFC 7541 Appendix C fixtures and its sequence fixture, and stories 00, 01, 03 and 15 of every directory of [hpack-test-case](https://github.com/http2jp/hpack-test-case) at `8a1406e`, the revision `protocol-hpack` uses. Every imported encoded story decodes; every raw story round-trips with each of nine encoder configurations and two table sizes, and is decoded by `fluke-hpack` as an independent oracle, which also encodes random fields for this decoder. An ignored test runs the whole 66 MB corpus from a checkout. `protocol-hpack`'s unit tests are ported where the behaviour they test is kept, with the defects above tested as their corrections; its integer tests with a zero-bit prefix are not, since no HPACK representation has one.
 
 ### Rationale
 
@@ -130,7 +130,7 @@ The HTTP/2 [validation](http2.md#header-blocks-and-field-validation) asks for bo
 
 ## Measurements
 
-Screening figures from 2026-11-24 on an AMD Ryzen 9 9950X3D workstation, not a dedicated benchmark host, in a release build of the test harness, 11 interleaved rounds of 200,000 blocks of a ten-field browser request with default options, median and range:
+Screening figures from 2026-11-24 on an AMD Ryzen 9 9950X3D workstation, not a dedicated benchmark host, in a release build of a test harness, 11 rounds for each configuration, each encoding 200,000 blocks of a ten-field browser request and then decoding them, median and range:
 
 | Path | Encode, ns per field | Decode, ns per field |
 | --- | --- | --- |
@@ -139,7 +139,7 @@ Screening figures from 2026-11-24 on an AMD Ryzen 9 9950X3D workstation, not a d
 | Static table only, shorter Huffman | 26.6 (26.2–27.8) | 62.3 (62.1–62.7) |
 | Static table only, no Huffman | 10.1 (10.1–10.5) | 13.1 (13.0–13.4) |
 
-With both tables, the dynamic table, its linear search and its insertions, accounts for about 42 ns of the encoder's 52 ns per field without Huffman coding; [an open question](#encoder-dynamic-table-lookup) addresses the search. These figures were taken with a temporary harness that is not part of the repository; an isolated benchmark package would make them reproducible. Decoding a maximum-size block of 64 KiB took 334 µs (329–360 µs) for 65,536 one-byte indexed fields, most of them past the field count limit, 186 µs for one 62 KiB Huffman string, and 94 µs for 64 KiB of distinct incremental literals that churn the table.
+With both tables, the dynamic table, its linear search and its insertions, accounts for about 42 ns of the encoder's 52 ns per field without Huffman coding; [an open question](#encoder-dynamic-table-lookup) addresses the search. These figures were taken with a temporary harness that is not part of the repository; an isolated benchmark package would make them reproducible. In 21 runs each, decoding a maximum-size block of 64 KiB took 334 µs (329–360 µs) for 65,536 one-byte indexed fields, most of them past the field count limit, 186 µs for one 62 KiB Huffman string, and 94 µs for 64 KiB of distinct incremental literals that churn the table.
 
 ## Open questions
 
