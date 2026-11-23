@@ -116,6 +116,7 @@ impl<'a> DecodedField<'a> {
 pub struct Decoder {
     core: DecoderCore,
     /// An incomplete representation at the end of the last fragment, and the fragment after it while it is decoded.
+    // SECURITY: this buffer and `DecoderCore::scratch` keep the capacity of the largest field decoded, for reuse, so a peer can make each connection retain it. That is bounded by `string_length_limit`: at most two strings of that many encoded bytes are kept here, and their Huffman decoding, at most eight fifths of that, in `scratch`, about 330 KiB together with the defaults, besides the fragment being appended; HTTP/2's header block limit keeps both below 64 KiB and 103 KiB.
     pending: Vec<u8>,
 }
 
