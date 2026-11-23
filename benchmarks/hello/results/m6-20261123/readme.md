@@ -10,5 +10,6 @@ The data behind [connection placement and the M6 rerun](../../connection-placeme
 | `4-fix-check` | As `3-bisect` | M5 with a replica, `main` at `7ae6fac`, and base-http#90's branch | 10 |
 | `5-final-http-closed` | `http-closed` | M5 with a replica, and the candidate on base-http#90 (`231671f`) | 10 |
 | `6-final-placement` | `http-closed-placement`, with a replica | The candidate on base-http#90 | 10 |
+| `7-watched-validation` | `base-native` and `hyper-tokio` under `http-closed`'s roles, 24 November | `never`, connections given `never` on base-scheduler 0.6.4, with a replica; `watched`, each connection watching its cancellation; and `main` before it, on 0.6.3 | 20 |
 
 `pairs.py SUMMARY.json > OUT.csv` regenerates a CSV from a campaign's summary.

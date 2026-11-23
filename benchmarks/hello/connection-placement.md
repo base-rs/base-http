@@ -5,7 +5,7 @@ Screening evidence, gathered 22 and 23 November 2026 on [hana](https://github.co
 ## Decision
 
 - **The scoped mode, with M6's library, costs what M5 did.** M6's interface changes, owned request bodies and the shared `Handler`, cost about 8% per request until base-http#90 removed three costs every request paid for features few requests use; the library is now within noise of M5.
-- **`Server::run` is about 11% slower than the old benchmark loop, and that is not an M6 regression.** The M5 baseline's loop served every connection with `Cancellation::never()`, which takes base-scheduler's fast path for socket operations, while M5's own `serve`, which applications used, gave every connection a child cancellation, as `Server::run` does. The benchmark now measures the server applications run. Making cancellable socket operations cheaper is a base-scheduler follow-up after base-http 0.5.0, decided by the user on 2026-11-23.
+- **`Server::run` is about 11% slower than the old benchmark loop, and that is not an M6 regression.** The M5 baseline's loop served every connection with `Cancellation::never()`, which takes base-scheduler's fast path for socket operations, while M5's own `serve`, which applications used, gave every connection a child cancellation, as `Server::run` does. The benchmark now measures the server applications run. Since base-scheduler 0.6.4, each connection [watches](#watched-cancellations) its cancellation, which removed that cost: 6.4% wall time and 14.9% user CPU per request, leaving `Server::run` within noise of passing `never`.
 - **The spawned mode costs nothing measurable on one worker**, within noise of the scoped mode in the final campaign.
 - **Two workers on one core's SMT siblings do not help this benchmark**: about 9% slower, at 2.25 times the server CPU per request.
 
@@ -53,6 +53,18 @@ The unchanged Hyper control also read +2.7% in base-http#90's build, so its rema
 ### The `Server::run` step
 
 base-scheduler's socket reads and writes take a compact path only when their cancellation `is_never()`: with a real one, every operation that waits also polls a cancellation listener. The benchmark's old loop passed `never`; `Server::run` gives each connection a child of its cancellation, so that cancelling the server reaches every connection, as M5's `serve` did (`crates/server/src/lib.rs:500` at `9fdc82e`). The step from `7ae6fac` to `b870b73` changes nothing else and adds about 11%.
+
+### Watched cancellations
+
+Profiles of the same build with and without each connection's child cancellation attributed the cost to registering and removing a listener with the cancellation for every wait, and cloning the task's waker for each registration ([design](https://github.com/base-rs/base-scheduler/blob/main/design/cancellation-watch.md)). base-scheduler 0.6.4 adds `Cancellation::watch`, whose waits share one registration with the task that waits, and the server watches each connection's cancellation, and the client each connection's signals. A campaign of 20 rounds on hana compared base-http on 0.6.4 watching each connection, `watched`, with the same build passing `never` to every connection, and with `main` before it, on 0.6.3:
+
+| Build against `never` | Wall time | Server CPU per request | User CPU per request | Rounds worse | `hyper-tokio` wall time |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `watched` | +1.0% (−2.5 to +6.1) | +1.5% | +1.7% | 13 of 20 | +2.9% |
+| `main`, on 0.6.3 | +8.2% (+0.9 to +17.7) | +7.9% | +19.1% | 20 of 20 | +0.3% |
+| Replica of `never` | −0.4% (−5.0 to +3.0) | −0.5% | −0.7% | 8 of 20 | +3.5% |
+
+Against `main`, watching saves 6.4% wall time and 14.9% user CPU per request, in 19 and 20 of 20 rounds. The unchanged Hyper control moved more between the `never` and `watched` builds than `base-native` did, so the remaining difference is the host's.
 
 ## Final comparison with M5
 

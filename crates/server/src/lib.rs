@@ -220,6 +220,8 @@ where
     S::Socket: 'static,
     H: Handler<'scope, ServerContext>,
 {
+    // The connection's waits share one registration with its cancellation.
+    let cancellation = &cancellation.watch();
     let mut requests = 0;
     // The outer owner closes the socket even when capability construction fails.
     let result = async {
@@ -764,6 +766,8 @@ where
     H: Handler<'scope, ServerContext>,
 {
     use base_endpoint::tls::TlsSession;
+    // The connection's waits share one registration with its cancellation.
+    let cancellation = &cancellation.watch();
     let selected = connection.negotiated_protocol().map(<[u8]>::to_vec);
     let socket = connection.socket();
     let peer = Arc::new(
