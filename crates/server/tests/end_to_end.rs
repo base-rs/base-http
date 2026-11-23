@@ -726,6 +726,43 @@ fn cancellation_interrupts_a_handler_that_ignores_its_signal() {
     assert!(matches!(served, Err(Error::Cancelled)));
 }
 
+// Cancels its own connection, then hands over an interim response, so the
+// connection is cancelled before writing it.
+struct CancelBeforeHints;
+impl<'h> Handler<'h, ServerContext> for CancelBeforeHints {
+    type Error = io::Error;
+    type Body<B: ReadableBody + 'h> = BufferedBody;
+    async fn call<B: ReadableBody + 'h>(
+        &self,
+        _: Request<B>,
+        context: &mut ServerContext,
+        cancellation: &Cancellation,
+    ) -> Result<Response<BufferedBody>, io::Error> {
+        cancellation.cancel();
+        context
+            .interim()
+            .send_interim_response(
+                ResponseMetadata::new(Status::EARLY_HINTS),
+                &Cancellation::never(),
+            )
+            .await
+            .map_err(io::Error::other)?;
+        Ok(Response::new(Status::OK, BufferedBody::default()))
+    }
+}
+
+#[test]
+fn cancellation_before_an_interim_response_is_written_stops_the_exchange() {
+    let (served, ()) = connection(CancelBeforeHints, |mut peer, _| {
+        peer.get_mut()
+            .write_all(b"GET / HTTP/1.1\r\nHost: example\r\n\r\n")
+            .unwrap();
+        // Neither the interim nor the final response is written.
+        assert_eq!(peer.read(&mut [0]).unwrap(), 0);
+    });
+    assert!(matches!(served, Err(Error::Cancelled)));
+}
+
 struct PendingRead(Arc<AtomicBool>);
 impl<'h> Handler<'h, ServerContext> for PendingRead {
     type Error = io::Error;
