@@ -27,12 +27,26 @@ fuzz_target!(|input: &[u8]| {
     let mut fragmented = Decoder::new(options());
     for block in input.split(|&byte| byte == 0xfe) {
         let mut whole_fields = Vec::new();
-        let whole_result = whole.decode_block(block, |field| whole_fields.push((field.name().to_vec(), field.value().to_vec(), field.static_index(), field.indexing())));
+        let whole_result = whole.decode_block(block, |field| {
+            whole_fields.push((
+                field.name().to_vec(),
+                field.value().to_vec(),
+                field.static_index(),
+                field.indexing(),
+            ))
+        });
         let mut fragmented_fields = Vec::new();
         let step = usize::from(split).max(1);
         let mut result = Ok(());
         for fragment in block.chunks(step) {
-            result = fragmented.decode(fragment, |field| fragmented_fields.push((field.name().to_vec(), field.value().to_vec(), field.static_index(), field.indexing())));
+            result = fragmented.decode(fragment, |field| {
+                fragmented_fields.push((
+                    field.name().to_vec(),
+                    field.value().to_vec(),
+                    field.static_index(),
+                    field.indexing(),
+                ))
+            });
             if result.is_err() {
                 break;
             }

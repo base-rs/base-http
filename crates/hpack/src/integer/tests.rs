@@ -43,11 +43,31 @@ fn keeps_the_pattern_bits_and_ignores_them_when_decoding() {
 fn round_trips_boundaries() {
     for prefix_bits in 1..=8 {
         let limit = (1usize << prefix_bits) - 1;
-        for value in [0, 1, limit - 1, limit, limit + 1, limit + 127, limit + 128, 1 << 14, 1 << 21, 1 << 28, u32::MAX as usize] {
+        for value in [
+            0,
+            1,
+            limit - 1,
+            limit,
+            limit + 1,
+            limit + 127,
+            limit + 128,
+            1 << 14,
+            1 << 21,
+            1 << 28,
+            u32::MAX as usize,
+        ] {
             let bytes = encoded(prefix_bits, value);
-            assert_eq!(decode(&bytes, prefix_bits), Ok(Some((value, bytes.len()))), "{prefix_bits} {value}");
+            assert_eq!(
+                decode(&bytes, prefix_bits),
+                Ok(Some((value, bytes.len()))),
+                "{prefix_bits} {value}"
+            );
             for end in 0..bytes.len() {
-                assert_eq!(decode(&bytes[..end], prefix_bits), Ok(None), "{prefix_bits} {value} {end}");
+                assert_eq!(
+                    decode(&bytes[..end], prefix_bits),
+                    Ok(None),
+                    "{prefix_bits} {value} {end}"
+                );
             }
         }
     }
@@ -60,14 +80,23 @@ fn reads_only_its_own_bytes() {
 
 #[test]
 fn accepts_non_minimal_encodings_within_the_bound() {
-    assert_eq!(decode(&[31, 0x80, 0x80, 0x80, 0x80, 0x00], 5), Ok(Some((31, 6))));
+    assert_eq!(
+        decode(&[31, 0x80, 0x80, 0x80, 0x80, 0x00], 5),
+        Ok(Some((31, 6)))
+    );
 }
 
 #[test]
 fn rejects_integers_longer_than_the_bound() {
     // `protocol-hpack` reads continuation bytes without limit.
-    assert_eq!(decode(&[31, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00], 5), Err(DecodeError::IntegerOverflow));
-    assert_eq!(decode(&[31, 0x80, 0x80, 0x80, 0x80, 0x80], 5), Err(DecodeError::IntegerOverflow));
+    assert_eq!(
+        decode(&[31, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00], 5),
+        Err(DecodeError::IntegerOverflow)
+    );
+    assert_eq!(
+        decode(&[31, 0x80, 0x80, 0x80, 0x80, 0x80], 5),
+        Err(DecodeError::IntegerOverflow)
+    );
 }
 
 #[test]

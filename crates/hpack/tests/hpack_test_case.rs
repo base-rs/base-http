@@ -9,7 +9,9 @@
 
 mod support;
 
-use base_http_hpack::{Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing, TableUse};
+use base_http_hpack::{
+    Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing, TableUse,
+};
 use serde_json::Value;
 use std::path::Path;
 use support::*;
@@ -47,13 +49,24 @@ fn cases(path: &Path) -> Vec<Case> {
         .iter()
         .map(|case| Case {
             // swift-nio's stories write `null` for an unchanged size.
-            header_table_size: case.get("header_table_size").and_then(Value::as_u64).map(|size| size as usize),
-            wire: case.get("wire").map_or_else(Vec::new, |wire| hex(wire.as_str().unwrap())),
+            header_table_size: case
+                .get("header_table_size")
+                .and_then(Value::as_u64)
+                .map(|size| size as usize),
+            wire: case
+                .get("wire")
+                .map_or_else(Vec::new, |wire| hex(wire.as_str().unwrap())),
             headers: case["headers"]
                 .as_array()
                 .unwrap()
                 .iter()
-                .flat_map(|header| header.as_object().unwrap().iter().map(|(name, value)| field(name, value.as_str().unwrap())))
+                .flat_map(|header| {
+                    header
+                        .as_object()
+                        .unwrap()
+                        .iter()
+                        .map(|(name, value)| field(name, value.as_str().unwrap()))
+                })
                 .collect(),
         })
         .collect()
@@ -70,13 +83,19 @@ fn decode_story(path: &Path) {
         if let Some(size) = case.header_table_size {
             decoder.set_table_size_limit(size);
         }
-        let decoded = decode(&mut decoder, &case.wire).unwrap_or_else(|error| panic!("{} case {seqno}: {error}", path.display()));
+        let decoded = decode(&mut decoder, &case.wire)
+            .unwrap_or_else(|error| panic!("{} case {seqno}: {error}", path.display()));
         assert_eq!(decoded, case.headers, "{} case {seqno}", path.display());
     }
 }
 
 /// Encodes a raw story with one configuration, decoding every block with this decoder and with `fluke-hpack`.
-fn encode_story(path: &Path, tables: TableUse, huffman: HuffmanUse, table_size_limit: usize) -> usize {
+fn encode_story(
+    path: &Path,
+    tables: TableUse,
+    huffman: HuffmanUse,
+    table_size_limit: usize,
+) -> usize {
     let mut encoder = Encoder::new(EncoderOptions {
         table_size_limit,
         huffman,
@@ -91,11 +110,24 @@ fn encode_story(path: &Path, tables: TableUse, huffman: HuffmanUse, table_size_l
     let mut oracle = fluke_hpack::Decoder::new();
     let mut bytes = 0;
     for (seqno, case) in cases(path).iter().enumerate() {
-        let context = format!("{} case {seqno} with {tables:?}, {huffman:?} and {table_size_limit}", path.display());
+        let context = format!(
+            "{} case {seqno} with {tables:?}, {huffman:?} and {table_size_limit}",
+            path.display()
+        );
         let block = encode(&mut encoder, &case.headers, Indexing::Incremental);
-        assert_eq!(decode(&mut decoder, &block).unwrap(), case.headers, "{context}");
-        assert_eq!(table(decoder.table().iter()), table(encoder.table().iter()), "{context}");
-        let oracle_fields: Vec<Field> = oracle.decode(&block).unwrap_or_else(|error| panic!("{context}: {error:?}"));
+        assert_eq!(
+            decode(&mut decoder, &block).unwrap(),
+            case.headers,
+            "{context}"
+        );
+        assert_eq!(
+            table(decoder.table().iter()),
+            table(encoder.table().iter()),
+            "{context}"
+        );
+        let oracle_fields: Vec<Field> = oracle
+            .decode(&block)
+            .unwrap_or_else(|error| panic!("{context}: {error:?}"));
         assert_eq!(oracle_fields, case.headers, "{context}");
         bytes += block.len();
     }
@@ -133,7 +165,11 @@ fn encodes_raw_stories_with_every_configuration() {
                 }
             }
             // Choosing the shorter string is never longer than either fixed choice.
-            assert!(sizes[4] <= sizes[0] && sizes[4] <= sizes[2], "{} {tables:?} {sizes:?}", path.display());
+            assert!(
+                sizes[4] <= sizes[0] && sizes[4] <= sizes[2],
+                "{} {tables:?} {sizes:?}",
+                path.display()
+            );
         }
     }
 }
@@ -142,7 +178,8 @@ fn encodes_raw_stories_with_every_configuration() {
 #[test]
 #[ignore = "needs a checkout of hpack-test-case named by HPACK_TEST_CASE; see tests/fixtures/readme.md"]
 fn full_corpus() {
-    let root = std::env::var_os("HPACK_TEST_CASE").expect("HPACK_TEST_CASE names a checkout of hpack-test-case");
+    let root = std::env::var_os("HPACK_TEST_CASE")
+        .expect("HPACK_TEST_CASE names a checkout of hpack-test-case");
     let root = Path::new(&root);
     let mut decoded = 0;
     for directory in ENCODED.iter().filter(|&&directory| directory != "raw-data") {

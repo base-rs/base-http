@@ -279,7 +279,10 @@ const CODES: [(u32, u8); 257] = [
 
 /// The number of bytes `bytes` occupies once Huffman coded, including padding.
 pub(crate) fn encoded_len(bytes: &[u8]) -> usize {
-    let bits: usize = bytes.iter().map(|&byte| usize::from(CODES[usize::from(byte)].1)).sum();
+    let bits: usize = bytes
+        .iter()
+        .map(|&byte| usize::from(CODES[usize::from(byte)].1))
+        .sum();
     bits.div_ceil(8)
 }
 
@@ -375,7 +378,11 @@ const fn machine() -> Machine {
         symbol += 1;
     }
 
-    let empty = Transition { state: 0, symbol: 0, flags: 0 };
+    let empty = Transition {
+        state: 0,
+        symbol: 0,
+        flags: 0,
+    };
     let mut transitions = [[empty; 16]; 256];
     let mut state = 0;
     while state < 256 {
@@ -421,7 +428,10 @@ const fn machine() -> Machine {
         ones += 1;
     }
 
-    Machine { transitions, accepting }
+    Machine {
+        transitions,
+        accepting,
+    }
 }
 
 #[cfg(test)]

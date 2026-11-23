@@ -12,7 +12,10 @@
 
 mod support;
 
-use base_http_hpack::{DEFAULT_TABLE_SIZE, Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing, STATIC_TABLE, TableUse};
+use base_http_hpack::{
+    DEFAULT_TABLE_SIZE, Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing,
+    STATIC_TABLE, TableUse,
+};
 use support::*;
 
 fn encoder(huffman: HuffmanUse, tables: TableUse) -> Encoder {
@@ -31,11 +34,21 @@ fn one(encoder: &mut Encoder, name: &str, value: &str, indexing: Indexing) -> Ve
 fn uses_the_indexed_representation_for_exact_matches() {
     // `protocol-hpack`'s "should handle indexed representation".
     let mut encoder = Encoder::default();
-    assert_eq!(one(&mut encoder, ":status", "304", Indexing::Incremental), [0x80 | 11]);
-    assert_eq!(one(&mut encoder, ":status", "304", Indexing::NotIndexed), [0x80 | 11]);
+    assert_eq!(
+        one(&mut encoder, ":status", "304", Indexing::Incremental),
+        [0x80 | 11]
+    );
+    assert_eq!(
+        one(&mut encoder, ":status", "304", Indexing::NotIndexed),
+        [0x80 | 11]
+    );
     // Every static entry, with or without a value.
     for (position, (name, value)) in STATIC_TABLE.iter().enumerate() {
-        assert_eq!(one(&mut encoder, name, value, Indexing::Incremental), [0x80 | (position as u8 + 1)], "{name}");
+        assert_eq!(
+            one(&mut encoder, name, value, Indexing::Incremental),
+            [0x80 | (position as u8 + 1)],
+            "{name}"
+        );
     }
     assert!(encoder.table().is_empty());
 }
@@ -55,10 +68,28 @@ fn uses_each_literal_representation() {
         assert_eq!(indexed[0] & prefix, 8, "{indexing:?}");
         assert_eq!(&indexed[1..], b"\x08my-value");
         let literal = one(&mut encoder, "x-custom", "my-value", indexing);
-        assert_eq!(literal, [&[pattern][..], b"\x08x-custom\x08my-value"].concat(), "{indexing:?}");
-        let (fields, _) = decode_detailed(&mut Decoder::default(), &[indexed, literal].concat()).unwrap();
-        assert_eq!(fields, [(field(":status", "my-value"), Some(8), indexing), (field("x-custom", "my-value"), None, indexing)]);
-        assert_eq!(encoder.table().len(), if indexing == Indexing::Incremental { 2 } else { 0 });
+        assert_eq!(
+            literal,
+            [&[pattern][..], b"\x08x-custom\x08my-value"].concat(),
+            "{indexing:?}"
+        );
+        let (fields, _) =
+            decode_detailed(&mut Decoder::default(), &[indexed, literal].concat()).unwrap();
+        assert_eq!(
+            fields,
+            [
+                (field(":status", "my-value"), Some(8), indexing),
+                (field("x-custom", "my-value"), None, indexing)
+            ]
+        );
+        assert_eq!(
+            encoder.table().len(),
+            if indexing == Indexing::Incremental {
+                2
+            } else {
+                0
+            }
+        );
     }
 }
 
@@ -68,12 +99,24 @@ fn refers_to_dynamic_entries() {
     one(&mut encoder, "x-custom", "a", Indexing::Incremental);
     one(&mut encoder, "x-custom", "b", Indexing::Incremental);
     // The newest exact match, then the newest name.
-    assert_eq!(one(&mut encoder, "x-custom", "a", Indexing::NeverIndexed), b"\x1f\x2f\x01a");
-    assert_eq!(one(&mut encoder, "x-custom", "a", Indexing::Incremental), [0x80 | 63]);
-    assert_eq!(one(&mut encoder, "x-custom", "c", Indexing::NotIndexed), b"\x0f\x2f\x01c");
+    assert_eq!(
+        one(&mut encoder, "x-custom", "a", Indexing::NeverIndexed),
+        b"\x1f\x2f\x01a"
+    );
+    assert_eq!(
+        one(&mut encoder, "x-custom", "a", Indexing::Incremental),
+        [0x80 | 63]
+    );
+    assert_eq!(
+        one(&mut encoder, "x-custom", "c", Indexing::NotIndexed),
+        b"\x0f\x2f\x01c"
+    );
     // A static name is preferred over a dynamic name.
     one(&mut encoder, "cookie", "a", Indexing::Incremental);
-    assert_eq!(one(&mut encoder, "cookie", "z", Indexing::NotIndexed), b"\x0f\x11\x01z");
+    assert_eq!(
+        one(&mut encoder, "cookie", "z", Indexing::NotIndexed),
+        b"\x0f\x11\x01z"
+    );
 }
 
 #[test]
@@ -82,21 +125,45 @@ fn never_indexes_sensitive_fields() {
     // Not even an exact static match is used, so the field reaches every hop as a never-indexed literal.
     let block = one(&mut encoder, ":method", "GET", Indexing::NeverIndexed);
     assert_eq!(block, b"\x12\x03GET");
-    let block = one(&mut encoder, "authorization", "secret", Indexing::NeverIndexed);
+    let block = one(
+        &mut encoder,
+        "authorization",
+        "secret",
+        Indexing::NeverIndexed,
+    );
     assert_eq!(block[0], 0x10 | 0x0f);
     assert!(encoder.table().is_empty());
     let (fields, _) = decode_detailed(&mut Decoder::default(), &block).unwrap();
-    assert_eq!(fields, [(field("authorization", "secret"), Some(23), Indexing::NeverIndexed)]);
+    assert_eq!(
+        fields,
+        [(
+            field("authorization", "secret"),
+            Some(23),
+            Indexing::NeverIndexed
+        )]
+    );
 }
 
 #[test]
 fn table_use_limits_the_references() {
     let mut none = encoder(HuffmanUse::Never, TableUse::None);
-    assert_eq!(one(&mut none, ":method", "GET", Indexing::Incremental), b"\x00\x07:method\x03GET");
+    assert_eq!(
+        one(&mut none, ":method", "GET", Indexing::Incremental),
+        b"\x00\x07:method\x03GET"
+    );
     let mut only_static = encoder(HuffmanUse::Never, TableUse::Static);
-    assert_eq!(one(&mut only_static, ":method", "GET", Indexing::Incremental), [0x82]);
-    assert_eq!(one(&mut only_static, "x-custom", "a", Indexing::Incremental), b"\x00\x08x-custom\x01a");
-    assert_eq!(one(&mut only_static, "x-custom", "a", Indexing::Incremental), b"\x00\x08x-custom\x01a");
+    assert_eq!(
+        one(&mut only_static, ":method", "GET", Indexing::Incremental),
+        [0x82]
+    );
+    assert_eq!(
+        one(&mut only_static, "x-custom", "a", Indexing::Incremental),
+        b"\x00\x08x-custom\x01a"
+    );
+    assert_eq!(
+        one(&mut only_static, "x-custom", "a", Indexing::Incremental),
+        b"\x00\x08x-custom\x01a"
+    );
     assert!(none.table().is_empty() && only_static.table().is_empty());
 }
 
@@ -111,7 +178,10 @@ fn does_not_index_a_field_larger_than_the_table() {
     assert_eq!(table(encoder.table().iter()), [field("x-small", "a")]);
     // An entry of exactly the capacity is indexed.
     let exact = "v".repeat(DEFAULT_TABLE_SIZE - 32 - 7);
-    assert_eq!(one(&mut encoder, "x-exact", &exact, Indexing::Incremental)[0], 0x40);
+    assert_eq!(
+        one(&mut encoder, "x-exact", &exact, Indexing::Incremental)[0],
+        0x40
+    );
     assert_eq!(table(encoder.table().iter()), [field("x-exact", &exact)]);
 }
 
@@ -125,7 +195,10 @@ fn writes_strings_with_and_without_huffman() {
             let block = one(&mut encoder, "x", string, Indexing::NotIndexed);
             // The value follows the literal name `x`.
             assert_eq!(block[3] & 0x80, flag, "{huffman:?} {string}");
-            assert_eq!(decode(&mut Decoder::default(), &block).unwrap(), [field("x", string)]);
+            assert_eq!(
+                decode(&mut Decoder::default(), &block).unwrap(),
+                [field("x", string)]
+            );
         }
     }
 }
@@ -147,7 +220,10 @@ fn signals_a_smaller_table_in_the_first_block() {
         ..EncoderOptions::default()
     });
     assert_eq!(encoder.table().capacity(), 512);
-    assert_eq!(encode(&mut encoder, &[], Indexing::Incremental), [0x3f, 0xe1, 0x03]);
+    assert_eq!(
+        encode(&mut encoder, &[], Indexing::Incremental),
+        [0x3f, 0xe1, 0x03]
+    );
     assert_eq!(encode(&mut encoder, &[], Indexing::Incremental), [0u8; 0]);
     // A larger decoder limit is capped.
     encoder.set_table_size_limit(65536);
@@ -172,9 +248,15 @@ fn signals_the_smallest_and_final_sizes() {
     // One change signals one update, and an unchanged limit none.
     encoder.set_table_size_limit(1024);
     encoder.set_table_size_limit(1024);
-    assert_eq!(encode(&mut encoder, &[], Indexing::Incremental), [0x3f, 0xe1, 0x07]);
+    assert_eq!(
+        encode(&mut encoder, &[], Indexing::Incremental),
+        [0x3f, 0xe1, 0x07]
+    );
     encoder.set_table_size_limit(2048);
-    assert_eq!(encode(&mut encoder, &[], Indexing::Incremental), [0x3f, 0xe1, 0x0f]);
+    assert_eq!(
+        encode(&mut encoder, &[], Indexing::Incremental),
+        [0x3f, 0xe1, 0x0f]
+    );
     // A change undone before the next block still signals the smaller size.
     encoder.set_table_size_limit(1000);
     encoder.set_table_size_limit(2048);
@@ -193,7 +275,10 @@ fn encoders_are_independent_and_cloneable() {
     let mut encoder = Encoder::default();
     one(&mut encoder, "x-name", "value", Indexing::Incremental);
     let mut clone = encoder.clone();
-    assert_eq!(one(&mut clone, "x-name", "value", Indexing::Incremental), [0xbe]);
+    assert_eq!(
+        one(&mut clone, "x-name", "value", Indexing::Incremental),
+        [0xbe]
+    );
     encoder.set_table_size_limit(0);
     assert_eq!(clone.table().len(), 1);
     assert!(format!("{encoder:?}").contains("Encoder"));
@@ -205,6 +290,8 @@ fn encoders_are_independent_and_cloneable() {
 fn appends_to_reused_output() {
     let mut encoder = Encoder::default();
     let mut output = b"frame header".to_vec();
-    encoder.begin_block(&mut output).encode(b":method", b"GET", Indexing::Incremental);
+    encoder
+        .begin_block(&mut output)
+        .encode(b":method", b"GET", Indexing::Incremental);
     assert_eq!(output, b"frame header\x82");
 }

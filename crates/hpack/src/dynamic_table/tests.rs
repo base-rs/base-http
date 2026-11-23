@@ -6,7 +6,12 @@ use super::*;
 fn entries(table: &DynamicTable) -> Vec<(String, String)> {
     table
         .iter()
-        .map(|(name, value)| (String::from_utf8(name.to_vec()).unwrap(), String::from_utf8(value.to_vec()).unwrap()))
+        .map(|(name, value)| {
+            (
+                String::from_utf8(name.to_vec()).unwrap(),
+                String::from_utf8(value.to_vec()).unwrap(),
+            )
+        })
         .collect()
 }
 
@@ -16,11 +21,14 @@ fn insert(table: &mut DynamicTable, name: &str, value: &str) -> bool {
 
 /// Checks the size against the entries, as `protocol-hpack`'s `compute_current_table_size` does.
 fn check_size(table: &DynamicTable) {
-    let size: usize = table.iter().map(|(name, value)| name.len() + value.len() + ENTRY_OVERHEAD).sum();
+    let size: usize = table
+        .iter()
+        .map(|(name, value)| name.len() + value.len() + ENTRY_OVERHEAD)
+        .sum();
     assert_eq!(table.size(), size);
     assert!(table.size() <= table.capacity());
     assert_eq!(table.len(), table.iter().len());
-    assert_eq!(table.is_empty(), table.len() == 0);
+    assert_eq!(table.is_empty(), table.iter().next().is_none());
 }
 
 #[test]
@@ -115,7 +123,10 @@ fn an_entry_can_take_the_name_of_an_entry_it_evicts() {
     insert(&mut table, "custom-name", "first-value");
     let size = table.size();
     assert!(table.insert(EntryName::Entry(0), "x".repeat(100 - size).as_bytes()));
-    assert_eq!(entries(&table), [("custom-name".into(), "x".repeat(100 - size))]);
+    assert_eq!(
+        entries(&table),
+        [("custom-name".into(), "x".repeat(100 - size))]
+    );
     check_size(&table);
 }
 
@@ -126,9 +137,27 @@ fn finds_the_newest_exact_and_name_matches() {
     insert(&mut table, "other", "a");
     insert(&mut table, "name", "b");
     insert(&mut table, "names", "b");
-    assert_eq!(table.find(b"name", b"a"), Some(TableMatch { name: 1, exact: Some(3) }));
-    assert_eq!(table.find(b"name", b"b"), Some(TableMatch { name: 1, exact: Some(1) }));
-    assert_eq!(table.find(b"name", b"c"), Some(TableMatch { name: 1, exact: None }));
+    assert_eq!(
+        table.find(b"name", b"a"),
+        Some(TableMatch {
+            name: 1,
+            exact: Some(3)
+        })
+    );
+    assert_eq!(
+        table.find(b"name", b"b"),
+        Some(TableMatch {
+            name: 1,
+            exact: Some(1)
+        })
+    );
+    assert_eq!(
+        table.find(b"name", b"c"),
+        Some(TableMatch {
+            name: 1,
+            exact: None
+        })
+    );
     assert_eq!(table.find(b"nameX", b"a"), None);
     assert_eq!(table.find(b"missing", b"a"), None);
 }
@@ -139,17 +168,28 @@ fn reuses_its_buffer_in_the_steady_state() {
     let mut capacity = 0;
     for round in 0..10_000 {
         let value = format!("value-{}", round % 97);
-        let name = if round % 3 == 0 { EntryName::Entry(0) } else { EntryName::Bytes(b"name") };
+        let name = if round % 3 == 0 {
+            EntryName::Entry(0)
+        } else {
+            EntryName::Bytes(b"name")
+        };
         if table.is_empty() {
             insert(&mut table, "seed", "seed");
         }
         assert!(table.insert(name, value.as_bytes()));
-        assert!(table.bytes.len() <= 3 * table.capacity(), "{}", table.bytes.len());
+        assert!(
+            table.bytes.len() <= 3 * table.capacity(),
+            "{}",
+            table.bytes.len()
+        );
         check_size(&table);
         if round == 1_000 {
             capacity = table.bytes.capacity();
         }
     }
     assert_eq!(table.bytes.capacity(), capacity);
-    assert_eq!(table.get(0).unwrap().1, format!("value-{}", 9_999 % 97).as_bytes());
+    assert_eq!(
+        table.get(0).unwrap().1,
+        format!("value-{}", 9_999 % 97).as_bytes()
+    );
 }

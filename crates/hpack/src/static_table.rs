@@ -89,7 +89,8 @@ pub(crate) struct TableMatch {
 /// The name is dispatched on its length and first byte before the few candidates are compared, without hashing, as the HTTP/2 requirements for static table indices require.
 pub(crate) fn find(name: &[u8], value: &[u8]) -> Option<TableMatch> {
     let index = name_index(name)?;
-    let exact = (index..index + values(index)).find(|&index| STATIC_TABLE[index - 1].1.as_bytes() == value);
+    let exact =
+        (index..index + values(index)).find(|&index| STATIC_TABLE[index - 1].1.as_bytes() == value);
     Some(TableMatch { name: index, exact })
 }
 
@@ -106,7 +107,10 @@ fn values(index: usize) -> usize {
 
 /// The first index of the entry named `name`, among `candidates`.
 fn one_of(name: &[u8], candidates: &[usize]) -> Option<usize> {
-    candidates.iter().copied().find(|&index| STATIC_TABLE[index - 1].0.as_bytes() == name)
+    candidates
+        .iter()
+        .copied()
+        .find(|&index| STATIC_TABLE[index - 1].0.as_bytes() == name)
 }
 
 /// The first index of the entry named `name`.

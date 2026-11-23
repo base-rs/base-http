@@ -12,7 +12,10 @@
 
 mod support;
 
-use base_http_hpack::{DecodeError, Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing, STATIC_TABLE, TableUse};
+use base_http_hpack::{
+    DecodeError, Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing,
+    STATIC_TABLE, TableUse,
+};
 use support::*;
 
 fn sequence() -> Vec<Vec<Field>> {
@@ -74,18 +77,36 @@ fn encodes_the_sequence_with_random_table_sizes() {
 
 fn random_name(random: &mut Random) -> Vec<u8> {
     match random.below(5) {
-        0 | 1 => STATIC_TABLE[random.below(STATIC_TABLE.len())].0.as_bytes().to_vec(),
-        2 => ["x-request-id", "x-forwarded-for", "user-agent", "cookie", "x-trace"][random.below(5)].as_bytes().to_vec(),
-        3 => (0..1 + random.below(20)).map(|_| b'a' + random.below(26) as u8).collect(),
+        0 | 1 => STATIC_TABLE[random.below(STATIC_TABLE.len())]
+            .0
+            .as_bytes()
+            .to_vec(),
+        2 => [
+            "x-request-id",
+            "x-forwarded-for",
+            "user-agent",
+            "cookie",
+            "x-trace",
+        ][random.below(5)]
+        .as_bytes()
+        .to_vec(),
+        3 => (0..1 + random.below(20))
+            .map(|_| b'a' + random.below(26) as u8)
+            .collect(),
         _ => random.bytes(12),
     }
 }
 
 fn random_value(random: &mut Random) -> Vec<u8> {
     match random.below(6) {
-        0 => STATIC_TABLE[random.below(STATIC_TABLE.len())].1.as_bytes().to_vec(),
+        0 => STATIC_TABLE[random.below(STATIC_TABLE.len())]
+            .1
+            .as_bytes()
+            .to_vec(),
         1 => b"value".to_vec(),
-        2 | 3 => (0..random.below(60)).map(|_| b' ' + random.below(95) as u8).collect(),
+        2 | 3 => (0..random.below(60))
+            .map(|_| b' ' + random.below(95) as u8)
+            .collect(),
         4 => random.bytes(300),
         _ => random.bytes(2000),
     }
@@ -106,7 +127,9 @@ fn random_fields(random: &mut Random) -> Vec<(Field, Indexing)> {
 
 /// Splits `block` into up to four fragments at random positions.
 fn fragments<'a>(random: &mut Random, block: &'a [u8]) -> Vec<&'a [u8]> {
-    let mut splits: Vec<usize> = (0..random.below(4)).map(|_| random.below(block.len() + 1)).collect();
+    let mut splits: Vec<usize> = (0..random.below(4))
+        .map(|_| random.below(block.len() + 1))
+        .collect();
     splits.sort();
     let mut fragments = Vec::new();
     let mut start = 0;
@@ -152,21 +175,50 @@ fn random_fields_round_trip_in_random_fragments() {
             let context = format!("seed {seed} round {round}");
             let mut decoded = Vec::new();
             for fragment in fragments(&mut random, &block) {
-                decoder.decode(fragment, |field| decoded.push((owned(field), field.indexing()))).unwrap();
+                decoder
+                    .decode(fragment, |field| {
+                        decoded.push((owned(field), field.indexing()))
+                    })
+                    .unwrap();
             }
-            assert_eq!(decoder.finish().unwrap().field_count(), fields.len(), "{context}");
+            assert_eq!(
+                decoder.finish().unwrap().field_count(),
+                fields.len(),
+                "{context}"
+            );
             for ((sent, indexing), (received, received_indexing)) in fields.iter().zip(&decoded) {
                 assert_eq!(sent, received, "{context}");
                 // Sensitivity always survives; a field without indexing may arrive through a table reference.
-                assert_eq!(*indexing == Indexing::NeverIndexed, *received_indexing == Indexing::NeverIndexed, "{context}");
+                assert_eq!(
+                    *indexing == Indexing::NeverIndexed,
+                    *received_indexing == Indexing::NeverIndexed,
+                    "{context}"
+                );
             }
-            assert_eq!(table(decoder.table().iter()), table(encoder.table().iter()), "{context}");
-            assert_eq!(decoder.table().capacity(), encoder.table().capacity(), "{context}");
+            assert_eq!(
+                table(decoder.table().iter()),
+                table(encoder.table().iter()),
+                "{context}"
+            );
+            assert_eq!(
+                decoder.table().capacity(),
+                encoder.table().capacity(),
+                "{context}"
+            );
 
             // `fluke-hpack` rejects a block of only table size updates, which RFC 7541 permits.
             if !fields.is_empty() {
-                let oracle_fields = oracle.decode(&block).unwrap_or_else(|error| panic!("{context}: {error:?}"));
-                assert_eq!(oracle_fields, fields.iter().map(|(field, _)| field.clone()).collect::<Vec<_>>(), "{context}");
+                let oracle_fields = oracle
+                    .decode(&block)
+                    .unwrap_or_else(|error| panic!("{context}: {error:?}"));
+                assert_eq!(
+                    oracle_fields,
+                    fields
+                        .iter()
+                        .map(|(field, _)| field.clone())
+                        .collect::<Vec<_>>(),
+                    "{context}"
+                );
             } else if !block.is_empty() {
                 oracle.decode(&[&block[..], &[0x82]].concat()).unwrap();
             }
@@ -185,25 +237,40 @@ fn decodes_what_fluke_hpack_encodes() {
             ..DecoderOptions::default()
         });
         for round in 0..20 {
-            let fields: Vec<Field> = random_fields(&mut random).into_iter().map(|(field, _)| field).collect();
+            let fields: Vec<Field> = random_fields(&mut random)
+                .into_iter()
+                .map(|(field, _)| field)
+                .collect();
             let block = oracle.encode(fields.iter().map(|(name, value)| (&name[..], &value[..])));
-            assert_eq!(decode(&mut decoder, &block).unwrap(), fields, "seed {seed} round {round}");
+            assert_eq!(
+                decode(&mut decoder, &block).unwrap(),
+                fields,
+                "seed {seed} round {round}"
+            );
         }
     }
 }
 
 /// Decodes `blocks` whole and in random fragments, which must agree on every field and outcome.
-fn decode_both_ways(random: &mut Random, blocks: &[Vec<u8>], options: &DecoderOptions) -> Vec<Result<usize, DecodeError>> {
+fn decode_both_ways(
+    random: &mut Random,
+    blocks: &[Vec<u8>],
+    options: &DecoderOptions,
+) -> Vec<Result<usize, DecodeError>> {
     let mut whole = Decoder::new(options.clone());
     let mut split = Decoder::new(options.clone());
     let mut outcomes = Vec::new();
     for block in blocks {
         let mut whole_fields = Vec::new();
-        let whole_result = whole.decode_block(block, |field| whole_fields.push((owned(field), field.static_index(), field.indexing())));
+        let whole_result = whole.decode_block(block, |field| {
+            whole_fields.push((owned(field), field.static_index(), field.indexing()))
+        });
         let mut split_fields = Vec::new();
         let mut split_result = Ok(());
         for fragment in fragments(random, block) {
-            split_result = split.decode(fragment, |field| split_fields.push((owned(field), field.static_index(), field.indexing())));
+            split_result = split.decode(fragment, |field| {
+                split_fields.push((owned(field), field.static_index(), field.indexing()))
+            });
             if split_result.is_err() {
                 break;
             }
@@ -251,5 +318,8 @@ fn arbitrary_input_decodes_alike_whole_and_in_fragments() {
             }
         }
     }
-    assert!(accepted > 1000 && rejected > 1000, "{accepted} accepted, {rejected} rejected");
+    assert!(
+        accepted > 1000 && rejected > 1000,
+        "{accepted} accepted, {rejected} rejected"
+    );
 }

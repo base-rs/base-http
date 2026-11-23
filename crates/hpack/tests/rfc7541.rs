@@ -47,7 +47,9 @@ fn examples() -> Vec<Example> {
                     "always" => HuffmanUse::Always,
                     other => panic!("unknown Huffman mode {other}"),
                 },
-                decompressor_only: fixture.get("only").is_some_and(|only| only == "decompressor"),
+                decompressor_only: fixture
+                    .get("only")
+                    .is_some_and(|only| only == "decompressor"),
                 streams: fixture["streams"]
                     .as_array()
                     .unwrap()
@@ -76,7 +78,11 @@ fn decoder_emits_the_fields_and_keeps_the_table() {
         });
         for (nth, stream) in example.streams.iter().enumerate() {
             let context = format!("{} request {}", example.title, nth + 1);
-            assert_eq!(decode(&mut decoder, &stream.wire).unwrap(), stream.emitted, "{context}");
+            assert_eq!(
+                decode(&mut decoder, &stream.wire).unwrap(),
+                stream.emitted,
+                "{context}"
+            );
             assert_eq!(table(decoder.table().iter()), stream.table, "{context}");
             assert_eq!(decoder.table().size(), stream.table_size, "{context}");
         }
@@ -86,7 +92,10 @@ fn decoder_emits_the_fields_and_keeps_the_table() {
 #[test]
 fn encoder_emits_the_bytes_and_keeps_the_table() {
     let mut encoded = 0;
-    for example in examples().into_iter().filter(|example| !example.decompressor_only) {
+    for example in examples()
+        .into_iter()
+        .filter(|example| !example.decompressor_only)
+    {
         let mut encoder = Encoder::new(EncoderOptions {
             initial_table_size: example.table_size,
             table_size_limit: example.table_size,
@@ -95,7 +104,11 @@ fn encoder_emits_the_bytes_and_keeps_the_table() {
         });
         for (nth, stream) in example.streams.iter().enumerate() {
             let context = format!("{} request {}", example.title, nth + 1);
-            assert_eq!(encode(&mut encoder, &stream.emitted, Indexing::Incremental), stream.wire, "{context}");
+            assert_eq!(
+                encode(&mut encoder, &stream.emitted, Indexing::Incremental),
+                stream.wire,
+                "{context}"
+            );
             assert_eq!(table(encoder.table().iter()), stream.table, "{context}");
             assert_eq!(encoder.table().size(), stream.table_size, "{context}");
         }

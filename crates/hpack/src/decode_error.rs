@@ -34,12 +34,22 @@ impl fmt::Display for DecodeError {
             Self::Truncated => formatter.write_str("header block ended within a representation"),
             Self::IntegerOverflow => formatter.write_str("integer exceeds the HPACK integer bound"),
             Self::InvalidIndex { index } => write!(formatter, "invalid table index {index}"),
-            Self::StringTooLong { length, limit } => write!(formatter, "string length {length} exceeds limit {limit}"),
-            Self::HuffmanEndOfString => formatter.write_str("Huffman coded string contains the end-of-string symbol"),
+            Self::StringTooLong { length, limit } => {
+                write!(formatter, "string length {length} exceeds limit {limit}")
+            }
+            Self::HuffmanEndOfString => {
+                formatter.write_str("Huffman coded string contains the end-of-string symbol")
+            }
             Self::HuffmanPadding => formatter.write_str("Huffman coded string has invalid padding"),
-            Self::TableSizeTooLarge { size, limit } => write!(formatter, "dynamic table size {size} exceeds limit {limit}"),
-            Self::MisplacedTableSizeUpdate => formatter.write_str("dynamic table size update after a field representation"),
-            Self::MissingTableSizeUpdate => formatter.write_str("header block does not begin with the required dynamic table size update"),
+            Self::TableSizeTooLarge { size, limit } => {
+                write!(formatter, "dynamic table size {size} exceeds limit {limit}")
+            }
+            Self::MisplacedTableSizeUpdate => {
+                formatter.write_str("dynamic table size update after a field representation")
+            }
+            Self::MissingTableSizeUpdate => formatter.write_str(
+                "header block does not begin with the required dynamic table size update",
+            ),
         }
     }
 }

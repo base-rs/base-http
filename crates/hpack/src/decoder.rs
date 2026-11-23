@@ -181,7 +181,10 @@ impl Decoder {
         let core = &mut self.core;
         core.table_size_limit = limit;
         if limit < core.table.capacity() {
-            core.required_update = Some(core.required_update.map_or(limit, |minimum| minimum.min(limit)));
+            core.required_update = Some(
+                core.required_update
+                    .map_or(limit, |minimum| minimum.min(limit)),
+            );
         }
     }
 
@@ -193,16 +196,22 @@ impl Decoder {
     /// Decodes a fragment of a header block, calling `on_field` with each complete field the section limits allow.
     ///
     /// A representation incomplete at the end of `fragment` is kept, at most one field's encoded bytes, and decoded with the next fragment. An error ends the block, and leaves the dynamic table possibly different from the encoder's.
-    pub fn decode(&mut self, fragment: &[u8], mut on_field: impl FnMut(DecodedField<'_>)) -> Result<(), DecodeError> {
+    pub fn decode(
+        &mut self,
+        fragment: &[u8],
+        mut on_field: impl FnMut(DecodedField<'_>),
+    ) -> Result<(), DecodeError> {
         let result = if self.pending.is_empty() {
             self.core
                 .decode(fragment, &mut on_field)
                 .map(|consumed| self.pending.extend_from_slice(&fragment[consumed..]))
         } else {
             self.pending.extend_from_slice(fragment);
-            self.core.decode(&self.pending, &mut on_field).map(|consumed| {
-                self.pending.drain(..consumed);
-            })
+            self.core
+                .decode(&self.pending, &mut on_field)
+                .map(|consumed| {
+                    self.pending.drain(..consumed);
+                })
         };
         if result.is_err() {
             self.reset_block();
@@ -226,7 +235,11 @@ impl Decoder {
     }
 
     /// Decodes a whole header block: [`decode`](Self::decode) and then [`finish`](Self::finish).
-    pub fn decode_block(&mut self, block: &[u8], on_field: impl FnMut(DecodedField<'_>)) -> Result<SectionSummary, DecodeError> {
+    pub fn decode_block(
+        &mut self,
+        block: &[u8],
+        on_field: impl FnMut(DecodedField<'_>),
+    ) -> Result<SectionSummary, DecodeError> {
         self.decode(block, on_field)?;
         self.finish()
     }
@@ -269,7 +282,11 @@ struct StringLiteral {
 
 impl DecoderCore {
     /// Decodes the complete representations at the start of `input`, returning the bytes they used.
-    fn decode(&mut self, input: &[u8], on_field: &mut impl FnMut(DecodedField<'_>)) -> Result<usize, DecodeError> {
+    fn decode(
+        &mut self,
+        input: &[u8],
+        on_field: &mut impl FnMut(DecodedField<'_>),
+    ) -> Result<usize, DecodeError> {
         let mut position = 0;
         while position < input.len() {
             match self.step(&input[position..])? {
@@ -314,14 +331,25 @@ impl DecoderCore {
             0 => return Err(DecodeError::InvalidIndex { index }),
             1..=STATIC_TABLE_LEN => {
                 let (name, value) = STATIC_TABLE[index - 1];
-                (Source::Static(name.as_bytes()), Source::Static(value.as_bytes()), Some(index))
+                (
+                    Source::Static(name.as_bytes()),
+                    Source::Static(value.as_bytes()),
+                    Some(index),
+                )
             }
             _ => {
                 let dynamic = self.dynamic_index(index)?;
-                (Source::TableName(dynamic), Source::TableValue(dynamic), None)
+                (
+                    Source::TableName(dynamic),
+                    Source::TableValue(dynamic),
+                    None,
+                )
             }
         };
-        Ok(Step::Consumed(length, self.deliver(input, name, value, static_index, Indexing::Incremental)))
+        Ok(Step::Consumed(
+            length,
+            self.deliver(input, name, value, static_index, Indexing::Incremental),
+        ))
     }
 
     /// A dynamic table size update, RFC 7541 §6.3, which may only begin a block, §4.2.
@@ -346,7 +374,12 @@ impl DecoderCore {
     }
 
     /// A literal field, RFC 7541 §6.2.
-    fn literal<'a>(&'a mut self, input: &'a [u8], indexing: Indexing, prefix_bits: u32) -> Result<Step<'a>, DecodeError> {
+    fn literal<'a>(
+        &'a mut self,
+        input: &'a [u8],
+        indexing: Indexing,
+        prefix_bits: u32,
+    ) -> Result<Step<'a>, DecodeError> {
         let Some((name_index, mut length)) = integer::decode(input, prefix_bits)? else {
             return Ok(Step::Incomplete);
         };
@@ -356,7 +389,9 @@ impl DecoderCore {
                 Some(literal) => Name::Literal(literal),
                 None => return Ok(Step::Incomplete),
             },
-            1..=STATIC_TABLE_LEN => Name::Source(Source::Static(STATIC_TABLE[name_index - 1].0.as_bytes())),
+            1..=STATIC_TABLE_LEN => {
+                Name::Source(Source::Static(STATIC_TABLE[name_index - 1].0.as_bytes()))
+            }
             _ => Name::Source(Source::TableName(self.dynamic_index(name_index)?)),
         };
         let Some(value_literal) = self.locate_string(input, &mut length)? else {
@@ -370,7 +405,9 @@ impl DecoderCore {
             Name::Source(source) => source,
         };
         let mut value = self.decode_string(input, value_literal)?;
-        let static_index = (1..=STATIC_TABLE_LEN).contains(&name_index).then_some(name_index);
+        let static_index = (1..=STATIC_TABLE_LEN)
+            .contains(&name_index)
+            .then_some(name_index);
 
         if indexing == Indexing::Incremental {
             let name_len = self.source_len(input, &name);
@@ -394,11 +431,18 @@ impl DecoderCore {
                 value = Source::TableValue(0);
             }
         }
-        Ok(Step::Consumed(length, self.deliver(input, name, value, static_index, indexing)))
+        Ok(Step::Consumed(
+            length,
+            self.deliver(input, name, value, static_index, indexing),
+        ))
     }
 
     /// Locates the string literal at `*position`, RFC 7541 §5.2, advancing past it, or returns `None` if the input ends first.
-    fn locate_string(&self, input: &[u8], position: &mut usize) -> Result<Option<StringLiteral>, DecodeError> {
+    fn locate_string(
+        &self,
+        input: &[u8],
+        position: &mut usize,
+    ) -> Result<Option<StringLiteral>, DecodeError> {
         let rest = &input[*position..];
         let Some((length, header)) = integer::decode(rest, 7)? else {
             return Ok(None);
@@ -420,7 +464,11 @@ impl DecoderCore {
         }))
     }
 
-    fn decode_string(&mut self, input: &[u8], literal: StringLiteral) -> Result<Source, DecodeError> {
+    fn decode_string(
+        &mut self,
+        input: &[u8],
+        literal: StringLiteral,
+    ) -> Result<Source, DecodeError> {
         if literal.huffman {
             let start = self.scratch.len();
             huffman::decode(&input[literal.bytes], &mut self.scratch)?;
@@ -454,11 +502,20 @@ impl DecoderCore {
     }
 
     /// Counts a field against the section limits, returning it if they allow its delivery.
-    fn deliver<'a>(&'a mut self, input: &'a [u8], name: Source, value: Source, static_index: Option<usize>, indexing: Indexing) -> Option<DecodedField<'a>> {
+    fn deliver<'a>(
+        &'a mut self,
+        input: &'a [u8],
+        name: Source,
+        value: Source,
+        static_index: Option<usize>,
+        indexing: Indexing,
+    ) -> Option<DecodedField<'a>> {
         let name_len = self.source_len(input, &name);
         let value_len = self.source_len(input, &value);
         let summary = &mut self.block.summary;
-        summary.size = summary.size.saturating_add(name_len + value_len + ENTRY_OVERHEAD);
+        summary.size = summary
+            .size
+            .saturating_add(name_len + value_len + ENTRY_OVERHEAD);
         summary.field_count += 1;
         if summary.limit_exceeded.is_none() {
             if summary.field_count > self.field_count_limit {
@@ -479,7 +536,12 @@ impl DecoderCore {
     }
 }
 
-fn resolve<'a>(table: &'a DynamicTable, scratch: &'a [u8], input: &'a [u8], source: &Source) -> &'a [u8] {
+fn resolve<'a>(
+    table: &'a DynamicTable,
+    scratch: &'a [u8],
+    input: &'a [u8],
+    source: &Source,
+) -> &'a [u8] {
     match source {
         Source::TableName(index) => table.entry(*index).0,
         Source::TableValue(index) => table.entry(*index).1,
@@ -493,6 +555,8 @@ fn resolve_literal<'a>(scratch: &'a [u8], input: &'a [u8], source: &Source) -> &
         Source::Static(bytes) => bytes,
         Source::Input(range) => &input[range.clone()],
         Source::Scratch(range) => &scratch[range.clone()],
-        Source::TableName(_) | Source::TableValue(_) => unreachable!("dynamic table sources are resolved through the table"),
+        Source::TableName(_) | Source::TableValue(_) => {
+            unreachable!("dynamic table sources are resolved through the table")
+        }
     }
 }

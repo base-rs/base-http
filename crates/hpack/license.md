@@ -1,11 +1,19 @@
 # MIT License
 
-Copyright, 2019-2026, by Samuel Williams.\
-Copyright, 2020, by Simon Perepelitsa.\
-Copyright, 2021, by Olle Jonsson.\
-Copyright, 2024, by Thomas Morgan.\
-Copyright, 2025, by Jean Boussier.\
-Copyright, 2026, by William T. Nelson.
+Copyright, 2013-2016, by Ilya Grigorik.\
+Copyright, 2014-2015, by Kaoru Maeda.\
+Copyright, 2015, by Tamir Duberstein.\
+Copyright, 2016, by George Ulmer.\
+Copyright, 2016, by Kien Nguyen Trung.\
+Copyright, 2018, by Byron Formwalt.\
+Copyright, 2018, by Kenichi Nakamura.\
+Copyright, 2018-2026, by Samuel Williams.\
+Copyright, 2018, by Tiago Cardoso.\
+Copyright, 2019, by Jingyi Chen.\
+Copyright, 2020, by Justin Mazzocchi.\
+Copyright, 2022, by Daniel Morrison.\
+Copyright, 2024, by Maruth Goyal.\
+Copyright, 2024, by Nathan Froyd.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 

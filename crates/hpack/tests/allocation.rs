@@ -18,7 +18,12 @@ fn request(round: usize, values: &mut [Vec<u8>; 3]) -> [(&'static [u8], usize, I
     }
     write!(values[0], "/items/{}?page={}", round % 50, round % 7).unwrap();
     write!(values[1], "request-{round:08}").unwrap();
-    write!(values[2], "session={:016x}", round.wrapping_mul(0x9e37_79b9)).unwrap();
+    write!(
+        values[2],
+        "session={:016x}",
+        round.wrapping_mul(0x9e37_79b9)
+    )
+    .unwrap();
     [
         (b":method", usize::MAX, Indexing::Incremental),
         (b":scheme", usize::MAX, Indexing::Incremental),
@@ -53,25 +58,30 @@ fn steady_state_encoding_and_decoding_do_not_allocate() {
     let mut block = Vec::new();
     let mut values = [Vec::new(), Vec::new(), Vec::new()];
     let mut checksum = 0usize;
-    let mut run = |round: usize, block: &mut Vec<u8>, values: &mut [Vec<u8>; 3], checksum: &mut usize| {
-        if round % 100 == 0 {
-            // A table size change, signalled at the start of the next block.
-            encoder.set_table_size_limit(if round % 200 == 0 { 256 } else { 4096 });
-        }
-        block.clear();
-        let fields = request(round, values);
-        let mut fields_encoder = encoder.begin_block(block);
-        for (name, value, indexing) in fields {
-            let value = values.get(value).map_or_else(|| fixed_value(name), |value| &value[..]);
-            fields_encoder.encode(name, value, indexing);
-        }
-        // Decode in two fragments, so that a representation is split between them.
-        let (first, second) = block.split_at(block.len() / 2);
-        let mut count = |field: base_http_hpack::DecodedField<'_>| *checksum += field.name().len() + field.value().len();
-        decoder.decode(first, &mut count).unwrap();
-        decoder.decode(second, &mut count).unwrap();
-        assert_eq!(decoder.finish().unwrap().field_count(), 9);
-    };
+    let mut run =
+        |round: usize, block: &mut Vec<u8>, values: &mut [Vec<u8>; 3], checksum: &mut usize| {
+            if round.is_multiple_of(100) {
+                // A table size change, signalled at the start of the next block.
+                encoder.set_table_size_limit(if round.is_multiple_of(200) { 256 } else { 4096 });
+            }
+            block.clear();
+            let fields = request(round, values);
+            let mut fields_encoder = encoder.begin_block(block);
+            for (name, value, indexing) in fields {
+                let value = values
+                    .get(value)
+                    .map_or_else(|| fixed_value(name), |value| &value[..]);
+                fields_encoder.encode(name, value, indexing);
+            }
+            // Decode in two fragments, so that a representation is split between them.
+            let (first, second) = block.split_at(block.len() / 2);
+            let mut count = |field: base_http_hpack::DecodedField<'_>| {
+                *checksum += field.name().len() + field.value().len()
+            };
+            decoder.decode(first, &mut count).unwrap();
+            decoder.decode(second, &mut count).unwrap();
+            assert_eq!(decoder.finish().unwrap().field_count(), 9);
+        };
     for round in 0..1_000 {
         run(round, &mut block, &mut values, &mut checksum);
     }

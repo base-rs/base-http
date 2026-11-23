@@ -126,7 +126,10 @@ impl Encoder {
         let capacity = limit.min(self.table_size_limit);
         if capacity != self.table.capacity() {
             self.table.set_capacity(capacity);
-            self.update = Some(self.update.map_or(capacity, |minimum| minimum.min(capacity)));
+            self.update = Some(
+                self.update
+                    .map_or(capacity, |minimum| minimum.min(capacity)),
+            );
         }
     }
 
@@ -141,7 +144,10 @@ impl Encoder {
             }
             integer::encode(output, 0x20, 5, capacity);
         }
-        HeaderBlockEncoder { encoder: self, output }
+        HeaderBlockEncoder {
+            encoder: self,
+            output,
+        }
     }
 
     fn encode(&mut self, output: &mut Vec<u8>, name: &[u8], value: &[u8], indexing: Indexing) {
@@ -194,7 +200,9 @@ impl Encoder {
         let huffman_len = match self.huffman {
             HuffmanUse::Never => None,
             HuffmanUse::Always => Some(huffman::encoded_len(bytes)),
-            HuffmanUse::Shorter => Some(huffman::encoded_len(bytes)).filter(|&len| len < bytes.len()),
+            HuffmanUse::Shorter => {
+                Some(huffman::encoded_len(bytes)).filter(|&len| len < bytes.len())
+            }
         };
         match huffman_len {
             Some(len) => {

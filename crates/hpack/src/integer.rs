@@ -41,7 +41,10 @@ pub(crate) fn encode(output: &mut Vec<u8>, pattern: u8, prefix_bits: u32, value:
 /// Decodes an integer with a `prefix_bits` prefix from the start of `input`, returning its value and the number of bytes it used, or `None` if `input` ends first.
 ///
 /// Fails with [`DecodeError::IntegerOverflow`] if the integer uses more than [`CONTINUATION_LIMIT`] continuation bytes or exceeds [`VALUE_LIMIT`].
-pub(crate) fn decode(input: &[u8], prefix_bits: u32) -> Result<Option<(usize, usize)>, DecodeError> {
+pub(crate) fn decode(
+    input: &[u8],
+    prefix_bits: u32,
+) -> Result<Option<(usize, usize)>, DecodeError> {
     let Some(&first) = input.first() else {
         return Ok(None);
     };

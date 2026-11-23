@@ -93,7 +93,10 @@ impl DynamicTable {
 
     fn fields(&self, entry: &Entry) -> (&[u8], &[u8]) {
         let name_end = entry.offset + entry.name_len;
-        (&self.bytes[entry.offset..name_end], &self.bytes[name_end..name_end + entry.value_len])
+        (
+            &self.bytes[entry.offset..name_end],
+            &self.bytes[name_end..name_end + entry.value_len],
+        )
     }
 
     /// Finds the newest entry with `name` and `value`, and the newest with `name`.
@@ -107,7 +110,10 @@ impl DynamicTable {
             if entry_name != name {
                 continue;
             }
-            let found = found.get_or_insert(TableMatch { name: index, exact: None });
+            let found = found.get_or_insert(TableMatch {
+                name: index,
+                exact: None,
+            });
             if entry_value == value {
                 found.exact = Some(index);
                 break;
@@ -149,7 +155,8 @@ impl DynamicTable {
             EntryName::Bytes(name) => self.bytes.extend_from_slice(name),
             EntryName::Entry(index) => {
                 let entry = self.entries[index];
-                self.bytes.extend_from_within(entry.offset..entry.offset + entry.name_len);
+                self.bytes
+                    .extend_from_within(entry.offset..entry.offset + entry.name_len);
             }
         }
         self.bytes.extend_from_slice(value);
@@ -167,7 +174,10 @@ impl DynamicTable {
     }
 
     fn evict(&mut self) {
-        let entry = self.entries.pop_back().expect("a table with a nonzero size has entries");
+        let entry = self
+            .entries
+            .pop_back()
+            .expect("a table with a nonzero size has entries");
         self.size -= entry.size();
     }
 
@@ -191,7 +201,10 @@ impl fmt::Debug for DynamicTable {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut entries = formatter.debug_list();
         for (name, value) in self.iter() {
-            entries.entry(&(String::from_utf8_lossy(name), String::from_utf8_lossy(value)));
+            entries.entry(&(
+                String::from_utf8_lossy(name),
+                String::from_utf8_lossy(value),
+            ));
         }
         entries.finish()
     }

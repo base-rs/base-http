@@ -5,7 +5,9 @@
 
 #![no_main]
 
-use base_http_hpack::{Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing, TableUse};
+use base_http_hpack::{
+    Decoder, DecoderOptions, Encoder, EncoderOptions, HuffmanUse, Indexing, TableUse,
+};
 use libfuzzer_sys::fuzz_target;
 
 /// Reads a length-prefixed slice.
@@ -23,8 +25,18 @@ fuzz_target!(|input: &[u8]| {
     };
     let mut encoder = Encoder::new(EncoderOptions {
         table_size_limit: [0, 64, 256, 4096][usize::from(configuration & 3)],
-        huffman: [HuffmanUse::Never, HuffmanUse::Always, HuffmanUse::Shorter, HuffmanUse::Shorter][usize::from(configuration >> 2 & 3)],
-        tables: [TableUse::None, TableUse::Static, TableUse::All, TableUse::All][usize::from(configuration >> 4 & 3)],
+        huffman: [
+            HuffmanUse::Never,
+            HuffmanUse::Always,
+            HuffmanUse::Shorter,
+            HuffmanUse::Shorter,
+        ][usize::from(configuration >> 2 & 3)],
+        tables: [
+            TableUse::None,
+            TableUse::Static,
+            TableUse::All,
+            TableUse::All,
+        ][usize::from(configuration >> 4 & 3)],
         ..EncoderOptions::default()
     });
     let mut decoder = Decoder::new(DecoderOptions {
@@ -41,11 +53,22 @@ fuzz_target!(|input: &[u8]| {
             flags
         });
         let field = match flags {
-            Some(flags) if flags & 0x80 == 0 => take(&mut input).zip(take(&mut input)).map(|field| (field, flags)),
+            Some(flags) if flags & 0x80 == 0 => take(&mut input)
+                .zip(take(&mut input))
+                .map(|field| (field, flags)),
             _ => None,
         };
         if let Some(((name, value), flags)) = field {
-            fields.push((name, value, [Indexing::Incremental, Indexing::NotIndexed, Indexing::NeverIndexed, Indexing::Incremental][usize::from(flags & 3)]));
+            fields.push((
+                name,
+                value,
+                [
+                    Indexing::Incremental,
+                    Indexing::NotIndexed,
+                    Indexing::NeverIndexed,
+                    Indexing::Incremental,
+                ][usize::from(flags & 3)],
+            ));
             continue;
         }
         block.clear();
@@ -54,8 +77,25 @@ fuzz_target!(|input: &[u8]| {
             fields_encoder.encode(name, value, indexing);
         }
         let mut decoded = Vec::new();
-        decoder.decode_block(&block, |field| decoded.push((field.name().to_vec(), field.value().to_vec(), field.indexing() == Indexing::NeverIndexed))).unwrap();
-        assert!(decoded.iter().map(|(name, value, sensitive)| (&name[..], &value[..], *sensitive)).eq(fields.iter().map(|&(name, value, indexing)| (name, value, indexing == Indexing::NeverIndexed))));
+        decoder
+            .decode_block(&block, |field| {
+                decoded.push((
+                    field.name().to_vec(),
+                    field.value().to_vec(),
+                    field.indexing() == Indexing::NeverIndexed,
+                ))
+            })
+            .unwrap();
+        assert!(
+            decoded
+                .iter()
+                .map(|(name, value, sensitive)| (&name[..], &value[..], *sensitive))
+                .eq(fields.iter().map(|&(name, value, indexing)| (
+                    name,
+                    value,
+                    indexing == Indexing::NeverIndexed
+                )))
+        );
         assert!(decoder.table().iter().eq(encoder.table().iter()));
         fields.clear();
         match flags {
