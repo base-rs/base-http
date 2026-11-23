@@ -421,3 +421,41 @@ fn a_refused_connection_spawn_fails_the_call() {
     }
     block_on(scheduler.shutdown());
 }
+
+#[test]
+fn a_connection_dropped_after_the_lifetime_ends_cancels_the_call() {
+    // The lifetime ends after the call queues its connection and before the
+    // driver first runs, which then drops the connection without spawning it.
+    let scheduler = scheduler();
+    let parent = Refusing {
+        scheduler: &scheduler,
+        error: || base_scheduler::SpawnError::SchedulerClosed,
+    };
+    let address: SocketAddr = ([127, 0, 0, 1], 9).into();
+    let (client, driver) =
+        Client::new(&scheduler, Endpoint::new(address), Default::default()).unwrap();
+    let lifetime = Cancellation::new();
+    let calling = async {
+        let never = Cancellation::never();
+        let mut call =
+            std::pin::pin!(client.call(Request::new(Method::GET, "/", EmptyBody), &never));
+        assert!(
+            futures_lite::future::poll_once(call.as_mut())
+                .await
+                .is_none()
+        );
+        lifetime.cancel();
+        let result = call.await;
+        client.begin_close();
+        result
+    };
+    let (result, driven) = block_on(zip(calling, driver.run(parent, &lifetime)));
+    drop(client);
+    driven.unwrap();
+    let error = result.err();
+    assert!(
+        matches!(error, Some(base_http_client::Error::Cancelled)),
+        "{error:?}"
+    );
+    block_on(scheduler.shutdown());
+}
