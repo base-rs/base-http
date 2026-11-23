@@ -6,7 +6,7 @@ use base_http::{
     body::{BodyFrame, EmptyBody, ReadableBody},
 };
 use base_http_client::{Client as BaseClient, Endpoint, Options};
-use base_scheduler::{Cancellation, Clock, Placement, Spawn, SpawnScoped};
+use base_scheduler::{Cancellation, Clock, Parent, Spawn, SpawnScoped};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_util::{StreamExt, future::join, stream::FuturesUnordered};
 use hdrhistogram::Histogram;
@@ -325,11 +325,11 @@ fn result_json(
 }
 // Given the scheduler, the driver polls every connection within its own future; given a scope,
 // it runs each connection as a task of the scope.
-async fn base_client<'p, P>(placement: P, args: &Args) -> Result<serde_json::Value>
+async fn base_client<'p, P>(parent: P, args: &Args) -> Result<serde_json::Value>
 where
-    P: Placement<'p, Scheduler = NativeScheduler>,
+    P: Parent<'p, Scheduler = NativeScheduler>,
 {
-    let scheduler = placement.scheduler();
+    let scheduler = parent.scheduler();
     let mut endpoint = Endpoint::new(args.address);
     if args.tls {
         endpoint = endpoint.with_tls(Arc::new(client_config(args)?), "127.0.0.1");
@@ -359,7 +359,7 @@ where
         client.client.begin_close();
         result
     };
-    let (driven, measured) = join(driver.run(placement, &lifetime), work).await;
+    let (driven, measured) = join(driver.run(parent, &lifetime), work).await;
     driven?;
     assert_eq!(client.client.pool_stats().total(), 0);
     measured

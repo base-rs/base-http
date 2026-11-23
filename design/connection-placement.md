@@ -36,7 +36,7 @@ scheduler.scope(async |scope| {
 
 In both modes, the server's or client's supervision keeps owning admission, cancellation and joined retirement: a spawned connection counts against `max_connections` or the pool as an interleaved one does, cancellation reaches it the same way, and `run` returns only after every connection it started has retired. The direct HTTP/1 client path keeps running in its calling tasks, and the client's queued calls and deferred closing stay in its driver. A spawned connection that panics is counted as a failed connection, as a connection that fails is.
 
-Both kinds of argument implement `base-scheduler`'s `Placement`, which supplies the scheduler, through `Scope::scheduler` for a scope, and places a connection's future: returning it to be polled in place for the scheduler, spawning it into the scope otherwise. It lives in `base-scheduler` because telling a scheduler from a scope relies on `Scope` implementing no scheduler capability, which only that crate can guarantee; the user agreed on 2026-11-22.
+Both kinds of argument implement `base-scheduler`'s `Parent`, which supplies the scheduler, through `Scope::scheduler` for a scope, and places a connection's future: returning it to be polled in place for the scheduler, spawning it into the scope otherwise. It lives in `base-scheduler` because telling a scheduler from a scope relies on `Scope` implementing no scheduler capability, which only that crate can guarantee; the user agreed on 2026-11-22. The trait is named after Async's `parent:`, which names what owns the tasks a library starts; it was `Placement` until `base-scheduler` 0.6.3, renamed as the user agreed on 2026-11-23.
 
 ### Lifetimes
 
@@ -56,7 +56,7 @@ The user asked on 2026-11-21 for an interface as simple as Async::HTTP's, in whi
 
 - `base-http-server`: `Server`, its `Endpoint`, and the replacement of `serve` and `serve_tls`.
 - `base-http-client`: its `Driver::run`'s placement of connection drivers.
-- `Placement` and `Scope::scheduler` in `base-scheduler`.
+- `Parent` and `Scope::scheduler` in `base-scheduler`.
 - The fixtures, examples, tests and benchmarks that call these entry points.
 
 ## Validation

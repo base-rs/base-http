@@ -8,7 +8,7 @@ use base_http::{
 };
 use base_http_client::{Client, Endpoint};
 use base_http_server::{Handler, ServerContext};
-use base_scheduler::{Cancellation, Clock, Placement, SocketType, Spawn, SpawnScoped, TaskError};
+use base_scheduler::{Cancellation, Clock, Parent, SocketType, Spawn, SpawnScoped, TaskError};
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use futures_lite::future::{block_on, or, zip};
 use std::{
@@ -209,7 +209,7 @@ impl<H: for<'h> Handler<'h, ServerContext>> ServerFixture<H> {
         test: impl AsyncFnOnce(&Context<'s, S, H>) -> T,
     ) -> T {
         let (fixture, handler, server) = self.into_parts();
-        // The server's placement is inferred with a shorter lifetime than the client's, so that it may borrow the handler and options of this call.
+        // The server's parent is inferred with a shorter lifetime than the client's, so that it may borrow the handler and options of this call.
         block_on(fixture.serve(scheduler, scheduler, &handler, &server, test))
     }
 
@@ -277,8 +277,8 @@ impl Parts {
         test: impl AsyncFnOnce(&Context<'s, S, H>) -> T,
     ) -> T
     where
-        P: Placement<'s, Scheduler = S> + 's,
-        Q: Placement<'l, Scheduler = S>,
+        P: Parent<'s, Scheduler = S> + 's,
+        Q: Parent<'l, Scheduler = S>,
         S: Scheduler + Sync + 'l + 's,
         H: for<'h> Handler<'h, ServerContext> + Sync,
     {

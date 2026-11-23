@@ -1,11 +1,11 @@
 // Released under the MIT License.
 // Copyright, 2026, by Samuel Williams.
 
-//! How the server treats a placement that fails as a scoped spawn can: refusing to spawn ends serving, a connection destroyed before completing is not a failure, and one that panicked is.
+//! How the server treats a parent that fails as a scoped spawn can: refusing to spawn ends serving, a connection destroyed before completing is not a failure, and one that panicked is.
 use base_http_fixtures::Hello;
 use base_http_server::{Endpoint, Error, Options, Server, Statistics};
 use base_scheduler::{
-    Cancellation, Placement, SocketBind, SocketListen, SocketLocalAddress, SocketOpen, SocketType,
+    Cancellation, Parent, SocketBind, SocketListen, SocketLocalAddress, SocketOpen, SocketType,
     SpawnError, TaskError,
 };
 use base_scheduler_native::NativeScheduler;
@@ -26,7 +26,7 @@ struct Faulty<'a> {
     fault: Fault,
 }
 
-impl<'a> Placement<'a> for Faulty<'a> {
+impl<'a> Parent<'a> for Faulty<'a> {
     type Scheduler = NativeScheduler;
 
     fn scheduler(self) -> &'a NativeScheduler {
@@ -85,12 +85,12 @@ fn serve(fault: Fault) -> Result<Statistics, Error> {
                 cancellation.cancel();
             })
         };
-        let placement = Faulty {
+        let parent = Faulty {
             scheduler: &scheduler,
             fault,
         };
         let result = Server::new(&Hello, Endpoint::new(listener), &options)
-            .run(placement, &cancellation)
+            .run(parent, &cancellation)
             .await;
         if let Fault::Refuse = fault {
             // Serving stopped, so nothing wakes the peer; end it here.
