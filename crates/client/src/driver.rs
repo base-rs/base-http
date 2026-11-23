@@ -39,6 +39,8 @@ struct State<'scope> {
     pending: usize,
     closed: bool,
     abandoned: bool,
+    /// The driver's lifetime ended, so dropping it afterwards cancels rather than closes.
+    ended: bool,
 }
 pub(crate) struct Queue<'scope> {
     state: Mutex<State<'scope>>,
@@ -70,9 +72,15 @@ impl<'scope> Queue<'scope> {
         self.changed.notify(usize::MAX);
         Ok(())
     }
-    /// Whether the driver was dropped, abandoning its work.
+    /// Whether the driver was dropped before its lifetime ended, abandoning
+    /// its work. A driver whose run returns after its lifetime ends is dropped
+    /// too, and its waiting calls were cancelled rather than closed.
     pub(crate) fn is_abandoned(&self) -> bool {
-        lock(&self.state).abandoned
+        let state = lock(&self.state);
+        state.abandoned && !state.ended
+    }
+    fn end(&self) {
+        lock(&self.state).ended = true;
     }
     pub fn begin_close(&self) {
         lock(&self.state).closed = true;
@@ -217,6 +225,7 @@ async fn drive<'scope, P: Parent<'scope>>(
     let mut cancelled = pin!(cancellation.cancelled());
     poll_fn(|cx| {
         if !driver.cancellation.is_cancelled() && cancelled.as_mut().poll(cx).is_ready() {
+            driver.queue.end();
             driver.cancellation.cancel();
         }
         work.as_mut().poll(cx)
@@ -261,6 +270,7 @@ where
             pending: 0,
             closed: false,
             abandoned: false,
+            ended: false,
         }),
         changed: Event::new(),
         handles: AtomicUsize::new(1),
@@ -529,6 +539,7 @@ mod tests {
                 pending: 0,
                 closed: false,
                 abandoned: false,
+                ended: false,
             }),
             changed: Event::new(),
             handles: AtomicUsize::new(1),
