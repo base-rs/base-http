@@ -2,6 +2,8 @@
 
 A separate benchmark package comparing native Base HTTP with Hyper/Tokio. No Hyper or Tokio dependency is added to the HTTP libraries. The [server source](src/main.rs), [runner](run.py), lockfile and raw results make the comparison reproducible.
 
+The [connection placement report](connection-placement.md) reruns the benchmark for M6 against M5 and compares `Server::run`'s scoped and spawned modes: M6's library is within noise of M5 after base-http#90, serving through `Server::run` costs about 11% over the old benchmark loop, which passed `Cancellation::never()` where M5's `serve` did not, and the spawned mode is within noise of the scoped mode on one worker.
+
 The [owned-receive experiment](owned-receive.md) changes only the raw server's receive API, retaining borrowed response writes. At 64 connections it improves paired throughput 8.62% over borrowed input and 5.42% over spawned Tokio, while increasing p99 latency. Single-connection CPU cost increases; production HTTP input remains unchanged.
 
 The [equal offered-rate follow-up](fixed-rate.md) measures the same frozen controls at 200k, 220k and 240k requests/s. At 240k, borrowed and owned send-to-response p99 are approximately equal (339/344 µs). Scheduled-arrival p99 includes connection backlog and is 6.668/4.387 ms, with substantial variation between rounds. All 45 runs deliver within 0.03% of their targets and validate every response.
@@ -28,6 +30,7 @@ The Hyper service follows the [official HTTP/1 hello-world guide](https://hyper.
 | --- | --- | --- |
 | `http-closed` | Closed loop, 64 connections, one request outstanding on each. | The full HTTP modes: `base-native` (the baseline), `base-iouring`, `base-tokio`, `hyper-tokio`, `base-native-background`, `hyper-task-tokio`. |
 | `http-rate` | Fixed rate of 100,000 requests per second over 64 connections. | As `http-closed`. |
+| `http-closed-placement` | As `http-closed`. | Connection placement, from M6: `base-native` (the baseline), whose `Server::run` is given the scheduler, against `base-native-spawned` and `base-native-spawned-2`, given a scope. Every variant shares the server's CPUs, so give the server two. |
 | `raw-closed` | As `http-closed`. | The raw controls: `base-native-raw` (the baseline), `base-iouring-raw`, `base-iouring-owned-raw`, `base-tokio-raw`, `tokio-raw`, `tokio-task-raw`. |
 | `raw-rate` | As `http-rate`. | As `raw-closed`. |
 
@@ -167,6 +170,8 @@ Before every sample, an independent Python HTTP client checks body/status/fields
 | Mode | HTTP implementation | I/O and execution |
 | --- | --- | --- |
 | `base-native` | Base HTTP/1 and application handler | Published `base-scheduler-native` 0.5.0, worker-owned readiness selector (direct kqueue on macOS and epoll on Linux), one native task worker. |
+| `base-native-spawned` | Same Base HTTP implementation | As `base-native`, but `Server::run` is given a scope of the scheduler's scoped spawn, so each connection runs as its own task. The accept loop runs as a task of the scope too, on the worker, so the process has `base-native`'s threads. |
+| `base-native-spawned-2` | Same Base HTTP implementation | As `base-native-spawned`, with two native task workers. |
 | `base-iouring` (Linux) | Same Base HTTP implementation | Published `base-scheduler-iouring` 0.5.0 with one Native task/ring worker and one readiness fallback worker. Default ring settings; borrowed payload buffers use nonblocking receive/send syscalls. |
 | `base-iouring-raw` (Linux) | One read then one fixed response write | Same released io_uring configuration. |
 | `base-iouring-owned-raw` (Linux) | Same raw loop | Uses `read_owned` with one reusable 16 KiB buffer; response writes remain borrowed. The borrowed Base raw controls use identical buffer storage. |

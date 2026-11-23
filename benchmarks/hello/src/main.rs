@@ -5,11 +5,11 @@ use base_http::{
     Request, Response, Status,
     body::{BufferedBody, ReadableBody},
 };
-use base_http_server::{Handler, ServerContext};
+use base_http_server::{Endpoint, Handler, Server, ServerContext};
 use base_scheduler::{
-    Cancellation, SocketAccept, SocketClose, SocketLocalAddress, SocketPeerAddress,
-    SocketRegistration, SocketSetOption, SocketStreamReading, SocketStreamWriting, Spawn,
-    TcpNoDelay,
+    Cancellation, Clock, Placement, SocketAccept, SocketClose, SocketLocalAddress,
+    SocketPeerAddress, SocketRegistration, SocketSetOption, SocketStreamReading,
+    SocketStreamWriting, Spawn, SpawnScoped, TcpNoDelay,
 };
 use base_scheduler_native::{NativeOptions, NativeScheduler};
 use base_scheduler_tokio::TokioScheduler;
@@ -67,61 +67,38 @@ fn connection_finished<T, E: std::fmt::Display>(result: std::result::Result<T, E
     }
 }
 
-// HTTP variants have one application worker and one FuturesUnordered supervisor.
-// Connections are polled in that supervisor, matching base_http_server::Server::run in the scoped mode.
-// Like Server::run, this small accept loop sets TCP_NODELAY on every accepted socket.
-async fn base_server<S>(scheduler: &S) -> Result<()>
+// HTTP variants serve through base_http_server::Server::run, which sets TCP_NODELAY on
+// every accepted socket. Given the scheduler, it polls every connection within its own
+// future, on one application worker; given a scope, it runs each connection as a task.
+async fn base_server<'p, P, S>(placement: P, options: &'p base_http_server::Options) -> Result<()>
 where
+    P: Placement<'p, Scheduler = S>,
     S: SocketRegistration
         + SocketAccept
+        + Clock
         + SocketSetOption<TcpNoDelay>
         + SocketStreamReading
         + SocketStreamWriting
         + SocketClose
         + SocketPeerAddress
-        + SocketLocalAddress,
-    S::Socket: 'static,
+        + SocketLocalAddress
+        + Sync
+        + 'p,
+    S::Socket: Send + Sync + 'static,
 {
     let listener = TcpListener::bind("127.0.0.1:0")?;
     ready(&listener)?;
-    let listener = scheduler.register_listener(listener)?;
-    let cancellation = Cancellation::never();
-    let options = base_http_server::Options::default();
-    let mut connections = FuturesUnordered::new();
-    loop {
-        if connections.len() == MAX_CONNECTIONS {
-            connection_finished(connections.next().await.unwrap());
-            continue;
-        }
-        let accepted = {
-            let mut accept = pin!(scheduler.socket_accept(&listener, &cancellation));
-            loop {
-                let completed = pin!(async {
-                    if connections.is_empty() {
-                        std::future::pending().await
-                    } else {
-                        connections.next().await.unwrap()
-                    }
-                });
-                match select(accept.as_mut(), completed).await {
-                    Either::Left((accepted, _)) => break accepted,
-                    Either::Right((completed, _)) => {
-                        connection_finished(completed);
-                    }
-                }
-            }
-        };
-        let (socket, _) = accepted?;
-        scheduler
-            .socket_set_option(&socket, TcpNoDelay, true, &cancellation)
-            .await?;
-        connections.push(base_http_server::serve_connection(
-            scheduler,
-            socket,
-            &Hello,
-            &options,
-            &cancellation,
-        ));
+    let listener = placement.scheduler().register_listener(listener)?;
+    let server = Server::new(&Hello, Endpoint::new(listener), options);
+    // Peer failures are counted without stopping admission, so only a listener failure returns.
+    server.run(placement, &Cancellation::never()).await?;
+    Ok(())
+}
+
+fn server_options() -> base_http_server::Options {
+    base_http_server::Options {
+        max_connections: MAX_CONNECTIONS,
+        ..Default::default()
     }
 }
 
@@ -195,12 +172,32 @@ fn main() -> Result<()> {
                 if raw {
                     raw::base_server::<_, false>(shared.as_ref()).await
                 } else {
-                    base_server(shared.as_ref()).await
+                    base_server(shared.as_ref(), &server_options()).await
                 }
             })?;
             let result = scheduler
                 .block_on(server)
                 .map_err(|error| std::io::Error::other(error.to_string()))?;
+            scheduler.block_on(scheduler.shutdown());
+            result
+        }
+        Some(backend @ ("base-native-spawned" | "base-native-spawned-2")) => {
+            let scheduler = NativeScheduler::with_options(NativeOptions {
+                workers: if backend == "base-native-spawned-2" { 2 } else { 1 },
+                threads: 1, capacity: MAX_CONNECTIONS, stall_rescue: STALL_RESCUE,
+                ..Default::default()
+            })?;
+            // Spawned connections borrow the options, so they outlive the scope.
+            let options = server_options();
+            // The scope's root runs on this thread, so the accept loop runs as a task of
+            // the scope, on a worker, as base-native's does; this thread only waits.
+            let result = scheduler.scope(async |scope| {
+                scope
+                    .spawn(base_server(scope, &options))
+                    .map_err(|error| std::io::Error::other(error.to_string()))?
+                    .await
+                    .map_err(|error| std::io::Error::other(error.to_string()))?
+            });
             scheduler.block_on(scheduler.shutdown());
             result
         }
@@ -227,7 +224,7 @@ fn main() -> Result<()> {
                 scheduler.spawn(async move {
                     if owned_receive { raw::base_server::<_, true>(shared.as_ref()).await }
                     else if raw { raw::base_server::<_, false>(shared.as_ref()).await }
-                    else { base_server(shared.as_ref()).await }
+                    else { base_server(shared.as_ref(), &server_options()).await }
                 })?
             };
             let result = scheduler.block_on(server)
@@ -255,7 +252,7 @@ fn main() -> Result<()> {
                     let result = if backend == "base-tokio-raw" {
                         raw::base_server::<_, false>(&scheduler).await
                     } else {
-                        base_server(&scheduler).await
+                        base_server(&scheduler, &server_options()).await
                     };
                     scheduler.shutdown().await;
                     result
@@ -263,7 +260,7 @@ fn main() -> Result<()> {
             })
         }
         _ => Err(
-            "usage: base-http-hello-benchmark base-native|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-iouring-owned-connections-raw|base-iouring-connections-raw|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw|tokio-connections-raw"
+            "usage: base-http-hello-benchmark base-native|base-native-spawned|base-native-spawned-2|base-native-background|base-iouring|base-iouring-raw|base-iouring-owned-raw|base-iouring-owned-connections-raw|base-iouring-connections-raw|base-tokio|hyper-tokio|hyper-task-tokio|base-native-raw|base-tokio-raw|tokio-raw|tokio-task-raw|tokio-connections-raw"
                 .into(),
         ),
     }

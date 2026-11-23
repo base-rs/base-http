@@ -1,6 +1,6 @@
 # Servers, endpoints and connection placement
 
-Accepted 2026-11-21; implemented 2026-11-22, except for the benchmark reruns its validation requires.
+Accepted 2026-11-21; implemented 2026-11-22. The benchmark reruns its validation requires are recorded for the [hello](../benchmarks/hello/connection-placement.md) and [client](../benchmarks/client/connection-placement-20261123.md) benchmarks, 2026-11-23.
 
 ## Requirement
 

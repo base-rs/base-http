@@ -1,0 +1,385 @@
+{
+  "schema": "base-benchmark/campaign",
+  "version": 2,
+  "status": "complete",
+  "evidence": "screening: paired triage with controls; not acceptance evidence",
+  "generator": "base-benchmark 0.4.0",
+  "plan": {
+    "schema": "base-benchmark/plan",
+    "version": 3,
+    "mode": "screening",
+    "package": "base-http-hello-benchmark",
+    "scenario": "http-closed-placement",
+    "rounds": 10,
+    "seed": 1795402416548409575,
+    "cpus": [],
+    "perf_events": [],
+    "perf_program": "perf",
+    "timeout_ms": 300000,
+    "lock": "/tmp/base-benchmark-host.lock",
+    "decision_rule": null,
+    "idle_host": false,
+    "invocation": [
+      "base-benchmark",
+      "run",
+      "http-closed-placement",
+      "--manifest-path",
+      "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/Cargo.toml",
+      "--artifacts",
+      "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts.json",
+      "--rounds",
+      "10",
+      "--idle-host",
+      "false",
+      "--role-cpus",
+      "client=1,2",
+      "--role-cpus",
+      "server=3,7",
+      "--program",
+      "load=.cache/base-benchmark-load/bin/base-benchmark-load",
+      "--output",
+      "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/http-closed-placement-screening-1795402415721"
+    ],
+    "working_directory": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello",
+    "environment": {
+      "LC_ALL": "C",
+      "PATH": "/usr/local/sbin:/usr/local/bin:/usr/bin"
+    },
+    "stack_padding": true,
+    "subjects": [
+      {
+        "label": "candidate/base-native",
+        "artifact": "candidate",
+        "variant": "base-native",
+        "role": "baseline",
+        "program": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate/0/base-http-hello-benchmark",
+        "arguments": [
+          "base-native"
+        ]
+      },
+      {
+        "label": "candidate/base-native-spawned",
+        "artifact": "candidate",
+        "variant": "base-native-spawned",
+        "role": "baseline",
+        "program": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate/0/base-http-hello-benchmark",
+        "arguments": [
+          "base-native-spawned"
+        ]
+      },
+      {
+        "label": "candidate/base-native-spawned-2",
+        "artifact": "candidate",
+        "variant": "base-native-spawned-2",
+        "role": "baseline",
+        "program": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate/0/base-http-hello-benchmark",
+        "arguments": [
+          "base-native-spawned-2"
+        ]
+      },
+      {
+        "label": "candidate-replica/base-native",
+        "artifact": "candidate-replica",
+        "variant": "base-native",
+        "role": "layout-replica",
+        "program": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate-replica/0/base-http-hello-benchmark",
+        "arguments": [
+          "base-native"
+        ]
+      },
+      {
+        "label": "candidate-replica/base-native-spawned",
+        "artifact": "candidate-replica",
+        "variant": "base-native-spawned",
+        "role": "layout-replica",
+        "program": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate-replica/0/base-http-hello-benchmark",
+        "arguments": [
+          "base-native-spawned"
+        ]
+      },
+      {
+        "label": "candidate-replica/base-native-spawned-2",
+        "artifact": "candidate-replica",
+        "variant": "base-native-spawned-2",
+        "role": "layout-replica",
+        "program": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate-replica/0/base-http-hello-benchmark",
+        "arguments": [
+          "base-native-spawned-2"
+        ]
+      }
+    ],
+    "pairs": [
+      {
+        "baseline": "candidate/base-native",
+        "candidate": "candidate/base-native-spawned",
+        "kind": "variant"
+      },
+      {
+        "baseline": "candidate/base-native",
+        "candidate": "candidate/base-native-spawned-2",
+        "kind": "variant"
+      },
+      {
+        "baseline": "candidate/base-native",
+        "candidate": "candidate-replica/base-native",
+        "kind": "replica"
+      },
+      {
+        "baseline": "candidate/base-native-spawned",
+        "candidate": "candidate-replica/base-native-spawned",
+        "kind": "replica"
+      },
+      {
+        "baseline": "candidate-replica/base-native",
+        "candidate": "candidate-replica/base-native-spawned",
+        "kind": "variant"
+      },
+      {
+        "baseline": "candidate/base-native-spawned-2",
+        "candidate": "candidate-replica/base-native-spawned-2",
+        "kind": "replica"
+      },
+      {
+        "baseline": "candidate-replica/base-native",
+        "candidate": "candidate-replica/base-native-spawned-2",
+        "kind": "variant"
+      }
+    ],
+    "artifacts": {
+      "schema": "base-benchmark/artifacts",
+      "version": 3,
+      "package": "base-http-hello-benchmark",
+      "binary": "base-http-hello-benchmark",
+      "profile": "release",
+      "artifacts": [
+        {
+          "label": "candidate",
+          "role": "baseline",
+          "features": [],
+          "executable": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate/0/base-http-hello-benchmark",
+          "sha256": "705ba93396bba959e401ddf9a587b53fc3532e1602074f3d9bccf9d33a38c022",
+          "source": {
+            "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello",
+            "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+            "dirty": false,
+            "lockfile_sha256": "ecdea0604c1d66bad1988bd9c2dfb4fe03433e5b787ecf084f1f82a5d4ced9d6",
+            "replica_of": null,
+            "path_dependencies": [
+              {
+                "name": "base-http",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              },
+              {
+                "name": "base-http-protocol",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/crates/protocol",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              },
+              {
+                "name": "base-http-server",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/crates/server",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              },
+              {
+                "name": "base-http1",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/crates/http1",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              }
+            ]
+          },
+          "build": {
+            "command": [
+              "cargo",
+              "build",
+              "--locked",
+              "--message-format=json-render-diagnostics",
+              "--manifest-path",
+              "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/Cargo.toml",
+              "--package",
+              "base-http-hello-benchmark",
+              "--bin",
+              "base-http-hello-benchmark",
+              "--profile",
+              "release",
+              "--target-dir",
+              "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/targets/candidate"
+            ],
+            "toolchain": "rustc 1.99.1 (58cf8f9c3 2026-10-13) (Arch Linux rust 1:1.99.1-1)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.3",
+            "cargo": "cargo 1.99.1 (5f94df478 2026-08-27) (Arch Linux rust 1:1.99.1-1)\nrelease: 1.99.1\ncommit-hash: 5f94df4789f005f9a352888e8355ffc645b7ed0e\ncommit-date: 2026-08-27\nhost: x86_64-unknown-linux-gnu\nlibgit2: 1.9.7 (sys:0.21.0 system)\nlibcurl: 8.23.0 (sys:0.4.90+curl-8.21.0 system ssl:OpenSSL/3.6.5)\nos: Arch Linux Rolling Release [64-bit]",
+            "environment": {},
+            "configuration": [],
+            "layout_salt": null
+          }
+        },
+        {
+          "label": "candidate-replica",
+          "role": "layout-replica",
+          "features": [],
+          "executable": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/artifacts/candidate-replica/0/base-http-hello-benchmark",
+          "sha256": "08a3a378cdcb99f704167d29c091be4c11f29a9448c6872e208ca3523849c13e",
+          "source": {
+            "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/.hello.base-benchmark-candidate-replica-prepared-1795400493294-4022046",
+            "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+            "dirty": false,
+            "lockfile_sha256": "ecdea0604c1d66bad1988bd9c2dfb4fe03433e5b787ecf084f1f82a5d4ced9d6",
+            "replica_of": "candidate",
+            "path_dependencies": [
+              {
+                "name": "base-http",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              },
+              {
+                "name": "base-http-protocol",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/crates/protocol",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              },
+              {
+                "name": "base-http-server",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/crates/server",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              },
+              {
+                "name": "base-http1",
+                "path": "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/crates/http1",
+                "revision": "231671f5569546efb5bda984b6c6ecfa3c4340d1",
+                "dirty": false
+              }
+            ]
+          },
+          "build": {
+            "command": [
+              "cargo",
+              "build",
+              "--locked",
+              "--message-format=json-render-diagnostics",
+              "--manifest-path",
+              "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/.hello.base-benchmark-candidate-replica-prepared-1795400493294-4022046/Cargo.toml",
+              "--package",
+              "base-http-hello-benchmark",
+              "--bin",
+              "base-http-hello-benchmark",
+              "--profile",
+              "release",
+              "--target-dir",
+              "/home/samuel/.cache/base-benchmark/mirror/home/samuel/Developer/base-rs/base-http/benchmarks/hello/target/base-benchmark/prepared-1795400493294/targets/candidate-replica"
+            ],
+            "toolchain": "rustc 1.99.1 (58cf8f9c3 2026-10-13) (Arch Linux rust 1:1.99.1-1)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.3",
+            "cargo": "cargo 1.99.1 (5f94df478 2026-08-27) (Arch Linux rust 1:1.99.1-1)\nrelease: 1.99.1\ncommit-hash: 5f94df4789f005f9a352888e8355ffc645b7ed0e\ncommit-date: 2026-08-27\nhost: x86_64-unknown-linux-gnu\nlibgit2: 1.9.7 (sys:0.21.0 system)\nlibcurl: 8.23.0 (sys:0.4.90+curl-8.21.0 system ssl:OpenSSL/3.6.5)\nos: Arch Linux Rolling Release [64-bit]",
+            "environment": {},
+            "configuration": [],
+            "layout_salt": "base-benchmark-candidate-replica"
+          }
+        }
+      ]
+    },
+    "roles": [
+      {
+        "name": "server",
+        "kind": "service",
+        "program": {
+          "kind": "subject"
+        },
+        "arguments": [],
+        "cpus": [
+          3,
+          7
+        ],
+        "ready": {
+          "pattern": "{address}",
+          "timeout_ms": 10000
+        },
+        "stop": {
+          "kind": "signal",
+          "signal": "SIGTERM",
+          "grace_ms": 10000
+        }
+      },
+      {
+        "name": "client",
+        "kind": "driver",
+        "program": {
+          "kind": "external",
+          "name": "load"
+        },
+        "arguments": [
+          "closed",
+          "--address",
+          "{server.address}",
+          "--connections",
+          "64",
+          "--workers",
+          "2",
+          "--body",
+          "Hello, world!",
+          "--expect-header",
+          "Content-Type: text/plain",
+          "--expect-header",
+          "Content-Length: 13",
+          "--warmup",
+          "2s",
+          "--duration",
+          "8s",
+          "--window-lead",
+          "500ms"
+        ],
+        "cpus": [
+          1,
+          2
+        ],
+        "ready": null,
+        "stop": null,
+        "environment": {
+          "BASE_BENCHMARK_CONTROL": "stdio"
+        },
+        "invalid_responses": "responses_invalid"
+      }
+    ],
+    "programs": [
+      {
+        "name": "load",
+        "path": "/home/samuel/.cache/base-benchmark-load/bin/base-benchmark-load",
+        "sha256": "3e0129da3fa1776d7d8ec714a8aed399fc71706438767e32fb128c7afb9f6adb",
+        "version": "base-benchmark-load 0.1.0"
+      }
+    ]
+  },
+  "host": {
+    "hostname": "hana.oriontransfer.co.nz",
+    "kernel": "7.2.14-arch1-1",
+    "cpu_model": "Intel(R) Xeon(R) CPU E3-1240 v6 @ 3.70GHz",
+    "address_space_randomization": "2",
+    "cpus": [
+      {
+        "cpu": 1,
+        "thread_siblings": "1,5",
+        "scaling_governor": "powersave"
+      },
+      {
+        "cpu": 2,
+        "thread_siblings": "2,6",
+        "scaling_governor": "powersave"
+      },
+      {
+        "cpu": 3,
+        "thread_siblings": "3,7",
+        "scaling_governor": "powersave"
+      },
+      {
+        "cpu": 7,
+        "thread_siblings": "3,7",
+        "scaling_governor": "powersave"
+      }
+    ]
+  },
+  "started_unix_ms": 1795402416548,
+  "finished_unix_ms": 1795403023939,
+  "error": null
+}
