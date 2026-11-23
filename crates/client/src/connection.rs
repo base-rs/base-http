@@ -135,6 +135,8 @@ pub(crate) async fn run<'scope, S>(
         + SocketStreamWriting,
     S::Socket: 'static,
 {
+    // The connection's waits share one registration with each of its signals.
+    let (cancellation, lifetime) = (cancellation.watch(), lifetime.watch());
     let connection = Connection::new();
     let mut owner = Owner {
         connection: connection.clone(),
