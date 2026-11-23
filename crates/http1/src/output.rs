@@ -684,7 +684,7 @@ fn plan<'a>(
     })
 }
 
-fn decimal(mut value: u64, digits: &mut [u8; 20]) -> &[u8] {
+pub(crate) fn decimal(mut value: u64, digits: &mut [u8; 20]) -> &[u8] {
     let mut start = digits.len();
     loop {
         start -= 1;
