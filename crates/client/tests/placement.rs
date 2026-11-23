@@ -108,13 +108,24 @@ impl<'h> Handler<'h, ServerContext> for Concurrent {
     }
 }
 
-// Calls from tasks of the scope, each on its own connection, all in flight at once while the server's connections run as tasks too. Native admits spawned tasks to its workers in rotation, so both sides' connections are expected on more than one worker.
+// Calls from tasks of the scope, each on its own connection, all in flight at once while the server's connections run as tasks too. Native admits spawned tasks to its workers in rotation, but an awake worker may steal and finish all of them before the others wake, as on a host with few CPUs, so the scenario is repeated until both sides' connections are seen on more than one worker; on two CPUs one attempt fails about one time in thirteen.
 #[test]
 fn spawned_connections_progress_on_more_than_one_worker() {
-    bounded(spawned_connections_progress_in_parallel);
+    bounded(|| {
+        let attempts = 50;
+        let spread = (0..attempts).any(|_| {
+            let (server, client) = spawned_connections_progress_in_parallel();
+            server >= 2 && client >= 2
+        });
+        assert!(
+            spread,
+            "connections ran on one worker on each side in {attempts} attempts"
+        );
+    });
 }
 
-fn spawned_connections_progress_in_parallel() {
+// The number of workers the server's and the client's connections ran on.
+fn spawned_connections_progress_in_parallel() -> (usize, usize) {
     let scheduler = scheduler_with(4);
     let handler = Concurrent::default();
     let options = Options::default();
@@ -186,16 +197,9 @@ fn spawned_connections_progress_in_parallel() {
     assert_eq!(statistics.requests, CONNECTIONS as u64);
     let server_threads = handler.threads.into_inner().unwrap();
     let client_threads = client_threads.into_inner().unwrap();
-    assert!(
-        server_threads.len() >= 2,
-        "server connections ran on one worker"
-    );
-    assert!(
-        client_threads.len() >= 2,
-        "client connections ran on one worker"
-    );
     // Connections ran on the workers, not on the test's thread.
     assert!(!server_threads.contains(&thread::current().id()));
+    (server_threads.len(), client_threads.len())
 }
 
 struct Panicking;
