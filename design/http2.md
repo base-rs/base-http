@@ -79,7 +79,7 @@ The manifests and public APIs of these packages.
 
 ### Validation
 
-Inspect `cargo tree -e normal` for each package with and without `http2`, the public API of `base-http-hpack` for upstream types, and its source for attribution of ported code and fixtures.
+Inspect `cargo tree -e normal` for each package with and without `http2`, the public API of `base-http-hpack` for upstream types, and its source for attribution of ported code and fixtures. The [HPACK](hpack.md) note records `base-http-hpack`'s interface and the `protocol-hpack` behaviour it does not reproduce.
 
 ## Protocol core and connection driver
 

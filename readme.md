@@ -65,7 +65,7 @@ See [releases.md](releases.md) for the full release history.
 
 ## See Also
 
-- [`base-http1`](https://docs.rs/base-http1) implements native HTTP/1 framing, [`base-http-protocol`](https://docs.rs/base-http-protocol) selects the protocol for a connection, [`base-http-client`](https://docs.rs/base-http-client) provides pooled client calls, [`base-http-server`](https://docs.rs/base-http-server) serves applications and [`base-http-content`](https://docs.rs/base-http-content) reads request content into declared forms.
+- [`base-http1`](https://docs.rs/base-http1) implements native HTTP/1 framing, [`base-http-protocol`](https://docs.rs/base-http-protocol) selects the protocol for a connection, [`base-http-client`](https://docs.rs/base-http-client) provides pooled client calls, [`base-http-server`](https://docs.rs/base-http-server) serves applications, [`base-http-content`](https://docs.rs/base-http-content) reads request content into declared forms and [`base-http-hpack`](https://docs.rs/base-http-hpack) implements HPACK field compression for the forthcoming HTTP/2 engine.
 - The [design documents](design/) record package boundaries, the roadmap and implementation evidence, and the [performance notes](performance.md) collect benchmark results and reproduction commands.
 - [`base-scheduler`](https://docs.rs/base-scheduler) defines the runtime-independent scheduler and socket capabilities these crates use.
 - [`base-pool`](https://docs.rs/base-pool) provides the connection pool behind the client.

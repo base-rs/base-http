@@ -1,0 +1,30 @@
+[package]
+name = "base-http-hpack-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+base-http-hpack = { path = ".." }
+libfuzzer-sys = "0.4"
+
+[[bin]]
+name = "decode"
+path = "fuzz_targets/decode.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "round_trip"
+path = "fuzz_targets/round_trip.rs"
+test = false
+doc = false
+bench = false
+
+# Fuzzing needs a nightly toolchain, so this stays outside the main workspace.
+[workspace]
+members = ["."]
