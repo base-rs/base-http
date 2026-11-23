@@ -1,5 +1,9 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2014, by Kaoru Maeda.
+// Copyright, 2015, by Ilya Grigorik.
+// Copyright, 2015, by Tamir Duberstein.
+// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2024, by Nathan Froyd.
 
 use super::*;
 use std::collections::HashMap;

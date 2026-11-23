@@ -1,5 +1,9 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2014, by Kaoru Maeda.
+// Copyright, 2014-2016, by Ilya Grigorik.
+// Copyright, 2015, by Tamir Duberstein.
+// Copyright, 2016, by Kien Nguyen Trung.
+// Copyright, 2018-2026, by Samuel Williams.
 
 //! The hpack-test-case corpus, as `protocol-hpack`'s `test/protocol/hpack/external.rb` runs it: every implementation's encoded stories are decoded, and every raw story is encoded with each encoder configuration and decoded again, by this decoder and by `fluke-hpack`.
 

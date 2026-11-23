@@ -1,5 +1,7 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2024, by Maruth Goyal.
+// Copyright, 2024, by Nathan Froyd.
 
 //! The decoder, after `protocol-hpack`'s `Decompressor` and the decoding half of its `Context`.
 
@@ -494,4 +496,3 @@ fn resolve_literal<'a>(scratch: &'a [u8], input: &'a [u8], source: &Source) -> &
         Source::TableName(_) | Source::TableValue(_) => unreachable!("dynamic table sources are resolved through the table"),
     }
 }
-

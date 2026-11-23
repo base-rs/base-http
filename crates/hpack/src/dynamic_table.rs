@@ -1,5 +1,7 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2024, by Maruth Goyal.
+// Copyright, 2024, by Nathan Froyd.
 
 //! The dynamic table, [RFC 7541 §2.3.2 and §4](https://www.rfc-editor.org/rfc/rfc7541#section-4).
 

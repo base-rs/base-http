@@ -1,5 +1,16 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2013-2015, by Ilya Grigorik.
+// Copyright, 2014-2015, by Kaoru Maeda.
+// Copyright, 2015, by Tamir Duberstein.
+// Copyright, 2016, by George Ulmer.
+// Copyright, 2018, by Byron Formwalt.
+// Copyright, 2018, by Kenichi Nakamura.
+// Copyright, 2018, by Tiago Cardoso.
+// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2019, by Jingyi Chen.
+// Copyright, 2020, by Justin Mazzocchi.
+// Copyright, 2024, by Maruth Goyal.
+// Copyright, 2024, by Nathan Froyd.
 
 //! Prefixed integers, [RFC 7541 §5.1](https://www.rfc-editor.org/rfc/rfc7541#section-5.1).
 

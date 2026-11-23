@@ -1,5 +1,11 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2014-2015, by Kaoru Maeda.
+// Copyright, 2015, by Ilya Grigorik.
+// Copyright, 2015, by Tamir Duberstein.
+// Copyright, 2016, by George Ulmer.
+// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2022, by Daniel Morrison.
+// Copyright, 2024, by Nathan Froyd.
 
 //! The Huffman code of string literals, [RFC 7541 §5.2](https://www.rfc-editor.org/rfc/rfc7541#section-5.2) and [Appendix B](https://www.rfc-editor.org/rfc/rfc7541#appendix-B).
 //!

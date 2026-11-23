@@ -1,5 +1,12 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2013-2015, by Ilya Grigorik.
+// Copyright, 2014, by Kaoru Maeda.
+// Copyright, 2015, by Tamir Duberstein.
+// Copyright, 2018, by Byron Formwalt.
+// Copyright, 2018, by Kenichi Nakamura.
+// Copyright, 2018, by Tiago Cardoso.
+// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2019, by Jingyi Chen.
 
 //! Encoder behaviour, including `protocol-hpack`'s compressor and header representation tests.
 

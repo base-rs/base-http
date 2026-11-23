@@ -1,5 +1,5 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2018-2026, by Samuel Williams.
 
 //! Decoder behaviour, including `protocol-hpack`'s decompressor tests and every decoding error.
 

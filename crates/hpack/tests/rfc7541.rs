@@ -1,5 +1,6 @@
 // Released under the MIT License.
-// Copyright, 2026, by Samuel Williams.
+// Copyright, 2018-2026, by Samuel Williams.
+// Copyright, 2024, by Maruth Goyal.
 
 //! The RFC 7541 Appendix C examples, as `protocol-hpack`'s `test/protocol/hpack/rfc7541.rb` runs them.
 
