@@ -73,7 +73,7 @@ pub(super) async fn run(args: &Args) -> Result<serde_json::Value> {
     }
     wakes.0.store(0, Ordering::Relaxed);
     let start = Instant::now();
-    let cpu_start = cpu_seconds();
+    let usage_start = Usage::now();
     let allocations = allocation::Snapshot::now();
     let deadline = start + Duration::from_secs_f64(args.seconds);
     let mut operations = 0_u64;
@@ -85,7 +85,8 @@ pub(super) async fn run(args: &Args) -> Result<serde_json::Value> {
         operations += 1;
         index = (index + 1) % args.concurrency;
     }
-    let cpu = cpu_seconds() - cpu_start;
+    let usage = Usage::now().since(usage_start);
+    let cpu = usage.user + usage.system;
     let allocations = allocations.finish();
     let elapsed = start.elapsed().as_secs_f64();
     let mut result = json!({

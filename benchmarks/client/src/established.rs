@@ -49,17 +49,17 @@ impl Phases {
         self.barrier.wait().await;
         self.barrier.wait().await;
         let start = Instant::now();
-        let cpu_start = cpu_seconds();
+        let usage_start = Usage::now();
         let allocations = allocation::Snapshot::now();
         *self.deadline.lock().unwrap() = start + Duration::from_secs_f64(args.seconds);
         self.barrier.wait().await;
         self.barrier.wait().await;
-        let cpu = cpu_seconds() - cpu_start;
+        let usage = Usage::now().since(usage_start);
         let allocations = allocations.finish();
         let elapsed = start.elapsed().as_secs_f64();
         let mut result = {
             let results = self.results.lock().unwrap();
-            result_json(args, results.0, &results.1, elapsed, cpu)
+            result_json(args, results.0, &results.1, elapsed, usage)
         };
         allocations.attach(&mut result);
         self.barrier.wait().await;
