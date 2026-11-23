@@ -1,6 +1,6 @@
 # HTTP/1 client comparison
 
-Measured results: [initial comparison](results-20261028.md), [performance changes](performance-20261028.md), [connection-owned state](connection-state-20261028.md), [TLS progress](tls-progress-20261028.md), [exchange allocations](exchange-overhead-20261029.md), [operation storage reuse](exchange-reuse-20261029.md) and [full comparison rerun](full-rerun-20261029.md).
+Measured results: [initial comparison](results-20261028.md), [performance changes](performance-20261028.md), [connection-owned state](connection-state-20261028.md), [TLS progress](tls-progress-20261028.md), [exchange allocations](exchange-overhead-20261029.md), [operation storage reuse](exchange-reuse-20261029.md), [full comparison rerun](full-rerun-20261029.md) and [M6 rerun](connection-placement-20261123.md).
 
 This compares the current `base-http-client` prototype with Hyper/Tokio against the same independent Hyper HTTP/1 server process. Both HTTP and HTTPS use loopback TCP. The payload is a static 11-byte `Hello World` response to `GET /hello`, with the entire status/body checked on every request.
 

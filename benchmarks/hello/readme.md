@@ -2,6 +2,8 @@
 
 A separate benchmark package comparing native Base HTTP with Hyper/Tokio. No Hyper or Tokio dependency is added to the HTTP libraries. The [server source](src/main.rs), [runner](run.py), lockfile and raw results make the comparison reproducible.
 
+The [connection placement report](connection-placement.md) reruns the benchmark for M6 against M5 and compares `Server::run`'s scoped and spawned modes: M6's library is within noise of M5 after base-http#90, serving through `Server::run` costs about 11% over the old benchmark loop, which passed `Cancellation::never()` where M5's `serve` did not, and the spawned mode is within noise of the scoped mode on one worker.
+
 The [owned-receive experiment](owned-receive.md) changes only the raw server's receive API, retaining borrowed response writes. At 64 connections it improves paired throughput 8.62% over borrowed input and 5.42% over spawned Tokio, while increasing p99 latency. Single-connection CPU cost increases; production HTTP input remains unchanged.
 
 The [equal offered-rate follow-up](fixed-rate.md) measures the same frozen controls at 200k, 220k and 240k requests/s. At 240k, borrowed and owned send-to-response p99 are approximately equal (339/344 µs). Scheduled-arrival p99 includes connection backlog and is 6.668/4.387 ms, with substantial variation between rounds. All 45 runs deliver within 0.03% of their targets and validate every response.
