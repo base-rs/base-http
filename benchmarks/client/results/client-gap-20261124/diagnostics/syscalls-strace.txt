@@ -1,0 +1,55 @@
+== base-open client, calls per server-counted request (N=39770)
+  futex              0.0021 calls   0.0000 errors
+  sendto             1.0000 calls   0.0000 errors
+  recvfrom           2.0002 calls   1.0002 errors
+  epoll_pwait        0.0480 calls   0.0000 errors
+  mprotect           0.0048 calls   0.0000 errors
+  mmap               0.0015 calls   0.0000 errors
+  getsockopt         0.0024 calls   0.0000 errors
+  epoll_ctl          0.0017 calls   0.0000 errors
+  fcntl              0.0024 calls   0.0000 errors
+  close              0.0010 calls   0.0000 errors
+  total              3.0731 calls   1.0011 errors
+== base-open server, calls per server-counted request (N=39770)
+  futex              0.0088 calls   0.0008 errors
+  writev             1.0000 calls   0.0000 errors
+  epoll_wait         0.9727 calls   0.0000 errors
+  recvfrom           1.0017 calls   0.0008 errors
+  epoll_ctl          0.0017 calls   0.0000 errors
+  accept4            0.0013 calls   0.0005 errors
+  mprotect           0.0011 calls   0.0000 errors
+  close              0.0011 calls   0.0000 errors
+  total              2.9943 calls   0.0022 errors
+== hyper client, calls per server-counted request (N=14899)
+  writev             1.0000 calls   0.0000 errors
+  recvfrom           1.0000 calls   0.0000 errors
+  epoll_wait         0.2863 calls   0.0000 errors
+  munmap             0.0022 calls   0.0000 errors
+  brk                0.0052 calls   0.0000 errors
+  mmap               0.0035 calls   0.0000 errors
+  connect            0.0021 calls   0.0021 errors
+  socket             0.0021 calls   0.0000 errors
+  fcntl              0.0044 calls   0.0000 errors
+  epoll_ctl          0.0044 calls   0.0000 errors
+  getpeername        0.0021 calls   0.0000 errors
+  getsockopt         0.0021 calls   0.0000 errors
+  setsockopt         0.0021 calls   0.0000 errors
+  getsockname        0.0021 calls   0.0000 errors
+  close              0.0028 calls   0.0000 errors
+  shutdown           0.0021 calls   0.0000 errors
+  total              2.3283 calls   0.0022 errors
+== hyper server, calls per server-counted request (N=14899)
+  futex              0.0581 calls   0.0060 errors
+  writev             1.0000 calls   0.0000 errors
+  recvfrom           1.0043 calls   0.0021 errors
+  epoll_wait         0.0716 calls   0.0000 errors
+  epoll_ctl          0.0046 calls   0.0000 errors
+  shutdown           0.0021 calls   0.0000 errors
+  close              0.0029 calls   0.0000 errors
+  mprotect           0.0030 calls   0.0000 errors
+  write              0.0027 calls   0.0000 errors
+  accept4            0.0022 calls   0.0001 errors
+  setsockopt         0.0022 calls   0.0000 errors
+  rt_sigprocmask     0.0010 calls   0.0000 errors
+  mmap               0.0017 calls   0.0000 errors
+  total              2.1629 calls   0.0083 errors

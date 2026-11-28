@@ -248,17 +248,16 @@ fn request_plan(
             || head.persistent == Some(true)
             || wire::has_token(fields, "connection", b"keep-alive"));
     wire::output_fields(fields.pairs())?;
-    // Validate first, then encode directly into the connection's reusable buffer.
+    // Validate first, then encode directly into the connection's reusable
+    // buffer, appending bytes as the response writer does rather than formatting.
     bytes.clear();
-    use std::io::Write;
-    // Writing into a `Vec` cannot fail.
-    write!(bytes, "{} {target} {label}\r\n", head.method.as_str()).expect("writing to a Vec");
+    let method = head.method.as_str();
+    for part in [method, " ", target, " ", label, "\r\n"] {
+        bytes.extend_from_slice(part.as_bytes());
+    }
     // Chunked framing comes only from a raw Transfer-Encoding, which refuses Content-Length, or from an unknown length, so every field is written as given.
     for field in fields.pairs() {
-        bytes.extend_from_slice(field.name().as_bytes());
-        bytes.extend_from_slice(b": ");
-        bytes.extend_from_slice(field.value());
-        bytes.extend_from_slice(b"\r\n");
+        push_field(bytes, field.name(), field.value());
     }
     for (name, value) in [
         ("Host", add_host),
@@ -271,19 +270,29 @@ fn request_plan(
         ),
     ] {
         if let Some(value) = value {
-            write!(bytes, "{name}: {value}\r\n").expect("writing to a Vec");
+            push_field(bytes, name, value.as_bytes());
         }
     }
     if let output::Framing::Fixed(length) = framing
         && raw_length.is_none()
-        && (declared.is_some()
-            || length != 0
-            || matches!(head.method.as_str(), "POST" | "PUT" | "PATCH"))
+        && (declared.is_some() || length != 0 || matches!(method, "POST" | "PUT" | "PATCH"))
     {
-        write!(bytes, "Content-Length: {length}\r\n").expect("writing to a Vec");
+        let mut digits = [0; 20];
+        push_field(
+            bytes,
+            "Content-Length",
+            output::decimal(length, &mut digits),
+        );
     }
     bytes.extend_from_slice(b"\r\n");
     Ok((framing, persistent))
+}
+
+fn push_field(bytes: &mut Vec<u8>, name: &str, value: &[u8]) {
+    bytes.extend_from_slice(name.as_bytes());
+    bytes.extend_from_slice(b": ");
+    bytes.extend_from_slice(value);
+    bytes.extend_from_slice(b"\r\n");
 }
 
 /// Sequential client input sharing the native request body's chunk decoder.

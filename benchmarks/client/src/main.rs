@@ -118,16 +118,39 @@ fn server_config(args: &Args) -> Result<ServerConfig> {
     config.send_tls13_tickets = 0;
     Ok(config)
 }
-fn cpu_seconds() -> f64 {
-    let mut usage = std::mem::MaybeUninit::<libc::rusage>::uninit();
-    // Process accounting only; no pointers escape the synchronous syscall.
-    assert_eq!(
-        unsafe { libc::getrusage(libc::RUSAGE_SELF, usage.as_mut_ptr()) },
-        0
-    );
-    let usage = unsafe { usage.assume_init() };
-    (usage.ru_utime.tv_sec + usage.ru_stime.tv_sec) as f64
-        + (usage.ru_utime.tv_usec + usage.ru_stime.tv_usec) as f64 / 1_000_000.0
+/// The process's resource use so far: user and system CPU seconds, and voluntary and involuntary context switches.
+#[derive(Clone, Copy)]
+struct Usage {
+    user: f64,
+    system: f64,
+    voluntary: libc::c_long,
+    involuntary: libc::c_long,
+}
+impl Usage {
+    fn now() -> Self {
+        let mut usage = std::mem::MaybeUninit::<libc::rusage>::uninit();
+        // Process accounting only; no pointers escape the synchronous syscall.
+        assert_eq!(
+            unsafe { libc::getrusage(libc::RUSAGE_SELF, usage.as_mut_ptr()) },
+            0
+        );
+        let usage = unsafe { usage.assume_init() };
+        let seconds = |time: libc::timeval| time.tv_sec as f64 + time.tv_usec as f64 / 1_000_000.0;
+        Self {
+            user: seconds(usage.ru_utime),
+            system: seconds(usage.ru_stime),
+            voluntary: usage.ru_nvcsw,
+            involuntary: usage.ru_nivcsw,
+        }
+    }
+    fn since(self, start: Self) -> Self {
+        Self {
+            user: self.user - start.user,
+            system: self.system - start.system,
+            voluntary: self.voluntary - start.voluntary,
+            involuntary: self.involuntary - start.involuntary,
+        }
+    }
 }
 fn histogram() -> Histogram<u64> {
     Histogram::new_with_bounds(1, 60_000_000_000, 3).unwrap()
@@ -289,18 +312,18 @@ async fn measure(client: &impl BenchClient, args: &Args) -> Result<serde_json::V
     client.settle().await?;
     let warm = client.phase(args.concurrency, args.warmup).await?;
     let start = Instant::now();
-    let cpu_start = cpu_seconds();
+    let usage_start = Usage::now();
     let allocations = allocation::Snapshot::now();
     let measured = client.phase(args.concurrency, args.seconds).await?;
     let allocations = allocations.finish();
-    let cpu = cpu_seconds() - cpu_start;
+    let usage = Usage::now().since(usage_start);
     let elapsed = start.elapsed().as_secs_f64();
     let mut result = result_json(
         args,
         warm.len() + args.concurrency as u64,
         &measured,
         elapsed,
-        cpu,
+        usage,
     );
     allocations.attach(&mut result);
     Ok(result)
@@ -310,13 +333,19 @@ fn result_json(
     warmup_requests: u64,
     measured: &Histogram<u64>,
     elapsed: f64,
-    cpu: f64,
+    usage: Usage,
 ) -> serde_json::Value {
+    let cpu = usage.user + usage.system;
+    let requests = measured.len() as f64;
     json!({
         "implementation": args.implementation, "spawned": args.spawned, "tls": args.tls, "fresh": args.fresh,
         "concurrency": args.concurrency, "warmup_requests": warmup_requests, "requests": measured.len(),
-        "elapsed_seconds": elapsed, "requests_per_second": measured.len() as f64 / elapsed,
-        "client_cpu_seconds": cpu, "client_cpu_us_per_request": cpu * 1e6 / measured.len() as f64,
+        "elapsed_seconds": elapsed, "requests_per_second": requests / elapsed,
+        "client_cpu_seconds": cpu, "client_cpu_us_per_request": cpu * 1e6 / requests,
+        "client_user_us_per_request": usage.user * 1e6 / requests,
+        "client_system_us_per_request": usage.system * 1e6 / requests,
+        "client_voluntary_switches_per_request": usage.voluntary as f64 / requests,
+        "client_involuntary_switches_per_request": usage.involuntary as f64 / requests,
         "latency_us": {"p50": measured.value_at_quantile(0.5) as f64 / 1000.0,
             "p90": measured.value_at_quantile(0.9) as f64 / 1000.0,
             "p99": measured.value_at_quantile(0.99) as f64 / 1000.0,
