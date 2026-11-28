@@ -48,7 +48,7 @@ The failing receive is `ResponseReader::probe_viable`. Before reusing an idle co
 
 The diagnostic variant skips that read. At 32 connections it saves 0.67 µs of task clock over HTTP (−6.4%, throughput +6.9%) but only 148 user instructions. Most of the saving is kernel entry and exit, which the host's speculative-execution mitigations make expensive, plus the user-mode IPC the kernel round trip costs. Over HTTPS the probe also drives the TLS receiver, and costs 1.21 µs and 2,053 instructions (throughput +10.0%). At one connection it costs 0.57 µs per response.
 
-The probe is the Async::HTTP viability check that [`design/client-connection.md`](../../design/client-connection.md#one-http-client-pool-contract) requires, and skipping it is a behaviour change. So this change keeps it, and the [first proposal](#proposals) describes a scheduler API that would keep its guarantee in practice without the system call.
+The probe is the Async::HTTP viability check that [`design/client-connection.md`](../../design/client-connection.md#one-http-client-pool-contract) requires, and skipping it is a behaviour change. So this change keeps it. The [first proposal](#proposals) describes a scheduler interface that would skip the system call when cached readiness shows nothing, which the user declined on 2026-11-28.
 
 ### Request head encoding
 
@@ -139,11 +139,13 @@ The `base-call` rows are in the [summary](results/client-gap-20261124/formal/sum
 
 ## Proposals
 
-1. **A readiness-aware immediate read in base-scheduler; recommended.** An established, registered selector reader already caches readiness, including a sticky read-closed bit from `EPOLLRDHUP`. A method such as `SocketStreamReader::try_read_ready_into` could return `WouldBlock` without a system call when neither bit is set, and otherwise read as `try_read_into` does. Backends without cached readiness would fall back to `try_read_into`. base-endpoint's `ReadableStream` would forward it, and its TLS duplex would answer from buffered plaintext and its receiver's last outcome.
+1. **A readiness-aware immediate read in base-scheduler; declined.** An established, registered selector reader already caches readiness, including a sticky read-closed bit from `EPOLLRDHUP`. A method such as `SocketStreamReader::try_read_ready_into` could return `WouldBlock` without a system call when neither bit is set, and otherwise read as `try_read_into` does. Backends without cached readiness would fall back to `try_read_into`. base-endpoint's `ReadableStream` would forward it, and its TLS duplex would answer from buffered plaintext and its receiver's last outcome.
 
    The probe would then see input, EOF and errors as of the worker's last selector poll rather than as of the kernel's current state. That is the window Hyper's idle-connection polling has. A connection idle long enough for the server to close it will almost always have been polled since, unless its worker has been busy for that long without polling, so the probe would still find the close. Per this report's measurements, it would save about 0.7 µs per response over HTTP and 1.2 µs over HTTPS.
 
    This narrows a documented guarantee, so it needs your decision and an update to `design/client-connection.md`. An alternative within base-http alone would probe only connections idle longer than some threshold, as Apache HttpClient's `validateAfterInactivity` does. That needs a clock read per reuse and adds a tunable, so I don't recommend it over the scheduler API.
+
+   Declined by the user on 2026-11-28. base-endpoint's [immediate reads](https://github.com/base-rs/base-endpoint/blob/main/design/stream-immediate-read.md) were added to reach the transport precisely because cached readiness misses closes the kernel has queued while the worker is busy, which its validation tests with the only worker kept busy. A busy worker is when cached readiness is stalest, and a request written onto a connection the server has closed cannot be retried unless it is idempotent, so the probe keeps its guaranteed system call.
 
 2. **A watched-signal fast path in base-endpoint's TLS duplex, then a watched exchange cancellation in base-http.** `EncryptedSocketStreamReader::read_into` and the duplex's waits would use `Cancellation::poll_watched` for watched and never signals, as the selector does. The exchange's reads and writes would then borrow one watched signal. This targets most of the 5.8% of TLS cycles spent in event listeners. Measure it in base-endpoint first.
 
